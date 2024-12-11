@@ -8,27 +8,27 @@ import androidx.compose.ui.text.platform.Font
 
 val poppinsFontFamily = FontFamily(
     Font(
-        resource = "composeResources/linkora.composeapp.generated.resources/font/semibold.otf",
+        resource = "font/semibold.ttf",
         weight = FontWeight.SemiBold
     ),
     Font(
-        resource = "composeResources/linkora.composeapp.generated.resources/font/medium.otf",
+        resource = "font/medium.ttf",
         weight = FontWeight.Medium
     ),
     Font(
-        resource = "composeResources/linkora.composeapp.generated.resources/font/regular.otf",
+        resource = "font/regular.ttf",
         weight = FontWeight.Normal
     )
 )
 
 val playWriteITTradFontFamily = FontFamily(
     Font(
-        "composeResources/linkora.composeapp.generated.resources/font/playwriteittrad.otf",
+        resource = "font/playwriteittrad.ttf",
         weight = FontWeight.Normal
     )
 )
 
-val Typography = Typography(
+val DesktopTypography = Typography(
     titleLarge = TextStyle(fontFamily = poppinsFontFamily, fontWeight = FontWeight.SemiBold),
     titleMedium = TextStyle(fontFamily = poppinsFontFamily, fontWeight = FontWeight.Medium),
     titleSmall = TextStyle(fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal),

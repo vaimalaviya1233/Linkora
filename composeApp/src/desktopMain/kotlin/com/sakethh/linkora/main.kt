@@ -17,6 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,13 +38,13 @@ fun main() = application {
         title = "Linkora",
         undecorated = true
     ) {
-        LinkoraTheme {
+        LinkoraTheme(typography = Typography()) {
             Scaffold(topBar = {
                 WindowDraggableArea {
                     TopDecorator(windowState)
                 }
             }) {
-                App(modifier = Modifier.padding(it))
+                App(modifier = Modifier.padding(it), platform = Platform.Desktop)
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common
+package com.sakethh.linkora.utils
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.gestures.awaitFirstDown

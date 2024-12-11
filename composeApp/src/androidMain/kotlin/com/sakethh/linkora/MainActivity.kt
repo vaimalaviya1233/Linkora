@@ -3,21 +3,16 @@ package com.sakethh.linkora
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import com.sakethh.linkora.ui.theme.AndroidTypography
+import com.sakethh.linkora.ui.theme.LinkoraTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            App()
+            LinkoraTheme(typography = AndroidTypography) {
+                App(platform = Platform.Android)
+            }
         }
     }
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }

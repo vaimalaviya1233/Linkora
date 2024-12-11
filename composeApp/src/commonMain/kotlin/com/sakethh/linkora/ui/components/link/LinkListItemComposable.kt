@@ -40,9 +40,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.LocalPlatformContext
-import com.sakethh.linkora.common.pulsateEffect
 import com.sakethh.linkora.domain.model.Link
 import com.sakethh.linkora.ui.components.CoilImage
+import com.sakethh.linkora.utils.pulsateEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
