@@ -27,7 +27,7 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.sakethh.linkora.theme.LinkoraTheme
+import com.sakethh.linkora.ui.theme.LinkoraTheme
 
 fun main() = application {
     val windowState = rememberWindowState()
