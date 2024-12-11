@@ -17,9 +17,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.OpenInBrowser
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.ImageNotSupported
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,11 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.LocalPlatformContext
+import com.sakethh.linkora.common.pulsateEffect
 import com.sakethh.linkora.domain.model.Link
 import com.sakethh.linkora.ui.components.CoilImage
 
@@ -49,13 +56,16 @@ fun LinkListItemComposable(link: Link) {
                 interactionSource = remember {
                     MutableInteractionSource()
                 }, indication = null,
-                onClick = { },
+                onClick = {
+                    localURIHandler.openUri(link.webURL)
+                },
                 onLongClick = {
                 })
             .padding(start = 15.dp, top = 15.dp)
             .fillMaxWidth()
             .wrapContentHeight()
-            .animateContentSize(),
+            .animateContentSize()
+            .pulsateEffect(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
@@ -70,43 +80,24 @@ fun LinkListItemComposable(link: Link) {
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 16.sp,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(0.65f)
                     .padding(end = 15.dp),
                 maxLines = 4,
                 lineHeight = 20.sp,
                 textAlign = TextAlign.Start,
                 overflow = TextOverflow.Ellipsis
             )
-            if (true) {
-                if (link.imgURL.isNotEmpty()) {
-                    CoilImage(
-                        modifier = Modifier
-                            .width(95.dp)
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(15.dp)),
-                        imgURL = link.imgURL,
-                        userAgent = link.userAgent ?: "",
-                        platformContext = localPlatformContext
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .width(95.dp)
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(15.dp))
-                            .background(MaterialTheme.colorScheme.primary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            imageVector = Icons.Rounded.ImageNotSupported,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(32.dp)
-                        )
-                    }
-                }
-            }/* else if (linkUIComponentParam.isItemSelected.value) {
+            if (link.imgURL.isNotEmpty()) {
+                CoilImage(
+                    modifier = Modifier
+                        .width(95.dp)
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(15.dp)),
+                    imgURL = link.imgURL,
+                    userAgent = link.userAgent ?: "",
+                    platformContext = localPlatformContext
+                )
+            } else {
                 Box(
                     modifier = Modifier
                         .width(95.dp)
@@ -117,13 +108,13 @@ fun LinkListItemComposable(link: Link) {
                 ) {
                     Icon(
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        imageVector = Icons.Rounded.CheckCircle,
+                        imageVector = Icons.Rounded.ImageNotSupported,
                         contentDescription = null,
                         modifier = Modifier
                             .size(32.dp)
                     )
                 }
-            }*/
+            }
         }
         Text(
             modifier = Modifier
@@ -152,63 +143,41 @@ fun LinkListItemComposable(link: Link) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                /* if (!linkUIComponentParam.isSelectionModeEnabled.value) {
-                     Row(
-                         verticalAlignment = Alignment.CenterVertically
-                     ) {
-                         IconButton(onClick = {
-                             linkUIComponentParam.onForceOpenInExternalBrowserClicked()
-                             try {
-                                 localURIHandler.openUri(linkUIComponentParam.webURL)
-                             } catch (_: android.content.ActivityNotFoundException) {
-                                 Toast.makeText(
-                                     context,
-                                     LocalizedStrings.noActivityFoundToHandleIntent.value,
-                                     Toast.LENGTH_SHORT
-                                 ).show()
-                             }
-                         }) {
-                             Icon(
-                                 imageVector = Icons.Outlined.OpenInBrowser,
-                                 contentDescription = null
-                             )
-                         }
-                         IconButton(onClick = {
-                             localClipBoardManager.setText(
-                                 AnnotatedString(linkUIComponentParam.webURL)
-                             )
-                             Toast.makeText(
-                                 context,
-                                 LocalizedStrings.linkCopiedToTheClipboard.value,
-                                 Toast.LENGTH_SHORT
-                             ).show()
-                         }) {
-                             Icon(
-                                 imageVector = Icons.Outlined.ContentCopy,
-                                 contentDescription = null
-                             )
-                         }
-                         IconButton(onClick = {
-                             val intent = Intent().apply {
-                                 action = Intent.ACTION_SEND
-                                 putExtra(Intent.EXTRA_TEXT, linkUIComponentParam.webURL)
-                                 type = "text/plain"
-                             }
-                             val shareIntent = Intent.createChooser(intent, null)
-                             context.startActivity(shareIntent)
-                         }) {
-                             Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
-                         }
-                         IconButton(onClick = {
-                             linkUIComponentParam.onMoreIconClick()
-                         }) {
-                             Icon(
-                                 imageVector = Icons.Filled.MoreVert,
-                                 contentDescription = null
-                             )
-                         }
-                     }
-                 }*/
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = {
+                        localURIHandler.openUri(link.webURL)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.OpenInBrowser,
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = {
+                        localClipBoardManager.setText(
+                            AnnotatedString(link.webURL)
+                        )
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.ContentCopy,
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = {
+
+                    }) {
+                        Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
+                    }
+                    IconButton(onClick = {
+
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = null
+                        )
+                    }
+                }
             }
         }
         HorizontalDivider(
