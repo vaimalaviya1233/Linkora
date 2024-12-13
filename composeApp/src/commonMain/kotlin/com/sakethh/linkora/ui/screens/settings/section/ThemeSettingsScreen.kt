@@ -15,10 +15,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.navigation.NavController
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.core.preferences.AppPreferenceType
 import com.sakethh.linkora.core.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
+import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 
@@ -27,7 +30,8 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectio
 fun ThemeSettingsScreen(
     navController: NavController,
     platform: Platform,
-    shouldFollowSystemThemeComposableVisible: Boolean
+    shouldFollowSystemThemeComposableVisible: Boolean,
+    settingsScreenViewModel: SettingsScreenViewModel
 ) {
     val isSystemInDarkTheme = isSystemInDarkTheme()
     SettingsSectionScaffold(
@@ -42,7 +46,7 @@ fun ThemeSettingsScreen(
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            if (shouldFollowSystemThemeComposableVisible && !AppPreferences.shouldDarkThemeBeEnabled.value) {
+            if (shouldFollowSystemThemeComposableVisible && !AppPreferences.shouldUseForceDarkTheme.value) {
                 item(key = "Follow System Theme") {
                     SettingComponent(
                         SettingComponentParam(
@@ -52,8 +56,11 @@ fun ThemeSettingsScreen(
                             description = null,
                             isSwitchEnabled = AppPreferences.shouldFollowSystemTheme,
                             onSwitchStateChange = {
-                                AppPreferences.shouldFollowSystemTheme.value =
-                                    AppPreferences.shouldFollowSystemTheme.value.not()
+                                AppPreferences.shouldFollowSystemTheme.value = AppPreferences.shouldFollowSystemTheme.value.not()
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),
+                                    it
+                                )
                             }, isIconNeeded = remember {
                                 mutableStateOf(false)
                             }
@@ -69,17 +76,20 @@ fun ThemeSettingsScreen(
                             doesDescriptionExists = false,
                             description = null,
                             isSwitchNeeded = true,
-                            isSwitchEnabled = AppPreferences.shouldDarkThemeBeEnabled,
+                            isSwitchEnabled = AppPreferences.shouldUseForceDarkTheme,
                             onSwitchStateChange = {
-                                AppPreferences.shouldDarkThemeBeEnabled.value =
-                                    AppPreferences.shouldDarkThemeBeEnabled.value.not()
+                                AppPreferences.shouldUseForceDarkTheme.value = AppPreferences.shouldUseForceDarkTheme.value.not()
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    booleanPreferencesKey(AppPreferenceType.USE_DARK_THEME.name),
+                                    it
+                                )
                             }, isIconNeeded = remember {
                                 mutableStateOf(false)
                             })
                     )
                 }
             }
-            if (platform is Platform.Android && (AppPreferences.shouldDarkThemeBeEnabled.value || (isSystemInDarkTheme && AppPreferences.shouldFollowSystemTheme.value))) {
+            if (platform is Platform.Android && (AppPreferences.shouldUseForceDarkTheme.value || (isSystemInDarkTheme && AppPreferences.shouldFollowSystemTheme.value))) {
                 item {
                     SettingComponent(
                         SettingComponentParam(
@@ -87,10 +97,13 @@ fun ThemeSettingsScreen(
                             doesDescriptionExists = false,
                             description = "",
                             isSwitchNeeded = true,
-                            isSwitchEnabled = AppPreferences.shouldFollowAmoledTheme,
+                            isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                             onSwitchStateChange = {
-                                AppPreferences.shouldFollowAmoledTheme.value =
-                                    AppPreferences.shouldFollowAmoledTheme.value.not()
+                                AppPreferences.shouldUseAmoledTheme.value = AppPreferences.shouldUseAmoledTheme.value.not()
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    booleanPreferencesKey(AppPreferenceType.USE_AMOLED_THEME.name),
+                                    it
+                                )
                             }, isIconNeeded = remember {
                                 mutableStateOf(false)
                             })
@@ -105,10 +118,14 @@ fun ThemeSettingsScreen(
                             doesDescriptionExists = true,
                             description = "LocalizedStrings.useDynamicThemingDesc.value",
                             isSwitchNeeded = true,
-                            isSwitchEnabled = AppPreferences.shouldFollowDynamicTheming,
+                            isSwitchEnabled = AppPreferences.shouldUseDynamicTheming,
                             onSwitchStateChange = {
-                                AppPreferences.shouldFollowDynamicTheming.value =
-                                    AppPreferences.shouldFollowDynamicTheming.value.not()
+                                AppPreferences.shouldUseDynamicTheming.value =
+                                    AppPreferences.shouldUseDynamicTheming.value.not()
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    booleanPreferencesKey(AppPreferenceType.USE_DYNAMIC_THEMING.name),
+                                    it
+                                )
                             }, isIconNeeded = remember {
                                 mutableStateOf(false)
                             })

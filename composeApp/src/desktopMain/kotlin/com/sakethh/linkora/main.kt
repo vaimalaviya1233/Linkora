@@ -29,40 +29,57 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.linkora.core.preferences.AppPreferences
+import com.sakethh.linkora.data.LinkoraDataStoreName
+import com.sakethh.linkora.data.createDataStore
+import com.sakethh.linkora.data.repository.PreferencesImpl
+import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
+import com.sakethh.linkora.utils.genericViewModelFactory
 
-fun main() = application {
-    val windowState = rememberWindowState()
-    val navController = rememberNavController()
-    Window(
-        state = windowState,
-        onCloseRequest = ::exitApplication,
-        title = "Linkora",
-        undecorated = true
-    ) {
-        LinkoraTheme(
-            typography = Typography(),
-            colorScheme = if (AppPreferences.shouldFollowSystemTheme.value) {
-                if (isSystemInDarkTheme()) DarkColors else LightColors
-            } else {
-                if (AppPreferences.shouldDarkThemeBeEnabled.value) DarkColors else LightColors
-            }
+fun main() {
+    val dataStorePreference = createDataStore {
+        LinkoraDataStoreName
+    }
+    application {
+        val windowState = rememberWindowState()
+        val navController = rememberNavController()
+        Window(
+            state = windowState,
+            onCloseRequest = ::exitApplication,
+            title = "Ah-ha, represent",
+            undecorated = true
         ) {
-            Scaffold(topBar = {
-                WindowDraggableArea {
-                    TopDecorator(windowState)
+            val settingsScreenViewModel =
+                viewModel<SettingsScreenViewModel>(factory = genericViewModelFactory {
+                    SettingsScreenViewModel(PreferencesImpl(dataStore = dataStorePreference))
+                })
+            AppPreferences.readAll(settingsScreenViewModel.preferencesRepository)
+            LinkoraTheme(
+                typography = Typography(),
+                colorScheme = if (AppPreferences.shouldFollowSystemTheme.value) {
+                    if (isSystemInDarkTheme()) DarkColors else LightColors
+                } else {
+                    if (AppPreferences.shouldUseForceDarkTheme.value) DarkColors else LightColors
                 }
-            }) {
-                App(
-                    modifier = Modifier.padding(it),
-                    platform = Platform.Desktop,
-                    navController,
-                    shouldFollowSystemThemeComposableBeVisible = true
-                )
+            ) {
+                Scaffold(topBar = {
+                    WindowDraggableArea {
+                        TopDecorator(windowState)
+                    }
+                }) {
+                    App(
+                        modifier = Modifier.padding(it),
+                        platform = Platform.Desktop,
+                        navController,
+                        shouldFollowSystemThemeComposableBeVisible = true,
+                        settingsScreenViewModel
+                    )
+                }
             }
         }
     }

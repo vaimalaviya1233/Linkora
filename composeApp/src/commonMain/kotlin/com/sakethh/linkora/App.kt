@@ -27,27 +27,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.sakethh.linkora.data.createDataStore
+import com.sakethh.linkora.data.repository.PreferencesImpl
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
+import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
+import com.sakethh.linkora.utils.genericViewModelFactory
 import com.sakethh.linkora.utils.rememberObject
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-@Preview
 fun App(
     modifier: Modifier = Modifier,
     platform: Platform,
     navController: NavHostController,
-    shouldFollowSystemThemeComposableBeVisible: Boolean
+    shouldFollowSystemThemeComposableBeVisible: Boolean,
+    settingsScreenViewModel: SettingsScreenViewModel
 ) {
     val navRouteList = rememberObject {
         listOf(
@@ -67,9 +73,7 @@ fun App(
                             val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                             NavigationRailItem(
                                 modifier = Modifier.padding(
-                                    start = 15.dp,
-                                    end = 15.dp,
-                                    top = 15.dp
+                                    start = 15.dp, end = 15.dp, top = 15.dp
                                 ), selected = isSelected, onClick = {
                                     if (currentRoute?.hasRoute(navRouteItem::class) == false) {
                                         navController.navigate(navRouteItem)
@@ -162,7 +166,8 @@ fun App(
                     ThemeSettingsScreen(
                         navController,
                         platform,
-                        shouldFollowSystemThemeComposableBeVisible
+                        shouldFollowSystemThemeComposableBeVisible,
+                        settingsScreenViewModel
                     )
                 }
             }
