@@ -1,5 +1,6 @@
 package com.sakethh.linkora
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,9 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.navigation.compose.rememberNavController
+import com.sakethh.linkora.core.preferences.AppPreferences
+import com.sakethh.linkora.ui.theme.DarkColors
+import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 
 fun main() = application {
@@ -40,7 +44,14 @@ fun main() = application {
         title = "Linkora",
         undecorated = true
     ) {
-        LinkoraTheme(typography = Typography()) {
+        LinkoraTheme(
+            typography = Typography(),
+            colorScheme = if (AppPreferences.shouldFollowSystemTheme.value) {
+                if (isSystemInDarkTheme()) DarkColors else LightColors
+            } else {
+                if (AppPreferences.shouldDarkThemeBeEnabled.value) DarkColors else LightColors
+            }
+        ) {
             Scaffold(topBar = {
                 WindowDraggableArea {
                     TopDecorator(windowState)
