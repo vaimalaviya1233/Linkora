@@ -3,11 +3,9 @@ package com.sakethh.linkora
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
@@ -56,7 +54,7 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
     }
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
-        if (platform == Platform.Desktop) {
+        if (platform == Platform.Desktop || platform == Platform.AndroidTablet) {
             Row {
                 Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                     Column {
@@ -68,7 +66,9 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                                     end = 15.dp,
                                     top = 15.dp
                                 ), selected = isSelected, onClick = {
-                                    navController.navigate(navRouteItem)
+                                    if (currentRoute?.hasRoute(navRouteItem::class) == false) {
+                                        navController.navigate(navRouteItem)
+                                    }
                                 }, icon = {
                                     Icon(
                                         imageVector = if (isSelected) {
@@ -98,11 +98,10 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                     }
                 }
                 VerticalDivider()
-                Spacer(modifier = Modifier.width(15.dp))
             }
         }
         Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
-            if (platform == Platform.Android) {
+            if (platform == Platform.AndroidMobile) {
                 NavigationBar {
                     navRouteList.forEach { navRouteItem ->
                         val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
@@ -148,7 +147,7 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                     CollectionsScreen()
                 }
                 composable<NavigationRoute.SettingsScreen> {
-                    SettingsScreen()
+                    SettingsScreen(navController)
                 }
             }
         }

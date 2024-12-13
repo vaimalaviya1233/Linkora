@@ -1,5 +1,7 @@
 package com.sakethh.linkora.domain.model
 
+import com.sakethh.linkora.domain.LinkType
+
 data class Link(
     val linkType: LinkType,
     val id: Long,
