@@ -28,22 +28,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.utils.rememberObject
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App(modifier: Modifier = Modifier, platform: Platform) {
-    val navController = rememberNavController()
+fun App(
+    modifier: Modifier = Modifier,
+    platform: Platform,
+    navController: NavHostController,
+    shouldFollowSystemThemeComposableBeVisible: Boolean
+) {
     val navRouteList = rememberObject {
         listOf(
             NavigationRoute.HomeScreen,
@@ -54,7 +59,7 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
     }
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
-        if (platform == Platform.Desktop || platform == Platform.AndroidTablet) {
+        if (platform == Platform.Desktop || platform == Platform.Android.Tablet) {
             Row {
                 Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                     Column {
@@ -77,6 +82,7 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                                                 NavigationRoute.SearchScreen -> Icons.Filled.Search
                                                 NavigationRoute.CollectionsScreen -> Icons.Filled.Folder
                                                 NavigationRoute.SettingsScreen -> Icons.Filled.Settings
+                                                else -> return@NavigationRailItem
                                             }
                                         } else {
                                             when (navRouteItem) {
@@ -84,6 +90,7 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                                                 NavigationRoute.SearchScreen -> Icons.Outlined.Search
                                                 NavigationRoute.CollectionsScreen -> Icons.Outlined.Folder
                                                 NavigationRoute.SettingsScreen -> Icons.Outlined.Settings
+                                                else -> return@NavigationRailItem
                                             }
                                         }, contentDescription = null
                                     )
@@ -101,7 +108,7 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
             }
         }
         Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
-            if (platform == Platform.AndroidMobile) {
+            if (platform == Platform.Android.Mobile) {
                 NavigationBar {
                     navRouteList.forEach { navRouteItem ->
                         val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
@@ -115,6 +122,7 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                                         NavigationRoute.SearchScreen -> Icons.Filled.Search
                                         NavigationRoute.CollectionsScreen -> Icons.Filled.Folder
                                         NavigationRoute.SettingsScreen -> Icons.Filled.Settings
+                                        else -> return@NavigationBarItem
                                     }
                                 } else {
                                     when (navRouteItem) {
@@ -122,12 +130,13 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                                         NavigationRoute.SearchScreen -> Icons.Outlined.Search
                                         NavigationRoute.CollectionsScreen -> Icons.Outlined.Folder
                                         NavigationRoute.SettingsScreen -> Icons.Outlined.Settings
+                                        else -> return@NavigationBarItem
                                     }
                                 }, contentDescription = null
                             )
                         }, label = {
                             Text(
-                                text = navRouteItem.toString(),
+                                text = if (navRouteItem == NavigationRoute.SettingsScreen) "Settings" else navRouteItem.toString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1
                             )
@@ -148,6 +157,13 @@ fun App(modifier: Modifier = Modifier, platform: Platform) {
                 }
                 composable<NavigationRoute.SettingsScreen> {
                     SettingsScreen(navController)
+                }
+                composable<NavigationRoute.ThemeSettingsScreen> {
+                    ThemeSettingsScreen(
+                        navController,
+                        platform,
+                        shouldFollowSystemThemeComposableBeVisible
+                    )
                 }
             }
         }

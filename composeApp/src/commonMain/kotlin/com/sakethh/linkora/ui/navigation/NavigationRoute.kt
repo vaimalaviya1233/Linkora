@@ -7,77 +7,61 @@ sealed interface NavigationRoute {
 
     @Serializable
     data object HomeScreen : NavigationRoute {
-        override fun toString(): String {
-            return "Home"
-        }
+        override fun toString(): String = "Home"
     }
 
     @Serializable
     data object SearchScreen : NavigationRoute {
-        override fun toString(): String {
-            return "Search"
-        }
+        override fun toString(): String = "Search"
     }
 
     @Serializable
     data object CollectionsScreen : NavigationRoute {
-        override fun toString(): String {
-            return "Collections"
-        }
+        override fun toString(): String = "Collections"
     }
 
     @Serializable
-    sealed class SettingsScreen : NavigationRoute {
-        override fun toString(): String {
-            return "Settings"
-        }
+    data object SettingsScreen : NavigationRoute {
+        override fun toString(): String = "Settings"
+    }
 
-        data object ThemeSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "Theme"
-            }
-        }
+    @Serializable
+    data object ThemeSettingsScreen : NavigationRoute {
+        override fun toString(): String = "Theme"
+    }
 
-        data object GeneralSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "General"
-            }
-        }
+    @Serializable
+    data object GeneralSettingsScreen : NavigationRoute {
+        override fun toString(): String = "General"
+    }
 
-        data object AdvancedSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "Advanced"
-            }
-        }
+    @Serializable
+    data object AdvancedSettingsScreen : NavigationRoute {
+        override fun toString(): String = "Advanced"
+    }
 
-        data object LayoutSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "Layout"
-            }
-        }
+    @Serializable
+    data object LayoutSettingsScreen : NavigationRoute {
+        override fun toString(): String = "Layout"
+    }
 
-        data object LanguageSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "Language"
-            }
-        }
+    @Serializable
+    data object LanguageSettingsScreen : NavigationRoute {
+        override fun toString(): String = "Language"
+    }
 
-        data object DataSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "Data"
-            }
-        }
+    @Serializable
+    data object DataSettingsScreen : NavigationRoute {
+        override fun toString(): String = "Data"
+    }
 
-        data object AboutSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "About"
-            }
-        }
+    @Serializable
+    data object AboutSettingsScreen : NavigationRoute {
+        override fun toString(): String = "About"
+    }
 
-        data object AcknowledgementSettingsScreen : SettingsScreen() {
-            override fun toString(): String {
-                return "Acknowledgement"
-            }
-        }
+    @Serializable
+    data object AcknowledgementSettingsScreen : NavigationRoute {
+        override fun toString(): String = "Acknowledgement"
     }
 }

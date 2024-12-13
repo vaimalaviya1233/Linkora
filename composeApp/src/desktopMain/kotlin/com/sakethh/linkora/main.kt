@@ -28,10 +28,12 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.navigation.compose.rememberNavController
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 
 fun main() = application {
     val windowState = rememberWindowState()
+    val navController = rememberNavController()
     Window(
         state = windowState,
         onCloseRequest = ::exitApplication,
@@ -44,7 +46,12 @@ fun main() = application {
                     TopDecorator(windowState)
                 }
             }) {
-                App(modifier = Modifier.padding(it), platform = Platform.Desktop)
+                App(
+                    modifier = Modifier.padding(it),
+                    platform = Platform.Desktop,
+                    navController,
+                    shouldFollowSystemThemeComposableBeVisible = true
+                )
             }
         }
     }

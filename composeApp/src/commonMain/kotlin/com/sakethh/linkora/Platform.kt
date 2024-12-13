@@ -1,5 +1,10 @@
 package com.sakethh.linkora
 
-enum class Platform {
-    AndroidMobile, AndroidTablet, Desktop
+sealed interface Platform {
+    sealed interface Android : Platform {
+        data object Mobile : Android
+        data object Tablet : Android
+    }
+
+    data object Desktop : Platform
 }

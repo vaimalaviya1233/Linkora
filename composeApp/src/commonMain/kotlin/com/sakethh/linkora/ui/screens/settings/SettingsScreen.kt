@@ -29,6 +29,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sakethh.linkora.ui.navigation.NavigationRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +74,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
     return listOf(
         SettingSectionComponentParam(
             onClick = {
-                // navController.navigate()
+                navController.navigate(NavigationRoute.ThemeSettingsScreen)
             },
             sectionTitle = "Theme",
             sectionIcon = Icons.Default.ColorLens
