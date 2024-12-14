@@ -89,7 +89,6 @@ class MainActivity : ComponentActivity() {
                     App(
                         platform = if (isTablet(localConfiguration) || localConfiguration.orientation == Configuration.ORIENTATION_LANDSCAPE) Platform.Android.Tablet else Platform.Android.Mobile,
                         navController = navController,
-                        shouldFollowSystemThemeComposableBeVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q,
                         settingsScreenViewModel = settingsScreenViewModel
                     )
                 }

@@ -10,7 +10,7 @@ class PreferencesImpl(
     val dataStore: DataStore<Preferences>
 ) : PreferencesRepository {
 
-    override suspend fun <T> changeSettingPreferenceValue(
+    override suspend fun <T> changePreferenceValue(
         preferenceKey: Preferences.Key<T>,
         newValue: T
     ) {
@@ -19,7 +19,7 @@ class PreferencesImpl(
         }
     }
 
-    override suspend fun <T> readSettingPreferenceValue(
+    override suspend fun <T> readPreferenceValue(
         preferenceKey: Preferences.Key<T>,
     ): T? {
         return dataStore.data.first()[preferenceKey]

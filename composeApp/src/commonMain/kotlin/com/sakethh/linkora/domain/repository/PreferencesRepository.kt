@@ -4,12 +4,12 @@ import androidx.datastore.preferences.core.Preferences
 
 
 interface PreferencesRepository {
-    suspend fun <T> changeSettingPreferenceValue(
+    suspend fun <T> changePreferenceValue(
         preferenceKey: Preferences.Key<T>,
         newValue: T,
     )
 
-    suspend fun <T> readSettingPreferenceValue(
+    suspend fun <T> readPreferenceValue(
         preferenceKey: Preferences.Key<T>,
     ): T?
 }

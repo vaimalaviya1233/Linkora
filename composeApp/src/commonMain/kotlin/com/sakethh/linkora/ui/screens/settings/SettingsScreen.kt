@@ -81,7 +81,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-
+                navController.navigate(NavigationRoute.GeneralSettingsScreen)
             },
             sectionTitle = "General",
             sectionIcon = Icons.Default.SettingsInputSvideo

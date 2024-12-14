@@ -43,6 +43,7 @@ import com.sakethh.linkora.ui.screens.home.HomeScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
+import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.utils.genericViewModelFactory
 import com.sakethh.linkora.utils.rememberObject
@@ -52,7 +53,6 @@ fun App(
     modifier: Modifier = Modifier,
     platform: Platform,
     navController: NavHostController,
-    shouldFollowSystemThemeComposableBeVisible: Boolean,
     settingsScreenViewModel: SettingsScreenViewModel
 ) {
     val navRouteList = rememberObject {
@@ -140,7 +140,7 @@ fun App(
                             )
                         }, label = {
                             Text(
-                                text = if (navRouteItem == NavigationRoute.SettingsScreen) "Settings" else navRouteItem.toString(),
+                                text = navRouteItem.toString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1
                             )
@@ -166,9 +166,11 @@ fun App(
                     ThemeSettingsScreen(
                         navController,
                         platform,
-                        shouldFollowSystemThemeComposableBeVisible,
                         settingsScreenViewModel
                     )
+                }
+                composable<NavigationRoute.GeneralSettingsScreen> {
+                    GeneralSettingsScreen(navController,settingsScreenViewModel)
                 }
             }
         }

@@ -76,7 +76,6 @@ fun main() {
                         modifier = Modifier.padding(it),
                         platform = Platform.Desktop,
                         navController,
-                        shouldFollowSystemThemeComposableBeVisible = true,
                         settingsScreenViewModel
                     )
                 }

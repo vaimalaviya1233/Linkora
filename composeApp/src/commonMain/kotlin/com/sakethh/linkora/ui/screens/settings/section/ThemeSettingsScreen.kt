@@ -24,13 +24,13 @@ import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.shouldFollowSystemThemeComposableVisible
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeSettingsScreen(
     navController: NavController,
     platform: Platform,
-    shouldFollowSystemThemeComposableVisible: Boolean,
     settingsScreenViewModel: SettingsScreenViewModel
 ) {
     val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -56,7 +56,8 @@ fun ThemeSettingsScreen(
                             description = null,
                             isSwitchEnabled = AppPreferences.shouldFollowSystemTheme,
                             onSwitchStateChange = {
-                                AppPreferences.shouldFollowSystemTheme.value = AppPreferences.shouldFollowSystemTheme.value.not()
+                                AppPreferences.shouldFollowSystemTheme.value =
+                                    AppPreferences.shouldFollowSystemTheme.value.not()
                                 settingsScreenViewModel.changeSettingPreferenceValue(
                                     booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),
                                     it
@@ -78,9 +79,10 @@ fun ThemeSettingsScreen(
                             isSwitchNeeded = true,
                             isSwitchEnabled = AppPreferences.shouldUseForceDarkTheme,
                             onSwitchStateChange = {
-                                AppPreferences.shouldUseForceDarkTheme.value = AppPreferences.shouldUseForceDarkTheme.value.not()
+                                AppPreferences.shouldUseForceDarkTheme.value =
+                                    AppPreferences.shouldUseForceDarkTheme.value.not()
                                 settingsScreenViewModel.changeSettingPreferenceValue(
-                                    booleanPreferencesKey(AppPreferenceType.USE_DARK_THEME.name),
+                                    booleanPreferencesKey(AppPreferenceType.DARK_THEME.name),
                                     it
                                 )
                             }, isIconNeeded = remember {
@@ -99,9 +101,10 @@ fun ThemeSettingsScreen(
                             isSwitchNeeded = true,
                             isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                             onSwitchStateChange = {
-                                AppPreferences.shouldUseAmoledTheme.value = AppPreferences.shouldUseAmoledTheme.value.not()
+                                AppPreferences.shouldUseAmoledTheme.value =
+                                    AppPreferences.shouldUseAmoledTheme.value.not()
                                 settingsScreenViewModel.changeSettingPreferenceValue(
-                                    booleanPreferencesKey(AppPreferenceType.USE_AMOLED_THEME.name),
+                                    booleanPreferencesKey(AppPreferenceType.AMOLED_THEME_STATE.name),
                                     it
                                 )
                             }, isIconNeeded = remember {
@@ -123,7 +126,7 @@ fun ThemeSettingsScreen(
                                 AppPreferences.shouldUseDynamicTheming.value =
                                     AppPreferences.shouldUseDynamicTheming.value.not()
                                 settingsScreenViewModel.changeSettingPreferenceValue(
-                                    booleanPreferencesKey(AppPreferenceType.USE_DYNAMIC_THEMING.name),
+                                    booleanPreferencesKey(AppPreferenceType.DYNAMIC_THEMING.name),
                                     it
                                 )
                             }, isIconNeeded = remember {

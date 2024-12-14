@@ -12,4 +12,4 @@ fun createDataStore(path: () -> String): DataStore<Preferences> =
         }
     )
 
-internal const val LinkoraDataStoreName = "linkora.preferences_pb"
+internal const val LinkoraDataStoreName = "linkoraDataStore.preferences_pb"
