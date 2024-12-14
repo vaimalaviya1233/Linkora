@@ -21,22 +21,21 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sakethh.linkora.data.createDataStore
-import com.sakethh.linkora.data.repository.PreferencesImpl
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreen
@@ -46,8 +45,10 @@ import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
-import com.sakethh.linkora.utils.genericViewModelFactory
+import com.sakethh.linkora.utils.UIEvent
+import com.sakethh.linkora.utils.UiEventManager
 import com.sakethh.linkora.utils.rememberObject
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun App(
@@ -56,6 +57,18 @@ fun App(
     navController: NavHostController,
     settingsScreenViewModel: SettingsScreenViewModel
 ) {
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+    LaunchedEffect(Unit) {
+        UiEventManager.uiEventsReadOnlyChannel.collectLatest {
+            when (it) {
+                is UIEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(message = it.message)
+                }
+            }
+        }
+    }
     val navRouteList = rememberObject {
         listOf(
             NavigationRoute.HomeScreen,
@@ -112,44 +125,47 @@ fun App(
                 VerticalDivider()
             }
         }
-        Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
-            if (platform == Platform.Android.Mobile) {
-                NavigationBar {
-                    navRouteList.forEach { navRouteItem ->
-                        val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
-                        NavigationBarItem(selected = isSelected, onClick = {
-                            navController.navigate(navRouteItem)
-                        }, icon = {
-                            Icon(
-                                imageVector = if (isSelected) {
-                                    when (navRouteItem) {
-                                        NavigationRoute.HomeScreen -> Icons.Filled.Home
-                                        NavigationRoute.SearchScreen -> Icons.Filled.Search
-                                        NavigationRoute.CollectionsScreen -> Icons.Filled.Folder
-                                        NavigationRoute.SettingsScreen -> Icons.Filled.Settings
-                                        else -> return@NavigationBarItem
-                                    }
-                                } else {
-                                    when (navRouteItem) {
-                                        NavigationRoute.HomeScreen -> Icons.Outlined.Home
-                                        NavigationRoute.SearchScreen -> Icons.Outlined.Search
-                                        NavigationRoute.CollectionsScreen -> Icons.Outlined.Folder
-                                        NavigationRoute.SettingsScreen -> Icons.Outlined.Settings
-                                        else -> return@NavigationBarItem
-                                    }
-                                }, contentDescription = null
-                            )
-                        }, label = {
-                            Text(
-                                text = navRouteItem.toString(),
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1
-                            )
-                        })
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(snackbarHostState)
+            }, modifier = Modifier.fillMaxSize(), bottomBar = {
+                if (platform == Platform.Android.Mobile) {
+                    NavigationBar {
+                        navRouteList.forEach { navRouteItem ->
+                            val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
+                            NavigationBarItem(selected = isSelected, onClick = {
+                                navController.navigate(navRouteItem)
+                            }, icon = {
+                                Icon(
+                                    imageVector = if (isSelected) {
+                                        when (navRouteItem) {
+                                            NavigationRoute.HomeScreen -> Icons.Filled.Home
+                                            NavigationRoute.SearchScreen -> Icons.Filled.Search
+                                            NavigationRoute.CollectionsScreen -> Icons.Filled.Folder
+                                            NavigationRoute.SettingsScreen -> Icons.Filled.Settings
+                                            else -> return@NavigationBarItem
+                                        }
+                                    } else {
+                                        when (navRouteItem) {
+                                            NavigationRoute.HomeScreen -> Icons.Outlined.Home
+                                            NavigationRoute.SearchScreen -> Icons.Outlined.Search
+                                            NavigationRoute.CollectionsScreen -> Icons.Outlined.Folder
+                                            NavigationRoute.SettingsScreen -> Icons.Outlined.Settings
+                                            else -> return@NavigationBarItem
+                                        }
+                                    }, contentDescription = null
+                                )
+                            }, label = {
+                                Text(
+                                    text = navRouteItem.toString(),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    maxLines = 1
+                                )
+                            })
+                        }
                     }
                 }
-            }
-        }) {
+            }) {
             NavHost(navController = navController, startDestination = NavigationRoute.HomeScreen) {
                 composable<NavigationRoute.HomeScreen> {
                     HomeScreen()
@@ -171,10 +187,13 @@ fun App(
                     )
                 }
                 composable<NavigationRoute.GeneralSettingsScreen> {
-                    GeneralSettingsScreen(navController,settingsScreenViewModel)
+                    GeneralSettingsScreen(navController, settingsScreenViewModel)
                 }
                 composable<NavigationRoute.LayoutSettingsScreen> {
-                    LayoutSettingsScreen(navController = navController, settingsScreenViewModel = settingsScreenViewModel)
+                    LayoutSettingsScreen(
+                        navController = navController,
+                        settingsScreenViewModel = settingsScreenViewModel
+                    )
                 }
             }
         }
