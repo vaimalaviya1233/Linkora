@@ -41,7 +41,7 @@ import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

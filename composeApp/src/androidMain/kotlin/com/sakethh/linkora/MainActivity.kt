@@ -23,7 +23,7 @@ import com.sakethh.linkora.ui.theme.AndroidTypography
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
-import com.sakethh.linkora.utils.genericViewModelFactory
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.utils.isTablet
 
 class MainActivity : ComponentActivity() {
@@ -87,7 +87,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 Surface {
                     App(
-                        platform = if (isTablet(localConfiguration) || localConfiguration.orientation == Configuration.ORIENTATION_LANDSCAPE) Platform.Android.Tablet else Platform.Android.Mobile,
                         navController = navController,
                         settingsScreenViewModel = settingsScreenViewModel
                     )

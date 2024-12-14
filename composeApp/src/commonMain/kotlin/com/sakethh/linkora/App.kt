@@ -45,15 +45,15 @@ import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
-import com.sakethh.linkora.utils.UIEvent
-import com.sakethh.linkora.utils.UiEventManager
-import com.sakethh.linkora.utils.rememberObject
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UiEventManager
+import com.sakethh.linkora.ui.utils.rememberObject
+import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun App(
     modifier: Modifier = Modifier,
-    platform: Platform,
     navController: NavHostController,
     settingsScreenViewModel: SettingsScreenViewModel
 ) {
@@ -79,10 +79,10 @@ fun App(
     }
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
-        if (platform == Platform.Desktop || platform == Platform.Android.Tablet) {
+        if (platform() == Platform.Desktop || platform() == Platform.Android.Tablet) {
             Row {
-                Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                    Column {
+                Box(modifier = Modifier.fillMaxHeight()) {
+                    Column(modifier = Modifier.align(Alignment.Center)) {
                         navRouteList.forEach { navRouteItem ->
                             val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                             NavigationRailItem(
@@ -129,7 +129,7 @@ fun App(
             snackbarHost = {
                 SnackbarHost(snackbarHostState)
             }, modifier = Modifier.fillMaxSize(), bottomBar = {
-                if (platform == Platform.Android.Mobile) {
+                if (platform() == Platform.Android.Mobile) {
                     NavigationBar {
                         navRouteList.forEach { navRouteItem ->
                             val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
@@ -182,7 +182,6 @@ fun App(
                 composable<NavigationRoute.ThemeSettingsScreen> {
                     ThemeSettingsScreen(
                         navController,
-                        platform,
                         settingsScreenViewModel
                     )
                 }

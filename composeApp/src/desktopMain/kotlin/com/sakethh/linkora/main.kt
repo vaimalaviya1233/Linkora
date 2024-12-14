@@ -40,7 +40,7 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.DesktopTypography
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
-import com.sakethh.linkora.utils.genericViewModelFactory
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 
 fun main() {
     val dataStorePreference = createDataStore {
@@ -75,7 +75,6 @@ fun main() {
                 }) {
                     App(
                         modifier = Modifier.padding(it),
-                        platform = Platform.Desktop,
                         navController,
                         settingsScreenViewModel
                     )

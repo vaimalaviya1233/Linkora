@@ -1,4 +1,4 @@
-package com.sakethh.linkora.utils
+package com.sakethh.linkora.ui.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.Saver

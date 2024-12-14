@@ -1,4 +1,4 @@
-package com.sakethh.linkora.utils
+package com.sakethh.linkora.ui.utils
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

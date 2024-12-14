@@ -11,7 +11,7 @@ import com.sakethh.linkora.domain.repository.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.Sorting
 import com.sakethh.linkora.ui.navigation.NavigationRoute
-import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.core.utils.Constants
 import com.sakethh.shouldFollowSystemThemeComposableVisible
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.joinAll

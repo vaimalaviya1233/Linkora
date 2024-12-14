@@ -24,15 +24,16 @@ import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.platform
 import com.sakethh.shouldFollowSystemThemeComposableVisible
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeSettingsScreen(
     navController: NavController,
-    platform: Platform,
     settingsScreenViewModel: SettingsScreenViewModel
 ) {
+    val platform = platform()
     val isSystemInDarkTheme = isSystemInDarkTheme()
     SettingsSectionScaffold(
         topAppBarText = "Theme",

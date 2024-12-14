@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.sakethh.linkora.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
