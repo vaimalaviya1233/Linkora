@@ -43,6 +43,9 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.androidx.datastore.preferences.core)
             implementation(libs.lifecycle.viewmodel.compose)
+            implementation(libs.adaptive)
+            implementation(libs.adaptive.layout)
+            implementation(libs.adaptive.navigation)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
