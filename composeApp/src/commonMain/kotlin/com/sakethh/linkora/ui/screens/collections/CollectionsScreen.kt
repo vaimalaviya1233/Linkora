@@ -3,6 +3,7 @@ package com.sakethh.linkora.ui.screens.collections
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.outlined.DatasetLinked
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.HorizontalDivider
@@ -30,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -60,7 +63,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3AdaptiveApi::class,
     ExperimentalComposeUiApi::class
 )
 @Composable
@@ -133,8 +137,7 @@ fun CollectionsScreen() {
                 })
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.25f))
             }
-        }
-    ) { padding ->
+        }) { padding ->
         val listDetailPaneNavigator =
             rememberListDetailPaneScaffoldNavigator<SelectedCollectionInfo>()
         ListDetailPaneScaffold(
@@ -148,15 +151,19 @@ fun CollectionsScreen() {
                             name = "All Links",
                             icon = Icons.Outlined.DatasetLinked,
                             onClick = {
-
-                            })
+                                listDetailPaneNavigator.navigateTo(
+                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
+                                        name = "All Links", id = -1
+                                    )
+                                )
+                            },
+                            listDetailPaneNavigator.currentDestination?.content?.id == (-1).toLong()
+                        )
                     }
                     item {
                         HorizontalDivider(
                             modifier = Modifier.padding(
-                                start = 20.dp,
-                                top = 15.dp,
-                                bottom = 10.dp
+                                start = 20.dp, top = 15.dp, bottom = 10.dp
                             ),
                             thickness = 0.5.dp,
                             color = MaterialTheme.colorScheme.outline.copy(0.25f)
@@ -167,32 +174,48 @@ fun CollectionsScreen() {
                             name = "Saved Links",
                             icon = Icons.Outlined.Link,
                             onClick = { ->
-
-                            })
+                                listDetailPaneNavigator.navigateTo(
+                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
+                                        name = "Saved Links", id = -2
+                                    )
+                                )
+                            },
+                            listDetailPaneNavigator.currentDestination?.content?.id == (-2).toLong()
+                        )
                     }
                     item {
                         DefaultFolderComponent(
                             name = "Important Links",
                             icon = Icons.Outlined.StarOutline,
                             onClick = { ->
-
-                            })
+                                listDetailPaneNavigator.navigateTo(
+                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
+                                        name = "Important Links", id = -3
+                                    )
+                                )
+                            },
+                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == (-3).toLong()
+                        )
                     }
                     item {
                         DefaultFolderComponent(
                             name = "Archive",
                             icon = Icons.Outlined.Archive,
                             onClick = { ->
-
-                            })
+                                listDetailPaneNavigator.navigateTo(
+                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
+                                        name = "Archive", id = -4
+                                    )
+                                )
+                            },
+                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == (-4).toLong()
+                        )
 
                     }
                     item {
                         HorizontalDivider(
                             modifier = Modifier.padding(
-                                start = 20.dp,
-                                top = 15.dp,
-                                bottom = 10.dp
+                                start = 20.dp, top = 15.dp, bottom = 10.dp
                             ),
                             thickness = 0.5.dp,
                             color = MaterialTheme.colorScheme.outline.copy(0.25f)
@@ -225,17 +248,12 @@ fun CollectionsScreen() {
                         FolderComponent(
                             FolderComponentParam(
                                 folder = Folder(
-                                    name = "Folder $it",
-                                    note = "",
-                                    parentFolderId = null,
-                                    id = 0L
+                                    name = "Folder $it", note = "", parentFolderId = null, id = 0L
                                 ),
                                 onClick = { ->
                                     listDetailPaneNavigator.navigateTo(
-                                        ListDetailPaneScaffoldRole.Detail,
-                                        SelectedCollectionInfo(
-                                            name = "Folder $it",
-                                            id = it.toLong()
+                                        ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
+                                            name = "Folder $it", id = it.toLong()
                                         )
                                     )
                                 },
@@ -246,47 +264,47 @@ fun CollectionsScreen() {
                                 },
                                 showMoreIcon = rememberSaveable {
                                     mutableStateOf(true)
-                                }
-                            ))
+                                })
+                        )
                     }
                 }
             },
             detailPane = {
-                if (listDetailPaneNavigator.currentDestination?.content == null) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Select one of the Collections",
-                            style = MaterialTheme.typography.titleMedium
+                Row(modifier = Modifier.fillMaxSize()) {
+                    VerticalDivider()
+                    if (listDetailPaneNavigator.currentDestination?.content == null) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Select a Collection",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    } else {
+                        CollectionDetailPane(
+                            selectedCollectionInfo = listDetailPaneNavigator.currentDestination?.content!!,
+                            paneNavigator = listDetailPaneNavigator
                         )
                     }
-                } else {
-                    CollectionDetailPane(
-                        selectedCollectionInfo = listDetailPaneNavigator.currentDestination?.content!!,
-                        paneNavigator = listDetailPaneNavigator
-                    )
                 }
-            }
-        )
+            })
         if (shouldScreenTransparencyDecreasedBoxVisible.value) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background.copy(0.95f))
-                    .clickable {
+                modifier = Modifier.fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
                         shouldScreenTransparencyDecreasedBoxVisible.value = false
-                        coroutineScope
-                            .launch {
-                                awaitAll(async {
-                                    rotationAnimation.animateTo(
-                                        -360f, animationSpec = tween(300)
-                                    )
-                                }, async { isMainFabRotated.value = false })
+                        coroutineScope.launch {
+                            awaitAll(async {
+                                rotationAnimation.animateTo(
+                                    -360f, animationSpec = tween(300)
+                                )
+                            }, async { isMainFabRotated.value = false })
+                        }.invokeOnCompletion {
+                            coroutineScope.launch {
+                                rotationAnimation.snapTo(0f)
                             }
-                            .invokeOnCompletion {
-                                coroutineScope.launch {
-                                    rotationAnimation.snapTo(0f)
-                                }
-                            }
+                        }
                     })
         }
     }
@@ -294,33 +312,32 @@ fun CollectionsScreen() {
 
 
 @Composable
-private fun DefaultFolderComponent(name: String, icon: ImageVector, onClick: () -> Unit) {
+private fun DefaultFolderComponent(
+    name: String, icon: ImageVector, onClick: () -> Unit, isSelected: Boolean
+) {
     Card(
-        modifier = Modifier
-            .padding(
-                end = if (platform() == Platform.Android.Mobile) 20.dp else 0.dp,
-                start = 20.dp,
-                top = 15.dp
-            )
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .clickable(interactionSource = remember {
-                MutableInteractionSource()
-            }, indication = null, onClick = {
-                onClick()
-            })
-            .pulsateEffect()
+        modifier = Modifier.padding(
+            end = if (platform() == Platform.Android.Mobile) 20.dp else 0.dp,
+            start = 20.dp,
+            top = 15.dp
+        ).wrapContentHeight().fillMaxWidth().clickable(interactionSource = remember {
+            MutableInteractionSource()
+        }, indication = null, onClick = {
+            onClick()
+        }).pulsateEffect().then(
+            if (isSelected) Modifier.border(
+                width = 2.5.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = CardDefaults.shape
+            ) else Modifier
+        )
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                modifier = Modifier.padding(20.dp),
-                imageVector = icon,
-                contentDescription = null
+                modifier = Modifier.padding(20.dp), imageVector = icon, contentDescription = null
             )
             Text(
-                text = name,
-                style = MaterialTheme.typography.titleSmall,
-                fontSize = 16.sp
+                text = name, style = MaterialTheme.typography.titleSmall, fontSize = 16.sp
             )
         }
     }
