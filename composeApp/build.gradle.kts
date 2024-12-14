@@ -76,6 +76,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    sourceSets["main"].res.srcDirs(
+        "src/commonMain/resources",
+        "src/androidMain/resources"
+    )
 }
 
 dependencies {

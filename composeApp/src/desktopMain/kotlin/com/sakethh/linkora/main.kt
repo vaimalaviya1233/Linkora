@@ -37,6 +37,7 @@ import com.sakethh.linkora.data.createDataStore
 import com.sakethh.linkora.data.repository.PreferencesImpl
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.theme.DarkColors
+import com.sakethh.linkora.ui.theme.DesktopTypography
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.utils.genericViewModelFactory
@@ -60,7 +61,7 @@ fun main() {
                 })
             AppPreferences.readAll(settingsScreenViewModel.preferencesRepository)
             LinkoraTheme(
-                typography = Typography(),
+                typography = DesktopTypography,
                 colorScheme = if (AppPreferences.shouldFollowSystemTheme.value) {
                     if (isSystemInDarkTheme()) DarkColors else LightColors
                 } else {
