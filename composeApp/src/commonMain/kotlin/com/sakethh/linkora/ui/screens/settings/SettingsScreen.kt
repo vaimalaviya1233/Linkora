@@ -95,7 +95,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-
+                navController.navigate(NavigationRoute.LayoutSettingsScreen)
             },
             sectionTitle = "Layout",
             sectionIcon = Icons.Default.Dashboard

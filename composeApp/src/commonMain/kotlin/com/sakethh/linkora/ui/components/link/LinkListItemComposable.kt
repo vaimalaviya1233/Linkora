@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ImageNotSupported
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
@@ -40,32 +42,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.LocalPlatformContext
+import com.sakethh.linkora.core.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.Link
 import com.sakethh.linkora.ui.components.CoilImage
+import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.utils.pulsateEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LinkListItemComposable(link: Link) {
-    val localPlatformContext = LocalPlatformContext.current
+fun LinkListItemComposable(linkUIComponentParam: LinkUIComponentParam,forTitleOnlyView:Boolean) {
     val localClipBoardManager = LocalClipboardManager.current
     val localURIHandler = LocalUriHandler.current
     Column(
         modifier = Modifier
-            .combinedClickable(
-                interactionSource = remember {
-                    MutableInteractionSource()
-                }, indication = null,
-                onClick = {
-                    localURIHandler.openUri(link.webURL)
-                },
+            .background(
+                if (linkUIComponentParam.isItemSelected.value) MaterialTheme.colorScheme.primary.copy(
+                    0.25f
+                ) else Color.Transparent
+            )
+            .combinedClickable(interactionSource = remember {
+                MutableInteractionSource()
+            }, indication = null,
+                onClick = { linkUIComponentParam.onLinkClick() },
                 onLongClick = {
+                    linkUIComponentParam.onLongClick()
                 })
             .padding(start = 15.dp, top = 15.dp)
             .fillMaxWidth()
             .wrapContentHeight()
-            .animateContentSize()
-            .pulsateEffect(),
+            .pulsateEffect()
+            .animateContentSize(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
@@ -76,28 +82,44 @@ fun LinkListItemComposable(link: Link) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = link.linkTitle,
+                text = linkUIComponentParam.link.linkTitle,
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 16.sp,
                 modifier = Modifier
-                    .fillMaxWidth(0.65f)
+                    .fillMaxWidth(if (!linkUIComponentParam.isSelectionModeEnabled.value && forTitleOnlyView) 1f else 0.65f)
                     .padding(end = 15.dp),
                 maxLines = 4,
                 lineHeight = 20.sp,
                 textAlign = TextAlign.Start,
                 overflow = TextOverflow.Ellipsis
             )
-            if (link.imgURL.isNotEmpty()) {
-                CoilImage(
-                    modifier = Modifier
-                        .width(95.dp)
-                        .height(60.dp)
-                        .clip(RoundedCornerShape(15.dp)),
-                    imgURL = link.imgURL,
-                    userAgent = link.userAgent ?: "",
-                    platformContext = localPlatformContext
-                )
-            } else {
+            if (!linkUIComponentParam.isItemSelected.value && !forTitleOnlyView) {
+                if (linkUIComponentParam.link.imgURL.isNotEmpty()) {
+                    CoilImage(
+                        modifier = Modifier
+                            .width(95.dp)
+                            .height(60.dp)
+                            .clip(RoundedCornerShape(15.dp)), imgURL = linkUIComponentParam.link.imgURL, userAgent = linkUIComponentParam.link.userAgent ?: AppPreferences.primaryJsoupUserAgent.value
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .width(95.dp)
+                            .height(60.dp)
+                            .clip(RoundedCornerShape(15.dp))
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            imageVector = Icons.Rounded.ImageNotSupported,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(32.dp)
+                        )
+                    }
+                }
+            } else if (linkUIComponentParam.isItemSelected.value) {
                 Box(
                     modifier = Modifier
                         .width(95.dp)
@@ -108,7 +130,7 @@ fun LinkListItemComposable(link: Link) {
                 ) {
                     Icon(
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        imageVector = Icons.Rounded.ImageNotSupported,
+                        imageVector = Icons.Rounded.CheckCircle,
                         contentDescription = null,
                         modifier = Modifier
                             .size(32.dp)
@@ -121,14 +143,14 @@ fun LinkListItemComposable(link: Link) {
                 .padding(
                     top = 15.dp,
                     end = 15.dp,
-                    bottom = 0.dp
+                    bottom = if (linkUIComponentParam.isSelectionModeEnabled.value) 15.dp else 0.dp
                 )
                 .background(
                     color = MaterialTheme.colorScheme.primary.copy(0.1f),
                     shape = RoundedCornerShape(5.dp)
                 )
                 .padding(5.dp),
-            text = link.baseURL.replace("www.", "").replace("http://", "")
+            text = linkUIComponentParam.link.baseURL.replace("www.", "").replace("http://", "")
                 .replace("https://", ""),
             style = MaterialTheme.typography.titleLarge,
             maxLines = 1,
@@ -143,39 +165,42 @@ fun LinkListItemComposable(link: Link) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = {
-                        localURIHandler.openUri(link.webURL)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.OpenInBrowser,
-                            contentDescription = null
-                        )
-                    }
-                    IconButton(onClick = {
-                        localClipBoardManager.setText(
-                            AnnotatedString(link.webURL)
-                        )
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.ContentCopy,
-                            contentDescription = null
-                        )
-                    }
-                    IconButton(onClick = {
+                if (!linkUIComponentParam.isSelectionModeEnabled.value) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            linkUIComponentParam.onForceOpenInExternalBrowserClicked()
+                            localURIHandler.openUri(linkUIComponentParam.link.webURL)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.OpenInBrowser,
+                                contentDescription = null
+                            )
+                        }
+                        IconButton(onClick = {
+                            localClipBoardManager.setText(
+                                AnnotatedString(linkUIComponentParam.link.webURL)
+                            )
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.ContentCopy,
+                                contentDescription = null
+                            )
+                        }
+                        IconButton(onClick = {
 
-                    }) {
-                        Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
-                    }
-                    IconButton(onClick = {
-
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.MoreVert,
-                            contentDescription = null
-                        )
+                        }) {
+                            Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
+                        }
+                        IconButton(onClick = {
+                            linkUIComponentParam.onMoreIconClick()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             }

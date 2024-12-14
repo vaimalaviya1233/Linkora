@@ -44,6 +44,7 @@ import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.utils.genericViewModelFactory
 import com.sakethh.linkora.utils.rememberObject
@@ -171,6 +172,9 @@ fun App(
                 }
                 composable<NavigationRoute.GeneralSettingsScreen> {
                     GeneralSettingsScreen(navController,settingsScreenViewModel)
+                }
+                composable<NavigationRoute.LayoutSettingsScreen> {
+                    LayoutSettingsScreen(navController = navController, settingsScreenViewModel = settingsScreenViewModel)
                 }
             }
         }
