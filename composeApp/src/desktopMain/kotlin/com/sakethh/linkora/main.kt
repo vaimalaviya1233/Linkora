@@ -18,10 +18,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Window
@@ -47,12 +47,15 @@ fun main() {
         LinkoraDataStoreName
     }
     application {
-        val windowState = rememberWindowState()
+        val windowState = rememberWindowState(
+            width = 1054.dp,
+            height = 600.dp
+        )
         val navController = rememberNavController()
         Window(
             state = windowState,
             onCloseRequest = ::exitApplication,
-            title = "Ah-ha, represent",
+            title = "Linkora",
             undecorated = true
         ) {
             val settingsScreenViewModel =
