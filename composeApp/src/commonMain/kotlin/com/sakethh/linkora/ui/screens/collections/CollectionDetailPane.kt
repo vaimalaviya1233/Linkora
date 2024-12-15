@@ -19,12 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.domain.model.Folder
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun CollectionDetailPane(
-    selectedCollectionInfo: SelectedCollectionInfo,
-    paneNavigator: ThreePaneScaffoldNavigator<SelectedCollectionInfo>
+    folder: Folder,
+    paneNavigator: ThreePaneScaffoldNavigator<Folder>
 ) {
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
@@ -36,7 +37,7 @@ fun CollectionDetailPane(
                 }
             }, title = {
                 Text(
-                    text = selectedCollectionInfo.name,
+                    text = folder.name,
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
@@ -47,7 +48,7 @@ fun CollectionDetailPane(
     }) { padding ->
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
-                text = selectedCollectionInfo.name,
+                text = folder.name,
                 style = MaterialTheme.typography.titleMedium
             )
         }

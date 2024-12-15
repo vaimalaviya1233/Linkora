@@ -50,10 +50,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.core.utils.Constants
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
+import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.folder.FolderComponent
+import com.sakethh.linkora.ui.domain.ScreenType
+import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -95,10 +100,10 @@ fun CollectionsScreen() {
     val areFoldersSelectable = rememberSaveable {
         mutableStateOf(false)
     }
-    val shouldDialogForNewLinkAppear = rememberSaveable {
+    val shouldShowAddLinkDialog = rememberSaveable {
         mutableStateOf(false)
     }
-    val shouldDialogForNewFolderAppear = rememberSaveable {
+    val shouldShowNewFolderDialog = rememberSaveable {
         mutableStateOf(false)
     }
     val shouldSortingBottomSheetAppear = rememberSaveable {
@@ -108,6 +113,8 @@ fun CollectionsScreen() {
     val shouldBtmSheetForNewLinkAdditionBeEnabled = rememberSaveable {
         mutableStateOf(false)
     }
+
+    val listDetailPaneNavigator = rememberListDetailPaneScaffoldNavigator<Folder>()
     Scaffold(
         floatingActionButton = {
             AddItemFab(
@@ -115,8 +122,8 @@ fun CollectionsScreen() {
                     newLinkBottomModalSheetState = btmModalSheetStateForSavingLinks,
                     shouldBtmSheetForNewLinkAdditionBeEnabled = shouldBtmSheetForNewLinkAdditionBeEnabled,
                     shouldScreenTransparencyDecreasedBoxVisible = shouldScreenTransparencyDecreasedBoxVisible,
-                    shouldDialogForNewFolderAppear = shouldDialogForNewFolderAppear,
-                    shouldDialogForNewLinkAppear = shouldDialogForNewLinkAppear,
+                    shouldDialogForNewFolderAppear = shouldShowNewFolderDialog,
+                    shouldDialogForNewLinkAppear = shouldShowAddLinkDialog,
                     isMainFabRotated = isMainFabRotated,
                     rotationAnimation = rotationAnimation,
                     inASpecificScreen = false
@@ -138,8 +145,6 @@ fun CollectionsScreen() {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.25f))
             }
         }) { padding ->
-        val listDetailPaneNavigator =
-            rememberListDetailPaneScaffoldNavigator<SelectedCollectionInfo>()
         ListDetailPaneScaffold(
             modifier = Modifier.padding(padding).fillMaxSize(),
             directive = listDetailPaneNavigator.scaffoldDirective,
@@ -152,12 +157,15 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.DatasetLinked,
                             onClick = {
                                 listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
-                                        name = "All Links", id = -1
+                                    ListDetailPaneScaffoldRole.Detail, Folder(
+                                        name = "All Links",
+                                        id = Constants.ALL_LINKS_ID,
+                                        note = "",
+                                        parentFolderId = null
                                     )
                                 )
                             },
-                            listDetailPaneNavigator.currentDestination?.content?.id == (-1).toLong()
+                            listDetailPaneNavigator.currentDestination?.content?.id == Constants.ALL_LINKS_ID
                         )
                     }
                     item {
@@ -175,12 +183,15 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.Link,
                             onClick = { ->
                                 listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
-                                        name = "Saved Links", id = -2
+                                    ListDetailPaneScaffoldRole.Detail, Folder(
+                                        name = "Saved Links",
+                                        id = Constants.SAVED_LINKS_ID,
+                                        note = "",
+                                        parentFolderId = null
                                     )
                                 )
                             },
-                            listDetailPaneNavigator.currentDestination?.content?.id == (-2).toLong()
+                            listDetailPaneNavigator.currentDestination?.content?.id == Constants.SAVED_LINKS_ID
                         )
                     }
                     item {
@@ -189,12 +200,15 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.StarOutline,
                             onClick = { ->
                                 listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
-                                        name = "Important Links", id = -3
+                                    ListDetailPaneScaffoldRole.Detail, Folder(
+                                        name = "Important Links",
+                                        id = Constants.IMPORTANT_LINKS_ID,
+                                        note = "",
+                                        parentFolderId = null
                                     )
                                 )
                             },
-                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == (-3).toLong()
+                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == Constants.IMPORTANT_LINKS_ID
                         )
                     }
                     item {
@@ -203,12 +217,15 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.Archive,
                             onClick = { ->
                                 listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
-                                        name = "Archive", id = -4
+                                    ListDetailPaneScaffoldRole.Detail, Folder(
+                                        name = "Archive",
+                                        id = Constants.ARCHIVE_ID,
+                                        note = "",
+                                        parentFolderId = null
                                     )
                                 )
                             },
-                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == (-4).toLong()
+                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == Constants.ARCHIVE_ID
                         )
 
                     }
@@ -252,8 +269,11 @@ fun CollectionsScreen() {
                                 ),
                                 onClick = { ->
                                     listDetailPaneNavigator.navigateTo(
-                                        ListDetailPaneScaffoldRole.Detail, SelectedCollectionInfo(
-                                            name = "Folder $it", id = it.toLong()
+                                        ListDetailPaneScaffoldRole.Detail, Folder(
+                                            name = "Folder $it",
+                                            id = it.toLong(),
+                                            note = "",
+                                            parentFolderId = null
                                         )
                                     )
                                 },
@@ -283,7 +303,7 @@ fun CollectionsScreen() {
                         }
                     } else {
                         CollectionDetailPane(
-                            selectedCollectionInfo = listDetailPaneNavigator.currentDestination?.content!!,
+                            folder = listDetailPaneNavigator.currentDestination?.content!!,
                             paneNavigator = listDetailPaneNavigator
                         )
                     }
@@ -308,6 +328,24 @@ fun CollectionsScreen() {
                     })
         }
     }
+    AddANewLinkDialogBox(
+        shouldBeVisible = shouldShowAddLinkDialog,
+        isDataExtractingForTheLink = false,
+        screenType = ScreenType.ROOT_SCREEN,
+        onSaveClick = { saveLinkActionData ->
+
+        })
+
+    AddANewFolderDialogBox(
+        AddNewFolderDialogBoxParam(
+            shouldBeVisible = shouldShowNewFolderDialog,
+            inAChildFolderScreen = listDetailPaneNavigator.currentDestination?.content?.id != null && listDetailPaneNavigator.currentDestination?.content?.id!! > 0,
+            onFolderCreateClick = { folderName, folderNote ->
+
+            },
+            thisFolder = listDetailPaneNavigator.currentDestination?.content
+        )
+    )
 }
 
 
