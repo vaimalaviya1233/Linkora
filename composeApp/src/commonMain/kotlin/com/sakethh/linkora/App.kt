@@ -31,13 +31,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.HomeScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
@@ -46,8 +49,9 @@ import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UiEventManager
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberObject
+import com.sakethh.localDatabase
 import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
 
@@ -60,10 +64,13 @@ fun App(
     val snackbarHostState = remember {
         SnackbarHostState()
     }
+    val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
+        CollectionsScreenVM(LocalFoldersRepoImpl(localDatabase?.foldersDao!!))
+    })
     LaunchedEffect(Unit) {
-        UiEventManager.uiEventsReadOnlyChannel.collectLatest {
+        UIEvent.uiEventsReadOnlyChannel.collectLatest {
             when (it) {
-                is UIEvent.ShowSnackbar -> {
+                is UIEvent.Type.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(message = it.message)
                 }
             }
@@ -166,7 +173,9 @@ fun App(
                     }
                 }
             }) {
-            NavHost(navController = navController, startDestination = NavigationRoute.HomeScreen) {
+            NavHost(
+                navController = navController, startDestination = NavigationRoute.CollectionsScreen
+            ) {
                 composable<NavigationRoute.HomeScreen> {
                     HomeScreen()
                 }
@@ -174,7 +183,7 @@ fun App(
                     SearchScreen()
                 }
                 composable<NavigationRoute.CollectionsScreen> {
-                    CollectionsScreen()
+                    CollectionsScreen(collectionsScreenVM)
                 }
                 composable<NavigationRoute.SettingsScreen> {
                     SettingsScreen(navController)

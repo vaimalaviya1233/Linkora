@@ -3,6 +3,7 @@ package com.sakethh.linkora.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.Link
@@ -20,4 +21,5 @@ abstract class LocalDatabase : RoomDatabase() {
     }
 
     abstract val linksDao: LinksDao
+    abstract val foldersDao: FoldersDao
 }

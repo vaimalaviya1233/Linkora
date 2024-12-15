@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.Archive
@@ -44,11 +45,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.core.utils.Constants
 import com.sakethh.linkora.domain.model.Folder
@@ -70,10 +71,10 @@ import kotlinx.coroutines.launch
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3AdaptiveApi::class,
-    ExperimentalComposeUiApi::class
 )
 @Composable
-fun CollectionsScreen() {
+fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
+    val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
     val shouldRenameDialogBoxBeVisible = rememberSaveable {
         mutableStateOf(false)
     }
@@ -261,26 +262,19 @@ fun CollectionsScreen() {
                             }
                         }
                     }
-                    items(25) {
+                    items(rootFolders.value) { folder ->
                         FolderComponent(
                             FolderComponentParam(
-                                folder = Folder(
-                                    name = "Folder $it", note = "", parentFolderId = null, id = 0L
-                                ),
+                                folder = folder,
                                 onClick = { ->
                                     listDetailPaneNavigator.navigateTo(
-                                        ListDetailPaneScaffoldRole.Detail, Folder(
-                                            name = "Folder $it",
-                                            id = it.toLong(),
-                                            note = "",
-                                            parentFolderId = null
-                                        )
+                                        ListDetailPaneScaffoldRole.Detail, folder
                                     )
                                 },
                                 onLongClick = { -> },
                                 onMoreIconClick = { -> },
                                 isCurrentlyInDetailsView = remember(listDetailPaneNavigator.currentDestination?.content?.id) {
-                                    mutableStateOf(listDetailPaneNavigator.currentDestination?.content?.id == it.toLong())
+                                    mutableStateOf(listDetailPaneNavigator.currentDestination?.content?.id == folder.id)
                                 },
                                 showMoreIcon = rememberSaveable {
                                     mutableStateOf(true)
@@ -340,8 +334,16 @@ fun CollectionsScreen() {
         AddNewFolderDialogBoxParam(
             shouldBeVisible = shouldShowNewFolderDialog,
             inAChildFolderScreen = listDetailPaneNavigator.currentDestination?.content?.id != null && listDetailPaneNavigator.currentDestination?.content?.id!! > 0,
-            onFolderCreateClick = { folderName, folderNote ->
-
+            onFolderCreateClick = { folderName, folderNote, onCreated ->
+                collectionsScreenVM.insertANewFolder(
+                    folder = Folder(
+                        name = folderName,
+                        note = folderNote,
+                        parentFolderId = listDetailPaneNavigator.currentDestination?.content?.parentFolderId
+                    ),
+                    ignoreFolderAlreadyExistsException = false,
+                    onInsertion = onCreated
+                )
             },
             thisFolder = listDetailPaneNavigator.currentDestination?.content
         )

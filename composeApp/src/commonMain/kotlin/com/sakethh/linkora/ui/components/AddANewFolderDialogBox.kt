@@ -22,8 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
-import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UiEventManager
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @Composable
@@ -68,21 +66,10 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                             .fillMaxWidth()
                             .pulsateEffect(), onClick = {
                             isFolderCreationInProgress.value = true
-                            if (folderNameTextFieldValue.value.isEmpty()) {
-                                isFolderCreationInProgress.value = false
-                                addNewFolderDialogBoxParam.shouldBeVisible.value =
-                                    false
-                                UiEventManager.pushUIEvent(UIEvent.ShowSnackbar(message = "LocalizedStrings.folderNameCannnotBeEmpty.value"))
-                            } else {
-                                addNewFolderDialogBoxParam.onFolderCreateClick(
-                                    folderNameTextFieldValue.value,
-                                    noteTextFieldValue.value
-                                )
-                                addNewFolderDialogBoxParam.onCreated()
-                                addNewFolderDialogBoxParam.shouldBeVisible.value =
-                                    false
-                                isFolderCreationInProgress.value = false
-                            }
+                            addNewFolderDialogBoxParam.onFolderCreateClick(
+                                folderNameTextFieldValue.value, noteTextFieldValue.value, {
+                                    addNewFolderDialogBoxParam.shouldBeVisible.value = false
+                                })
                         }) {
                         Text(
                             text = "LocalizedStrings.create.value",
