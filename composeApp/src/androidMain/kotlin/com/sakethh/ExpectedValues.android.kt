@@ -9,7 +9,7 @@ import com.sakethh.linkora.Platform
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.utils.isTablet
 
-actual val shouldFollowSystemThemeComposableVisible: Boolean =
+actual val shouldShowFollowSystemThemeOption: Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 actual val platform: @Composable () -> Platform = {
     if (isTablet(LocalConfiguration.current) || LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) Platform.Android.Tablet else Platform.Android.Mobile

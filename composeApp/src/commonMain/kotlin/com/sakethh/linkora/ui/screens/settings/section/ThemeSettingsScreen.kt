@@ -25,7 +25,7 @@ import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.platform
-import com.sakethh.shouldFollowSystemThemeComposableVisible
+import com.sakethh.shouldShowFollowSystemThemeOption
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +47,7 @@ fun ThemeSettingsScreen(
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            if (shouldFollowSystemThemeComposableVisible && !AppPreferences.shouldUseForceDarkTheme.value) {
+            if (shouldShowFollowSystemThemeOption && !AppPreferences.shouldUseForceDarkTheme.value) {
                 item(key = "Follow System Theme") {
                     SettingComponent(
                         SettingComponentParam(
