@@ -16,7 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.core.preferences.AppPreferenceType
 import com.sakethh.linkora.core.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
-import com.sakethh.linkora.domain.repository.PreferencesRepository
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.launch
 
 class SettingsScreenViewModel(

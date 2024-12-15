@@ -1,9 +1,9 @@
-package com.sakethh.linkora.data.repository
+package com.sakethh.linkora.data.local.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import com.sakethh.linkora.domain.repository.PreferencesRepository
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.flow.first
 
 class PreferencesImpl(

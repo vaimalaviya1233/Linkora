@@ -1,6 +1,5 @@
 package com.sakethh.linkora
 
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,16 +14,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.linkora.core.preferences.AppPreferences
-import com.sakethh.linkora.data.LinkoraDataStoreName
-import com.sakethh.linkora.data.createDataStore
-import com.sakethh.linkora.data.repository.PreferencesImpl
+import com.sakethh.linkora.data.local.LinkoraDataStoreName
+import com.sakethh.linkora.data.local.createDataStore
+import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.theme.AndroidTypography
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
-import com.sakethh.linkora.utils.isTablet
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

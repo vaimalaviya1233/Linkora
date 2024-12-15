@@ -1,4 +1,4 @@
-package com.sakethh.linkora.domain.repository
+package com.sakethh.linkora.domain.repository.local
 
 import androidx.datastore.preferences.core.Preferences
 

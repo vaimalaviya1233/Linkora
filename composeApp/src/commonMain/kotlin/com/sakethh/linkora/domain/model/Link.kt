@@ -1,10 +1,14 @@
 package com.sakethh.linkora.domain.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.sakethh.linkora.domain.LinkType
 
+@Entity
 data class Link(
     val linkType: LinkType,
-    val id: Long,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 1,
     val linkTitle: String,
     val webURL: String,
     val baseURL: String,

@@ -1,4 +1,4 @@
-package com.sakethh.linkora.data
+package com.sakethh.linkora.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
