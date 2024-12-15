@@ -9,5 +9,8 @@ data class Folder(
     val note: String,
     val parentFolderId: Long?,
     @PrimaryKey(autoGenerate = true)
-    val id: Long
-)
+    val id: Long,
+    val isArchived: Boolean = false
+) {
+    class FolderAlreadyExistsException(message: String) : Exception(message)
+}
