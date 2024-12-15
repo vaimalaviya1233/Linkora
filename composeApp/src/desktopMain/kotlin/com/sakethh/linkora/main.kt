@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Window
@@ -93,7 +92,7 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             Text(
                 text = "Linkora",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(start = 15.dp).align(
                     Alignment.CenterStart
                 ),

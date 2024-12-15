@@ -32,5 +32,6 @@ val DesktopTypography = Typography(
     titleLarge = TextStyle(fontFamily = poppinsFontFamily, fontWeight = FontWeight.SemiBold),
     titleMedium = TextStyle(fontFamily = poppinsFontFamily, fontWeight = FontWeight.Medium),
     titleSmall = TextStyle(fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal),
-    bodyMedium = TextStyle(fontFamily = playWriteITTradFontFamily, fontWeight = FontWeight.Normal)
+    bodyMedium = TextStyle(fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal),
+    labelSmall = TextStyle(fontFamily = playWriteITTradFontFamily, fontWeight = FontWeight.Normal)
 )
