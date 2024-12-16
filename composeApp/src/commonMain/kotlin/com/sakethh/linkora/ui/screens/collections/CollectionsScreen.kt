@@ -339,7 +339,9 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                     folder = Folder(
                         name = folderName,
                         note = folderNote,
-                        parentFolderId = listDetailPaneNavigator.currentDestination?.content?.parentFolderId
+                        parentFolderId = if ((listDetailPaneNavigator.currentDestination?.content?.id
+                                ?: 0) > 0
+                        ) listDetailPaneNavigator.currentDestination?.content?.id else null
                     ),
                     ignoreFolderAlreadyExistsException = false,
                     onInsertion = onCreated
