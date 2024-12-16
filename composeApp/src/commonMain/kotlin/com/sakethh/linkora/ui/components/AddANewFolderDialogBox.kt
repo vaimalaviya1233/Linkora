@@ -69,6 +69,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                             addNewFolderDialogBoxParam.onFolderCreateClick(
                                 folderNameTextFieldValue.value, noteTextFieldValue.value, {
                                     addNewFolderDialogBoxParam.shouldBeVisible.value = false
+                                    isFolderCreationInProgress.value = false
                                 })
                         }) {
                         Text(

@@ -11,11 +11,11 @@ interface FoldersRepo {
 
     suspend fun insertMultipleNewFolders(foldersTable: List<Folder>): Flow<Result<Unit>>
 
-    fun getAllArchiveFoldersAsFlow(): Flow<Result<Flow<List<Folder>>>>
+    fun getAllArchiveFoldersAsFlow(): Flow<Result<List<Folder>>>
 
     suspend fun getAllArchiveFoldersAsList(): Flow<Result<List<Folder>>>
 
-    fun getAllRootFoldersAsFlow(): Flow<Result<Flow<List<Folder>>>>
+    fun getAllRootFoldersAsFlow(): Flow<Result<List<Folder>>>
 
     suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>>
 
@@ -38,14 +38,14 @@ interface FoldersRepo {
 
     suspend fun getNewestFolder(): Flow<Result<Folder>>
 
-    fun getFoldersCount(): Flow<Result<Flow<Int>>>
+    fun getFoldersCount(): Flow<Result<Int>>
 
     suspend fun changeTheParentIdOfASpecificFolder(
         sourceFolderId: List<Long>,
         targetParentId: Long?
     ): Flow<Result<Unit>>
 
-    fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<Result<Flow<List<Folder>>>>
+    fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<Result<List<Folder>>>
 
     suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>>
 

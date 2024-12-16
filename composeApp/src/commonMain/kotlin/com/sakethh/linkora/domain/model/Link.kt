@@ -8,7 +8,7 @@ import com.sakethh.linkora.domain.LinkType
 data class Link(
     val linkType: LinkType,
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 1,
+    val id: Long = 0,
     val linkTitle: String,
     val webURL: String,
     val baseURL: String,

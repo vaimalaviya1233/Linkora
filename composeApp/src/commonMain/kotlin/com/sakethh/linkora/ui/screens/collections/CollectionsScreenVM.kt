@@ -11,7 +11,6 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class CollectionsScreenVM(
@@ -25,7 +24,7 @@ class CollectionsScreenVM(
         viewModelScope.launch {
             foldersRepo.getAllRootFoldersAsFlow().collectLatest {
                 it.onSuccess {
-                    _rootFolders.emit(it.first())
+                    _rootFolders.emit(it)
                 }
             }
         }
@@ -35,14 +34,15 @@ class CollectionsScreenVM(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean, onInsertion: () -> Unit
     ) {
         viewModelScope.launch {
-            foldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsException).first()
-                .onSuccess {
+            foldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsException).collectLatest {
+                it.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = "The folder \"${folder.name}\" has been successfully created."))
+                    onInsertion()
                 }.onFailure {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
+                    onInsertion()
                 }
-        }.invokeOnCompletion {
-            onInsertion()
+            }
         }
     }
 }
