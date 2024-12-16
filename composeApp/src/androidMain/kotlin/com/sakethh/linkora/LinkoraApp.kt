@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.driver.AndroidSQLiteDriver
 import com.sakethh.linkora.data.local.LocalDatabase
 import kotlinx.coroutines.Dispatchers
 
@@ -147,7 +147,7 @@ class LinkoraApp : Application() {
         val dbFile = applicationContext.getDatabasePath("${LocalDatabase.NAME}.db")
         return Room.databaseBuilder(
             applicationContext, LocalDatabase::class.java, name = dbFile.absolutePath
-        ).setDriver(BundledSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).addMigrations(
+        ).setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).addMigrations(
             MIGRATION_1_2,
             MIGRATION_2_3,
             MIGRATION_3_4,
