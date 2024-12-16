@@ -57,7 +57,7 @@ object AppPreferences {
     val enableFadedEdgeForNonListViews = mutableStateOf(true)
     val shouldFollowAmoledTheme = mutableStateOf(false)
     val forceSaveWithoutFetchingAnyMetaData = mutableStateOf(false)
-    val startDestination = mutableStateOf(NavigationRoute.HomeScreen.toString())
+    val startDestination = mutableStateOf(NavigationRoute.Root.HomeScreen.toString())
 
     fun readAll(preferencesRepository: PreferencesRepository) = runBlocking {
         supervisorScope {

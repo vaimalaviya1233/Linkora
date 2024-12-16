@@ -137,7 +137,7 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
             Column {
                 TopAppBar(actions = {}, navigationIcon = {}, title = {
                     Text(
-                        text = NavigationRoute.CollectionsScreen.toString(),
+                        text = NavigationRoute.Root.CollectionsScreen.toString(),
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleLarge,
                         fontSize = 18.sp
@@ -334,7 +334,7 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
         AddNewFolderDialogBoxParam(
             shouldBeVisible = shouldShowNewFolderDialog,
             inAChildFolderScreen = listDetailPaneNavigator.currentDestination?.content?.id != null && listDetailPaneNavigator.currentDestination?.content?.id!! > 0,
-            onFolderCreateClick = { folderName, folderNote, onCreated ->
+            onFolderCreateClick = { folderName, folderNote, onCompletion ->
                 collectionsScreenVM.insertANewFolder(
                     folder = Folder(
                         name = folderName,
@@ -343,8 +343,8 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                                 ?: 0) > 0
                         ) listDetailPaneNavigator.currentDestination?.content?.id else null
                     ),
-                    ignoreFolderAlreadyExistsException = false,
-                    onInsertion = onCreated
+                    ignoreFolderAlreadyExistsThrowable = false,
+                    onCompletion = onCompletion
                 )
             },
             thisFolder = listDetailPaneNavigator.currentDestination?.content

@@ -51,7 +51,7 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
     }
 
     SettingsSectionScaffold(
-        topAppBarText = NavigationRoute.GeneralSettingsScreen.toString(),
+        topAppBarText = NavigationRoute.Settings.GeneralSettingsScreen.toString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
@@ -115,7 +115,7 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
             }
         }, text = {
             Column {
-                listOf(NavigationRoute.HomeScreen, NavigationRoute.SearchScreen, NavigationRoute.CollectionsScreen).forEach {
+                listOf(NavigationRoute.Root.HomeScreen, NavigationRoute.Root.SearchScreen, NavigationRoute.Root.CollectionsScreen).forEach {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

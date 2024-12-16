@@ -78,10 +78,10 @@ fun App(
     }
     val navRouteList = rememberObject {
         listOf(
-            NavigationRoute.HomeScreen,
-            NavigationRoute.SearchScreen,
-            NavigationRoute.CollectionsScreen,
-            NavigationRoute.SettingsScreen,
+            NavigationRoute.Root.HomeScreen,
+            NavigationRoute.Root.SearchScreen,
+            NavigationRoute.Root.CollectionsScreen,
+            NavigationRoute.Root.SettingsScreen,
         )
     }
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination
@@ -103,18 +103,18 @@ fun App(
                                     Icon(
                                         imageVector = if (isSelected) {
                                             when (navRouteItem) {
-                                                NavigationRoute.HomeScreen -> Icons.Filled.Home
-                                                NavigationRoute.SearchScreen -> Icons.Filled.Search
-                                                NavigationRoute.CollectionsScreen -> Icons.Filled.Folder
-                                                NavigationRoute.SettingsScreen -> Icons.Filled.Settings
+                                                NavigationRoute.Root.HomeScreen -> Icons.Filled.Home
+                                                NavigationRoute.Root.SearchScreen -> Icons.Filled.Search
+                                                NavigationRoute.Root.CollectionsScreen -> Icons.Filled.Folder
+                                                NavigationRoute.Root.SettingsScreen -> Icons.Filled.Settings
                                                 else -> return@NavigationRailItem
                                             }
                                         } else {
                                             when (navRouteItem) {
-                                                NavigationRoute.HomeScreen -> Icons.Outlined.Home
-                                                NavigationRoute.SearchScreen -> Icons.Outlined.Search
-                                                NavigationRoute.CollectionsScreen -> Icons.Outlined.Folder
-                                                NavigationRoute.SettingsScreen -> Icons.Outlined.Settings
+                                                NavigationRoute.Root.HomeScreen -> Icons.Outlined.Home
+                                                NavigationRoute.Root.SearchScreen -> Icons.Outlined.Search
+                                                NavigationRoute.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                                NavigationRoute.Root.SettingsScreen -> Icons.Outlined.Settings
                                                 else -> return@NavigationRailItem
                                             }
                                         }, contentDescription = null
@@ -146,18 +146,18 @@ fun App(
                                 Icon(
                                     imageVector = if (isSelected) {
                                         when (navRouteItem) {
-                                            NavigationRoute.HomeScreen -> Icons.Filled.Home
-                                            NavigationRoute.SearchScreen -> Icons.Filled.Search
-                                            NavigationRoute.CollectionsScreen -> Icons.Filled.Folder
-                                            NavigationRoute.SettingsScreen -> Icons.Filled.Settings
+                                            NavigationRoute.Root.HomeScreen -> Icons.Filled.Home
+                                            NavigationRoute.Root.SearchScreen -> Icons.Filled.Search
+                                            NavigationRoute.Root.CollectionsScreen -> Icons.Filled.Folder
+                                            NavigationRoute.Root.SettingsScreen -> Icons.Filled.Settings
                                             else -> return@NavigationBarItem
                                         }
                                     } else {
                                         when (navRouteItem) {
-                                            NavigationRoute.HomeScreen -> Icons.Outlined.Home
-                                            NavigationRoute.SearchScreen -> Icons.Outlined.Search
-                                            NavigationRoute.CollectionsScreen -> Icons.Outlined.Folder
-                                            NavigationRoute.SettingsScreen -> Icons.Outlined.Settings
+                                            NavigationRoute.Root.HomeScreen -> Icons.Outlined.Home
+                                            NavigationRoute.Root.SearchScreen -> Icons.Outlined.Search
+                                            NavigationRoute.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                            NavigationRoute.Root.SettingsScreen -> Icons.Outlined.Settings
                                             else -> return@NavigationBarItem
                                         }
                                     }, contentDescription = null
@@ -174,30 +174,30 @@ fun App(
                 }
             }) {
             NavHost(
-                navController = navController, startDestination = NavigationRoute.CollectionsScreen
+                navController = navController, startDestination = NavigationRoute.Root.CollectionsScreen
             ) {
-                composable<NavigationRoute.HomeScreen> {
+                composable<NavigationRoute.Root.HomeScreen> {
                     HomeScreen()
                 }
-                composable<NavigationRoute.SearchScreen> {
+                composable<NavigationRoute.Root.SearchScreen> {
                     SearchScreen()
                 }
-                composable<NavigationRoute.CollectionsScreen> {
+                composable<NavigationRoute.Root.CollectionsScreen> {
                     CollectionsScreen(collectionsScreenVM)
                 }
-                composable<NavigationRoute.SettingsScreen> {
+                composable<NavigationRoute.Root.SettingsScreen> {
                     SettingsScreen(navController)
                 }
-                composable<NavigationRoute.ThemeSettingsScreen> {
+                composable<NavigationRoute.Settings.ThemeSettingsScreen> {
                     ThemeSettingsScreen(
                         navController,
                         settingsScreenViewModel
                     )
                 }
-                composable<NavigationRoute.GeneralSettingsScreen> {
+                composable<NavigationRoute.Settings.GeneralSettingsScreen> {
                     GeneralSettingsScreen(navController, settingsScreenViewModel)
                 }
-                composable<NavigationRoute.LayoutSettingsScreen> {
+                composable<NavigationRoute.Settings.LayoutSettingsScreen> {
                     LayoutSettingsScreen(
                         navController = navController,
                         settingsScreenViewModel = settingsScreenViewModel

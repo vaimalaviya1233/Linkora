@@ -6,62 +6,71 @@ import kotlinx.serialization.Serializable
 sealed interface NavigationRoute {
 
     @Serializable
-    data object HomeScreen : NavigationRoute {
-        override fun toString(): String = "Home"
+    sealed interface Root {
+        @Serializable
+        data object HomeScreen : NavigationRoute {
+            override fun toString(): String = "Home"
+        }
+
+        @Serializable
+        data object SearchScreen : NavigationRoute {
+            override fun toString(): String = "Search"
+        }
+
+        @Serializable
+        data object CollectionsScreen : NavigationRoute {
+            override fun toString(): String = "Collections"
+        }
+
+        @Serializable
+        data object SettingsScreen : Settings {
+            override fun toString(): String = "Settings"
+        }
     }
 
-    @Serializable
-    data object SearchScreen : NavigationRoute {
-        override fun toString(): String = "Search"
-    }
+
 
     @Serializable
-    data object CollectionsScreen : NavigationRoute {
-        override fun toString(): String = "Collections"
-    }
+    sealed interface Settings : NavigationRoute {
 
-    @Serializable
-    data object SettingsScreen : NavigationRoute {
-        override fun toString(): String = "Settings"
-    }
+        @Serializable
+        data object ThemeSettingsScreen : Settings {
+            override fun toString(): String = "Theme"
+        }
 
-    @Serializable
-    data object ThemeSettingsScreen : NavigationRoute {
-        override fun toString(): String = "Theme"
-    }
+        @Serializable
+        data object GeneralSettingsScreen : Settings {
+            override fun toString(): String = "General"
+        }
 
-    @Serializable
-    data object GeneralSettingsScreen : NavigationRoute {
-        override fun toString(): String = "General"
-    }
+        @Serializable
+        data object AdvancedSettingsScreen : Settings {
+            override fun toString(): String = "Advanced"
+        }
 
-    @Serializable
-    data object AdvancedSettingsScreen : NavigationRoute {
-        override fun toString(): String = "Advanced"
-    }
+        @Serializable
+        data object LayoutSettingsScreen : Settings {
+            override fun toString(): String = "Layout"
+        }
 
-    @Serializable
-    data object LayoutSettingsScreen : NavigationRoute {
-        override fun toString(): String = "Layout"
-    }
+        @Serializable
+        data object LanguageSettingsScreen : Settings {
+            override fun toString(): String = "Language"
+        }
 
-    @Serializable
-    data object LanguageSettingsScreen : NavigationRoute {
-        override fun toString(): String = "Language"
-    }
+        @Serializable
+        data object DataSettingsScreen : Settings {
+            override fun toString(): String = "Data"
+        }
 
-    @Serializable
-    data object DataSettingsScreen : NavigationRoute {
-        override fun toString(): String = "Data"
-    }
+        @Serializable
+        data object AboutSettingsScreen : Settings {
+            override fun toString(): String = "About"
+        }
 
-    @Serializable
-    data object AboutSettingsScreen : NavigationRoute {
-        override fun toString(): String = "About"
-    }
-
-    @Serializable
-    data object AcknowledgementSettingsScreen : NavigationRoute {
-        override fun toString(): String = "Acknowledgement"
+        @Serializable
+        data object AcknowledgementSettingsScreen : Settings {
+            override fun toString(): String = "Acknowledgements"
+        }
     }
 }

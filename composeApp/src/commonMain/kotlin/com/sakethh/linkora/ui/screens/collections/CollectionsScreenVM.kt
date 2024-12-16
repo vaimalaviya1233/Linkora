@@ -31,16 +31,16 @@ class CollectionsScreenVM(
     }
 
     fun insertANewFolder(
-        folder: Folder, ignoreFolderAlreadyExistsException: Boolean, onInsertion: () -> Unit
+        folder: Folder, ignoreFolderAlreadyExistsThrowable: Boolean, onCompletion: () -> Unit
     ) {
         viewModelScope.launch {
-            foldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsException).collectLatest {
+            foldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsThrowable).collectLatest {
                 it.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = "The folder \"${folder.name}\" has been successfully created."))
-                    onInsertion()
+                    onCompletion()
                 }.onFailure {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
-                    onInsertion()
+                    onCompletion()
                 }
             }
         }

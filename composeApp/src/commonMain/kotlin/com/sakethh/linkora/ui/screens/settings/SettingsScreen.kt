@@ -74,14 +74,14 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
     return listOf(
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(NavigationRoute.ThemeSettingsScreen)
+                navController.navigate(NavigationRoute.Settings.ThemeSettingsScreen)
             },
             sectionTitle = "Theme",
             sectionIcon = Icons.Default.ColorLens
         ),
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(NavigationRoute.GeneralSettingsScreen)
+                navController.navigate(NavigationRoute.Settings.GeneralSettingsScreen)
             },
             sectionTitle = "General",
             sectionIcon = Icons.Default.SettingsInputSvideo
@@ -95,7 +95,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(NavigationRoute.LayoutSettingsScreen)
+                navController.navigate(NavigationRoute.Settings.LayoutSettingsScreen)
             },
             sectionTitle = "Layout",
             sectionIcon = Icons.Default.Dashboard
@@ -109,7 +109,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-
+                navController.navigate(NavigationRoute.Settings.DataSettingsScreen)
             },
             sectionTitle = "Data",
             sectionIcon = Icons.Default.Storage
