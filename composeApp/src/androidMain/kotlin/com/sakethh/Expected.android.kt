@@ -4,9 +4,11 @@ import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontFamily
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.utils.isTablet
 
 actual val shouldShowFollowSystemThemeOption: Boolean =
@@ -16,3 +18,5 @@ actual val platform: @Composable () -> Platform = {
 }
 actual val BUILD_FLAVOUR: String = platform.toString()
 actual val localDatabase: LocalDatabase? = LinkoraApp.getLocalDb()
+
+actual val poppinsFontFamily: FontFamily = poppinsFontFamily

@@ -77,8 +77,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
-import com.sakethh.linkora.core.preferences.AppPreferences
-import com.sakethh.linkora.core.utils.Constants
+import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.ui.InfoCard
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.SaveLinkActionData
@@ -289,48 +290,7 @@ fun AddANewLinkDialogBox(
                     }
                     item {
                         if (AppPreferences.isAutoDetectTitleForLinksEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value) {
-                            Card(
-                                border = BorderStroke(
-                                    1.dp,
-                                    contentColorFor(MaterialTheme.colorScheme.surface)
-                                ),
-                                colors = CardDefaults.cardColors(containerColor = AlertDialogDefaults.containerColor),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 20.dp, end = 20.dp, top = 15.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight()
-                                        .padding(
-                                            top = 10.dp, bottom = 10.dp
-                                        ),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        contentAlignment = Alignment.CenterStart
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Info,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .padding(
-                                                    start = 10.dp, end = 10.dp
-                                                )
-                                        )
-                                    }
-                                    Text(
-                                        text = if (AppPreferences.isAutoDetectTitleForLinksEnabled.value) "LocalizedStrings.titleWillBeAutomaticallyDetected.value" else "LocalizedStrings.noDataWillBeRetrievedBecauseThisSettingIsEnabled.value",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontSize = 14.sp,
-                                        lineHeight = 18.sp,
-                                        textAlign = TextAlign.Start,
-                                        modifier = Modifier
-                                            .padding(end = 10.dp)
-                                    )
-                                }
-                            }
+                            InfoCard(if (AppPreferences.isAutoDetectTitleForLinksEnabled.value) "LocalizedStrings.titleWillBeAutomaticallyDetected.value" else "LocalizedStrings.noDataWillBeRetrievedBecauseThisSettingIsEnabled.value")
                         }
                     }
                     item {

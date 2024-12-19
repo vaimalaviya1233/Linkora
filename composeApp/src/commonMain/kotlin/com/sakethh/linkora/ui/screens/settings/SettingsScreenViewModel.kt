@@ -13,8 +13,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.core.preferences.AppPreferenceType
-import com.sakethh.linkora.core.preferences.AppPreferences
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.launch

@@ -27,7 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -37,6 +39,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.sakethh.linkora.common.Network
+import com.sakethh.linkora.common.NetworkRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
@@ -48,6 +52,9 @@ import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreenViewModel
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberObject
@@ -67,6 +74,10 @@ fun App(
     val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
         CollectionsScreenVM(LocalFoldersRepoImpl(localDatabase?.foldersDao!!))
     })
+    val serverSetupScreenViewModel =
+        viewModel<ServerSetupScreenViewModel>(factory = genericViewModelFactory {
+            ServerSetupScreenViewModel(NetworkRepoImpl(Network.httpClient))
+        })
     LaunchedEffect(Unit) {
         UIEvent.uiEventsReadOnlyChannel.collectLatest {
             when (it) {
@@ -174,7 +185,8 @@ fun App(
                 }
             }) {
             NavHost(
-                navController = navController, startDestination = NavigationRoute.Root.CollectionsScreen
+                navController = navController,
+                startDestination = NavigationRoute.Settings.Data.ServerSetupScreen
             ) {
                 composable<NavigationRoute.Root.HomeScreen> {
                     HomeScreen()
@@ -202,6 +214,21 @@ fun App(
                         navController = navController,
                         settingsScreenViewModel = settingsScreenViewModel
                     )
+                }
+                composable<NavigationRoute.Settings.DataSettingsScreen> {
+                    DataSettingsScreen(navController)
+                }
+                composable<NavigationRoute.Settings.Data.ServerSetupScreen> {
+                    val initialEntry = rememberSaveable {
+                        mutableStateOf(true)
+                    }
+                    LaunchedEffect(Unit) {
+                        if (initialEntry.value) {
+                            serverSetupScreenViewModel.resetState()
+                            initialEntry.value = false
+                        }
+                    }
+                    ServerSetupScreen(navController, serverSetupScreenViewModel)
                 }
             }
         }

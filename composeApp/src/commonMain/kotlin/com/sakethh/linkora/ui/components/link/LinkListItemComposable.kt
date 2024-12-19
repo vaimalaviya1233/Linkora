@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.core.preferences.AppPreferences
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.utils.pulsateEffect

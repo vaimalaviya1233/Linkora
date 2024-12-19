@@ -1,4 +1,4 @@
-package com.sakethh.linkora.core.utils
+package com.sakethh.linkora.common.utils
 
 object Constants {
     const val LOCALIZATION_SERVER_URL = "https://linkoralocalizationserver.onrender.com/"

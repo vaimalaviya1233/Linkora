@@ -1,6 +1,6 @@
 package com.sakethh.linkora.data.local.repository
 
-import com.sakethh.linkora.core.utils.Constants
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder

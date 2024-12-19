@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Platform
-import com.sakethh.linkora.core.utils.Constants
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox

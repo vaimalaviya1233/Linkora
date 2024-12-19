@@ -72,5 +72,12 @@ sealed interface NavigationRoute {
         data object AcknowledgementSettingsScreen : Settings {
             override fun toString(): String = "Acknowledgements"
         }
+
+        sealed interface Data : Settings {
+            @Serializable
+            data object ServerSetupScreen : Data {
+                override fun toString(): String = "Linkora Server Setup"
+            }
+        }
     }
 }

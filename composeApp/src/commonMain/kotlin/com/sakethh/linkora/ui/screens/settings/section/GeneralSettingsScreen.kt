@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Launch
+import androidx.compose.material.icons.automirrored.filled.Launch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.navigation.NavController
-import com.sakethh.linkora.core.preferences.AppPreferenceType
-import com.sakethh.linkora.core.preferences.AppPreferences
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
@@ -79,7 +79,7 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
                         onAcknowledgmentClick = { uriHandler: UriHandler ->
                             showInitialNavigationChangerDialogBox.value = true
                         },
-                        icon = Icons.Default.Launch,
+                        icon = Icons.AutoMirrored.Filled.Launch,
                         isIconNeeded = mutableStateOf(true),
                     )
                 )

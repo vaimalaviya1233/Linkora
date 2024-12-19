@@ -1,6 +1,7 @@
 package com.sakethh
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.font.FontFamily
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.Platform
@@ -16,3 +17,5 @@ actual val localDatabase: LocalDatabase? =
     File(System.getProperty("java.io.tmpdir"), "${LocalDatabase.NAME}.db").run {
         Room.databaseBuilder<LocalDatabase>(name = this.absolutePath).setDriver(BundledSQLiteDriver()).build()
     }
+
+actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsFontFamily

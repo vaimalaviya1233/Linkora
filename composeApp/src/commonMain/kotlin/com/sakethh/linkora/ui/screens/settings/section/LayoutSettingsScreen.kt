@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.navigation.NavController
-import com.sakethh.linkora.core.preferences.AppPreferenceType
-import com.sakethh.linkora.core.preferences.AppPreferences
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Link
 import com.sakethh.linkora.ui.components.link.GridViewLinkUIComponent

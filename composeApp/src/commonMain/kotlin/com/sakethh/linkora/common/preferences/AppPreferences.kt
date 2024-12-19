@@ -1,4 +1,4 @@
-package com.sakethh.linkora.core.preferences
+package com.sakethh.linkora.common.preferences
 
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -7,14 +7,14 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.BUILD_FLAVOUR
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.Sorting
 import com.sakethh.linkora.ui.navigation.NavigationRoute
-import com.sakethh.linkora.core.utils.Constants
 import com.sakethh.shouldShowFollowSystemThemeOption
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 
@@ -58,10 +58,16 @@ object AppPreferences {
     val shouldFollowAmoledTheme = mutableStateOf(false)
     val forceSaveWithoutFetchingAnyMetaData = mutableStateOf(false)
     val startDestination = mutableStateOf(NavigationRoute.Root.HomeScreen.toString())
+    val serverUrl = mutableStateOf("")
 
     fun readAll(preferencesRepository: PreferencesRepository) = runBlocking {
         supervisorScope {
             listOf(
+                launch {
+                    serverUrl.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_URL.name),
+                    ) ?: serverUrl.value
+                },
                 launch {
                     isHomeScreenEnabled.value = if (preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.HOME_SCREEN_VISIBILITY.name),

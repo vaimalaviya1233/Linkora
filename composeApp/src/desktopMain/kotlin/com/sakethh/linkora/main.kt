@@ -30,7 +30,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.sakethh.linkora.core.preferences.AppPreferences
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.createDataStore
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
