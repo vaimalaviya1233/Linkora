@@ -1,4 +1,4 @@
-package com.sakethh.linkora.ui.screens.settings.section.data.sync
+package com.sakethh.linkora.ui.screens.settings.section.data.sync.setup
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -37,9 +37,11 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.ui.InfoCard
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.domain.SyncType
+import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.navigation.NavigationRoute
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.rememberMutableEnum
 import com.sakethh.poppinsFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,10 +53,10 @@ fun ServerSetupScreen(
         mutableStateOf(AppPreferences.serverUrl.value)
     }
     val securityToken = rememberSaveable {
-        mutableStateOf(AppPreferences.serverUrl.value)
+        mutableStateOf(AppPreferences.serverSecurityToken.value)
     }
-    val selectedSyncType = rememberSaveable {
-        mutableStateOf(SyncType.TwoWay.name)
+    val selectedSyncType = rememberMutableEnum(SyncType::class.java) {
+        mutableStateOf(AppPreferences.serverSyncType.value)
     }
     SettingsSectionScaffold(
         topAppBarText = NavigationRoute.Settings.Data.ServerSetupScreen.toString(),
@@ -101,7 +103,7 @@ fun ServerSetupScreen(
                             style = MaterialTheme.typography.titleLarge
                         )
                     },
-                    readOnly = serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully.not() && serverSetupScreenViewModel.serverSetupState.value.isConnecting.not()
+                    readOnly = serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully && serverSetupScreenViewModel.serverSetupState.value.isConnecting.not()
                 )
             }
 
@@ -116,7 +118,7 @@ fun ServerSetupScreen(
                     label = {
                         Text(text = "Security Token", style = MaterialTheme.typography.titleMedium)
                     },
-                    readOnly = serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully.not() && serverSetupScreenViewModel.serverSetupState.value.isConnecting.not()
+                    readOnly = serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully && serverSetupScreenViewModel.serverSetupState.value.isConnecting.not()
                 )
             }
 
@@ -145,7 +147,7 @@ fun ServerSetupScreen(
                     }
                 }
             }
-            if (false && serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully.not()) {
+            if (serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully.not()) {
                 return@LazyColumn
             }
             item {
@@ -168,7 +170,7 @@ fun ServerSetupScreen(
                         Spacer(Modifier.height(15.dp))
                     }
                     Column(modifier = Modifier.clickable(onClick = {
-                        selectedSyncType.value = syncType.name
+                        selectedSyncType.value = syncType
                     }, indication = null, interactionSource = remember {
                         MutableInteractionSource()
                     }).pulsateEffect().fillMaxWidthWithPadding()) {
@@ -176,8 +178,8 @@ fun ServerSetupScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
-                                selected = syncType.name == selectedSyncType.value, onClick = {
-                                    selectedSyncType.value = syncType.name
+                                selected = syncType == selectedSyncType.value, onClick = {
+                                    selectedSyncType.value = syncType
                                 })
                             Spacer(Modifier.width(5.dp))
                             Text(
@@ -196,7 +198,13 @@ fun ServerSetupScreen(
             item {
                 Button(
                     onClick = {
-
+                        serverSetupScreenViewModel.saveServerConnection(
+                            serverConnection = ServerConnection(
+                                serverUrl = serverUrl.value,
+                                authToken = securityToken.value,
+                                syncType = selectedSyncType.value
+                            )
+                        )
                     }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
                 ) {
                     Text(

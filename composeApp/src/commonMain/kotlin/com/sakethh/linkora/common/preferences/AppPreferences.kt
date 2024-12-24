@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.BUILD_FLAVOUR
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.Sorting
@@ -59,6 +60,8 @@ object AppPreferences {
     val forceSaveWithoutFetchingAnyMetaData = mutableStateOf(false)
     val startDestination = mutableStateOf(NavigationRoute.Root.HomeScreen.toString())
     val serverUrl = mutableStateOf("")
+    val serverSecurityToken = mutableStateOf("")
+    val serverSyncType = mutableStateOf(SyncType.TwoWay)
 
     fun readAll(preferencesRepository: PreferencesRepository) = runBlocking {
         supervisorScope {
@@ -67,6 +70,16 @@ object AppPreferences {
                     serverUrl.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_URL.name),
                     ) ?: serverUrl.value
+                },
+                launch {
+                    serverSecurityToken.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_AUTH_TOKEN.name),
+                    ) ?: serverSecurityToken.value
+                },
+                launch {
+                    serverSyncType.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_SYNC_TYPE.name),
+                    )?.let { SyncType.valueOf(it) } ?: serverSyncType.value
                 },
                 launch {
                     isHomeScreenEnabled.value = if (preferencesRepository.readPreferenceValue(

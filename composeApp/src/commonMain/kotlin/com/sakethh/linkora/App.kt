@@ -53,11 +53,12 @@ import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
-import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
-import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreenViewModel
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.manage.ServerManagementScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.setup.ServerSetupScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.setup.ServerSetupScreenViewModel
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
-import com.sakethh.linkora.ui.utils.rememberObject
+import com.sakethh.linkora.ui.utils.rememberDecodableObject
 import com.sakethh.localDatabase
 import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
@@ -76,7 +77,10 @@ fun App(
     })
     val serverSetupScreenViewModel =
         viewModel<ServerSetupScreenViewModel>(factory = genericViewModelFactory {
-            ServerSetupScreenViewModel(NetworkRepoImpl(Network.httpClient))
+            ServerSetupScreenViewModel(
+                networkRepo = NetworkRepoImpl(Network.httpClient),
+                preferencesRepository = settingsScreenViewModel.preferencesRepository
+            )
         })
     LaunchedEffect(Unit) {
         UIEvent.uiEventsReadOnlyChannel.collectLatest {
@@ -87,7 +91,7 @@ fun App(
             }
         }
     }
-    val navRouteList = rememberObject {
+    val navRouteList = rememberDecodableObject {
         listOf(
             NavigationRoute.Root.HomeScreen,
             NavigationRoute.Root.SearchScreen,
@@ -229,6 +233,9 @@ fun App(
                         }
                     }
                     ServerSetupScreen(navController, serverSetupScreenViewModel)
+                }
+                composable<NavigationRoute.Settings.Data.ServerManagementScreen> {
+                    ServerManagementScreen(navController)
                 }
             }
         }

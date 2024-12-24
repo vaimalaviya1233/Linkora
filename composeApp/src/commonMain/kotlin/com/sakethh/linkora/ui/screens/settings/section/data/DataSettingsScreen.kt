@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.DeleteForever
@@ -177,20 +178,39 @@ fun DataSettingsScreen(navController: NavController) {
             }
 
             item {
-                SettingComponent(
-                    SettingComponentParam(
-                        isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "Connect to a Linkora Server",
-                        doesDescriptionExists = true,
-                        description = "By connecting to a Linkora server, you can sync your data and access it on any device using the Linkora app.",
-                        isSwitchNeeded = false,
-                        isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
-                        onSwitchStateChange = {
-                            navController.navigate(NavigationRoute.Settings.Data.ServerSetupScreen)
-                        },
-                        icon = Icons.Default.CloudSync,
-                        shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
-                )
+                if (AppPreferences.serverUrl.value.isBlank()) {
+                    SettingComponent(
+                        SettingComponentParam(
+                            isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                            title = "Connect to a Linkora Server",
+                            doesDescriptionExists = true,
+                            description = "By connecting to a Linkora server, you can sync your data and access it on any device using the Linkora app.",
+                            isSwitchNeeded = false,
+                            isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
+                            onSwitchStateChange = {
+                                navController.navigate(NavigationRoute.Settings.Data.ServerSetupScreen)
+                            },
+                            icon = Icons.Default.CloudSync,
+                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
+                    )
+                } else {
+                    SettingComponent(
+                        SettingComponentParam(
+                            isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                            title = "Manage Linkora Server",
+                            doesDescriptionExists = true,
+                            description = "Your data is synced with the Linkora server. Tap to manage or disconnect.",
+                            isSwitchNeeded = false,
+                            isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
+                            onSwitchStateChange = {
+                                navController.navigate(NavigationRoute.Settings.Data.ServerManagementScreen)
+                            },
+                            icon = Icons.Default.CloudDone,
+                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) }
+                        )
+                    )
+
+                }
             }
 
 

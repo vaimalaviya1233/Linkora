@@ -1,19 +1,24 @@
-package com.sakethh.linkora.ui.screens.settings.section.data.sync
+package com.sakethh.linkora.ui.screens.settings.section.data.sync.setup
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.NetworkRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ServerSetupScreenViewModel(
-    private val networkRepo: NetworkRepo
+    private val networkRepo: NetworkRepo, private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
     val serverSetupState = mutableStateOf(
         ServerSetupState(
@@ -56,6 +61,39 @@ class ServerSetupScreenViewModel(
                     )
                 }
             }
+        }
+    }
+
+    fun saveServerConnection(
+        serverConnection: ServerConnection, onSaved: () -> Unit = {
+            viewModelScope.launch {
+                pushUIEvent(UIEvent.Type.ShowSnackbar("Successfully saved connection details."))
+            }
+        }
+    ) {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(
+                    AppPreferenceType.SERVER_URL.name
+                ), newValue = serverConnection.serverUrl
+            )
+            AppPreferences.serverUrl.value = serverConnection.serverUrl
+
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_AUTH_TOKEN.name),
+                newValue = serverConnection.authToken
+            )
+            AppPreferences.serverSecurityToken.value = serverConnection.authToken
+
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(
+                    AppPreferenceType.SERVER_SYNC_TYPE.name
+                ), newValue = serverConnection.syncType.name
+            )
+            AppPreferences.serverSyncType.value = serverConnection.syncType
+
+        }.invokeOnCompletion {
+            onSaved()
         }
     }
 }

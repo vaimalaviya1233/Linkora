@@ -78,6 +78,11 @@ sealed interface NavigationRoute {
             data object ServerSetupScreen : Data {
                 override fun toString(): String = "Linkora Server Setup"
             }
+
+            @Serializable
+            data object ServerManagementScreen : Data {
+                override fun toString(): String = "Manage Connected Server"
+            }
         }
     }
 }
