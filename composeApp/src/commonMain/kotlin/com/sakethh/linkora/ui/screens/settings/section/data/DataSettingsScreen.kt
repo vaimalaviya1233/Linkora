@@ -36,6 +36,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,13 +47,19 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
-import com.sakethh.linkora.ui.navigation.NavigationRoute
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DataSettingsScreen(navController: NavController) {
+fun DataSettingsScreen(
+    navController: NavController,
+    serverManagementViewModel: ServerManagementViewModel
+) {
     val importModalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isPermissionDialogBoxVisible = rememberSaveable {
         mutableStateOf(false)
@@ -65,9 +72,13 @@ fun DataSettingsScreen(navController: NavController) {
     var importBasedOnJsonFormat = rememberSaveable {
         false
     }
-
+    val shouldServerInfoBtmSheetBeVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val serverInfoBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
     SettingsSectionScaffold(
-        topAppBarText = NavigationRoute.Settings.DataSettingsScreen.toString(),
+        topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
@@ -178,7 +189,7 @@ fun DataSettingsScreen(navController: NavController) {
             }
 
             item {
-                if (AppPreferences.serverUrl.value.isBlank()) {
+                if (AppPreferences.isServerConfigured().not()) {
                     SettingComponent(
                         SettingComponentParam(
                             isIconNeeded = rememberSaveable { mutableStateOf(true) },
@@ -188,7 +199,7 @@ fun DataSettingsScreen(navController: NavController) {
                             isSwitchNeeded = false,
                             isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                             onSwitchStateChange = {
-                                navController.navigate(NavigationRoute.Settings.Data.ServerSetupScreen)
+                                navController.navigate(Navigation.Settings.Data.ServerSetupScreen)
                             },
                             icon = Icons.Default.CloudSync,
                             shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -203,7 +214,10 @@ fun DataSettingsScreen(navController: NavController) {
                             isSwitchNeeded = false,
                             isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                             onSwitchStateChange = {
-                                navController.navigate(NavigationRoute.Settings.Data.ServerManagementScreen)
+                                shouldServerInfoBtmSheetBeVisible.value = true
+                                coroutineScope.launch {
+                                    serverInfoBtmSheetState.expand()
+                                }
                             },
                             icon = Icons.Default.CloudDone,
                             shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) }
@@ -396,5 +410,11 @@ fun DataSettingsScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
+        ServerManagementBottomSheet(
+            serverManagementViewModel = serverManagementViewModel,
+            sheetState = serverInfoBtmSheetState,
+            isVisible = shouldServerInfoBtmSheetBeVisible,
+            navController = navController
+        )
     }
 }

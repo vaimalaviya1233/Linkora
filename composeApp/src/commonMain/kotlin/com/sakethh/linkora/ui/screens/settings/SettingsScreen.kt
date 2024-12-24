@@ -29,7 +29,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.sakethh.linkora.ui.navigation.NavigationRoute
+import com.sakethh.linkora.ui.navigation.Navigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,14 +74,14 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
     return listOf(
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(NavigationRoute.Settings.ThemeSettingsScreen)
+                navController.navigate(Navigation.Settings.ThemeSettingsScreen)
             },
             sectionTitle = "Theme",
             sectionIcon = Icons.Default.ColorLens
         ),
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(NavigationRoute.Settings.GeneralSettingsScreen)
+                navController.navigate(Navigation.Settings.GeneralSettingsScreen)
             },
             sectionTitle = "General",
             sectionIcon = Icons.Default.SettingsInputSvideo
@@ -95,7 +95,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(NavigationRoute.Settings.LayoutSettingsScreen)
+                navController.navigate(Navigation.Settings.LayoutSettingsScreen)
             },
             sectionTitle = "Layout",
             sectionIcon = Icons.Default.Dashboard
@@ -109,7 +109,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(NavigationRoute.Settings.DataSettingsScreen)
+                navController.navigate(Navigation.Settings.DataSettingsScreen)
             },
             sectionTitle = "Data",
             sectionIcon = Icons.Default.Storage

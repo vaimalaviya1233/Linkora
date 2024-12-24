@@ -61,7 +61,7 @@ import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
-import com.sakethh.linkora.ui.navigation.NavigationRoute
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 import kotlinx.coroutines.async
@@ -137,7 +137,7 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
             Column {
                 TopAppBar(actions = {}, navigationIcon = {}, title = {
                     Text(
-                        text = NavigationRoute.Root.CollectionsScreen.toString(),
+                        text = Navigation.Root.CollectionsScreen.toString(),
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleLarge,
                         fontSize = 18.sp

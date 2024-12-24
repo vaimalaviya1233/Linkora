@@ -1,0 +1,152 @@
+package com.sakethh.linkora.ui.screens.settings.section.data.sync
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SettingsRemote
+import androidx.compose.material.icons.filled.SyncAlt
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
+import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
+import com.sakethh.linkora.ui.navigation.Navigation
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ServerManagementBottomSheet(
+    serverManagementViewModel: ServerManagementViewModel,
+    sheetState: SheetState,
+    isVisible: MutableState<Boolean>,
+    navController: NavController
+) {
+    val coroutineScope = rememberCoroutineScope()
+    if (isVisible.value) {
+        ModalBottomSheet(sheetState = sheetState, onDismissRequest = {
+            coroutineScope.launch {
+                sheetState.hide()
+            }.invokeOnCompletion {
+                isVisible.value = false
+            }
+        }) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().bottomNavPaddingAcrossPlatforms()
+            ) {
+                item {
+                    Text(
+                        text = "Manage Connected Server",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 25.dp, start = 15.dp)
+                    )
+                }
+                item {
+                    Spacer(Modifier.height(30.dp))
+                }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidthWithPadding(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.SettingsRemote, contentDescription = null)
+                        Spacer(Modifier.width(15.dp))
+                        Column {
+                            Text(
+                                text = "Currently connected to",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = AppPreferences.serverUrl.value,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(30.dp))
+                }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidthWithPadding(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.SyncAlt, contentDescription = null)
+                        Spacer(Modifier.width(15.dp))
+                        Column {
+                            Text(
+                                text = "Sync Type",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = AppPreferences.serverSyncType.value.asUIString(),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+                }
+                item {
+                    Spacer(Modifier.height(30.dp))
+                    FilledTonalButton(
+                        modifier = Modifier.fillMaxWidthWithPadding(),
+                        onClick = {
+                            navController.navigate(Navigation.Settings.Data.ServerSetupScreen)
+                        }) {
+                        Text(
+                            text = "Edit server configuration",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                }
+                item {
+                    Button(
+                        modifier = Modifier.fillMaxWidthWithPadding(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ), onClick = {
+                            serverManagementViewModel.deleteTheConnection(onDeleted = {
+                                coroutineScope.launch {
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    isVisible.value = false
+                                }
+                            })
+                        }) {
+                        Text(
+                            text = "Delete the connection",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

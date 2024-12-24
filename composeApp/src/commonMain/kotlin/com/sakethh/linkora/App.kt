@@ -42,7 +42,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.Network
 import com.sakethh.linkora.common.NetworkRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
-import com.sakethh.linkora.ui.navigation.NavigationRoute
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.HomeScreen
@@ -53,9 +53,8 @@ import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
-import com.sakethh.linkora.ui.screens.settings.section.data.sync.manage.ServerManagementScreen
-import com.sakethh.linkora.ui.screens.settings.section.data.sync.setup.ServerSetupScreen
-import com.sakethh.linkora.ui.screens.settings.section.data.sync.setup.ServerSetupScreenViewModel
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberDecodableObject
@@ -75,9 +74,9 @@ fun App(
     val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
         CollectionsScreenVM(LocalFoldersRepoImpl(localDatabase?.foldersDao!!))
     })
-    val serverSetupScreenViewModel =
-        viewModel<ServerSetupScreenViewModel>(factory = genericViewModelFactory {
-            ServerSetupScreenViewModel(
+    val serverManagementViewModel =
+        viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
+            ServerManagementViewModel(
                 networkRepo = NetworkRepoImpl(Network.httpClient),
                 preferencesRepository = settingsScreenViewModel.preferencesRepository
             )
@@ -93,10 +92,10 @@ fun App(
     }
     val navRouteList = rememberDecodableObject {
         listOf(
-            NavigationRoute.Root.HomeScreen,
-            NavigationRoute.Root.SearchScreen,
-            NavigationRoute.Root.CollectionsScreen,
-            NavigationRoute.Root.SettingsScreen,
+            Navigation.Root.HomeScreen,
+            Navigation.Root.SearchScreen,
+            Navigation.Root.CollectionsScreen,
+            Navigation.Root.SettingsScreen,
         )
     }
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination
@@ -118,18 +117,18 @@ fun App(
                                     Icon(
                                         imageVector = if (isSelected) {
                                             when (navRouteItem) {
-                                                NavigationRoute.Root.HomeScreen -> Icons.Filled.Home
-                                                NavigationRoute.Root.SearchScreen -> Icons.Filled.Search
-                                                NavigationRoute.Root.CollectionsScreen -> Icons.Filled.Folder
-                                                NavigationRoute.Root.SettingsScreen -> Icons.Filled.Settings
+                                                Navigation.Root.HomeScreen -> Icons.Filled.Home
+                                                Navigation.Root.SearchScreen -> Icons.Filled.Search
+                                                Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
+                                                Navigation.Root.SettingsScreen -> Icons.Filled.Settings
                                                 else -> return@NavigationRailItem
                                             }
                                         } else {
                                             when (navRouteItem) {
-                                                NavigationRoute.Root.HomeScreen -> Icons.Outlined.Home
-                                                NavigationRoute.Root.SearchScreen -> Icons.Outlined.Search
-                                                NavigationRoute.Root.CollectionsScreen -> Icons.Outlined.Folder
-                                                NavigationRoute.Root.SettingsScreen -> Icons.Outlined.Settings
+                                                Navigation.Root.HomeScreen -> Icons.Outlined.Home
+                                                Navigation.Root.SearchScreen -> Icons.Outlined.Search
+                                                Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                                Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
                                                 else -> return@NavigationRailItem
                                             }
                                         }, contentDescription = null
@@ -161,18 +160,18 @@ fun App(
                                 Icon(
                                     imageVector = if (isSelected) {
                                         when (navRouteItem) {
-                                            NavigationRoute.Root.HomeScreen -> Icons.Filled.Home
-                                            NavigationRoute.Root.SearchScreen -> Icons.Filled.Search
-                                            NavigationRoute.Root.CollectionsScreen -> Icons.Filled.Folder
-                                            NavigationRoute.Root.SettingsScreen -> Icons.Filled.Settings
+                                            Navigation.Root.HomeScreen -> Icons.Filled.Home
+                                            Navigation.Root.SearchScreen -> Icons.Filled.Search
+                                            Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
+                                            Navigation.Root.SettingsScreen -> Icons.Filled.Settings
                                             else -> return@NavigationBarItem
                                         }
                                     } else {
                                         when (navRouteItem) {
-                                            NavigationRoute.Root.HomeScreen -> Icons.Outlined.Home
-                                            NavigationRoute.Root.SearchScreen -> Icons.Outlined.Search
-                                            NavigationRoute.Root.CollectionsScreen -> Icons.Outlined.Folder
-                                            NavigationRoute.Root.SettingsScreen -> Icons.Outlined.Settings
+                                            Navigation.Root.HomeScreen -> Icons.Outlined.Home
+                                            Navigation.Root.SearchScreen -> Icons.Outlined.Search
+                                            Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                            Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
                                             else -> return@NavigationBarItem
                                         }
                                     }, contentDescription = null
@@ -190,52 +189,49 @@ fun App(
             }) {
             NavHost(
                 navController = navController,
-                startDestination = NavigationRoute.Settings.Data.ServerSetupScreen
+                startDestination = Navigation.Settings.DataSettingsScreen
             ) {
-                composable<NavigationRoute.Root.HomeScreen> {
+                composable<Navigation.Root.HomeScreen> {
                     HomeScreen()
                 }
-                composable<NavigationRoute.Root.SearchScreen> {
+                composable<Navigation.Root.SearchScreen> {
                     SearchScreen()
                 }
-                composable<NavigationRoute.Root.CollectionsScreen> {
+                composable<Navigation.Root.CollectionsScreen> {
                     CollectionsScreen(collectionsScreenVM)
                 }
-                composable<NavigationRoute.Root.SettingsScreen> {
+                composable<Navigation.Root.SettingsScreen> {
                     SettingsScreen(navController)
                 }
-                composable<NavigationRoute.Settings.ThemeSettingsScreen> {
+                composable<Navigation.Settings.ThemeSettingsScreen> {
                     ThemeSettingsScreen(
                         navController,
                         settingsScreenViewModel
                     )
                 }
-                composable<NavigationRoute.Settings.GeneralSettingsScreen> {
+                composable<Navigation.Settings.GeneralSettingsScreen> {
                     GeneralSettingsScreen(navController, settingsScreenViewModel)
                 }
-                composable<NavigationRoute.Settings.LayoutSettingsScreen> {
+                composable<Navigation.Settings.LayoutSettingsScreen> {
                     LayoutSettingsScreen(
                         navController = navController,
                         settingsScreenViewModel = settingsScreenViewModel
                     )
                 }
-                composable<NavigationRoute.Settings.DataSettingsScreen> {
-                    DataSettingsScreen(navController)
+                composable<Navigation.Settings.DataSettingsScreen> {
+                    DataSettingsScreen(navController, serverManagementViewModel)
                 }
-                composable<NavigationRoute.Settings.Data.ServerSetupScreen> {
+                composable<Navigation.Settings.Data.ServerSetupScreen> {
                     val initialEntry = rememberSaveable {
                         mutableStateOf(true)
                     }
                     LaunchedEffect(Unit) {
                         if (initialEntry.value) {
-                            serverSetupScreenViewModel.resetState()
+                            serverManagementViewModel.resetState()
                             initialEntry.value = false
                         }
                     }
-                    ServerSetupScreen(navController, serverSetupScreenViewModel)
-                }
-                composable<NavigationRoute.Settings.Data.ServerManagementScreen> {
-                    ServerManagementScreen(navController)
+                    ServerSetupScreen(navController, serverManagementViewModel)
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.sakethh.linkora.ui.screens.settings.section.data.sync.setup
+package com.sakethh.linkora.ui.screens.settings.section.data.sync
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,7 +38,7 @@ import com.sakethh.linkora.common.ui.InfoCard
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.ui.domain.model.ServerConnection
-import com.sakethh.linkora.ui.navigation.NavigationRoute
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
@@ -47,7 +47,7 @@ import com.sakethh.poppinsFontFamily
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerSetupScreen(
-    navController: NavController, serverSetupScreenViewModel: ServerSetupScreenViewModel
+    navController: NavController, serverManagementViewModel: ServerManagementViewModel
 ) {
     val serverUrl = rememberSaveable {
         mutableStateOf(AppPreferences.serverUrl.value)
@@ -59,7 +59,7 @@ fun ServerSetupScreen(
         mutableStateOf(AppPreferences.serverSyncType.value)
     }
     SettingsSectionScaffold(
-        topAppBarText = NavigationRoute.Settings.Data.ServerSetupScreen.toString(),
+        topAppBarText = Navigation.Settings.Data.ServerSetupScreen.toString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
@@ -103,7 +103,7 @@ fun ServerSetupScreen(
                             style = MaterialTheme.typography.titleLarge
                         )
                     },
-                    readOnly = serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully && serverSetupScreenViewModel.serverSetupState.value.isConnecting.not()
+                    readOnly = serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully && serverManagementViewModel.serverSetupState.value.isConnecting.not()
                 )
             }
 
@@ -118,16 +118,16 @@ fun ServerSetupScreen(
                     label = {
                         Text(text = "Security Token", style = MaterialTheme.typography.titleMedium)
                     },
-                    readOnly = serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully && serverSetupScreenViewModel.serverSetupState.value.isConnecting.not()
+                    readOnly = serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully && serverManagementViewModel.serverSetupState.value.isConnecting.not()
                 )
             }
 
             item {
-                if (serverSetupScreenViewModel.serverSetupState.value.isConnecting) {
+                if (serverManagementViewModel.serverSetupState.value.isConnecting) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidthWithPadding()
                     )
-                } else if (serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully) {
+                } else if (serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully) {
                     InfoCard(
                         info = "Server Exists and Is Reachable!",
                         paddingValues = PaddingValues(start = 15.dp, end = 15.dp)
@@ -135,7 +135,7 @@ fun ServerSetupScreen(
                 } else {
                     Button(
                         onClick = {
-                            serverSetupScreenViewModel.testServerConnection(
+                            serverManagementViewModel.testServerConnection(
                                 serverUrl = serverUrl.value, token = securityToken.value
                             )
                         }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
@@ -147,7 +147,7 @@ fun ServerSetupScreen(
                     }
                 }
             }
-            if (serverSetupScreenViewModel.serverSetupState.value.isConnectedSuccessfully.not()) {
+            if (serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully.not()) {
                 return@LazyColumn
             }
             item {
@@ -198,7 +198,7 @@ fun ServerSetupScreen(
             item {
                 Button(
                     onClick = {
-                        serverSetupScreenViewModel.saveServerConnection(
+                        serverManagementViewModel.saveServerConnection(
                             serverConnection = ServerConnection(
                                 serverUrl = serverUrl.value,
                                 authToken = securityToken.value,

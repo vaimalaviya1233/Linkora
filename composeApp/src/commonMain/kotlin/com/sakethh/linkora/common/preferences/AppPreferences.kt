@@ -12,7 +12,7 @@ import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.Sorting
-import com.sakethh.linkora.ui.navigation.NavigationRoute
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.shouldShowFollowSystemThemeOption
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -58,10 +58,14 @@ object AppPreferences {
     val enableFadedEdgeForNonListViews = mutableStateOf(true)
     val shouldFollowAmoledTheme = mutableStateOf(false)
     val forceSaveWithoutFetchingAnyMetaData = mutableStateOf(false)
-    val startDestination = mutableStateOf(NavigationRoute.Root.HomeScreen.toString())
+    val startDestination = mutableStateOf(Navigation.Root.HomeScreen.toString())
     val serverUrl = mutableStateOf("")
     val serverSecurityToken = mutableStateOf("")
     val serverSyncType = mutableStateOf(SyncType.TwoWay)
+
+    fun isServerConfigured(): Boolean {
+        return serverUrl.value.isNotBlank()
+    }
 
     fun readAll(preferencesRepository: PreferencesRepository) = runBlocking {
         supervisorScope {

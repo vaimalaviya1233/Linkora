@@ -37,7 +37,7 @@ import androidx.navigation.NavController
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
-import com.sakethh.linkora.ui.navigation.NavigationRoute
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
@@ -51,7 +51,7 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
     }
 
     SettingsSectionScaffold(
-        topAppBarText = NavigationRoute.Settings.GeneralSettingsScreen.toString(),
+        topAppBarText = Navigation.Settings.GeneralSettingsScreen.toString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
@@ -115,7 +115,11 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
             }
         }, text = {
             Column {
-                listOf(NavigationRoute.Root.HomeScreen, NavigationRoute.Root.SearchScreen, NavigationRoute.Root.CollectionsScreen).forEach {
+                listOf(
+                    Navigation.Root.HomeScreen,
+                    Navigation.Root.SearchScreen,
+                    Navigation.Root.CollectionsScreen
+                ).forEach {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

@@ -2,9 +2,13 @@ package com.sakethh.linkora.common.utils
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.sakethh.linkora.Platform
+import com.sakethh.platform
 
 fun String?.ifNullOrBlank(string: () -> String): String {
     return if (this.isNullOrBlank()) {
@@ -25,4 +29,13 @@ fun Modifier.fillMaxWidthWithPadding(
     )
 ): Modifier {
     return this.fillMaxWidth().padding(paddingValues)
+}
+
+@Composable
+fun Modifier.bottomNavPaddingAcrossPlatforms(): Modifier {
+    return if (platform() is Platform.Android) {
+        this.navigationBarsPadding()
+    } else {
+        this.padding(bottom = 10.dp)
+    }
 }

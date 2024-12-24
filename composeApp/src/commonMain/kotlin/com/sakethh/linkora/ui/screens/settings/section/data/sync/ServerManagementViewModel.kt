@@ -1,4 +1,4 @@
-package com.sakethh.linkora.ui.screens.settings.section.data.sync.setup
+package com.sakethh.linkora.ui.screens.settings.section.data.sync
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
@@ -17,7 +18,7 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ServerSetupScreenViewModel(
+class ServerManagementViewModel(
     private val networkRepo: NetworkRepo, private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
     val serverSetupState = mutableStateOf(
@@ -94,6 +95,33 @@ class ServerSetupScreenViewModel(
 
         }.invokeOnCompletion {
             onSaved()
+        }
+    }
+
+    fun deleteTheConnection(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(
+                    AppPreferenceType.SERVER_URL.name
+                ), newValue = ""
+            )
+            AppPreferences.serverUrl.value = ""
+
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_AUTH_TOKEN.name),
+                newValue = ""
+            )
+            AppPreferences.serverSecurityToken.value = ""
+
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(
+                    AppPreferenceType.SERVER_SYNC_TYPE.name
+                ), newValue = ""
+            )
+            AppPreferences.serverSyncType.value = SyncType.TwoWay
+            pushUIEvent(UIEvent.Type.ShowSnackbar("Deleted the server connection successfully."))
+        }.invokeOnCompletion {
+            onDeleted()
         }
     }
 }

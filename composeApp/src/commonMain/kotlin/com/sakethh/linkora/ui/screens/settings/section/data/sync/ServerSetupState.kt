@@ -1,4 +1,4 @@
-package com.sakethh.linkora.ui.screens.settings.section.data.sync.setup
+package com.sakethh.linkora.ui.screens.settings.section.data.sync
 
 data class ServerSetupState(
     val isConnecting: Boolean,

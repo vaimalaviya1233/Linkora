@@ -3,22 +3,22 @@ package com.sakethh.linkora.ui.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed interface NavigationRoute {
+sealed interface Navigation {
 
     @Serializable
     sealed interface Root {
         @Serializable
-        data object HomeScreen : NavigationRoute {
+        data object HomeScreen : Navigation {
             override fun toString(): String = "Home"
         }
 
         @Serializable
-        data object SearchScreen : NavigationRoute {
+        data object SearchScreen : Navigation {
             override fun toString(): String = "Search"
         }
 
         @Serializable
-        data object CollectionsScreen : NavigationRoute {
+        data object CollectionsScreen : Navigation {
             override fun toString(): String = "Collections"
         }
 
@@ -31,7 +31,7 @@ sealed interface NavigationRoute {
 
 
     @Serializable
-    sealed interface Settings : NavigationRoute {
+    sealed interface Settings : Navigation {
 
         @Serializable
         data object ThemeSettingsScreen : Settings {
@@ -77,11 +77,6 @@ sealed interface NavigationRoute {
             @Serializable
             data object ServerSetupScreen : Data {
                 override fun toString(): String = "Linkora Server Setup"
-            }
-
-            @Serializable
-            data object ServerManagementScreen : Data {
-                override fun toString(): String = "Manage Connected Server"
             }
         }
     }

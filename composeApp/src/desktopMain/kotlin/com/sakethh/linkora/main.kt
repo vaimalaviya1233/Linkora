@@ -1,9 +1,12 @@
 package com.sakethh.linkora
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.window.WindowDraggableArea
@@ -11,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Maximize
 import androidx.compose.material.icons.filled.Minimize
+import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.outlined.Window
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -19,6 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -39,6 +45,8 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.DesktopTypography
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 
 fun main() {
@@ -88,15 +96,36 @@ fun main() {
 
 @Composable
 private fun ApplicationScope.TopDecorator(windowState: WindowState) {
+    val coroutineScope = rememberCoroutineScope()
     Column {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            Text(
-                text = "Linkora",
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 15.dp).align(
+            Row(
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(
                     Alignment.CenterStart
-                ),
-            )
+                )
+            ) {
+                if (AppPreferences.isServerConfigured()) {
+                    Spacer(Modifier.padding(start = 15.dp))
+                    Icon(
+                        imageVector = Icons.Default.WbCloudy,
+                        contentDescription = null,
+                        modifier = Modifier.clickable(onClick = {
+                            coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar("Linkora is connected to the server, syncing based on \"${AppPreferences.serverSyncType.value.asUIString()}\"."))
+                        }, indication = null, interactionSource = remember {
+                            MutableInteractionSource()
+                        })
+                    )
+                }
+                Spacer(
+                    Modifier.padding(
+                        start = if (AppPreferences.isServerConfigured().not()) 15.dp else 5.dp
+                    )
+                )
+                Text(
+                    text = "Linkora",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
