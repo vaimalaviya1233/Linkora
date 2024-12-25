@@ -8,13 +8,14 @@ import com.sakethh.linkora.domain.dto.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
+import com.sakethh.linkora.ui.utils.linkoraLog
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -28,6 +29,8 @@ class RemoteFoldersRepoImpl(
 
     private suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Result<IncomingBody> {
         return if (this.status.isSuccess().not()) {
+            linkoraLog(this.status.description)
+            linkoraLog(this.bodyAsText())
             Result.Failure(this.status.value.toString() + " " + this.status.description)
         } else {
             Result.Success(this.body<IncomingBody>())
@@ -45,21 +48,6 @@ class RemoteFoldersRepoImpl(
                 bearerAuth(authToken)
                 contentType(contentType)
                 setBody(body)
-            }.handleResponseBody<IncomingBody>().run {
-                emit(this)
-            }
-        }.catch {
-            it as Exception
-            emit(Result.Failure(it.message.toString()))
-        }
-    }
-
-    private inline fun <reified IncomingBody> getFlow(
-        endPoint: String
-    ): Flow<Result<IncomingBody>> {
-        return flow {
-            httpClient.get(baseUrl + endPoint) {
-                bearerAuth(authToken)
             }.handleResponseBody<IncomingBody>().run {
                 emit(this)
             }
