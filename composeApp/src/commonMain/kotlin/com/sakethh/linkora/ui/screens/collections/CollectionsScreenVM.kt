@@ -37,7 +37,7 @@ class CollectionsScreenVM(
             localFoldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsThrowable)
                 .collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = "The folder \"${folder.name}\" has been successfully created."))
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = "The folder \"${folder.name}\" has been successfully created.${if (it.isRemoteExecutionSuccessful.not()) "\n\nRemote execution failed :\n" + it.remoteFailureMessage else ""}"))
                     onCompletion()
                 }.onFailure {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
