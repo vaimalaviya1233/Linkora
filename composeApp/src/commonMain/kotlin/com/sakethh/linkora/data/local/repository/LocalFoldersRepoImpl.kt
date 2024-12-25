@@ -5,78 +5,103 @@ import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
+import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
-class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRepo {
-    override suspend fun insertANewFolder(
-        folder: Folder, ignoreFolderAlreadyExistsException: Boolean
-    ): Flow<Result<Message>> {
-        return flow {
-                emit(Result.Loading())
-                if (folder.name.isEmpty() || Constants.placeholders().contains(folder.name)) {
-                    throw Folder.InvalidName(if (folder.name.isEmpty()) "Folder name cannot be blank." else "\"${folder.name}\" is reserved.")
-                }
-                if (!ignoreFolderAlreadyExistsException) {
-                    when (folder.parentFolderId) {
-                        null -> {
-                            doesThisRootFolderExists(folder.name).first()
-                                .onSuccess { folderExists ->
-                                    if (folderExists) {
-                                        throw Folder.FolderAlreadyExists("Folder named \"${folder.name}\" already exists")
-                                    }
-                                }
-                        }
+class LocalFoldersRepoImpl(
+    private val foldersDao: FoldersDao,
+    private val remoteFoldersRepo: RemoteFoldersRepo,
+    private val canPushToServer: Boolean
+) : LocalFoldersRepo {
 
-                        else -> {
-                            doesThisChildFolderExists(folder.name, folder.parentFolderId).first()
-                                .onSuccess { folderExists ->
-                                    if (folderExists == 1) {
-                                        getThisFolderData(folder.parentFolderId).first()
-                                            .onSuccess { parentFolder ->
-                                                throw Folder.FolderAlreadyExists("A folder named \"${folder.name}\" already exists in ${parentFolder.name}.")
-                                            }
-                                    }
-                                }
+    private fun <LocalType, RemoteType> executeWithResultFlow(
+        performRemoteOperation: Boolean,
+        remoteOperation: suspend () -> Flow<Result<RemoteType>> = { emptyFlow() },
+        localOperation: suspend () -> LocalType
+    ): Flow<Result<LocalType>> {
+        return flow {
+            emit(Result.Loading())
+            val localResult = localOperation()
+            Result.Success(localResult).let { success ->
+                if (performRemoteOperation && canPushToServer) {
+                    remoteOperation().collect { remoteResult ->
+                        remoteResult.onFailure { failureMessage ->
+                            success.isRemoteExecutionSuccessful = false
+                            success.remoteFailureMessage = failureMessage
                         }
                     }
                 }
-                val newId = foldersDao.insertANewFolder(folder)
-            emit(Result.Success("Folder created successfully with id = $newId"))
-        }.catch { e ->
-            e.printStackTrace()
-            emit(Result.Failure(message = e.message.toString()))
+                emit(success)
+            }
+        }.catch {
+            it as Exception
+            it.printStackTrace()
+            emit(Result.Failure(message = it.message.toString()))
         }
     }
 
-    private fun <T> executeWithResultFlow(invoke: suspend () -> T): Flow<Result<T>> {
-        return flow {
-            emit(Result.Loading())
-            val result = invoke()
-            emit(Result.Success(result))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+    override suspend fun insertANewFolder(
+        folder: Folder, ignoreFolderAlreadyExistsException: Boolean
+    ): Flow<Result<Message>> {
+        if (folder.name.isEmpty() || Constants.placeholders().contains(folder.name)) {
+            throw Folder.InvalidName(if (folder.name.isEmpty()) "Folder name cannot be blank." else "\"${folder.name}\" is reserved.")
         }
+        if (!ignoreFolderAlreadyExistsException) {
+            when (folder.parentFolderId) {
+                null -> {
+                    doesThisRootFolderExists(folder.name).first().onSuccess {
+                        if (it.data) {
+                            throw Folder.FolderAlreadyExists("Folder named \"${folder.name}\" already exists")
+                        }
+                    }
+                }
+
+                else -> {
+                    doesThisChildFolderExists(folder.name, folder.parentFolderId).first()
+                        .onSuccess {
+                            if (it.data == 1) {
+                                getThisFolderData(folder.parentFolderId).first()
+                                    .onSuccess { parentFolder ->
+                                        throw Folder.FolderAlreadyExists("A folder named \"${folder.name}\" already exists in ${parentFolder.data.name}.")
+                                    }
+                            }
+                        }
+                }
+            }
+        }
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            remoteFoldersRepo.createFolder(folder)
+        }, localOperation = {
+            val newId = foldersDao.insertANewFolder(folder)
+            "Folder created successfully with id = $newId"
+        })
     }
 
 
     override suspend fun duplicateAFolder(
         actualFolderId: Long, parentFolderID: Long?
     ): Flow<Result<Long>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Long, Long>(performRemoteOperation = false) {
             foldersDao.duplicateAFolder(actualFolderId, parentFolderID)
         }
     }
 
     override suspend fun insertMultipleNewFolders(foldersTable: List<Folder>): Flow<Result<Unit>> {
-        foldersDao.insertMultipleNewFolders(foldersTable)
-        return executeWithResultFlow { }
+        return executeWithResultFlow<Unit, Unit>(
+            performRemoteOperation = false,
+            localOperation = {
+                foldersDao.insertMultipleNewFolders(foldersTable)
+            },
+        )
     }
 
     override fun getAllArchiveFoldersAsFlow(): Flow<Result<List<Folder>>> {
@@ -90,9 +115,12 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun getAllArchiveFoldersAsList(): Flow<Result<List<Folder>>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<List<Folder>, Unit>(
+            performRemoteOperation = false,
+            localOperation = {
             foldersDao.getAllArchiveFoldersAsList()
-        }
+            },
+        )
     }
 
     override fun getAllRootFoldersAsFlow(): Flow<Result<List<Folder>>> {
@@ -102,31 +130,31 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<List<Folder>, Unit>(performRemoteOperation = false) {
             foldersDao.getAllRootFoldersAsList()
         }
     }
 
     override suspend fun getAllFolders(): Flow<Result<List<Folder>>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<List<Folder>, Unit>(performRemoteOperation = false) {
             foldersDao.getAllFolders()
         }
     }
 
     override suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Flow<Result<Int>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Int, Unit>(performRemoteOperation = false) {
             foldersDao.getSizeOfLinksOfThisFolder(folderID)
         }
     }
 
     override suspend fun getThisFolderData(folderID: Long): Flow<Result<Folder>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Folder, Unit>(performRemoteOperation = false) {
             foldersDao.getThisFolderData(folderID)
         }
     }
 
     override suspend fun getLastIDOfFoldersTable(): Flow<Result<Long>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Long, Unit>(performRemoteOperation = false) {
             foldersDao.getLastIDOfFoldersTable()
         }
     }
@@ -134,7 +162,7 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     override suspend fun doesThisChildFolderExists(
         folderName: String, parentFolderID: Long?
     ): Flow<Result<Int>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Int, Unit>(performRemoteOperation = false) {
             foldersDao.doesThisChildFolderExists(
                 folderName, parentFolderID
             )
@@ -142,19 +170,19 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun doesThisRootFolderExists(folderName: String): Flow<Result<Boolean>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Boolean, Unit>(performRemoteOperation = false) {
             foldersDao.doesThisRootFolderExists(folderName)
         }
     }
 
     override suspend fun isThisFolderMarkedAsArchive(folderID: Long): Flow<Result<Boolean>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Boolean, Unit>(performRemoteOperation = false) {
             foldersDao.isThisFolderMarkedAsArchive(folderID)
         }
     }
 
     override suspend fun getNewestFolder(): Flow<Result<Folder>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Folder, Unit>(performRemoteOperation = false) {
             foldersDao.getNewestFolder()
         }
     }
@@ -170,9 +198,11 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun changeTheParentIdOfASpecificFolder(
-        sourceFolderId: List<Long>, targetParentId: Long?
+        sourceFolderId: Long, targetParentId: Long?
     ): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            remoteFoldersRepo.changeParentFolder(sourceFolderId, targetParentId)
+        }) {
             foldersDao.changeTheParentIdOfASpecificFolder(
                 sourceFolderId, targetParentId
             )
@@ -190,13 +220,13 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<List<Folder>, Unit>(performRemoteOperation = false) {
             foldersDao.getChildFoldersOfThisParentIDAsAList(parentFolderID)
         }
     }
 
     override suspend fun getSizeOfChildFoldersOfThisParentID(parentFolderID: Long?): Flow<Result<Int>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Int, Unit>(performRemoteOperation = false) {
             foldersDao.getSizeOfChildFoldersOfThisParentID(parentFolderID)
         }
     }
@@ -207,69 +237,78 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
         newFolderName: String,
         ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                if (newFolderName.isEmpty() || Constants.placeholders()
-                        .contains(newFolderName) || existingFolderName == newFolderName
-                ) {
-                    throw Folder.InvalidName(if (newFolderName.isEmpty()) "Folder name cannot be blank." else if (existingFolderName == newFolderName) "Nothing has changed to update." else "\"${newFolderName}\" is reserved.")
-                }
-                emit(Result.Success(foldersDao.renameAFolderName(folderID, newFolderName)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        if (newFolderName.isEmpty() || Constants.placeholders()
+                .contains(newFolderName) || existingFolderName == newFolderName
+        ) {
+            throw Folder.InvalidName(if (newFolderName.isEmpty()) "Folder name cannot be blank." else if (existingFolderName == newFolderName) "Nothing has changed to update." else "\"${newFolderName}\" is reserved.")
         }
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            remoteFoldersRepo.updateFolderName(folderID, newFolderName)
+        }, localOperation = {
+            foldersDao.renameAFolderName(folderID, newFolderName)
+        })
     }
 
     override suspend fun markFolderAsArchive(folderID: Long): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            remoteFoldersRepo.markAsArchive(folderID)
+        }) {
             foldersDao.markFolderAsArchive(folderID)
         }
     }
 
     override suspend fun markMultipleFoldersAsArchive(folderIDs: Array<Long>): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Unit, Unit>(performRemoteOperation = false) {
             foldersDao.markMultipleFoldersAsArchive(folderIDs)
         }
     }
 
     override suspend fun markFolderAsRegularFolder(folderID: Long): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            remoteFoldersRepo.markAsRegularFolder(folderID)
+        }) {
             foldersDao.markFolderAsRegularFolder(folderID)
         }
     }
 
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            remoteFoldersRepo.updateFolderNote(folderID, newNote)
+        }) {
             foldersDao.renameAFolderNote(folderID, newNote)
         }
     }
 
     override suspend fun updateAFolderData(folder: Folder): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Unit, Unit>(performRemoteOperation = false) {
             foldersDao.updateAFolderData(folder)
         }
     }
 
     override suspend fun deleteAFolderNote(folderID: Long): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            remoteFoldersRepo.deleteFolderNote(folderID)
+        }) {
             foldersDao.deleteAFolderNote(folderID)
         }
     }
 
     override suspend fun deleteAFolder(folderID: Long): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow(performRemoteOperation = false, remoteOperation = {
+            remoteFoldersRepo.deleteFolder(folderID)
+        }, localOperation = {
             foldersDao.deleteAFolder(folderID)
-        }
+        })
     }
 
     override suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long): Flow<Result<Unit>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Unit, Unit>(performRemoteOperation = false) {
             foldersDao.deleteChildFoldersOfThisParentID(parentFolderId)
         }
     }
 
     override suspend fun isFoldersTableEmpty(): Flow<Result<Boolean>> {
-        return executeWithResultFlow {
+        return executeWithResultFlow<Boolean, Unit>(performRemoteOperation = false) {
             foldersDao.isFoldersTableEmpty()
         }
     }

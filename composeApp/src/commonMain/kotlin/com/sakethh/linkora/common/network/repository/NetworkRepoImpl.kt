@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common
+package com.sakethh.linkora.common.network.repository
 
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.repository.NetworkRepo

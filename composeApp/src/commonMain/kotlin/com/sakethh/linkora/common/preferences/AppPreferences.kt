@@ -67,6 +67,12 @@ object AppPreferences {
         return serverUrl.value.isNotBlank()
     }
 
+    fun canPushToServer(): Boolean {
+        return listOf(SyncType.TwoWay, SyncType.ClientToServer).any {
+            isServerConfigured() && serverSyncType.value == it
+        }
+    }
+
     fun readAll(preferencesRepository: PreferencesRepository) = runBlocking {
         supervisorScope {
             listOf(

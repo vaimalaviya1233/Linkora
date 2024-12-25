@@ -46,7 +46,7 @@ interface LocalFoldersRepo {
     fun getFoldersCount(): Flow<Result<Int>>
 
     suspend fun changeTheParentIdOfASpecificFolder(
-        sourceFolderId: List<Long>,
+        sourceFolderId: Long,
         targetParentId: Long?
     ): Flow<Result<Unit>>
 

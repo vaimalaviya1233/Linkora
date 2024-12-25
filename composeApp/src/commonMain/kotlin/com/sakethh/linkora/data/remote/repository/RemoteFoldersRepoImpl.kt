@@ -83,18 +83,6 @@ class RemoteFoldersRepoImpl(
         )
     }
 
-    override suspend fun getChildFolders(parentFolderId: Long): Flow<Result<List<Folder>>> {
-        return postFlow(
-            endPoint = RemoteRoute.Folder.GET_CHILD_FOLDERS.name, body = parentFolderId
-        )
-    }
-
-    override suspend fun getRootFolders(): Flow<Result<List<Folder>>> {
-        return getFlow(
-            endPoint = RemoteRoute.Folder.GET_ROOT_FOLDERS.name,
-        )
-    }
-
     override suspend fun markAsArchive(folderId: Long): Flow<Result<Message>> {
         return postFlow(
             endPoint = RemoteRoute.Folder.MARK_AS_ARCHIVE.name, body = folderId.toString()
@@ -109,7 +97,7 @@ class RemoteFoldersRepoImpl(
     }
 
     override suspend fun changeParentFolder(
-        folderId: Long, newParentFolderId: Long
+        folderId: Long, newParentFolderId: Long?
     ): Flow<Result<Message>> {
         return postFlow(
             endPoint = RemoteRoute.Folder.CHANGE_PARENT_FOLDER.name,

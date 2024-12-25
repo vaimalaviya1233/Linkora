@@ -39,9 +39,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sakethh.linkora.common.Network
-import com.sakethh.linkora.common.NetworkRepoImpl
+import com.sakethh.linkora.common.network.Network
+import com.sakethh.linkora.common.network.repository.NetworkRepoImpl
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
+import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
@@ -72,12 +74,22 @@ fun App(
         SnackbarHostState()
     }
     val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
-        CollectionsScreenVM(LocalFoldersRepoImpl(localDatabase?.foldersDao!!))
+        CollectionsScreenVM(
+            LocalFoldersRepoImpl(
+                foldersDao = localDatabase?.foldersDao!!,
+                remoteFoldersRepo = RemoteFoldersRepoImpl(
+                    httpClient = Network.client,
+                    baseUrl = AppPreferences.serverUrl.value,
+                    authToken = AppPreferences.serverSecurityToken.value
+                ),
+                canPushToServer = AppPreferences.canPushToServer()
+            )
+        )
     })
     val serverManagementViewModel =
         viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
             ServerManagementViewModel(
-                networkRepo = NetworkRepoImpl(Network.httpClient),
+                networkRepo = NetworkRepoImpl(Network.client),
                 preferencesRepository = settingsScreenViewModel.preferencesRepository
             )
         })

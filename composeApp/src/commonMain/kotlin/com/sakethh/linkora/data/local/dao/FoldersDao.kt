@@ -57,9 +57,15 @@ interface FoldersDao {
     @Query("SELECT COUNT(id) FROM folder")
     fun getFoldersCount(): Flow<Int>
 
-    @Query("UPDATE folder SET parentFolderID = :targetParentId WHERE id IN (:sourceFolderId)")
+    @Query("UPDATE folder SET parentFolderID = :targetParentId WHERE id IN (:sourceFolderIds)")
     suspend fun changeTheParentIdOfASpecificFolder(
-        sourceFolderId: List<Long>,
+        sourceFolderIds: List<Long>,
+        targetParentId: Long?
+    )
+
+    @Query("UPDATE folder SET parentFolderID = :targetParentId WHERE id = :sourceFolderId")
+    suspend fun changeTheParentIdOfASpecificFolder(
+        sourceFolderId: Long,
         targetParentId: Long?
     )
 
