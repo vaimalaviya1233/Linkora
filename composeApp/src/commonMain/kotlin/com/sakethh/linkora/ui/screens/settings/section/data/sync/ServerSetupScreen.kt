@@ -200,7 +200,7 @@ fun ServerSetupScreen(
                     onClick = {
                         serverManagementViewModel.saveServerConnection(
                             serverConnection = ServerConnection(
-                                serverUrl = serverUrl.value,
+                                serverUrl = serverUrl.value.substringBefore("testBearer"),
                                 authToken = securityToken.value,
                                 syncType = selectedSyncType.value
                             )
