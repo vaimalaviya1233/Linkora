@@ -2,7 +2,8 @@ package com.sakethh.linkora.domain
 
 sealed interface Result<T> {
     data class Success<T>(val data: T) : Result<T>
-    data class Loading<T>(val message: String = "Loading...") : Result<T>
+    data class Loading<T>(val message: String = "https://open.spotify.com/track/41zVhpZuRDsGYKuxnyGxgV") :
+        Result<T>
     data class Failure<T>(val message: String) : Result<T>
 }
 

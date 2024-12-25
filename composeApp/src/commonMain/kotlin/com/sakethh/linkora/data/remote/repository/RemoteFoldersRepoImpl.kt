@@ -26,7 +26,7 @@ class RemoteFoldersRepoImpl(
     private val httpClient: HttpClient, private val baseUrl: String, private val authToken: String
 ) : RemoteFoldersRepo {
 
-    private suspend inline fun <reified IncomingBody> HttpResponse.returnBodyBasedOnResponse(): Result<IncomingBody> {
+    private suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Result<IncomingBody> {
         return if (this.status.isSuccess().not()) {
             Result.Failure(this.status.value.toString() + " " + this.status.description)
         } else {
@@ -45,7 +45,7 @@ class RemoteFoldersRepoImpl(
                 bearerAuth(authToken)
                 contentType(contentType)
                 setBody(body)
-            }.returnBodyBasedOnResponse<IncomingBody>().run {
+            }.handleResponseBody<IncomingBody>().run {
                 emit(this)
             }
         }.catch {
@@ -60,7 +60,7 @@ class RemoteFoldersRepoImpl(
         return flow {
             httpClient.get(baseUrl + endPoint) {
                 bearerAuth(authToken)
-            }.returnBodyBasedOnResponse<IncomingBody>().run {
+            }.handleResponseBody<IncomingBody>().run {
                 emit(this)
             }
         }.catch {

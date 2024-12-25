@@ -55,26 +55,28 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
         }
     }
 
-    override suspend fun duplicateAFolder(
-        actualFolderId: Long, parentFolderID: Long?
-    ): Flow<Result<Long>> {
+    private fun <T> executeWithResultFlow(invoke: suspend () -> T): Flow<Result<T>> {
         return flow {
-                emit(Result.Loading())
-                val newId = foldersDao.duplicateAFolder(actualFolderId, parentFolderID)
-                emit(Result.Success(newId))
+            emit(Result.Loading())
+            val result = invoke()
+            emit(Result.Success(result))
         }.catch {
             emit(Result.Failure(message = it.message.toString()))
         }
     }
 
-    override suspend fun insertMultipleNewFolders(foldersTable: List<Folder>): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                foldersDao.insertMultipleNewFolders(foldersTable)
-                emit(Result.Success(Unit))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+
+    override suspend fun duplicateAFolder(
+        actualFolderId: Long, parentFolderID: Long?
+    ): Flow<Result<Long>> {
+        return executeWithResultFlow {
+            foldersDao.duplicateAFolder(actualFolderId, parentFolderID)
         }
+    }
+
+    override suspend fun insertMultipleNewFolders(foldersTable: List<Folder>): Flow<Result<Unit>> {
+        foldersDao.insertMultipleNewFolders(foldersTable)
+        return executeWithResultFlow { }
     }
 
     override fun getAllArchiveFoldersAsFlow(): Flow<Result<List<Folder>>> {
@@ -88,11 +90,8 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun getAllArchiveFoldersAsList(): Flow<Result<List<Folder>>> {
-        return flow {
-            emit(Result.Loading())
-            emit(Result.Success(foldersDao.getAllArchiveFoldersAsList()))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getAllArchiveFoldersAsList()
         }
     }
 
@@ -103,91 +102,60 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getAllRootFoldersAsList()))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getAllRootFoldersAsList()
         }
     }
 
     override suspend fun getAllFolders(): Flow<Result<List<Folder>>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getAllFolders()))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getAllFolders()
         }
     }
 
     override suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Flow<Result<Int>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getSizeOfLinksOfThisFolder(folderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getSizeOfLinksOfThisFolder(folderID)
         }
     }
 
     override suspend fun getThisFolderData(folderID: Long): Flow<Result<Folder>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getThisFolderData(folderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getThisFolderData(folderID)
         }
     }
 
     override suspend fun getLastIDOfFoldersTable(): Flow<Result<Long>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getLastIDOfFoldersTable()))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getLastIDOfFoldersTable()
         }
     }
 
     override suspend fun doesThisChildFolderExists(
         folderName: String, parentFolderID: Long?
     ): Flow<Result<Int>> {
-        return flow {
-                emit(Result.Loading())
-                emit(
-                    Result.Success(
-                        foldersDao.doesThisChildFolderExists(
-                            folderName, parentFolderID
-                        )
-                    )
-                )
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.doesThisChildFolderExists(
+                folderName, parentFolderID
+            )
         }
     }
 
     override suspend fun doesThisRootFolderExists(folderName: String): Flow<Result<Boolean>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.doesThisRootFolderExists(folderName)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.doesThisRootFolderExists(folderName)
         }
     }
 
     override suspend fun isThisFolderMarkedAsArchive(folderID: Long): Flow<Result<Boolean>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.isThisFolderMarkedAsArchive(folderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.isThisFolderMarkedAsArchive(folderID)
         }
     }
 
     override suspend fun getNewestFolder(): Flow<Result<Folder>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getNewestFolder()))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getNewestFolder()
         }
     }
 
@@ -204,17 +172,10 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     override suspend fun changeTheParentIdOfASpecificFolder(
         sourceFolderId: List<Long>, targetParentId: Long?
     ): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(
-                    Result.Success(
-                        foldersDao.changeTheParentIdOfASpecificFolder(
-                            sourceFolderId, targetParentId
-                        )
-                    )
-                )
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.changeTheParentIdOfASpecificFolder(
+                sourceFolderId, targetParentId
+            )
         }
     }
 
@@ -229,20 +190,14 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getChildFoldersOfThisParentIDAsAList(parentFolderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getChildFoldersOfThisParentIDAsAList(parentFolderID)
         }
     }
 
     override suspend fun getSizeOfChildFoldersOfThisParentID(parentFolderID: Long?): Flow<Result<Int>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.getSizeOfChildFoldersOfThisParentID(parentFolderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.getSizeOfChildFoldersOfThisParentID(parentFolderID)
         }
     }
 
@@ -266,83 +221,56 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRep
     }
 
     override suspend fun markFolderAsArchive(folderID: Long): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.markFolderAsArchive(folderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.markFolderAsArchive(folderID)
         }
     }
 
     override suspend fun markMultipleFoldersAsArchive(folderIDs: Array<Long>): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.markMultipleFoldersAsArchive(folderIDs)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.markMultipleFoldersAsArchive(folderIDs)
         }
     }
 
     override suspend fun markFolderAsRegularFolder(folderID: Long): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.markFolderAsRegularFolder(folderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.markFolderAsRegularFolder(folderID)
         }
     }
 
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.renameAFolderNote(folderID, newNote)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.renameAFolderNote(folderID, newNote)
         }
     }
 
     override suspend fun updateAFolderData(folder: Folder): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.updateAFolderData(folder)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.updateAFolderData(folder)
         }
     }
 
     override suspend fun deleteAFolderNote(folderID: Long): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.deleteAFolderNote(folderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.deleteAFolderNote(folderID)
         }
     }
 
     override suspend fun deleteAFolder(folderID: Long): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.deleteAFolder(folderID)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.deleteAFolder(folderID)
         }
     }
 
     override suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long): Flow<Result<Unit>> {
-        return flow {
-                emit(Result.Loading())
-                emit(Result.Success(foldersDao.deleteChildFoldersOfThisParentID(parentFolderId)))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.deleteChildFoldersOfThisParentID(parentFolderId)
         }
     }
 
     override suspend fun isFoldersTableEmpty(): Flow<Result<Boolean>> {
-        return flow {
-                emit(Result.Loading())
-            emit(Result.Success(foldersDao.isFoldersTableEmpty()))
-        }.catch {
-            emit(Result.Failure(message = it.message.toString()))
+        return executeWithResultFlow {
+            foldersDao.isFoldersTableEmpty()
         }
     }
 

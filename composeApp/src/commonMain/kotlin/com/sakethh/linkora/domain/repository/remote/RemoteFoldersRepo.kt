@@ -6,6 +6,9 @@ import com.sakethh.linkora.domain.model.Folder
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteFoldersRepo {
+
+    // these function names are the same as the ones on the server-side, just to make lookup easier
+
     suspend fun createFolder(folder: Folder): Flow<Result<Message>>
     suspend fun deleteFolder(folderId: Long): Flow<Result<Message>>
     suspend fun getChildFolders(parentFolderId: Long): Flow<Result<List<Folder>>>
