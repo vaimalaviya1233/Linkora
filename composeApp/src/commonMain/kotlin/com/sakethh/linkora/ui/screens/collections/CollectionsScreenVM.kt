@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
-import com.sakethh.linkora.domain.repository.local.FoldersRepo
+import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class CollectionsScreenVM(
-    private val foldersRepo: FoldersRepo
+    private val localFoldersRepo: LocalFoldersRepo
 ) : ViewModel() {
 
     private val _rootFolders = MutableStateFlow(emptyList<Folder>())
@@ -22,7 +22,7 @@ class CollectionsScreenVM(
 
     init {
         viewModelScope.launch {
-            foldersRepo.getAllRootFoldersAsFlow().collectLatest {
+            localFoldersRepo.getAllRootFoldersAsFlow().collectLatest {
                 it.onSuccess {
                     _rootFolders.emit(it)
                 }
@@ -34,7 +34,8 @@ class CollectionsScreenVM(
         folder: Folder, ignoreFolderAlreadyExistsThrowable: Boolean, onCompletion: () -> Unit
     ) {
         viewModelScope.launch {
-            foldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsThrowable).collectLatest {
+            localFoldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsThrowable)
+                .collectLatest {
                 it.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = "The folder \"${folder.name}\" has been successfully created."))
                     onCompletion()

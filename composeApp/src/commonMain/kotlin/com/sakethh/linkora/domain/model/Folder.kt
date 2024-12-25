@@ -2,8 +2,10 @@ package com.sakethh.linkora.domain.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 @Entity
+@Serializable
 data class Folder(
     val name: String,
     val note: String,

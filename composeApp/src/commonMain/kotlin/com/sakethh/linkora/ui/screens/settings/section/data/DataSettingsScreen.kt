@@ -16,12 +16,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Html
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Card
@@ -219,7 +219,7 @@ fun DataSettingsScreen(
                                     serverInfoBtmSheetState.expand()
                                 }
                             },
-                            icon = Icons.Default.CloudDone,
+                            icon = Icons.Default.WbCloudy,
                             shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) }
                         )
                     )

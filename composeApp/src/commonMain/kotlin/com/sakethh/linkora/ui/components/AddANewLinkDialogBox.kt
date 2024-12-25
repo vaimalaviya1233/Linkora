@@ -80,11 +80,11 @@ import androidx.lifecycle.Lifecycle
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.ui.InfoCard
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.isAValidURL
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.SaveLinkActionData
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.linkora.utils.isAValidURL
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

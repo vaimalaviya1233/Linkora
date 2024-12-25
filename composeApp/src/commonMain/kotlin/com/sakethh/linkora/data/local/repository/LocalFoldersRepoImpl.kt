@@ -2,10 +2,11 @@ package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.data.local.dao.FoldersDao
+import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onSuccess
-import com.sakethh.linkora.domain.repository.local.FoldersRepo
+import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -13,10 +14,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
-class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : FoldersRepo {
+class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : LocalFoldersRepo {
     override suspend fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean
-    ): Flow<Result<Long>> {
+    ): Flow<Result<Message>> {
         return flow {
                 emit(Result.Loading())
                 if (folder.name.isEmpty() || Constants.placeholders().contains(folder.name)) {
@@ -47,7 +48,7 @@ class LocalFoldersRepoImpl(private val foldersDao: FoldersDao) : FoldersRepo {
                     }
                 }
                 val newId = foldersDao.insertANewFolder(folder)
-                emit(Result.Success(newId))
+            emit(Result.Success("Folder created successfully with id = $newId"))
         }.catch { e ->
             e.printStackTrace()
             emit(Result.Failure(message = e.message.toString()))

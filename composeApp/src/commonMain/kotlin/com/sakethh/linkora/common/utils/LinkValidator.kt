@@ -1,4 +1,4 @@
-package com.sakethh.linkora.utils
+package com.sakethh.linkora.common.utils
 
 fun isAValidURL(webURL: String): Boolean {
     return if (webURL.isBlank() || webURL.isEmpty()) {
