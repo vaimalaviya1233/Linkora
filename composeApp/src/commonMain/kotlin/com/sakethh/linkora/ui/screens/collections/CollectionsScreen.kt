@@ -54,7 +54,8 @@ import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
-import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
+import com.sakethh.linkora.ui.components.AddANewLinkDialogBoxMobile
+import com.sakethh.linkora.ui.components.AddANewLinkDialogBoxNonMobile
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -322,13 +323,23 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                     })
         }
     }
-    AddANewLinkDialogBox(
-        shouldBeVisible = shouldShowAddLinkDialog,
-        isDataExtractingForTheLink = false,
-        screenType = ScreenType.ROOT_SCREEN,
-        onSaveClick = { saveLinkActionData ->
+    if (platform() == Platform.Android.Mobile) {
+        AddANewLinkDialogBoxMobile(
+            shouldBeVisible = shouldShowAddLinkDialog,
+            isDataExtractingForTheLink = false,
+            screenType = ScreenType.ROOT_SCREEN,
+            onSaveClick = { saveLinkActionData ->
 
-        })
+            })
+    } else {
+        AddANewLinkDialogBoxNonMobile(
+            shouldBeVisible = shouldShowAddLinkDialog,
+            isDataExtractingForTheLink = false,
+            screenType = ScreenType.ROOT_SCREEN,
+            onSaveClick = { saveLinkActionData ->
+
+            })
+    }
 
     AddANewFolderDialogBox(
         AddNewFolderDialogBoxParam(

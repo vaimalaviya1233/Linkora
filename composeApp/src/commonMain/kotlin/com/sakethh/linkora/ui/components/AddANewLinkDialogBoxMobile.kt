@@ -78,7 +78,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.ui.InfoCard
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isAValidURL
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
@@ -90,7 +89,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddANewLinkDialogBox(
+fun AddANewLinkDialogBoxMobile(
     shouldBeVisible: MutableState<Boolean>,
     isDataExtractingForTheLink: Boolean,
     screenType: ScreenType,
