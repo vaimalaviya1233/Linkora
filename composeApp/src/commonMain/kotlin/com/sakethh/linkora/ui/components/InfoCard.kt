@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common.ui
+package com.sakethh.linkora.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box

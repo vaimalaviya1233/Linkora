@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.ui.InfoCard
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.domain.SyncType
+import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold

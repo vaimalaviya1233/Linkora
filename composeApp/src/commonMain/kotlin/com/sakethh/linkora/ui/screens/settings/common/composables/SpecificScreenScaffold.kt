@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,9 +31,9 @@ import com.sakethh.linkora.ui.utils.pulsateEffect
 fun SettingsSectionScaffold(
     topAppBarText: String,
     navController: NavController,
-    floatingActionButton: @Composable () -> Unit = {},
-    actions: @Composable () -> Unit = {},
-    bottomBar: @Composable () -> Unit = {},
+    floatingActionButton: ComposableContent = {},
+    actions: ComposableContent = {},
+    bottomBar: ComposableContent = {},
     content: @Composable (paddingValues: PaddingValues, topAppBarScrollBehaviour: TopAppBarScrollBehavior) -> Unit
 ) {
     val topAppBarScrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
