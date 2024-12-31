@@ -6,9 +6,10 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.data.local.LocalDatabase
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 
-actual val shouldShowFollowSystemThemeOption: Boolean = true
+actual val showFollowSystemThemeOption: Boolean = true
 actual val BUILD_FLAVOUR: String = "desktop"
 actual val platform: @Composable () -> Platform = {
     Platform.Desktop
@@ -19,3 +20,4 @@ actual val localDatabase: LocalDatabase? =
     }
 
 actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsFontFamily
+actual val showDynamicThemingOption: Boolean = false

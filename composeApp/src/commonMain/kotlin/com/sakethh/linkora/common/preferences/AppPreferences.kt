@@ -13,7 +13,7 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.Sorting
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.shouldShowFollowSystemThemeOption
+import com.sakethh.showFollowSystemThemeOption
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -106,7 +106,7 @@ object AppPreferences {
                 launch {
                     shouldFollowSystemTheme.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),
-                    ) ?: shouldShowFollowSystemThemeOption
+                    ) ?: showFollowSystemThemeOption
                 },
                 launch {
                     startDestination.value = preferencesRepository.readPreferenceValue(
@@ -117,7 +117,7 @@ object AppPreferences {
                 launch {
                     shouldUseForceDarkTheme.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(AppPreferenceType.DARK_THEME.name),
-                    ) ?: shouldShowFollowSystemThemeOption.not()
+                    ) ?: showFollowSystemThemeOption.not()
                 },
                 launch {
                     shouldUseDynamicTheming.value = preferencesRepository.readPreferenceValue(
