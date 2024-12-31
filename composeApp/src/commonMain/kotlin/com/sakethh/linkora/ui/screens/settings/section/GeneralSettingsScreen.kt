@@ -64,6 +64,9 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
+            item {
+                Spacer(Modifier)
+            }
             items(settingsScreenViewModel.generalSection()) {
                 SettingComponent(it)
             }
