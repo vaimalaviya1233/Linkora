@@ -29,6 +29,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.ui.navigation.Navigation
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +40,7 @@ fun SettingsScreen(navController: NavController) {
         Column {
             LargeTopAppBar(scrollBehavior = topAppBarScrollState, title = {
                 Text(
-                    text = "Settings",
+                    text = Localization.rememberLocalizedString(Localization.Key.Settings),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 24.sp
@@ -76,63 +77,63 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
             onClick = {
                 navController.navigate(Navigation.Settings.ThemeSettingsScreen)
             },
-            sectionTitle = "Theme",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.Theme),
             sectionIcon = Icons.Default.ColorLens
         ),
         SettingSectionComponentParam(
             onClick = {
                 navController.navigate(Navigation.Settings.GeneralSettingsScreen)
             },
-            sectionTitle = "General",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.General),
             sectionIcon = Icons.Default.SettingsInputSvideo
         ),
         SettingSectionComponentParam(
             onClick = {
 
             },
-            sectionTitle = "Advanced",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.Advanced),
             sectionIcon = Icons.Default.Build
         ),
         SettingSectionComponentParam(
             onClick = {
                 navController.navigate(Navigation.Settings.LayoutSettingsScreen)
             },
-            sectionTitle = "Layout",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.Layout),
             sectionIcon = Icons.Default.Dashboard
         ),
         SettingSectionComponentParam(
             onClick = {
 
             },
-            sectionTitle = "Language",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.Language),
             sectionIcon = Icons.Default.Language
         ),
         SettingSectionComponentParam(
             onClick = {
                 navController.navigate(Navigation.Settings.DataSettingsScreen)
             },
-            sectionTitle = "Data",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.Data),
             sectionIcon = Icons.Default.Storage
         ),
         SettingSectionComponentParam(
             onClick = {
 
             },
-            sectionTitle = "Privacy",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.Privacy),
             sectionIcon = Icons.Default.PrivacyTip
         ),
         SettingSectionComponentParam(
             onClick = {
 
             },
-            sectionTitle = "About",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.About),
             sectionIcon = Icons.Default.Info
         ),
         SettingSectionComponentParam(
             onClick = {
 
             },
-            sectionTitle = "Acknowledgments",
+            sectionTitle = Localization.getLocalizedString(Localization.Key.Acknowledgments),
             sectionIcon = Icons.Default.Group
         ),
     )

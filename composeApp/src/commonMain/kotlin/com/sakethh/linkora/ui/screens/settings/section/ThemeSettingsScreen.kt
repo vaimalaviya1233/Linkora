@@ -18,14 +18,17 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.navigation.NavController
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.platform
-import com.sakethh.shouldShowFollowSystemThemeOption
+import com.sakethh.showDynamicThemingOption
+import com.sakethh.showFollowSystemThemeOption
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +39,7 @@ fun ThemeSettingsScreen(
     val platform = platform()
     val isSystemInDarkTheme = isSystemInDarkTheme()
     SettingsSectionScaffold(
-        topAppBarText = "Theme",
+        topAppBarText = Localization.Key.Theme.rememberLocalizedString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
@@ -47,11 +50,11 @@ fun ThemeSettingsScreen(
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            if (shouldShowFollowSystemThemeOption && !AppPreferences.shouldUseForceDarkTheme.value) {
-                item(key = "Follow System Theme") {
+            if (showFollowSystemThemeOption && !AppPreferences.shouldUseForceDarkTheme.value) {
+                item(key = Localization.Key.FollowSystemTheme.defaultValue) {
                     SettingComponent(
                         SettingComponentParam(
-                            title = "Follow System Theme",
+                            title = Localization.Key.FollowSystemTheme.rememberLocalizedString(),
                             doesDescriptionExists = false,
                             isSwitchNeeded = true,
                             description = null,
@@ -71,10 +74,10 @@ fun ThemeSettingsScreen(
                 }
             }
             if (!AppPreferences.shouldFollowSystemTheme.value) {
-                item(key = "Use Dark Mode") {
+                item(key = Localization.Key.UseDarkMode.defaultValue) {
                     SettingComponent(
                         SettingComponentParam(
-                            title = "Use Dark Mode",
+                            title = Localization.Key.UseDarkMode.rememberLocalizedString(),
                             doesDescriptionExists = false,
                             description = null,
                             isSwitchNeeded = true,
@@ -96,7 +99,7 @@ fun ThemeSettingsScreen(
                 item {
                     SettingComponent(
                         SettingComponentParam(
-                            title = "Use Amoled Theme",
+                            title = Localization.Key.UseAmoledTheme.rememberLocalizedString(),
                             doesDescriptionExists = false,
                             description = "",
                             isSwitchNeeded = true,
@@ -114,13 +117,13 @@ fun ThemeSettingsScreen(
                     )
                 }
             }
-            if (platform is Platform.Android) {
-                item(key = "Use dynamic theming") {
+            if (platform is Platform.Android && showDynamicThemingOption) {
+                item(key = Localization.Key.UseDynamicTheming.defaultValue) {
                     SettingComponent(
                         SettingComponentParam(
-                            title = "Use dynamic theming",
+                            title = Localization.Key.UseDynamicTheming.rememberLocalizedString(),
                             doesDescriptionExists = true,
-                            description = "LocalizedStrings.useDynamicThemingDesc.value",
+                            description = Localization.Key.UseDynamicThemingDesc.rememberLocalizedString(),
                             isSwitchNeeded = true,
                             isSwitchEnabled = AppPreferences.shouldUseDynamicTheming,
                             onSwitchStateChange = {

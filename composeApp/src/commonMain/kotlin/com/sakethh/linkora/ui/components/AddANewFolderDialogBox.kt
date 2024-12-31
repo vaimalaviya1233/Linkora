@@ -21,6 +21,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.notNull
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
@@ -52,7 +55,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                             addNewFolderDialogBoxParam.shouldBeVisible.value = false
                         }) {
                         Text(
-                            text = "LocalizedStrings.cancel.value",
+                            text = Localization.rememberLocalizedString(Localization.Key.Cancel),
                             style = MaterialTheme.typography.titleSmall,
                             fontSize = 16.sp
                         )
@@ -73,7 +76,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                                 })
                         }) {
                         Text(
-                            text = "LocalizedStrings.create.value",
+                            text = Localization.rememberLocalizedString(Localization.Key.Create),
                             style = MaterialTheme.typography.titleSmall,
                             fontSize = 16.sp
                         )
@@ -96,7 +99,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                         maxLines = 1,
                         label = {
                             Text(
-                                text = "LocalizedStrings.folderName.value",
+                                text = Localization.rememberLocalizedString(Localization.Key.FolderName),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp
                             )
@@ -113,7 +116,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                         modifier = Modifier.fillMaxWidth(),
                         label = {
                             Text(
-                                text = "LocalizedStrings.noteForCreatingTheFolder.value",
+                                text = Localization.rememberLocalizedString(Localization.Key.NoteForCreatingTheFolder),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp
                             )
@@ -131,10 +134,14 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
             },
             title = {
                 Text(
-                    text = if (addNewFolderDialogBoxParam.inAChildFolderScreen)
-                        "LocalizedStrings.createANewInternalFolderIn.value.replace(lderName.value"
+                    text = if (addNewFolderDialogBoxParam.inAChildFolderScreen && addNewFolderDialogBoxParam.thisFolder.notNull())
+                        Localization.rememberLocalizedString(Localization.Key.CreateANewFolderIn)
+                            .replace(
+                                Constants.VALUE_PLACE_HOLDER_1,
+                                addNewFolderDialogBoxParam.thisFolder!!.name
+                            )
                     else
-                        "LocalizedStrings.createANewFolder.value",
+                        Localization.rememberLocalizedString(Localization.Key.CreateANewFolder),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 22.sp,
                     lineHeight = 28.sp

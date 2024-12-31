@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.SyncType
@@ -68,7 +69,7 @@ class ServerManagementViewModel(
     fun saveServerConnection(
         serverConnection: ServerConnection, onSaved: () -> Unit = {
             viewModelScope.launch {
-                pushUIEvent(UIEvent.Type.ShowSnackbar("Successfully saved connection details."))
+                pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.SuccessfullySavedConnectionDetails)))
             }
         }
     ) {
@@ -119,7 +120,7 @@ class ServerManagementViewModel(
                 ), newValue = ""
             )
             AppPreferences.serverSyncType.value = SyncType.TwoWay
-            pushUIEvent(UIEvent.Type.ShowSnackbar("Deleted the server connection successfully."))
+            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.DeletedTheServerConnectionSuccessfully)))
         }.invokeOnCompletion {
             onDeleted()
         }

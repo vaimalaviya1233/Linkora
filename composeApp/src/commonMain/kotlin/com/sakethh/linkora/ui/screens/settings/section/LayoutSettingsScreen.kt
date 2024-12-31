@@ -37,8 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.navigation.NavController
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Link
 import com.sakethh.linkora.ui.components.link.GridViewLinkUIComponent
@@ -186,7 +189,7 @@ fun LayoutSettingsScreen(
                         newValue = AppPreferences.enableBorderForNonListViews.value
                     )
                 },
-                title = "LocalizedStrings.showBorderAroundLinks.value",
+                title = Localization.Key.ShowBorderAroundLinks.getLocalizedString(),
                 isSwitchChecked = AppPreferences.enableBorderForNonListViews
             ),
             LinkPref(
@@ -198,7 +201,7 @@ fun LayoutSettingsScreen(
                         newValue = AppPreferences.enableTitleForNonListViews.value
                     )
                 },
-                title = "LocalizedStrings.showTitle.value",
+                title = Localization.Key.ShowTitle.getLocalizedString(),
                 isSwitchChecked = AppPreferences.enableTitleForNonListViews
             ),
             LinkPref(
@@ -210,7 +213,7 @@ fun LayoutSettingsScreen(
                         newValue = AppPreferences.enableBaseURLForNonListViews.value
                     )
                 },
-                title = "LocalizedStrings.showBaseUrl.value",
+                title = Localization.Key.ShowBaseURL.getLocalizedString(),
                 isSwitchChecked = AppPreferences.enableBaseURLForNonListViews
             ),
             LinkPref(
@@ -222,7 +225,7 @@ fun LayoutSettingsScreen(
                         newValue = AppPreferences.enableFadedEdgeForNonListViews.value
                     )
                 },
-                title = "LocalizedStrings.showBottomFadedEdge.value",
+                title = Localization.Key.ShowBottomFadedEdge.getLocalizedString(),
                 isSwitchChecked = AppPreferences.enableFadedEdgeForNonListViews
             ),
         )
@@ -231,7 +234,7 @@ fun LayoutSettingsScreen(
         sampleList + sampleList.shuffled()
     }
     SettingsSectionScaffold(
-        topAppBarText = "LocalizedStrings.linkLayoutSettings.value",
+        topAppBarText = Localization.Key.LinkLayoutSettings.rememberLocalizedString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         if (AppPreferences.currentlySelectedLinkLayout.value == Layout.REGULAR_LIST_VIEW.name
@@ -246,7 +249,7 @@ fun LayoutSettingsScreen(
             ) {
                 item {
                     Text(
-                        text = "LocalizedStrings.chooseTheLayoutYouLikeBest.value",
+                        text = Localization.Key.ChooseTheLayoutYouLikeBest.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(15.dp),
                         color = MaterialTheme.colorScheme.primary
@@ -271,7 +274,7 @@ fun LayoutSettingsScreen(
 
                 item {
                     Text(
-                        text = "LocalizedStrings.feedPreview.value",
+                        text = Localization.Key.FeedPreview.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(15.dp),
                         color = MaterialTheme.colorScheme.primary
@@ -324,7 +327,7 @@ fun LayoutSettingsScreen(
                     GridItemSpan(maxLineSpan)
                 }) {
                     Text(
-                        text = "LocalizedStrings.chooseTheLayoutYouLikeBest.value",
+                        text = Localization.Key.ChooseTheLayoutYouLikeBest.getLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(top = 15.dp, bottom = 15.dp, start = 5.dp),
                         color = MaterialTheme.colorScheme.primary
@@ -366,7 +369,7 @@ fun LayoutSettingsScreen(
                     GridItemSpan(maxLineSpan)
                 }) {
                     Text(
-                        text = "LocalizedStrings.feedPreview.value",
+                        text = Localization.Key.FeedPreview.getLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(top = 10.dp, bottom = 15.dp, start = 5.dp),
                         color = MaterialTheme.colorScheme.primary
@@ -394,7 +397,7 @@ fun LayoutSettingsScreen(
                     span = StaggeredGridItemSpan.FullLine
                 ) {
                     Text(
-                        text = "LocalizedStrings.chooseTheLayoutYouLikeBest.value",
+                        text = Localization.Key.ChooseTheLayoutYouLikeBest.getLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(top = 15.dp, bottom = 15.dp, start = 5.dp),
                         color = MaterialTheme.colorScheme.primary
@@ -433,7 +436,7 @@ fun LayoutSettingsScreen(
 
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Text(
-                        text = "LocalizedStrings.feedPreview.value",
+                        text = Localization.Key.FeedPreview.getLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(top = 10.dp, bottom = 15.dp, start = 5.dp),
                         color = MaterialTheme.colorScheme.primary
@@ -539,10 +542,10 @@ private fun LinkViewRadioButtonComponent(
             })
         Text(
             text = when (linkLayout) {
-                Layout.REGULAR_LIST_VIEW -> "LocalizedStrings.regularListView.value"
-                Layout.TITLE_ONLY_LIST_VIEW -> "LocalizedStrings.titleOnlyListView.value"
-                Layout.GRID_VIEW -> "LocalizedStrings.gridView.value"
-                Layout.STAGGERED_VIEW -> "LocalizedStrings.staggeredView.value"
+                Layout.REGULAR_LIST_VIEW -> Localization.Key.RegularListView.rememberLocalizedString()
+                Layout.TITLE_ONLY_LIST_VIEW -> Localization.Key.TitleOnlyListView.rememberLocalizedString()
+                Layout.GRID_VIEW -> Localization.Key.GridView.rememberLocalizedString()
+                Layout.STAGGERED_VIEW -> Localization.Key.StaggeredView.rememberLocalizedString()
             },
             style = MaterialTheme.typography.titleSmall
         )

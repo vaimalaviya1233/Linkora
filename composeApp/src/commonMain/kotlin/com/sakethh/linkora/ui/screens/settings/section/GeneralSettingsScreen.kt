@@ -34,8 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.navigation.NavController
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
@@ -68,9 +70,9 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
             item {
                 SettingComponent(
                     SettingComponentParam(
-                        title = "Initial Screen on Launch",
+                        title = Localization.Key.InitialScreenOnLaunch.rememberLocalizedString(),
                         doesDescriptionExists = true,
-                        description = "Changes made with this option will reflect in the navigation of the initial screen that will open when you launch Linkora.",
+                        description = Localization.Key.InitialScreenOnLaunchDesc.rememberLocalizedString(),
                         isSwitchNeeded = false,
                         isSwitchEnabled = mutableStateOf(false),
                         onSwitchStateChange = {
@@ -105,13 +107,19 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
                 AppPreferences.startDestination.value = currentlySelectedRoute.value
                 showInitialNavigationChangerDialogBox.value = false
             }, modifier = Modifier.fillMaxWidth()) {
-                Text(text = "Confirm", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = Localization.Key.Confirm.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleSmall
+                )
             }
         }, dismissButton = {
             OutlinedButton(onClick = {
                 showInitialNavigationChangerDialogBox.value = false
             }, modifier = Modifier.fillMaxWidth()) {
-                Text(text = "Cancel", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = Localization.Key.Cancel.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleSmall
+                )
             }
         }, text = {
             Column {
@@ -139,14 +147,14 @@ fun GeneralSettingsScreen(navController: NavController,settingsScreenViewModel: 
                             })
                         Text(
                             style = if (currentlySelectedRoute.value == it.toString()) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
-                            text = it.toString().substringBefore("Screen")
+                            text = it.toString()
                         )
                     }
                 }
             }
         }, title = {
             Text(
-                text = "Select the initial screen on launch",
+                text = Localization.Key.SelectTheInitialScreen.rememberLocalizedString(),
                 style = MaterialTheme.typography.titleMedium,
                 fontSize = 16.sp
             )

@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.common.Localization
 import com.sakethh.platform
 
 fun String?.ifNullOrBlank(string: () -> String): String {
@@ -38,4 +39,17 @@ fun Modifier.bottomNavPaddingAcrossPlatforms(): Modifier {
     } else {
         this.padding(bottom = 10.dp)
     }
+}
+
+fun Any?.notNull(): Boolean {
+    return this != null
+}
+
+fun Localization.Key.getLocalizedString(): String {
+    return Localization.getLocalizedString(this)
+}
+
+@Composable
+fun Localization.Key.rememberLocalizedString(): String {
+    return Localization.rememberLocalizedString(this)
 }

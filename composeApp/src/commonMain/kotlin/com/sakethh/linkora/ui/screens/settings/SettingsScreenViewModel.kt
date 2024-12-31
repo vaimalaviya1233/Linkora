@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
@@ -26,9 +27,9 @@ class SettingsScreenViewModel(
     fun generalSection(): List<SettingComponentParam> {
         return listOf(
             SettingComponentParam(
-                title = "useInAppBrowser.value",
+                title = Localization.getLocalizedString(Localization.Key.UseInAppBrowser),
                 doesDescriptionExists = AppPreferences.showDescriptionForSettingsState.value,
-                description = "useInAppBrowserDesc.value",
+                description = Localization.getLocalizedString(Localization.Key.UseInAppBrowserDesc),
                 isSwitchNeeded = true,
                 isSwitchEnabled = AppPreferences.isInAppWebTabEnabled,
                 isIconNeeded = mutableStateOf(true),
@@ -43,9 +44,9 @@ class SettingsScreenViewModel(
                         AppPreferences.isInAppWebTabEnabled.value = it
                     }
                 }), SettingComponentParam(
-                title = "enableHomeScreen.value",
+                title = Localization.getLocalizedString(Localization.Key.EnableHomeScreen),
                 doesDescriptionExists = AppPreferences.showDescriptionForSettingsState.value,
-                description = "enableHomeScreenDesc.value",
+                description = Localization.getLocalizedString(Localization.Key.EnableHomeScreenDesc),
                 isSwitchNeeded = true,
                 isIconNeeded = mutableStateOf(true),
                 icon = Icons.Default.Home,
@@ -60,9 +61,9 @@ class SettingsScreenViewModel(
                         AppPreferences.isHomeScreenEnabled.value = it
                     }
                 }), SettingComponentParam(
-                title = "autoDetectTitle.value",
+                title = Localization.getLocalizedString(Localization.Key.AutoDetectTitle),
                 doesDescriptionExists = true,
-                description = "autoDetectTitleDesc.value",
+                description = Localization.getLocalizedString(Localization.Key.AutoDetectTitleDesc),
                 isSwitchNeeded = true,
                 isSwitchEnabled = AppPreferences.isAutoDetectTitleForLinksEnabled,
                 isIconNeeded = mutableStateOf(true),
@@ -86,9 +87,9 @@ class SettingsScreenViewModel(
                         }
                     }
                 }), SettingComponentParam(
-                title = "Force-save links without fetching metadata",
+                title = Localization.getLocalizedString(Localization.Key.ForceSaveWithoutRetrievingMetadata),
                 doesDescriptionExists = true,
-                description = "Link will be saved as you save it, nothing gets fetched. Note that this will impact on refreshing links from link menu, link will NOT be refreshed if this is enabled.",
+                description = Localization.getLocalizedString(Localization.Key.ForceSaveWithoutRetrievingMetadataDesc),
                 isSwitchNeeded = true,
                 isSwitchEnabled = AppPreferences.forceSaveWithoutFetchingAnyMetaData,
                 isIconNeeded = mutableStateOf(true),
@@ -112,9 +113,9 @@ class SettingsScreenViewModel(
                         }
                     }
                 }), SettingComponentParam(
-                title = "LocalizedStrings.showAssociatedImageInLinkMenu.value",
+                title = Localization.getLocalizedString(Localization.Key.ShowAssociatedImageInLinkMenu),
                 doesDescriptionExists = true,
-                description = "LocalizedStrings.enablesTheDisplayOfAnAssociatedImageWithinTheLinkMenu.value",
+                description = Localization.getLocalizedString(Localization.Key.ShowAssociatedImageInLinkMenuDesc),
                 isSwitchNeeded = true,
                 isSwitchEnabled = AppPreferences.showAssociatedImagesInLinkMenu,
                 isIconNeeded = mutableStateOf(true),
@@ -129,9 +130,9 @@ class SettingsScreenViewModel(
                         AppPreferences.showAssociatedImagesInLinkMenu.value = it
                     }
                 }), SettingComponentParam(
-                title = "autoCheckForUpdates.value",
+                title = Localization.getLocalizedString(Localization.Key.AutoCheckForUpdates),
                 doesDescriptionExists = AppPreferences.showDescriptionForSettingsState.value,
-                description = "autoCheckForUpdatesDesc.value",
+                description = Localization.getLocalizedString(Localization.Key.AutoCheckForUpdatesDesc),
                 isIconNeeded = mutableStateOf(true),
                 icon = Icons.Default.SystemUpdateAlt,
                 isSwitchNeeded = true,
@@ -146,9 +147,9 @@ class SettingsScreenViewModel(
                         AppPreferences.isAutoCheckUpdatesEnabled.value = it
                     }
                 }), SettingComponentParam(
-                title = "showDescriptionForSettings.value",
+                title = Localization.getLocalizedString(Localization.Key.ShowDescriptionForSettings),
                 doesDescriptionExists = true,
-                description = "showDescriptionForSettingsDesc.value",
+                description = Localization.getLocalizedString(Localization.Key.ShowDescriptionForSettingsDesc),
                 isSwitchNeeded = true,
                 isIconNeeded = mutableStateOf(true),
                 icon = Icons.AutoMirrored.Default.ShortText,

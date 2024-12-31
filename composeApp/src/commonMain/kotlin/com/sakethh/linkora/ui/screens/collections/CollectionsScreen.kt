@@ -53,11 +53,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
-import com.sakethh.linkora.ui.components.AddANewLinkDialogBoxMobile
-import com.sakethh.linkora.ui.components.AddANewLinkDialogBoxNonMobile
+import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -157,12 +157,12 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     item {
                         DefaultFolderComponent(
-                            name = "All Links",
+                            name = Localization.rememberLocalizedString(Localization.Key.AllLinks),
                             icon = Icons.Outlined.DatasetLinked,
                             onClick = {
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = "All Links",
+                                        name = Localization.getLocalizedString(Localization.Key.AllLinks),
                                         id = Constants.ALL_LINKS_ID,
                                         note = "",
                                         parentFolderId = null
@@ -183,12 +183,12 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                     }
                     item {
                         DefaultFolderComponent(
-                            name = "Saved Links",
+                            name = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
                             icon = Icons.Outlined.Link,
                             onClick = { ->
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = "Saved Links",
+                                        name = Localization.getLocalizedString(Localization.Key.SavedLinks),
                                         id = Constants.SAVED_LINKS_ID,
                                         note = "",
                                         parentFolderId = null
@@ -200,12 +200,12 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                     }
                     item {
                         DefaultFolderComponent(
-                            name = "Important Links",
+                            name = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
                             icon = Icons.Outlined.StarOutline,
                             onClick = { ->
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = "Important Links",
+                                        name = Localization.getLocalizedString(Localization.Key.ImportantLinks),
                                         id = Constants.IMPORTANT_LINKS_ID,
                                         note = "",
                                         parentFolderId = null
@@ -217,12 +217,12 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                     }
                     item {
                         DefaultFolderComponent(
-                            name = "Archive",
+                            name = Localization.rememberLocalizedString(Localization.Key.Archive),
                             icon = Icons.Outlined.Archive,
                             onClick = { ->
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = "Archive",
+                                        name = Localization.getLocalizedString(Localization.Key.Archive),
                                         id = Constants.ARCHIVE_ID,
                                         note = "",
                                         parentFolderId = null
@@ -249,7 +249,7 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Folders",
+                                text = Localization.rememberLocalizedString(Localization.Key.Folders),
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontSize = 20.sp,
@@ -328,23 +328,13 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                     })
         }
     }
-    if (platform() == Platform.Android.Mobile) {
-        AddANewLinkDialogBoxMobile(
-            shouldBeVisible = shouldShowAddLinkDialog,
-            isDataExtractingForTheLink = false,
-            screenType = ScreenType.ROOT_SCREEN,
-            onSaveClick = { saveLinkActionData ->
+    AddANewLinkDialogBox(
+        shouldBeVisible = shouldShowAddLinkDialog,
+        isDataExtractingForTheLink = false,
+        screenType = ScreenType.ROOT_SCREEN,
+        onSaveClick = { saveLinkActionData ->
 
-            })
-    } else {
-        AddANewLinkDialogBoxNonMobile(
-            shouldBeVisible = shouldShowAddLinkDialog,
-            isDataExtractingForTheLink = false,
-            screenType = ScreenType.ROOT_SCREEN,
-            onSaveClick = { saveLinkActionData ->
-
-            })
-    }
+        })
 
     AddANewFolderDialogBox(
         AddNewFolderDialogBoxParam(

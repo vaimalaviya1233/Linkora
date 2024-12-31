@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.domain.SyncType
@@ -72,7 +73,7 @@ fun ServerSetupScreen(
             }
             item {
                 Text(
-                    text = "Configuration",
+                    text = Localization.rememberLocalizedString(Localization.Key.Configuration),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
@@ -95,11 +96,14 @@ fun ServerSetupScreen(
                         }
                     },
                     label = {
-                        Text(text = "Server URL", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = Localization.rememberLocalizedString(Localization.Key.ServerURL),
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     },
                     supportingText = {
                         Text(
-                            text = "Ensure the server is running. If hosted locally, the server URL should include the correct port number. No port is needed if the server is not hosted locally.",
+                            text = Localization.rememberLocalizedString(Localization.Key.ServerSetupInstruction),
                             style = MaterialTheme.typography.titleLarge
                         )
                     },
@@ -116,7 +120,10 @@ fun ServerSetupScreen(
                         securityToken.value = it
                     },
                     label = {
-                        Text(text = "Security Token", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = Localization.rememberLocalizedString(Localization.Key.SecurityToken),
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     },
                     readOnly = serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully && serverManagementViewModel.serverSetupState.value.isConnecting.not()
                 )
@@ -129,7 +136,7 @@ fun ServerSetupScreen(
                     )
                 } else if (serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully) {
                     InfoCard(
-                        info = "Server Exists and Is Reachable!",
+                        info = Localization.rememberLocalizedString(Localization.Key.ServerIsReachable),
                         paddingValues = PaddingValues(start = 15.dp, end = 15.dp)
                     )
                 } else {
@@ -141,7 +148,7 @@ fun ServerSetupScreen(
                         }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
                     ) {
                         Text(
-                            text = "Test Server Availability",
+                            text = Localization.rememberLocalizedString(Localization.Key.TestServerAvailability),
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
@@ -155,7 +162,7 @@ fun ServerSetupScreen(
             }
             item {
                 Text(
-                    text = "Sync Type",
+                    text = Localization.rememberLocalizedString(Localization.Key.SyncType),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
@@ -208,7 +215,7 @@ fun ServerSetupScreen(
                     }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
                 ) {
                     Text(
-                        text = "Use This Connection",
+                        text = Localization.rememberLocalizedString(Localization.Key.UseThisConnection),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }

@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 import kotlinx.coroutines.async
@@ -82,7 +83,7 @@ fun AddItemFab(
                     )
                 ) {
                     Text(
-                        text = "LocalizedStrings.createANewFolder.value",
+                        text = Localization.rememberLocalizedString(Localization.Key.CreateANewFolder),
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontSize = 20.sp,
@@ -144,7 +145,7 @@ fun AddItemFab(
                     )
                 ) {
                     Text(
-                        text = "LocalizedStrings.addANewLink.value",
+                        text = Localization.rememberLocalizedString(Localization.Key.AddANewLink),
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontSize = 20.sp,

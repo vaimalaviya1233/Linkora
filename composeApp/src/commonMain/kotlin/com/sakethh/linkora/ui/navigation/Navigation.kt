@@ -1,5 +1,6 @@
 package com.sakethh.linkora.ui.navigation
 
+import com.sakethh.linkora.common.Localization
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,22 +10,26 @@ sealed interface Navigation {
     sealed interface Root {
         @Serializable
         data object HomeScreen : Navigation {
-            override fun toString(): String = "Home"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Home)
         }
 
         @Serializable
         data object SearchScreen : Navigation {
-            override fun toString(): String = "Search"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Search)
         }
 
         @Serializable
         data object CollectionsScreen : Navigation {
-            override fun toString(): String = "Collections"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Collections)
         }
 
         @Serializable
         data object SettingsScreen : Settings {
-            override fun toString(): String = "Settings"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Settings)
         }
     }
 
@@ -35,48 +40,57 @@ sealed interface Navigation {
 
         @Serializable
         data object ThemeSettingsScreen : Settings {
-            override fun toString(): String = "Theme"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Theme)
         }
 
         @Serializable
         data object GeneralSettingsScreen : Settings {
-            override fun toString(): String = "General"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.General)
         }
 
         @Serializable
         data object AdvancedSettingsScreen : Settings {
-            override fun toString(): String = "Advanced"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Advanced)
         }
 
         @Serializable
         data object LayoutSettingsScreen : Settings {
-            override fun toString(): String = "Layout"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Layout)
         }
 
         @Serializable
         data object LanguageSettingsScreen : Settings {
-            override fun toString(): String = "Language"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Language)
         }
 
         @Serializable
         data object DataSettingsScreen : Settings {
-            override fun toString(): String = "Data"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Data)
         }
 
         @Serializable
         data object AboutSettingsScreen : Settings {
-            override fun toString(): String = "About"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.About)
         }
 
         @Serializable
         data object AcknowledgementSettingsScreen : Settings {
-            override fun toString(): String = "Acknowledgements"
+            override fun toString(): String =
+                Localization.getLocalizedString(Localization.Key.Acknowledgments)
         }
 
         sealed interface Data : Settings {
             @Serializable
             data object ServerSetupScreen : Data {
-                override fun toString(): String = "Linkora Server Setup"
+                override fun toString(): String =
+                    Localization.getLocalizedString(Localization.Key.LinkoraServerSetup)
             }
         }
     }

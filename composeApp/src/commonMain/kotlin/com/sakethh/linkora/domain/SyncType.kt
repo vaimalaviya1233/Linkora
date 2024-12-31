@@ -1,31 +1,33 @@
 package com.sakethh.linkora.domain
 
+import com.sakethh.linkora.common.Localization
+
 enum class SyncType {
     ClientToServer {
         override fun asUIString(): String {
-            return "Client To Server"
+            return Localization.getLocalizedString(Localization.Key.ClientToServer)
         }
 
         override fun description(): String {
-            return "Client changes are sent to the server, but client is not updated with server changes."
+            return Localization.getLocalizedString(Localization.Key.ClientToServerDesc)
         }
     },
     ServerToClient {
         override fun asUIString(): String {
-            return "Server To Client"
+            return Localization.getLocalizedString(Localization.Key.ServerToClient)
         }
 
         override fun description(): String {
-            return "Server changes are sent to the client, but server is not updated with client changes."
+            return Localization.getLocalizedString(Localization.Key.ServerToClientDesc)
         }
     },
     TwoWay {
         override fun asUIString(): String {
-            return "Two-Way Sync"
+            return Localization.getLocalizedString(Localization.Key.TwoWaySync)
         }
 
         override fun description(): String {
-            return "Changes are sent both ways: client updates the server, and server updates the client."
+            return Localization.getLocalizedString(Localization.Key.TwoWaySyncDesc)
         }
     };
 

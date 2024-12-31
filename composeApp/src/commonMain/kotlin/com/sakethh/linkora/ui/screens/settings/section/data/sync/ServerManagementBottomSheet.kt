@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
@@ -56,7 +57,7 @@ fun ServerManagementBottomSheet(
             ) {
                 item {
                     Text(
-                        text = "Manage Connected Server",
+                        text = Localization.rememberLocalizedString(Localization.Key.ManageConnectedServer),
                         style = MaterialTheme.typography.titleMedium,
                         fontSize = 18.sp,
                         modifier = Modifier
@@ -76,7 +77,7 @@ fun ServerManagementBottomSheet(
                         Spacer(Modifier.width(15.dp))
                         Column {
                             Text(
-                                text = "Currently connected to",
+                                text = Localization.rememberLocalizedString(Localization.Key.CurrentlyConnectedTo),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.secondary
@@ -99,7 +100,7 @@ fun ServerManagementBottomSheet(
                         Spacer(Modifier.width(15.dp))
                         Column {
                             Text(
-                                text = "Sync Type",
+                                text = Localization.rememberLocalizedString(Localization.Key.SyncType),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.secondary
@@ -120,7 +121,7 @@ fun ServerManagementBottomSheet(
                             navController.navigate(Navigation.Settings.Data.ServerSetupScreen)
                         }) {
                         Text(
-                            text = "Edit server configuration",
+                            text = Localization.rememberLocalizedString(Localization.Key.EditServerConfiguration),
                             style = MaterialTheme.typography.titleSmall
                         )
                     }
@@ -141,7 +142,7 @@ fun ServerManagementBottomSheet(
                             })
                         }) {
                         Text(
-                            text = "Delete the connection",
+                            text = Localization.rememberLocalizedString(Localization.Key.DeleteTheServerConnection),
                             style = MaterialTheme.typography.titleSmall
                         )
                     }

@@ -45,7 +45,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
@@ -91,7 +93,7 @@ fun DataSettingsScreen(
             }
             item {
                 Text(
-                    text = "LocalizedStrings.import.value",
+                    text = Localization.rememberLocalizedString(Localization.Key.ImportLabel),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
@@ -104,9 +106,9 @@ fun DataSettingsScreen(
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "LocalizedStrings.importUsingJsonFile.value",
+                        title = Localization.rememberLocalizedString(Localization.Key.ImportUsingJsonFile),
                         doesDescriptionExists = true,
-                        description = "LocalizedStrings.importUsingJsonFileDesc.value",
+                        description = Localization.rememberLocalizedString(Localization.Key.ImportUsingJsonFileDesc),
                         isSwitchNeeded = false,
                         isSwitchEnabled = rememberSaveable { mutableStateOf(false) },
                         onSwitchStateChange = {
@@ -120,9 +122,9 @@ fun DataSettingsScreen(
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "LocalizedStrings.importDataFromHtmlFile.value",
+                        title = Localization.rememberLocalizedString(Localization.Key.ImportDataFromHtmlFile),
                         doesDescriptionExists = true,
-                        description = "LocalizedStrings.importDataFromHtmlFileDesc.value",
+                        description = Localization.rememberLocalizedString(Localization.Key.ImportDataFromHtmlFileDesc),
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
@@ -134,7 +136,7 @@ fun DataSettingsScreen(
             }
             item {
                 Text(
-                    text = "LocalizedStrings.export.value",
+                    text = Localization.rememberLocalizedString(Localization.Key.ExportLabel),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
@@ -146,9 +148,9 @@ fun DataSettingsScreen(
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "LocalizedStrings.exportDataAsJson.value",
+                        title = Localization.rememberLocalizedString(Localization.Key.ExportDataAsJson),
                         doesDescriptionExists = true,
-                        description = "LocalizedStrings.exportDataAsJsonDesc.value",
+                        description = Localization.rememberLocalizedString(Localization.Key.ExportDataAsJsonDesc),
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
@@ -162,9 +164,9 @@ fun DataSettingsScreen(
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "LocalizedStrings.exportDataAsHtml.value",
+                        title = Localization.rememberLocalizedString(Localization.Key.ExportDataAsHtml),
                         doesDescriptionExists = true,
-                        description = "LocalizedStrings.exportDataAsHtmlDesc.value",
+                        description = Localization.rememberLocalizedString(Localization.Key.ExportDataAsHtmlDesc),
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
@@ -179,7 +181,7 @@ fun DataSettingsScreen(
             }
             item {
                 Text(
-                    text = "Sync",
+                    text = Localization.rememberLocalizedString(Localization.Key.Sync),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
@@ -193,9 +195,9 @@ fun DataSettingsScreen(
                     SettingComponent(
                         SettingComponentParam(
                             isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                            title = "Connect to a Linkora Server",
+                            title = Localization.rememberLocalizedString(Localization.Key.ConnectToALinkoraServer),
                             doesDescriptionExists = true,
-                            description = "By connecting to a Linkora server, you can sync your data and access it on any device using the Linkora app.",
+                            description = Localization.rememberLocalizedString(Localization.Key.ConnectToALinkoraServerDesc),
                             isSwitchNeeded = false,
                             isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                             onSwitchStateChange = {
@@ -208,9 +210,9 @@ fun DataSettingsScreen(
                     SettingComponent(
                         SettingComponentParam(
                             isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                            title = "Manage Linkora Server",
+                            title = Localization.rememberLocalizedString(Localization.Key.ManageConnectedServer),
                             doesDescriptionExists = true,
-                            description = "Your data is synced with the Linkora server. Tap to manage or disconnect.",
+                            description = Localization.rememberLocalizedString(Localization.Key.ManageConnectedServerDesc),
                             isSwitchNeeded = false,
                             isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                             onSwitchStateChange = {
@@ -239,9 +241,9 @@ fun DataSettingsScreen(
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "deleteEntireDataPermanently.value",
+                        title = Localization.rememberLocalizedString(Localization.Key.DeleteEntireDataPermanently),
                         doesDescriptionExists = true,
-                        description = "deleteEntireDataPermanentlyDesc.value",
+                        description = Localization.rememberLocalizedString(Localization.Key.DeleteEntireDataPermanentlyDesc),
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
@@ -261,9 +263,9 @@ fun DataSettingsScreen(
                 )
                 SettingComponent(
                     SettingComponentParam(
-                        title = "LocalizedStrings.clearImageCache.value",
+                        title = Localization.rememberLocalizedString(Localization.Key.ClearImageCache),
                         doesDescriptionExists = true,
-                        description = "LocalizedStrings.clearImageCacheDesc.value",
+                        description = Localization.rememberLocalizedString(Localization.Key.ClearImageCacheDesc),
                         isSwitchNeeded = false,
                         isIconNeeded = rememberSaveable {
                             mutableStateOf(true)
@@ -294,9 +296,9 @@ fun DataSettingsScreen(
                     if (true/*TODO !SettingsScreenVM.isAnyRefreshingTaskGoingOn.value*/) {
                         SettingComponent(
                             SettingComponentParam(
-                                title = "LocalizedStrings.refreshAllLinksTitlesAndImages.value",
+                                title = Localization.rememberLocalizedString(Localization.Key.RefreshAllLinksTitlesAndImages),
                                 doesDescriptionExists = true,
-                                description = "LocalizedStrings.refreshAllLinksTitlesAndImagesDesc.value",
+                                description = Localization.rememberLocalizedString(Localization.Key.RefreshAllLinksTitlesAndImagesDesc),
                                 isSwitchNeeded = false,
                                 isIconNeeded = rememberSaveable {
                                     mutableStateOf(true)
@@ -324,7 +326,7 @@ fun DataSettingsScreen(
                             modifier = Modifier.fillMaxWidth().wrapContentHeight()
                         ) {
                             Text(
-                                text = "LocalizedStrings.refreshingLinks.value",
+                                text = Localization.rememberLocalizedString(Localization.Key.RefreshingLinks),
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(
                                     start = 15.dp, end = 15.dp
@@ -395,7 +397,7 @@ fun DataSettingsScreen(
                                         )
                                     )
                                     Text(
-                                        text = "LocalizedStrings.refreshingLinksInfo.value",
+                                        text = Localization.Key.RefreshingLinksDesc.rememberLocalizedString(),
                                         style = MaterialTheme.typography.titleSmall,
                                         lineHeight = 18.sp,
                                         modifier = Modifier.padding(end = 15.dp)
