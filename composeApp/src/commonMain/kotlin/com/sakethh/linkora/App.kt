@@ -52,6 +52,7 @@ import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.LanguageSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
@@ -201,7 +202,7 @@ fun App(
             }) {
             NavHost(
                 navController = navController,
-                startDestination = Navigation.Root.CollectionsScreen
+                startDestination = Navigation.Settings.LanguageSettingsScreen
             ) {
                 composable<Navigation.Root.HomeScreen> {
                     HomeScreen()
@@ -244,6 +245,9 @@ fun App(
                         }
                     }
                     ServerSetupScreen(navController, serverManagementViewModel)
+                }
+                composable<Navigation.Settings.LanguageSettingsScreen> {
+                    LanguageSettingsScreen(navController)
                 }
             }
         }

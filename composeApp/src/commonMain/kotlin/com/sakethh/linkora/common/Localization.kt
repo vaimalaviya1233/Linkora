@@ -88,7 +88,51 @@ object Localization {
                 return "use_dark_theme"
             }
         },
-
+        AppLanguage(defaultValue = "App Language") {
+            override fun toString(): String {
+                return "app_language"
+            }
+        },
+        DisplayingRemoteStrings(defaultValue = "Displaying Remote Strings") {
+            override fun toString(): String {
+                return "displaying_remote_strings"
+            }
+        },
+        ResetAppLanguage(defaultValue = "Reset App Language") {
+            override fun toString(): String {
+                return "reset_app_language"
+            }
+        },
+        AvailableLanguages(defaultValue = "Available Languages") {
+            override fun toString(): String {
+                return "available_languages"
+            }
+        },
+        LoadServerStrings(defaultValue = "Load Server Strings") {
+            override fun toString(): String {
+                return "load_server_strings"
+            }
+        },
+        LoadCompiledStrings(defaultValue = "Load Compiled Strings") {
+            override fun toString(): String {
+                return "load_compiled_strings"
+            }
+        },
+        UpdateRemoteLanguageStrings(defaultValue = "Update Remote Language Strings") {
+            override fun toString(): String {
+                return "update_remote_language_strings"
+            }
+        },
+        RemoveRemoteLanguageStrings(defaultValue = "Remove Remote Language Strings") {
+            override fun toString(): String {
+                return "remove_remote_language_strings"
+            }
+        },
+        DisplayingCompiledStrings(defaultValue = "Displaying Compiled Strings") {
+            override fun toString(): String {
+                return "displaying_compiled_strings"
+            }
+        },
         Home(defaultValue = "Home") {
             override fun toString(): String {
                 return "home"
@@ -614,6 +658,11 @@ object Localization {
         UseAmoledTheme(defaultValue = "Use Amoled Theme") {
             override fun toString(): String {
                 return "use_amoled_theme"
+            }
+        },
+        RetrieveLanguageInfoFromServer(defaultValue = "Retrieve Language Info from Server") {
+            override fun toString(): String {
+                return "retrieve_language_info_from_server"
             }
         }
     }

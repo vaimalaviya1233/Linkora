@@ -103,7 +103,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-
+                navController.navigate(Navigation.Settings.LanguageSettingsScreen)
             },
             sectionTitle = Localization.getLocalizedString(Localization.Key.Language),
             sectionIcon = Icons.Default.Language
