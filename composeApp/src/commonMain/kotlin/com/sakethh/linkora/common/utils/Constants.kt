@@ -12,4 +12,6 @@ object Constants {
     const val VALUE_PLACE_HOLDER_2 = "{#LINKORA_PLACE_HOLDER_2#}"
 
     fun placeholders(): List<String> = listOf(VALUE_PLACE_HOLDER_1, VALUE_PLACE_HOLDER_2)
+
+    const val DEFAULT_APP_LANGUAGE_CODE = "en"
 }

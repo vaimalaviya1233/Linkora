@@ -5,7 +5,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.Constants.DEFAULT_APP_LANGUAGE_CODE
+import com.sakethh.linkora.domain.repository.LocalizationRepo
 import kotlinx.coroutines.runBlocking
 
 typealias LocalizedStringKey = String
@@ -13,10 +16,32 @@ typealias LocalizedStringKey = String
 object Localization {
     private val localizedStrings = mutableStateMapOf<LocalizedStringKey, String>()
 
-    fun loadLocalizedStrings(languageCode: String) = runBlocking {
-        if (languageCode == "en") return@runBlocking
+    fun loadLocalizedStrings(
+        languageCode: String,
+        localizationRepoLocal: LocalizationRepo.Local,
+        forceLoadDefaultValues: Boolean = false
+    ) = runBlocking {
+        if (languageCode == DEFAULT_APP_LANGUAGE_CODE && forceLoadDefaultValues.not()) return@runBlocking
+        if (AppPreferences.preferredAppLanguageCode.value != languageCode) {
+            AppPreferences.preferredAppLanguageName.value =
+                localizationRepoLocal.getLanguageNameForTheCode(languageCode)
+            AppPreferences.preferredAppLanguageCode.value = languageCode
+            /*preferencesRepository.changePreferenceValue(
+                stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_NAME.name),
+                AppPreferences.preferredAppLanguageName.value
+            )
+            preferencesRepository.changePreferenceValue(
+                stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_CODE.name),
+                AppPreferences.preferredAppLanguageCode.value
+            )*/
+        }
         Key.entries.forEach {
-            localizedStrings[it.toString()] = it.defaultValue
+            localizedStrings[it.toString()] = if (languageCode == DEFAULT_APP_LANGUAGE_CODE) {
+                it.defaultValue
+            } else {
+                localizationRepoLocal.getLocalizedStringValueFor(it.toString(), languageCode)
+                    ?: it.defaultValue
+            }
         }
     }
 
@@ -118,14 +143,19 @@ object Localization {
                 return "load_compiled_strings"
             }
         },
-        UpdateRemoteLanguageStrings(defaultValue = "Update Remote Language Strings") {
+        UpdateLanguageStrings(defaultValue = "Update Language Strings") {
             override fun toString(): String {
-                return "update_remote_language_strings"
+                return "update_language_strings"
             }
         },
-        RemoveRemoteLanguageStrings(defaultValue = "Remove Remote Language Strings") {
+        DownloadLanguageStrings(defaultValue = "Download Language Strings") {
             override fun toString(): String {
-                return "remove_remote_language_strings"
+                return "download_language_strings"
+            }
+        },
+        RemoveLanguageStrings(defaultValue = "Remove Language Strings") {
+            override fun toString(): String {
+                return "remove_language_strings"
             }
         },
         DisplayingCompiledStrings(defaultValue = "Displaying Compiled Strings") {

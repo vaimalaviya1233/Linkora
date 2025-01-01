@@ -24,7 +24,7 @@ class CollectionsScreenVM(
         viewModelScope.launch {
             localFoldersRepo.getAllRootFoldersAsFlow().collectLatest {
                 it.onSuccess {
-                    _rootFolders.emit(it)
+                    _rootFolders.emit(it.data)
                 }
             }
         }

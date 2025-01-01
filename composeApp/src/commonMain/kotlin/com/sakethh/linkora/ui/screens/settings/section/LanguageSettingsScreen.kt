@@ -59,36 +59,32 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.data.remote.repository.LocalizationRepoImpl
+import com.sakethh.linkora.data.LocalizationRepoImpl
+import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
+import com.sakethh.localDatabase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSettingsScreen(navController: NavController) {
     val languageSettingsScreenVM =
         viewModel<LanguageSettingsScreenVM>(factory = genericViewModelFactory {
-            LanguageSettingsScreenVM(
-                LocalizationRepoImpl(
-                    Network.client, AppPreferences.localizationServerURL.value
-                )
-            )
+            LocalizationRepoImpl(
+                Network.client,
+                AppPreferences.localizationServerURL.value,
+                localDatabase!!.localizationDao
+            ).let {
+                LanguageSettingsScreenVM(it, it)
+            }
         })
     val availableLanguages =
         languageSettingsScreenVM.availableLanguages.collectAsStateWithLifecycle()
     val isLanguageSelectionBtmSheetVisible = rememberSaveable {
         mutableStateOf(false)
-    }
-    val currentlySelectedLanguageCode = rememberSaveable {
-        mutableStateOf("")
-    }
-    val currentlySelectedLanguageName = rememberSaveable {
-        mutableStateOf("")
-    }
-    val currentlySelectedLanguageContributionLink = rememberSaveable {
-        mutableStateOf("")
     }
     val doesRemoteLanguagePackExistsLocallyForTheSelectedLanguage = rememberSaveable {
         mutableStateOf(false)
@@ -101,6 +97,16 @@ fun LanguageSettingsScreen(navController: NavController) {
         mutableStateOf(false)
     }
     val localUriHandler = LocalUriHandler.current
+    val selectedLanguage = rememberDeserializableMutableObject<LocalizedLanguage> {
+        mutableStateOf(
+            LocalizedLanguage(
+                languageCode = "",
+                languageName = "",
+                localizedStringsCount = 0,
+                contributionLink = ""
+            )
+        )
+    }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.LanguageSettingsScreen.toString(),
         navController = navController,
@@ -187,7 +193,12 @@ fun LanguageSettingsScreen(navController: NavController) {
                         FilledTonalButton(
                             modifier = Modifier.fillMaxWidth().padding(top = 15.dp, bottom = 15.dp)
                                 .pulsateEffect(), onClick = {
-
+                                isLanguageSelectionBtmSheetVisible.value = false
+                                Localization.loadLocalizedStrings(
+                                    languageCode = "en",
+                                    languageSettingsScreenVM.localizationRepoLocal,
+                                    forceLoadDefaultValues = true
+                                )
                             }) {
                             Text(
                                 text = Localization.Key.ResetAppLanguage.rememberLocalizedString(),
@@ -209,13 +220,24 @@ fun LanguageSettingsScreen(navController: NavController) {
                 }
             }
 
-            items(availableLanguages.value.availableLanguages) {
+            items(availableLanguages.value) {
                 LanguageUIComponent(
                     onClick = {
-
+                        languageSettingsScreenVM.doesLanguagePackExists(
+                            doesRemoteLanguagePackExistsLocallyForTheSelectedLanguage,
+                            it.languageCode
+                        )
+                        selectedLanguage.value = LocalizedLanguage(
+                            languageCode = it.languageCode,
+                            languageName = it.languageName,
+                            localizedStringsCount = it.localizedStringsCount,
+                            contributionLink = it.contributionLink
+                        )
+                        isLanguageSelectionBtmSheetVisible.value =
+                            !isLanguageSelectionBtmSheetVisible.value
                     },
                     text = it.languageName,
-                    isRemoteLanguage = false,
+                    isRemoteLanguage = true,
                     localizationStatus = "${it.localizedStringsCount}/${Localization.Key.entries.size} strings localized",
                     localizationStatusFraction = it.localizedStringsCount.toFloat() / Localization.Key.entries.size.toFloat()
                 )
@@ -232,16 +254,21 @@ fun LanguageSettingsScreen(navController: NavController) {
         }) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = currentlySelectedLanguageName.value,
+                    text = selectedLanguage.value.languageName,
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 16.sp,
-                    modifier = Modifier.padding(start = 15.dp, bottom = 7.5.dp)
+                    modifier = Modifier.padding(start = 15.dp, bottom = 7.5.dp),
+                    color = MaterialTheme.colorScheme.primary
                 )
                 if (doesRemoteLanguagePackExistsLocallyForTheSelectedLanguage.value) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable(onClick = {
-
+                            isLanguageSelectionBtmSheetVisible.value = false
+                            Localization.loadLocalizedStrings(
+                                selectedLanguage.value.languageCode,
+                                languageSettingsScreenVM.localizationRepoLocal
+                            )
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
                         }).pulsateEffect().fillMaxWidth()
@@ -249,7 +276,11 @@ fun LanguageSettingsScreen(navController: NavController) {
                     ) {
                         FilledTonalIconButton(
                             modifier = Modifier.pulsateEffect(), onClick = {
-
+                                isLanguageSelectionBtmSheetVisible.value = false
+                                Localization.loadLocalizedStrings(
+                                    selectedLanguage.value.languageCode,
+                                    languageSettingsScreenVM.localizationRepoLocal
+                                )
                             }) {
                             Icon(imageVector = Icons.Default.Cloud, contentDescription = "")
                         }
@@ -265,7 +296,8 @@ fun LanguageSettingsScreen(navController: NavController) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable(onClick = {
-
+                        languageSettingsScreenVM.downloadALanguageStringsPack(selectedLanguage.value)
+                        isLanguageSelectionBtmSheetVisible.value = false
                     }, indication = null, interactionSource = remember {
                         MutableInteractionSource()
                     }).pulsateEffect().fillMaxWidth()
@@ -273,7 +305,8 @@ fun LanguageSettingsScreen(navController: NavController) {
                 ) {
                     FilledTonalIconButton(
                         modifier = Modifier.pulsateEffect(), onClick = {
-
+                            languageSettingsScreenVM.downloadALanguageStringsPack(selectedLanguage.value)
+                            isLanguageSelectionBtmSheetVisible.value = false
                         }) {
                         Icon(
                             imageVector = Icons.Default.DownloadForOffline, contentDescription = ""
@@ -281,7 +314,11 @@ fun LanguageSettingsScreen(navController: NavController) {
                     }
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = Localization.Key.UpdateRemoteLanguageStrings.rememberLocalizedString(),
+                        text = if (doesRemoteLanguagePackExistsLocallyForTheSelectedLanguage.value) {
+                            Localization.Key.UpdateLanguageStrings
+                        } else {
+                            Localization.Key.DownloadLanguageStrings
+                        }.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         fontSize = 16.sp
                     )
@@ -290,7 +327,8 @@ fun LanguageSettingsScreen(navController: NavController) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable(onClick = {
-
+                            languageSettingsScreenVM.deleteALanguagePack(selectedLanguage.value)
+                            isLanguageSelectionBtmSheetVisible.value = false
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
                         }).pulsateEffect().fillMaxWidth()
@@ -298,7 +336,8 @@ fun LanguageSettingsScreen(navController: NavController) {
                     ) {
                         FilledTonalIconButton(
                             modifier = Modifier.pulsateEffect(), onClick = {
-
+                                languageSettingsScreenVM.deleteALanguagePack(selectedLanguage.value)
+                                isLanguageSelectionBtmSheetVisible.value = false
                             }) {
                             Icon(
                                 imageVector = Icons.Default.DeleteForever, contentDescription = ""
@@ -306,7 +345,7 @@ fun LanguageSettingsScreen(navController: NavController) {
                         }
                         Spacer(modifier = Modifier.width(5.dp))
                         Text(
-                            text = Localization.Key.RemoveRemoteLanguageStrings.rememberLocalizedString(),
+                            text = Localization.Key.RemoveLanguageStrings.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleSmall,
                             fontSize = 16.sp
                         )
