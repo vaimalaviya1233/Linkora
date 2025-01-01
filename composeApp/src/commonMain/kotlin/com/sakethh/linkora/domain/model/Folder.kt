@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
-@Entity
+@Entity(tableName = "folders")
 @Serializable
 data class Folder(
     val name: String,

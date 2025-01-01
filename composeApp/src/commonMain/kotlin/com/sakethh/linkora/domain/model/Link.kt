@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.domain.LinkType
 
-@Entity
+@Entity(tableName = "links")
 data class Link(
     val linkType: LinkType,
     @PrimaryKey(autoGenerate = true)
