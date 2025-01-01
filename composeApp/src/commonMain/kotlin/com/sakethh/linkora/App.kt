@@ -60,7 +60,7 @@ import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagemen
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
-import com.sakethh.linkora.ui.utils.rememberDecodableObject
+import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.localDatabase
 import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
@@ -103,7 +103,7 @@ fun App(
             }
         }
     }
-    val navRouteList = rememberDecodableObject {
+    val navRouteList = rememberDeserializableObject {
         listOf(
             Navigation.Root.HomeScreen,
             Navigation.Root.SearchScreen,
@@ -116,7 +116,10 @@ fun App(
         if (platform() == Platform.Desktop || platform() == Platform.Android.Tablet) {
             Row {
                 Box(modifier = Modifier.fillMaxHeight()) {
-                    Column(modifier = Modifier.align(Alignment.Center)) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         navRouteList.forEach { navRouteItem ->
                             val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                             NavigationRailItem(
