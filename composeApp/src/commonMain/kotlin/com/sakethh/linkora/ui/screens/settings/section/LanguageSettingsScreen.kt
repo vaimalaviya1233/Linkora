@@ -59,8 +59,10 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.components.LoadingDialog
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
@@ -347,25 +349,11 @@ fun LanguageSettingsScreen() {
             }
         }
     }
-
-    /*SettingsNewVersionCheckerDialogBox(
-        text = if (isRetrieveLanguageInfoFABTriggered.value)
-            LocalizedStrings.syncingLanguageDetailsThisMayTakeSomeTime.value else LocalizedStrings.syncingTranslationsForCurrentlySelectedLanguage.value.replace(
-            "\$\$\$\$",
-            currentlySelectedLanguageName.value
-        ),
-        shouldDialogBoxAppear = languageSettingsScreenVM.shouldRequestingDataFromServerDialogBoxShouldAppear
-    )*//*LaunchedEffect(key1 = Unit) {
-        preferredAppLanguageName.value = readSettingPreferenceValue(
-            stringPreferencesKey(SettingsPreferences.APP_LANGUAGE_NAME.name),
-            context.dataStore
-        ) ?: "English"
-
-        preferredAppLanguageCode.value = readSettingPreferenceValue(
-            stringPreferencesKey(SettingsPreferences.APP_LANGUAGE_CODE.name),
-            context.dataStore
-        ) ?: "en"
-    }*/
+    LoadingDialog(
+        shouldDialogBoxAppear = languageSettingsScreenVM.languageSettingsState.value.fetchingLanguageInfo || languageSettingsScreenVM.languageSettingsState.value.fetchingStrings,
+        text = if (languageSettingsScreenVM.languageSettingsState.value.fetchingLanguageInfo) Localization.Key.FetchingAvailableLanguages.rememberLocalizedString() else Localization.Key.DownloadingStrings.rememberLocalizedString()
+            .replace(LinkoraPlaceHolder.First.value, "\"${selectedLanguage.value.languageName}\"")
+    )
 }
 
 @Composable

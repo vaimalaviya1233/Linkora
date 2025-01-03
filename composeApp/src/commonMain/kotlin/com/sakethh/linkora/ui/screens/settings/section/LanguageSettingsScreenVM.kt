@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.settings.section
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
@@ -8,6 +9,7 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.domain.onFailure
+import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.LocalizationRepo
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -20,7 +22,7 @@ import kotlinx.coroutines.runBlocking
 
 class LanguageSettingsScreenVM(
     private val localizationRepoRemote: LocalizationRepo.Remote,
-    val localizationRepoLocal: LocalizationRepo.Local
+    private val localizationRepoLocal: LocalizationRepo.Local
 ) : ViewModel() {
     private val _availableLanguages = MutableStateFlow(
         emptyList<LocalizedLanguage>()
@@ -31,6 +33,17 @@ class LanguageSettingsScreenVM(
         exists.value = localizationRepoLocal.doesStringsPackForThisLanguageExists(languageCode)
     }
 
+    val languageSettingsState = mutableStateOf(
+        LanguageSettingsState(
+            fetchingStrings = false,
+            fetchingLanguageInfo = false
+        )
+    )
+
+    private fun resetState() {
+        languageSettingsState.value =
+            LanguageSettingsState(fetchingStrings = false, fetchingLanguageInfo = false)
+    }
     fun fetchRemoteLanguages() {
         viewModelScope.launch {
             localizationRepoRemote.getLanguagesFromServer().collect {
@@ -45,16 +58,21 @@ class LanguageSettingsScreenVM(
                             )
                         }).collectLatest {
                         it.onSuccess {
+                            resetState()
                             pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.SavedAvailableLanguagesInfoLocally.getLocalizedString()))
                         }
-
                         it.onFailure {
+                            resetState()
                             pushUIEvent(UIEvent.Type.ShowSnackbar(it))
                         }
                     }
                 }
-
+                it.onLoading {
+                    languageSettingsState.value =
+                        LanguageSettingsState(fetchingStrings = false, fetchingLanguageInfo = true)
+                }
                 it.onFailure {
+                    resetState()
                     pushUIEvent(UIEvent.Type.ShowSnackbar(it))
                 }
             }
@@ -101,6 +119,7 @@ class LanguageSettingsScreenVM(
                 it.onSuccess {
                     localizationRepoLocal.addLocalizedStrings(it.data).collectLatest {
                         it.onSuccess {
+                            resetState()
                             pushUIEvent(
                                 UIEvent.Type.ShowSnackbar(
                                     message = Localization.Key.DownloadedLanguageStrings.getLocalizedString()
@@ -111,14 +130,18 @@ class LanguageSettingsScreenVM(
                                 )
                             )
                         }
-
                         it.onFailure {
+                            resetState()
                             pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
                         }
                     }
                 }
-
+                it.onLoading {
+                    languageSettingsState.value =
+                        LanguageSettingsState(fetchingStrings = true, fetchingLanguageInfo = false)
+                }
                 it.onFailure {
+                    resetState()
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
                 }
             }

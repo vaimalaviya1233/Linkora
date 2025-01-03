@@ -750,6 +750,16 @@ object Localization {
             override fun toString(): String {
                 return "copied_link_to_clipboard"
             }
+        },
+        FetchingAvailableLanguages(defaultValue = "Fetching Available Languages") {
+            override fun toString(): String {
+                return "fetching_available_languages"
+            }
+        },
+        DownloadingStrings(defaultValue = "Downloading Strings for ${LinkoraPlaceHolder.First.value}") {
+            override fun toString(): String {
+                return "downloading_strings"
+            }
         }
     }
 }
