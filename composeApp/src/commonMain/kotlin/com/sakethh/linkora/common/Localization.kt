@@ -192,7 +192,7 @@ object Localization {
                 return "create_a_new_folder"
             }
         },
-        CreateANewFolderIn(defaultValue = "Create A New Folder In \"${LinkoraPlaceHolder.First.value}\"") {
+        CreateANewFolderIn(defaultValue = "Create A New Folder In ${LinkoraPlaceHolder.First.value}") {
             override fun toString(): String {
                 return "create_a_new_folder_in"
             }
@@ -693,6 +693,51 @@ object Localization {
         RetrieveLanguageInfoFromServer(defaultValue = "Retrieve Language Info from Server") {
             override fun toString(): String {
                 return "retrieve_language_info_from_server"
+            }
+        },
+        SelectACollection(defaultValue = "Select a Collection") {
+            override fun toString(): String {
+                return "select_a_collection"
+            }
+        },
+        FolderHasBeenCreatedSuccessful(defaultValue = "The folder ${LinkoraPlaceHolder.First.value} has been successfully created.") {
+            override fun toString(): String {
+                return "folder_has_been_created_successful"
+            }
+        },
+        RemoteExecutionFailed(defaultValue = "Remote execution failed :") {
+            override fun toString(): String {
+                return "remote_execution_failed"
+            }
+        },
+        SavedAvailableLanguagesInfoLocally(defaultValue = "Saved Available Languages Info locally.") {
+            override fun toString(): String {
+                return "saved_available_languages_info_locally"
+            }
+        },
+        DeletedTheStringsPack(defaultValue = "Deleted the ${LinkoraPlaceHolder.First.value} strings pack.") {
+            override fun toString(): String {
+                return "deleted_the_strings_pack"
+            }
+        },
+        DownloadedLanguageStrings(defaultValue = "Downloaded Language Strings for the ${LinkoraPlaceHolder.First.value}.") {
+            override fun toString(): String {
+                return "downloaded_language_strings"
+            }
+        },
+        Linkora(defaultValue = "Linkora") {
+            override fun toString(): String {
+                return "linkora"
+            }
+        },
+        LinkoraIsConnectedToAServer(defaultValue = "Linkora is connected to the server; syncing is based on ${LinkoraPlaceHolder.First.value}.") {
+            override fun toString(): String {
+                return "linkora_is_connected_to_a_server"
+            }
+        },
+        CopiedLinkToClipboard(defaultValue = "Copied Link to Clipboard") {
+            override fun toString(): String {
+                return "copied_link_to_clipboard"
             }
         }
     }

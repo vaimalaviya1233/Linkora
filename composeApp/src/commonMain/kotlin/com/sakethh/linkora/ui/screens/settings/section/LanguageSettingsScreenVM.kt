@@ -3,6 +3,9 @@ package com.sakethh.linkora.ui.screens.settings.section
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
@@ -42,7 +45,7 @@ class LanguageSettingsScreenVM(
                             )
                         }).collectLatest {
                         it.onSuccess {
-                            pushUIEvent(UIEvent.Type.ShowSnackbar("Saved Available Languages Info locally."))
+                            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.SavedAvailableLanguagesInfoLocally.getLocalizedString()))
                         }
 
                         it.onFailure {
@@ -76,7 +79,14 @@ class LanguageSettingsScreenVM(
             localizationRepoLocal.deleteAllLocalizedStringsForThisLanguage(language.languageCode)
                 .collectLatest {
                     it.onSuccess {
-                        pushUIEvent(UIEvent.Type.ShowSnackbar("Deleted the \"${language.languageName}\" strings pack."))
+                        pushUIEvent(
+                            UIEvent.Type.ShowSnackbar(
+                                Localization.Key.DeletedTheStringsPack.getLocalizedString().replace(
+                                    LinkoraPlaceHolder.First.value,
+                                    "\"${language.languageName}\""
+                                )
+                            )
+                        )
                     }
                     it.onFailure {
                         pushUIEvent(UIEvent.Type.ShowSnackbar(it))
@@ -91,7 +101,15 @@ class LanguageSettingsScreenVM(
                 it.onSuccess {
                     localizationRepoLocal.addLocalizedStrings(it.data).collectLatest {
                         it.onSuccess {
-                            pushUIEvent(UIEvent.Type.ShowSnackbar(message = "Downloaded Language Strings for the \"${language.languageName}\""))
+                            pushUIEvent(
+                                UIEvent.Type.ShowSnackbar(
+                                    message = Localization.Key.DownloadedLanguageStrings.getLocalizedString()
+                                        .replace(
+                                            LinkoraPlaceHolder.First.value,
+                                            "\"${language.languageName}\""
+                                        )
+                                )
+                            )
                         }
 
                         it.onFailure {

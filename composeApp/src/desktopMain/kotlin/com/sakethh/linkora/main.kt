@@ -36,10 +36,14 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.createDataStore
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.DesktopTypography
@@ -62,7 +66,7 @@ fun main() {
         Window(
             state = windowState,
             onCloseRequest = ::exitApplication,
-            title = "Linkora",
+            title = Localization.Key.Linkora.getLocalizedString(),
             undecorated = true
         ) {
             val settingsScreenViewModel =
@@ -110,7 +114,15 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
                         imageVector = Icons.Default.WbCloudy,
                         contentDescription = null,
                         modifier = Modifier.clickable(onClick = {
-                            coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar("Linkora is connected to the server, syncing based on \"${AppPreferences.serverSyncType.value.asUIString()}\"."))
+                            coroutineScope.pushUIEvent(
+                                UIEvent.Type.ShowSnackbar(
+                                    Localization.Key.LinkoraIsConnectedToAServer.getLocalizedString()
+                                        .replace(
+                                            LinkoraPlaceHolder.First.value,
+                                            "\"${AppPreferences.serverSyncType.value.asUIString()}\""
+                                        )
+                                )
+                            )
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
                         })
@@ -122,7 +134,7 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
                     )
                 )
                 Text(
-                    text = "Linkora",
+                    text = Localization.Key.Linkora.rememberLocalizedString(),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }

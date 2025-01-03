@@ -2,6 +2,9 @@ package com.sakethh.linkora.ui.screens.collections
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
@@ -37,7 +40,14 @@ class CollectionsScreenVM(
             localFoldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsThrowable)
                 .collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = "The folder \"${folder.name}\" has been successfully created.${if (it.isRemoteExecutionSuccessful.not()) "\n\nRemote execution failed :\n" + it.remoteFailureMessage else ""}"))
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            message = Localization.Key.FolderHasBeenCreatedSuccessful.getLocalizedString()
+                                .replace(
+                                    LinkoraPlaceHolder.First.value, "\"${folder.name}\""
+                                ) + if (it.isRemoteExecutionSuccessful.not()) "\n\n${Localization.Key.RemoteExecutionFailed.getLocalizedString()}\n" + it.remoteFailureMessage else ""
+                        )
+                    )
                     onCompletion()
                 }.onFailure {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))

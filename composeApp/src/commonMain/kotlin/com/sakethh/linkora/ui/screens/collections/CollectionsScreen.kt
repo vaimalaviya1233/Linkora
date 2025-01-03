@@ -55,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
@@ -297,7 +298,7 @@ fun CollectionsScreen(collectionsScreenVM: CollectionsScreenVM) {
                             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Select a Collection",
+                                text = Localization.Key.SelectACollection.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }

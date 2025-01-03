@@ -138,7 +138,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                         Localization.rememberLocalizedString(Localization.Key.CreateANewFolderIn)
                             .replace(
                                 LinkoraPlaceHolder.First.value,
-                                addNewFolderDialogBoxParam.thisFolder!!.name
+                                "\"${addNewFolderDialogBoxParam.thisFolder!!.name}\""
                             )
                     else
                         Localization.rememberLocalizedString(Localization.Key.CreateANewFolder),

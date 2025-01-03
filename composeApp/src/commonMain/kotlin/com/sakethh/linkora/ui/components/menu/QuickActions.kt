@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 
@@ -52,7 +54,7 @@ private fun QuickActions(onForceOpenInExternalBrowserClicked: () -> Unit, webUrl
                 localClipBoardManager.setText(
                     AnnotatedString(webUrl)
                 )
-                coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(message = "Copied Link to Clipboard"))
+                coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.CopiedLinkToClipboard.getLocalizedString()))
             }) {
                 Icon(
                     imageVector = Icons.Outlined.ContentCopy,
