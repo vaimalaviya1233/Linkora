@@ -142,10 +142,70 @@ fun LayoutSettingsScreen() {
             ),
             LinkUIComponentParam(
                 link = Link(
+                    linkTitle = "Photos From 2024",
+                    baseURL = "reddit.com",
+                    imgURL = "https://i.redd.it/j14an1zv6aae1.jpg",
+                    webURL = "https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    id = 0L,
+                    infoForSaving = "",
+                    lastModified = "",
+                    isLinkedWithSavedLinks = false,
+                    isLinkedWithFolders = false,
+                    idOfLinkedFolder = null
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    linkTitle = "KanYe West | Spotify",
+                    baseURL = "open.spotify.com",
+                    imgURL = "https://i.scdn.co/image/b076a71cd18041144e0c5a1f2fc785cc6f6faa37",
+                    webURL = "https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    id = 0L,
+                    infoForSaving = "",
+                    lastModified = "",
+                    isLinkedWithSavedLinks = false,
+                    isLinkedWithFolders = false,
+                    idOfLinkedFolder = null
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+            ),
+            LinkUIComponentParam(
+                link = Link(
                     linkTitle = "Hacker (small type)",
                     baseURL = "twitter.com",
                     imgURL = "https://pbs.twimg.com/media/GT7RIrWWwAAjZzg.jpg",
                     webURL = "https://twitter.com/CatWorkers/status/1819121250226127061",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    id = 0L,
+                    infoForSaving = "",
+                    lastModified = "",
+                    isLinkedWithSavedLinks = false,
+                    isLinkedWithFolders = false,
+                    idOfLinkedFolder = null
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    linkTitle = "MrMobile [Michael Fisher]",
+                    baseURL = "youtube.com",
+                    imgURL = "https://yt3.googleusercontent.com/Bf8B_79jyHxP6CVnjV5WKws93l9Vxlk0d7aPmcBygTBDKzgsGrpazdJRFUrfg1sUNlo8YX8rji8",
+                    webURL = "https://www.youtube.com/@TheMrMobile",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     id = 0L,
@@ -234,9 +294,6 @@ fun LayoutSettingsScreen() {
                 isSwitchChecked = AppPreferences.enableFadedEdgeForNonListViews
             ),
         )
-    }
-    val extendedSampleList = remember {
-        sampleList + sampleList.shuffled()
     }
     SettingsSectionScaffold(
         topAppBarText = Localization.Key.LinkLayoutSettings.rememberLocalizedString(),
@@ -380,7 +437,7 @@ fun LayoutSettingsScreen() {
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-                items(extendedSampleList) {
+                items(sampleList) {
                     GridViewLinkUIComponent(it, forStaggeredView = false)
                 }
                 item(span = {
@@ -447,7 +504,7 @@ fun LayoutSettingsScreen() {
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-                items(extendedSampleList) {
+                items(sampleList) {
                     GridViewLinkUIComponent(
                         linkUIComponentParam = LinkUIComponentParam(
                             link = Link(
