@@ -760,6 +760,86 @@ object Localization {
             override fun toString(): String {
                 return "downloading_strings"
             }
+        },
+        CopiedTitleToTheClipboard(defaultValue = "Copied Title to The Clipboard") {
+            override fun toString(): String {
+                return "copied_title_to_the_clipboard"
+            }
+        },
+        CopiedNoteToTheClipboard(defaultValue = "Copied Note to The Clipboard") {
+            override fun toString(): String {
+                return "copied_note_to_the_clipboard"
+            }
+        },
+        ViewNote(defaultValue = "View Note") {
+            override fun toString(): String {
+                return "view_note"
+            }
+        },
+        Rename(defaultValue = "Rename") {
+            override fun toString(): String {
+                return "rename"
+            }
+        },
+        RefreshImageAndTitle(defaultValue = "Refresh Image And Title") {
+            override fun toString(): String {
+                return "refresh_image_and_title"
+            }
+        },
+        UnArchive(defaultValue = "Unarchive") {
+            override fun toString(): String {
+                return "unarchive"
+            }
+        },
+        DeleteTheNote(defaultValue = "Delete The Note") {
+            override fun toString(): String {
+                return "delete_the_note"
+            }
+        },
+        MoveToRootFolders(defaultValue = "Move To Root Folders") {
+            override fun toString(): String {
+                return "move_to_root_folders"
+            }
+        },
+        DeleteTheLink(defaultValue = "Delete the Link") {
+            override fun toString(): String {
+                return "delete_the_link"
+            }
+        },
+        CopyFolder(defaultValue = "Copy Folder") {
+            override fun toString(): String {
+                return "copy_folder"
+            }
+        },
+        MoveToOtherFolder(defaultValue = "Move To Other Folder") {
+            override fun toString(): String {
+                return "move_to_other_folder"
+            }
+        },
+        CopyLink(defaultValue = "Copy Link") {
+            override fun toString(): String {
+                return "copy_link"
+            }
+        },
+        MoveLink(defaultValue = "Move Link") {
+            override fun toString(): String {
+                return "move_link"
+            }
+        },
+        DeleteTheFolder(defaultValue = "Delete The Folder") {
+            override fun toString(): String {
+                return "delete_the_folder"
+            }
+        },
+        SavedNote(defaultValue = "Saved Note") {
+            override fun toString(): String {
+                return "saved_note"
+            }
+        },
+        NoNoteAdded(defaultValue = "You haven't added a note for this.") {
+            override fun toString(): String {
+                return "no_note_added"
+            }
         }
     }
 }

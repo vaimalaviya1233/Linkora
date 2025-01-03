@@ -66,6 +66,9 @@ import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.folder.FolderComponent
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -105,7 +108,7 @@ fun CollectionsScreen() {
     val clickedItemName = rememberSaveable { mutableStateOf("") }
     val clickedItemNote = rememberSaveable { mutableStateOf("") }
     val btmModalSheetStateForSavingLinks = rememberModalBottomSheetState()
-    val shouldOptionsBtmModalSheetBeVisible = rememberSaveable {
+    val shouldMenuBtmModalSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
     }
     val isMainFabRotated = rememberSaveable {
@@ -191,7 +194,7 @@ fun CollectionsScreen() {
                     item {
                         HorizontalDivider(
                             modifier = Modifier.padding(
-                                start = 20.dp, top = 15.dp, bottom = 10.dp
+                                top = 15.dp, start = 25.dp, end = 5.dp
                             ),
                             thickness = 0.5.dp,
                             color = MaterialTheme.colorScheme.outline.copy(0.25f)
@@ -291,7 +294,9 @@ fun CollectionsScreen() {
                                     )
                                 },
                                 onLongClick = { -> },
-                                onMoreIconClick = { -> },
+                                onMoreIconClick = { ->
+                                    shouldMenuBtmModalSheetBeVisible.value = true
+                                },
                                 isCurrentlyInDetailsView = remember(listDetailPaneNavigator.currentDestination?.content?.id) {
                                     mutableStateOf(listDetailPaneNavigator.currentDestination?.content?.id == folder.id)
                                 },
@@ -370,6 +375,41 @@ fun CollectionsScreen() {
                 )
             },
             thisFolder = listDetailPaneNavigator.currentDestination?.content
+        )
+    )
+    MenuBtmSheetUI(
+        menuBtmSheetParam = MenuBtmSheetParam(
+            onMoveItemClick = {
+
+            },
+            onCopyItemClick = {
+
+            },
+            btmModalSheetState = btmModalSheetState,
+            shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
+            btmSheetFor = MenuBtmSheetType.FOLDER,
+            onDeleteCardClick = {
+                shouldDeleteDialogBoxBeVisible.value = true
+            },
+            onRenameClick = {
+                shouldRenameDialogBoxBeVisible.value = true
+            },
+            onArchiveClick = {
+
+            },
+            noteForSaving = clickedItemNote.value,
+            onNoteDeleteCardClick = {
+
+            },
+            linkTitle = "",
+            folderName = "Sample Folder",
+            imgLink = "",
+            onRefreshClick = {},
+            webUrl = "",
+            onForceOpenInExternalBrowserClicked = { },
+            showQuickActions = rememberSaveable { mutableStateOf(false) },
+            shouldTransferringOptionShouldBeVisible = true,
+            imgUserAgent = ""
         )
     )
 }

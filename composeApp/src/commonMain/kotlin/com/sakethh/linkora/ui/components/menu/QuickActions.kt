@@ -29,7 +29,7 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 
 @Composable
-private fun QuickActions(onForceOpenInExternalBrowserClicked: () -> Unit, webUrl: String) {
+fun QuickActions(onForceOpenInExternalBrowserClicked: () -> Unit, webUrl: String) {
     val localURIHandler = LocalUriHandler.current
     val localClipBoardManager = LocalClipboardManager.current
     val coroutineScope = rememberCoroutineScope()
