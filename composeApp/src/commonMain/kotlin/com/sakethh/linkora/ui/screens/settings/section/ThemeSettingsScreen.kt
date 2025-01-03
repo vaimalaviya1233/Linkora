@@ -16,26 +16,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.platform
 import com.sakethh.showDynamicThemingOption
 import com.sakethh.showFollowSystemThemeOption
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThemeSettingsScreen(
-    navController: NavController,
-    settingsScreenViewModel: SettingsScreenViewModel
-) {
+fun ThemeSettingsScreen() {
+    val navController = LocalNavController.current
+    val settingsScreenViewModel: SettingsScreenViewModel =
+        viewModel(factory = genericViewModelFactory {
+            SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
+        })
     val platform = platform()
     val isSystemInDarkTheme = isSystemInDarkTheme()
     SettingsSectionScaffold(

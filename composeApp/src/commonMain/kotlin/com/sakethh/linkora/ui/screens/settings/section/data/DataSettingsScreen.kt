@@ -44,24 +44,32 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DataSettingsScreen(
-    navController: NavController,
-    serverManagementViewModel: ServerManagementViewModel
-) {
+fun DataSettingsScreen() {
+    val navController = LocalNavController.current
+    val serverManagementViewModel =
+        viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
+            ServerManagementViewModel(
+                DependencyContainer.networkRepo.value,
+                DependencyContainer.preferencesRepo.value
+            )
+        })
     val importModalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isPermissionDialogBoxVisible = rememberSaveable {
         mutableStateOf(false)

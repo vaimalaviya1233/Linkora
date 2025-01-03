@@ -36,7 +36,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -44,6 +45,7 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Link
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.link.GridViewLinkUIComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
 import com.sakethh.linkora.ui.domain.Layout
@@ -51,13 +53,16 @@ import com.sakethh.linkora.ui.domain.model.LinkPref
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LayoutSettingsScreen(
-    settingsScreenViewModel: SettingsScreenViewModel,
-    navController: NavController
-) {
+fun LayoutSettingsScreen() {
+    val navController = LocalNavController.current
+    val settingsScreenViewModel: SettingsScreenViewModel =
+        viewModel(factory = genericViewModelFactory {
+            SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
+        })
     val sampleList = remember {
         listOf(
             LinkUIComponentParam(

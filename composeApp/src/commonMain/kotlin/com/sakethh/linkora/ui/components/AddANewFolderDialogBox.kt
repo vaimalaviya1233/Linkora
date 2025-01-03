@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.notNull
+import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -134,7 +134,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
             },
             title = {
                 Text(
-                    text = if (addNewFolderDialogBoxParam.inAChildFolderScreen && addNewFolderDialogBoxParam.thisFolder.notNull())
+                    text = if (addNewFolderDialogBoxParam.inAChildFolderScreen && addNewFolderDialogBoxParam.thisFolder.isNotNull())
                         Localization.rememberLocalizedString(Localization.Key.CreateANewFolderIn)
                             .replace(
                                 LinkoraPlaceHolder.First.value,

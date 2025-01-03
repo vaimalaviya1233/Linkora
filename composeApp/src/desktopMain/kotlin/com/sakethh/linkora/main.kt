@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -34,29 +35,32 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.createDataStore
-import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
-import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.DesktopTypography
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 
 fun main() {
-    val dataStorePreference = createDataStore {
+    val dataStorePref = createDataStore {
         LinkoraDataStoreName
     }
+    DependencyContainer.dataStorePref = dataStorePref
+    AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
+    Localization.loadLocalizedStrings(
+        AppPreferences.preferredAppLanguageCode.value
+    )
     application {
         val windowState = rememberWindowState(
             width = 1054.dp,
@@ -69,29 +73,24 @@ fun main() {
             title = Localization.Key.Linkora.getLocalizedString(),
             undecorated = true
         ) {
-            val settingsScreenViewModel =
-                viewModel<SettingsScreenViewModel>(factory = genericViewModelFactory {
-                    SettingsScreenViewModel(PreferencesImpl(dataStore = dataStorePreference))
-                })
-            AppPreferences.readAll(settingsScreenViewModel.preferencesRepository)
-            LinkoraTheme(
-                typography = DesktopTypography,
-                colorScheme = if (AppPreferences.shouldFollowSystemTheme.value) {
-                    if (isSystemInDarkTheme()) DarkColors else LightColors
-                } else {
-                    if (AppPreferences.shouldUseForceDarkTheme.value) DarkColors else LightColors
-                }
+            CompositionLocalProvider(
+                LocalNavController provides navController
             ) {
-                Scaffold(topBar = {
-                    WindowDraggableArea {
-                        TopDecorator(windowState)
+                LinkoraTheme(
+                    typography = DesktopTypography,
+                    colorScheme = if (AppPreferences.shouldFollowSystemTheme.value) {
+                        if (isSystemInDarkTheme()) DarkColors else LightColors
+                    } else {
+                        if (AppPreferences.shouldUseForceDarkTheme.value) DarkColors else LightColors
                     }
-                }) {
-                    App(
-                        modifier = Modifier.padding(it),
-                        navController,
-                        settingsScreenViewModel
-                    )
+                ) {
+                    Scaffold(topBar = {
+                        WindowDraggableArea {
+                            TopDecorator(windowState)
+                        }
+                    }) {
+                        App(modifier = Modifier.padding(it))
+                    }
                 }
             }
         }

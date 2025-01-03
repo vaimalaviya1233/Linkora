@@ -30,11 +30,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen() {
+    val navController = LocalNavController.current
     val topAppBarScrollState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(topBar = {
         Column {

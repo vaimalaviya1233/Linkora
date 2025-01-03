@@ -54,30 +54,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.data.LocalizationRepoImpl
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
-import com.sakethh.localDatabase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageSettingsScreen(navController: NavController) {
+fun LanguageSettingsScreen() {
+    val navController = LocalNavController.current
     val languageSettingsScreenVM =
         viewModel<LanguageSettingsScreenVM>(factory = genericViewModelFactory {
-            LocalizationRepoImpl(
-                Network.client,
-                AppPreferences.localizationServerURL.value,
-                localDatabase!!.localizationDao
-            ).let {
+            DependencyContainer.localizationRepo.value.let {
                 LanguageSettingsScreenVM(it, it)
             }
         })
@@ -189,15 +185,14 @@ fun LanguageSettingsScreen(navController: NavController) {
                 Box(
                     modifier = Modifier.fillMaxWidth().animateContentSize()
                 ) {
-                    if (AppPreferences.preferredAppLanguageCode.value != "en") {
+                    if (AppPreferences.preferredAppLanguageCode.value != Constants.DEFAULT_APP_LANGUAGE_CODE) {
                         FilledTonalButton(
                             modifier = Modifier.fillMaxWidth().padding(top = 15.dp, bottom = 15.dp)
                                 .pulsateEffect(), onClick = {
                                 isLanguageSelectionBtmSheetVisible.value = false
                                 Localization.loadLocalizedStrings(
                                     languageCode = "en",
-                                    languageSettingsScreenVM.localizationRepoLocal,
-                                    forceLoadDefaultValues = true
+                                    forceLoadDefaultValues = true,
                                 )
                             }) {
                             Text(
@@ -267,7 +262,6 @@ fun LanguageSettingsScreen(navController: NavController) {
                             isLanguageSelectionBtmSheetVisible.value = false
                             Localization.loadLocalizedStrings(
                                 selectedLanguage.value.languageCode,
-                                languageSettingsScreenVM.localizationRepoLocal
                             )
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
@@ -279,7 +273,6 @@ fun LanguageSettingsScreen(navController: NavController) {
                                 isLanguageSelectionBtmSheetVisible.value = false
                                 Localization.loadLocalizedStrings(
                                     selectedLanguage.value.languageCode,
-                                    languageSettingsScreenVM.localizationRepoLocal
                                 )
                             }) {
                             Icon(imageVector = Icons.Default.Cloud, contentDescription = "")

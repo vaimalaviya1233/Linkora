@@ -5,7 +5,12 @@ import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.driver.AndroidSQLiteDriver
+import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.data.local.createDataStore
 import kotlinx.coroutines.Dispatchers
 
 class LinkoraApp : Application() {
@@ -20,7 +25,14 @@ class LinkoraApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        DependencyContainer.dataStorePref = createDataStore {
+            applicationContext.filesDir.resolve(LinkoraDataStoreName).absolutePath
+        }
         localDatabase = buildLocalDatabase()
+        AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
+        Localization.loadLocalizedStrings(
+            AppPreferences.preferredAppLanguageCode.value
+        )
     }
 
     private fun buildLocalDatabase(): LocalDatabase {

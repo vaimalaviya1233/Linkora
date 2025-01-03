@@ -9,4 +9,5 @@ object Constants {
     const val ARCHIVE_ID: Long = -4
 
     const val DEFAULT_APP_LANGUAGE_CODE = "en"
+    const val DEFAULT_APP_LANGUAGE_NAME = "English"
 }

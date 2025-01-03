@@ -41,8 +41,12 @@ fun Modifier.bottomNavPaddingAcrossPlatforms(): Modifier {
     }
 }
 
-fun Any?.notNull(): Boolean {
+fun Any?.isNotNull(): Boolean {
     return this != null
+}
+
+fun Any?.isNull(): Boolean {
+    return this == null
 }
 
 fun Localization.Key.getLocalizedString(): String {

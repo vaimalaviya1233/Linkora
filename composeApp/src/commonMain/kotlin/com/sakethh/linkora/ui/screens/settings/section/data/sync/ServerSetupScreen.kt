@@ -32,15 +32,18 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.domain.SyncType
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
 import com.sakethh.poppinsFontFamily
@@ -48,8 +51,15 @@ import com.sakethh.poppinsFontFamily
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerSetupScreen(
-    navController: NavController, serverManagementViewModel: ServerManagementViewModel
 ) {
+    val navController = LocalNavController.current
+    val serverManagementViewModel =
+        viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
+            ServerManagementViewModel(
+                DependencyContainer.networkRepo.value,
+                DependencyContainer.preferencesRepo.value
+            )
+        })
     val serverUrl = rememberSaveable {
         mutableStateOf(AppPreferences.serverUrl.value)
     }

@@ -7,7 +7,7 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.flow.first
 
 class PreferencesImpl(
-    val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>
 ) : PreferencesRepository {
 
     override suspend fun <T> changePreferenceValue(
