@@ -1,9 +1,9 @@
 package com.sakethh.linkora.data.local.repository
 
-import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.linkoraPlaceHolders
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
@@ -43,7 +43,6 @@ class LocalFoldersRepoImpl(
                 emit(success)
             }
         }.catch {
-            it as Exception
             it.printStackTrace()
             emit(Result.Failure(message = it.message.toString()))
         }
@@ -52,35 +51,35 @@ class LocalFoldersRepoImpl(
     override suspend fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Message>> {
-        if (folder.name.isEmpty() || Constants.placeholders().contains(folder.name)) {
-            throw Folder.InvalidName(if (folder.name.isEmpty()) "Folder name cannot be blank." else "\"${folder.name}\" is reserved.")
-        }
-        if (!ignoreFolderAlreadyExistsException) {
-            when (folder.parentFolderId) {
-                null -> {
-                    doesThisRootFolderExists(folder.name).first().onSuccess {
-                        if (it.data) {
-                            throw Folder.FolderAlreadyExists("Folder named \"${folder.name}\" already exists")
-                        }
-                    }
-                }
-
-                else -> {
-                    doesThisChildFolderExists(folder.name, folder.parentFolderId).first()
-                        .onSuccess {
-                            if (it.data == 1) {
-                                getThisFolderData(folder.parentFolderId).first()
-                                    .onSuccess { parentFolder ->
-                                        throw Folder.FolderAlreadyExists("A folder named \"${folder.name}\" already exists in ${parentFolder.data.name}.")
-                                    }
-                            }
-                        }
-                }
-            }
-        }
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
             remoteFoldersRepo.createFolder(folder)
         }, localOperation = {
+            if (folder.name.isEmpty() || linkoraPlaceHolders().contains(folder.name)) {
+                throw Folder.InvalidName(if (folder.name.isEmpty()) "Folder name cannot be blank." else "\"${folder.name}\" is reserved.")
+            }
+            if (!ignoreFolderAlreadyExistsException) {
+                when (folder.parentFolderId) {
+                    null -> {
+                        doesThisRootFolderExists(folder.name).first().onSuccess {
+                            if (it.data) {
+                                throw Folder.FolderAlreadyExists("Folder named \"${folder.name}\" already exists")
+                            }
+                        }
+                    }
+
+                    else -> {
+                        doesThisChildFolderExists(folder.name, folder.parentFolderId).first()
+                            .onSuccess {
+                                if (it.data == 1) {
+                                    getThisFolderData(folder.parentFolderId).first()
+                                        .onSuccess { parentFolder ->
+                                            throw Folder.FolderAlreadyExists("A folder named \"${folder.name}\" already exists in ${parentFolder.data.name}.")
+                                        }
+                                }
+                            }
+                    }
+                }
+            }
             val newId = foldersDao.insertANewFolder(folder)
             "Folder created successfully with id = $newId"
         })
@@ -237,14 +236,14 @@ class LocalFoldersRepoImpl(
         newFolderName: String,
         ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Unit>> {
-        if (newFolderName.isEmpty() || Constants.placeholders()
-                .contains(newFolderName) || existingFolderName == newFolderName
-        ) {
-            throw Folder.InvalidName(if (newFolderName.isEmpty()) "Folder name cannot be blank." else if (existingFolderName == newFolderName) "Nothing has changed to update." else "\"${newFolderName}\" is reserved.")
-        }
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
             remoteFoldersRepo.updateFolderName(folderID, newFolderName)
         }, localOperation = {
+            if (newFolderName.isEmpty() || linkoraPlaceHolders()
+                    .contains(newFolderName) || existingFolderName == newFolderName
+            ) {
+                throw Folder.InvalidName(if (newFolderName.isEmpty()) "Folder name cannot be blank." else if (existingFolderName == newFolderName) "Nothing has changed to update." else "\"${newFolderName}\" is reserved.")
+            }
             foldersDao.renameAFolderName(folderID, newFolderName)
         })
     }

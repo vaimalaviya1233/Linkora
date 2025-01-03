@@ -6,8 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.Constants.DEFAULT_APP_LANGUAGE_CODE
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.repository.LocalizationRepo
 import kotlinx.coroutines.runBlocking
 
@@ -192,7 +192,7 @@ object Localization {
                 return "create_a_new_folder"
             }
         },
-        CreateANewFolderIn(defaultValue = "Create A New Folder In ${Constants.VALUE_PLACE_HOLDER_1}") {
+        CreateANewFolderIn(defaultValue = "Create A New Folder In \"${LinkoraPlaceHolder.First.value}\"") {
             override fun toString(): String {
                 return "create_a_new_folder_in"
             }
