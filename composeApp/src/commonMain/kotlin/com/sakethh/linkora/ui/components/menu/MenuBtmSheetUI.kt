@@ -78,21 +78,25 @@ fun MenuBtmSheetUI(
         rememberSaveable(inputs = arrayOf(menuBtmSheetParam.noteForSaving)) {
             mutableStateOf(menuBtmSheetParam.noteForSaving)
         }
-    val isNoteBtnSelected = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val localClipBoardManager = LocalClipboardManager.current
-    val isImageAssociatedWithTheLinkIsExpanded = rememberSaveable {
-        mutableStateOf(false)
-    }
+
     if (menuBtmSheetParam.shouldBtmModalSheetBeVisible.value) {
+        val isNoteBtnSelected = rememberSaveable {
+            mutableStateOf(false)
+        }
+        val localClipBoardManager = LocalClipboardManager.current
+        val isImageAssociatedWithTheLinkIsExpanded = rememberSaveable {
+            mutableStateOf(false)
+        }
         ModalBottomSheet(onDismissRequest = {
             coroutineScope.launch {
                 menuBtmSheetParam.btmModalSheetState.hide()
             }.invokeOnCompletion {
                 menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
             }
-        }, sheetState = menuBtmSheetParam.btmModalSheetState) {
+        },
+            dragHandle = {},
+            sheetState = menuBtmSheetParam.btmModalSheetState
+        ) {
             Column(
                 modifier = Modifier
                     .navigationBarsPadding()
@@ -227,7 +231,7 @@ fun MenuBtmSheetUI(
                             }.invokeOnCompletion {
                                 menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                             }
-                            menuBtmSheetParam.onRenameClick()
+                            menuBtmSheetParam.onRename()
                         },
                         elementName = Localization.Key.Rename.getLocalizedString(),
                         elementImageVector = Icons.Outlined.DriveFileRenameOutline
@@ -268,7 +272,7 @@ fun MenuBtmSheetUI(
                     if (!menuBtmSheetParam.inSpecificArchiveScreen.value/* && optionsBtmSheetVM.archiveCardIcon.value != Icons.Outlined.Unarchive*/ && !menuBtmSheetParam.inArchiveScreen.value) {
                         IndividualMenuComponent(
                             onOptionClick = {
-                                menuBtmSheetParam.onArchiveClick()
+                                menuBtmSheetParam.onArchive()
                                 coroutineScope.launch {
                                     if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                         menuBtmSheetParam.btmModalSheetState.hide()
@@ -302,7 +306,7 @@ fun MenuBtmSheetUI(
                     if (mutableStateNote.value.isNotEmpty()) {
                         IndividualMenuComponent(
                             onOptionClick = {
-                                menuBtmSheetParam.onNoteDeleteCardClick()
+                                menuBtmSheetParam.onDeleteNote()
                                 coroutineScope.launch {
                                     if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                         menuBtmSheetParam.btmModalSheetState.hide()
@@ -328,7 +332,7 @@ fun MenuBtmSheetUI(
                     if (/*TransferActions.currentTransferActionType.value == TransferActionType.NOTHING &&*/ menuBtmSheetParam.shouldTransferringOptionShouldBeVisible) {
                         IndividualMenuComponent(
                             onOptionClick = {
-                                menuBtmSheetParam.onCopyItemClick()
+                                menuBtmSheetParam.onCopy()
                             },
                             elementName = if (menuBtmSheetParam.btmSheetFor == MenuBtmSheetType.FOLDER) Localization.Key.CopyFolder.rememberLocalizedString() else Localization.Key.CopyLink.rememberLocalizedString(),
                             elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuBtmSheetType.FOLDER) Icons.Outlined.FolderCopy else Icons.Outlined.CopyAll
@@ -336,7 +340,7 @@ fun MenuBtmSheetUI(
 
                         IndividualMenuComponent(
                             onOptionClick = {
-                                menuBtmSheetParam.onMoveItemClick()
+                                menuBtmSheetParam.onMove()
                             },
                             elementName = if (menuBtmSheetParam.btmSheetFor == MenuBtmSheetType.FOLDER) Localization.Key.MoveToOtherFolder.rememberLocalizedString() else Localization.Key.MoveLink.rememberLocalizedString(),
                             elementImageVector = Icons.AutoMirrored.Outlined.DriveFileMove
@@ -345,7 +349,7 @@ fun MenuBtmSheetUI(
                     if (menuBtmSheetParam.inSpecificArchiveScreen.value || menuBtmSheetParam.btmSheetFor != MenuBtmSheetType.IMPORTANT_LINKS_SCREEN) {
                         IndividualMenuComponent(
                             onOptionClick = {
-                                menuBtmSheetParam.onDeleteCardClick()
+                                menuBtmSheetParam.onDelete()
                                 coroutineScope.launch {
                                     if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                         menuBtmSheetParam.btmModalSheetState.hide()
@@ -409,7 +413,7 @@ fun MenuBtmSheetUI(
                 }
                 if (menuBtmSheetParam.showQuickActions.value) {
                     QuickActions(
-                        onForceOpenInExternalBrowserClicked = menuBtmSheetParam.onForceOpenInExternalBrowserClicked,
+                        onForceOpenInExternalBrowserClicked = menuBtmSheetParam.forceBrowserLaunch,
                         webUrl = menuBtmSheetParam.webUrl
                     )
                 }

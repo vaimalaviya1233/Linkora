@@ -9,6 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
+import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.platform
 
 fun String?.ifNullOrBlank(string: () -> String): String {
@@ -56,4 +60,14 @@ fun Localization.Key.getLocalizedString(): String {
 @Composable
 fun Localization.Key.rememberLocalizedString(): String {
     return Localization.rememberLocalizedString(this)
+}
+
+suspend fun <T> Result<T>.pushSnackbarOnFailure() {
+    if (this is Result.Failure) {
+        pushUIEvent(UIEvent.Type.ShowSnackbar(this.message))
+    }
+}
+
+fun String.replaceFirstPlaceHolderWith(string: String): String {
+    return this.replace(LinkoraPlaceHolder.First.value, "\"${string}\"")
 }

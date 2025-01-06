@@ -65,6 +65,9 @@ import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
+import com.sakethh.linkora.ui.components.DataDialogBoxType
+import com.sakethh.linkora.ui.components.DeleteDialogBox
+import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
@@ -75,6 +78,7 @@ import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.localDatabase
 import com.sakethh.platform
 import kotlinx.coroutines.async
@@ -105,8 +109,13 @@ fun CollectionsScreen() {
     }
     val coroutineScope = rememberCoroutineScope()
     val btmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val clickedItemName = rememberSaveable { mutableStateOf("") }
-    val clickedItemNote = rememberSaveable { mutableStateOf("") }
+    val selectedFolder = rememberDeserializableMutableObject {
+        mutableStateOf(
+            Folder(
+                name = "", note = "", parentFolderId = null, id = 0L, isArchived = false
+            )
+        )
+    }
     val btmModalSheetStateForSavingLinks = rememberModalBottomSheetState()
     val shouldMenuBtmModalSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
@@ -295,6 +304,7 @@ fun CollectionsScreen() {
                                 },
                                 onLongClick = { -> },
                                 onMoreIconClick = { ->
+                                    selectedFolder.value = folder
                                     shouldMenuBtmModalSheetBeVisible.value = true
                                 },
                                 isCurrentlyInDetailsView = remember(listDetailPaneNavigator.currentDestination?.content?.id) {
@@ -379,38 +389,36 @@ fun CollectionsScreen() {
     )
     MenuBtmSheetUI(
         menuBtmSheetParam = MenuBtmSheetParam(
-            onMoveItemClick = {
+            onMove = {
 
-            },
-            onCopyItemClick = {
+            }, onCopy = {
 
             },
             btmModalSheetState = btmModalSheetState,
             shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-            btmSheetFor = MenuBtmSheetType.FOLDER,
-            onDeleteCardClick = {
+            btmSheetFor = MenuBtmSheetType.FOLDER, onDelete = {
                 shouldDeleteDialogBoxBeVisible.value = true
-            },
-            onRenameClick = {
+            }, onRename = {
                 shouldRenameDialogBoxBeVisible.value = true
+            }, onArchive = {
+                collectionsScreenVM.archiveAFolder(selectedFolder.value)
+            }, noteForSaving = selectedFolder.value.note, onDeleteNote = {
+                collectionsScreenVM.deleteTheNote(selectedFolder.value)
             },
-            onArchiveClick = {
-
-            },
-            noteForSaving = clickedItemNote.value,
-            onNoteDeleteCardClick = {
-
-            },
-            linkTitle = "",
-            folderName = "Sample Folder",
+            linkTitle = "", folderName = selectedFolder.value.name,
             imgLink = "",
             onRefreshClick = {},
-            webUrl = "",
-            onForceOpenInExternalBrowserClicked = { },
+            webUrl = "", forceBrowserLaunch = { },
             showQuickActions = rememberSaveable { mutableStateOf(false) },
             shouldTransferringOptionShouldBeVisible = true,
             imgUserAgent = ""
         )
+    )
+    DeleteDialogBox(
+        DeleteDialogBoxParam(
+            shouldDeleteDialogBoxBeVisible, DataDialogBoxType.FOLDER, onDeleteClick = {
+                collectionsScreenVM.deleteAFolder(selectedFolder.value)
+            })
     )
 }
 

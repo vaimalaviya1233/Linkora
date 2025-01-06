@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.domain.LinkoraPlaceHolder
+import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
@@ -43,9 +44,7 @@ class CollectionsScreenVM(
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             message = Localization.Key.FolderHasBeenCreatedSuccessful.getLocalizedString()
-                                .replace(
-                                    LinkoraPlaceHolder.First.value, "\"${folder.name}\""
-                                ) + if (it.isRemoteExecutionSuccessful.not()) "\n\n${Localization.Key.RemoteExecutionFailed.getLocalizedString()}\n" + it.remoteFailureMessage else ""
+                                .replaceFirstPlaceHolderWith(folder.name) + if (it.isRemoteExecutionSuccessful.not()) "\n\n${Localization.Key.RemoteExecutionFailed.getLocalizedString()}\n" + it.remoteFailureMessage else ""
                         )
                     )
                     onCompletion()
@@ -53,6 +52,54 @@ class CollectionsScreenVM(
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
                     onCompletion()
                 }
+            }
+        }
+    }
+
+    fun deleteAFolder(folder: Folder) {
+        viewModelScope.launch {
+            localFoldersRepo.deleteAFolder(folderID = folder.id).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.getLocalizedString(
+                                Localization.Key.DeletedTheFolder
+                            ).replaceFirstPlaceHolderWith(folder.name)
+                        )
+                    )
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
+    fun deleteTheNote(folder: Folder) {
+        viewModelScope.launch {
+            localFoldersRepo.deleteAFolderNote(folder.id).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.getLocalizedString(
+                                Localization.Key.DeletedTheNote
+                            ).replaceFirstPlaceHolderWith(folder.name)
+                        )
+                    )
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
+    fun archiveAFolder(folder: Folder) {
+        viewModelScope.launch {
+            localFoldersRepo.markFolderAsArchive(folder.id).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.getLocalizedString(
+                                Localization.Key.ArchivedTheFolder
+                            ).replaceFirstPlaceHolderWith(folder.name)
+                        )
+                    )
+                }.pushSnackbarOnFailure()
             }
         }
     }

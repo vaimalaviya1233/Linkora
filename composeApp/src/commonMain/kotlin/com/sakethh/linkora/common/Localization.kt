@@ -831,6 +831,51 @@ object Localization {
                 return "delete_the_folder"
             }
         },
+        DeletedTheFolder(defaultValue = "Folder ${LinkoraPlaceHolder.First.value}, all internal folders, and associated links have been successfully deleted.") {
+            override fun toString(): String {
+                return "deleted_the_folder"
+            }
+        },
+        DeletedTheNote(defaultValue = "Successfully deleted the note of the ${LinkoraPlaceHolder.First.value}.") {
+            override fun toString(): String {
+                return "deleted_the_note"
+            }
+        },
+        FolderDeletionLabel(defaultValue = "Deleting this folder will also remove all its subfolders") {
+            override fun toString(): String {
+                return "folder_deletion_warning"
+            }
+        },
+        AreYouSureDeleteSelectedLinks(defaultValue = "Are you sure you want to delete all selected links?") {
+            override fun toString(): String {
+                return "are_you_sure_delete_selected_links"
+            }
+        },
+        AreYouSureDeleteLink(defaultValue = "Are you sure you want to delete the link?") {
+            override fun toString(): String {
+                return "are_you_sure_delete_link"
+            }
+        },
+        AreYouSureDeleteSelectedFolders(defaultValue = "Are you sure you want to delete all selected folders?") {
+            override fun toString(): String {
+                return "are_you_sure_delete_selected_folders"
+            }
+        },
+        AreYouSureDeleteFolder(defaultValue = "Are you sure you want to delete the folder?") {
+            override fun toString(): String {
+                return "are_you_sure_delete_folder"
+            }
+        },
+        AreYouSureDeleteSelectedItems(defaultValue = "Are you sure you want to delete all selected items?") {
+            override fun toString(): String {
+                return "are_you_sure_delete_selected_items"
+            }
+        },
+        AreYouSureDeleteAllFoldersAndLinks(defaultValue = "Are you sure you want to delete all folders and links?") {
+            override fun toString(): String {
+                return "are_you_sure_delete_all_folders_and_links"
+            }
+        },
         SavedNote(defaultValue = "Saved Note") {
             override fun toString(): String {
                 return "saved_note"
@@ -839,6 +884,16 @@ object Localization {
         NoNoteAdded(defaultValue = "You haven't added a note for this.") {
             override fun toString(): String {
                 return "no_note_added"
+            }
+        },
+        Delete(defaultValue = "Delete") {
+            override fun toString(): String {
+                return "delete"
+            }
+        },
+        ArchivedTheFolder(defaultValue = "The folder ${LinkoraPlaceHolder.First.value} has been archived.") {
+            override fun toString(): String {
+                return "archived_the_folder"
             }
         }
     }

@@ -9,6 +9,10 @@ object UIEvent {
     private val _uiChannel = Channel<Type>()
     val uiEventsReadOnlyChannel = _uiChannel.receiveAsFlow()
 
+    suspend fun pushUIEvent(type: Type) {
+        _uiChannel.send(type)
+    }
+
     fun CoroutineScope.pushUIEvent(type: Type) {
         this.launch {
             _uiChannel.send(type)
