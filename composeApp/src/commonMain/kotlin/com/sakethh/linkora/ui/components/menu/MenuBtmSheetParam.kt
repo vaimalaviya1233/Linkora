@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 data class MenuBtmSheetParam @OptIn(ExperimentalMaterial3Api::class) constructor(
     val btmModalSheetState: SheetState,
     val shouldBtmModalSheetBeVisible: MutableState<Boolean>,
-    val btmSheetFor: MenuBtmSheetType,
+    val btmSheetFor: MenuItemType,
     val onDelete: () -> Unit,
     val onDeleteNote: () -> Unit,
     val onRename: () -> Unit,

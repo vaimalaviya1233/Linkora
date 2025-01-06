@@ -895,7 +895,57 @@ object Localization {
             override fun toString(): String {
                 return "archived_the_folder"
             }
-        }
+        },
+        ChangeBothNameAndNote(defaultValue = "Change Name and Note") {
+            override fun toString(): String {
+                return "change_both_name_and_note"
+            }
+        },
+        ChangeNoteOnly(defaultValue = "Change Note") {
+            override fun toString(): String {
+                return "change_note_only"
+            }
+        },
+        RenameFolder(defaultValue = "Rename Folder ${LinkoraPlaceHolder.First.value}:") {
+            override fun toString(): String {
+                return "rename_folder"
+            }
+        },
+        ChangeLinkData(defaultValue = "Change Link data:") {
+            override fun toString(): String {
+                return "change_link_data"
+            }
+        },
+        NewName(defaultValue = "New Name") {
+            override fun toString(): String {
+                return "new_name"
+            }
+        },
+        NewTitle(defaultValue = "New Title") {
+            override fun toString(): String {
+                return "new_title"
+            }
+        },
+        NewNote(defaultValue = "New Note") {
+            override fun toString(): String {
+                return "new_note"
+            }
+        },
+        UpdatedTheNote(defaultValue = "Updated the note successfully.") {
+            override fun toString(): String {
+                return "updated_the_note"
+            }
+        },
+        UpdatedTheName(defaultValue = "Updated the name successfully.") {
+            override fun toString(): String {
+                return "updated_the_name"
+            }
+        },
+        UpdatedTheFolderData(defaultValue = "Folder data has been updated successfully.") {
+            override fun toString(): String {
+                return "updated_the_name"
+            }
+        },
     }
 }
 

@@ -103,4 +103,47 @@ class CollectionsScreenVM(
             }
         }
     }
+
+    fun updateFolderNote(folderId: Long, newNote: String, pushSnackbarOnSuccess: Boolean = true) {
+        viewModelScope.launch {
+            localFoldersRepo.renameAFolderNote(folderId, newNote).collectLatest {
+                it.onSuccess {
+                    if (pushSnackbarOnSuccess) {
+                        pushUIEvent(
+                            UIEvent.Type.ShowSnackbar(
+                                Localization.getLocalizedString(
+                                    Localization.Key.UpdatedTheNote
+                                )
+                            )
+                        )
+                    }
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
+    fun updateFolderName(
+        folder: Folder,
+        newName: String,
+        ignoreFolderAlreadyExistsThrowable: Boolean
+    ) {
+        viewModelScope.launch {
+            localFoldersRepo.renameAFolderName(
+                folderID = folder.id,
+                existingFolderName = folder.name,
+                newFolderName = newName,
+                ignoreFolderAlreadyExistsException = ignoreFolderAlreadyExistsThrowable
+            ).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.getLocalizedString(
+                                Localization.Key.UpdatedTheFolderData
+                            )
+                        )
+                    )
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
 }

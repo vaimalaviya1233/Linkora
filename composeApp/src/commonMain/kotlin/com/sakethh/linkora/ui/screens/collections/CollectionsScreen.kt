@@ -68,10 +68,12 @@ import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.DataDialogBoxType
 import com.sakethh.linkora.ui.components.DeleteDialogBox
 import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
+import com.sakethh.linkora.ui.components.RenameDialogBox
+import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
+import com.sakethh.linkora.ui.components.menu.MenuItemType
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -396,7 +398,8 @@ fun CollectionsScreen() {
             },
             btmModalSheetState = btmModalSheetState,
             shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-            btmSheetFor = MenuBtmSheetType.FOLDER, onDelete = {
+            btmSheetFor = MenuItemType.FOLDER,
+            onDelete = {
                 shouldDeleteDialogBoxBeVisible.value = true
             }, onRename = {
                 shouldRenameDialogBoxBeVisible.value = true
@@ -419,6 +422,29 @@ fun CollectionsScreen() {
             shouldDeleteDialogBoxBeVisible, DataDialogBoxType.FOLDER, onDeleteClick = {
                 collectionsScreenVM.deleteAFolder(selectedFolder.value)
             })
+    )
+    RenameDialogBox(
+        RenameDialogBoxParam(
+            onNoteChangeClick = {
+                collectionsScreenVM.updateFolderNote(selectedFolder.value.id, newNote = it)
+                shouldRenameDialogBoxBeVisible.value = false
+            },
+            shouldDialogBoxAppear = shouldRenameDialogBoxBeVisible,
+            existingFolderName = selectedFolder.value.name,
+            onBothTitleAndNoteChangeClick = { title, note ->
+                collectionsScreenVM.updateFolderNote(
+                    selectedFolder.value.id, newNote = note, pushSnackbarOnSuccess = false
+                )
+                collectionsScreenVM.updateFolderName(
+                    folder = selectedFolder.value,
+                    newName = title,
+                    ignoreFolderAlreadyExistsThrowable = true
+                )
+                shouldRenameDialogBoxBeVisible.value = false
+            },
+            existingTitle = selectedFolder.value.name,
+            existingNote = selectedFolder.value.note
+        )
     )
 }
 
