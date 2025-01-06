@@ -5,7 +5,6 @@ import androidx.datastore.preferences.core.Preferences
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.network.repository.NetworkRepoImpl
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.baseUrl
 import com.sakethh.linkora.data.LocalizationRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
@@ -33,7 +32,7 @@ object DependencyContainer {
     val remoteFoldersRepo = lazy {
         RemoteFoldersRepoImpl(
             Network.client,
-            AppPreferences.serverUrl.value.baseUrl(),
+            AppPreferences.serverUrl.value,
             AppPreferences.serverSecurityToken.value
         )
     }
