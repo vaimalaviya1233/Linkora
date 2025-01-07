@@ -25,8 +25,15 @@ fun String?.ifNullOrBlank(string: () -> String): String {
     }
 }
 
-fun String.baseUrl(): String {
-    return this.split("/")[2]
+fun String.baseUrl(throwOnException: Boolean = true): String {
+    return try {
+        this.split("/")[2]
+    } catch (e: Exception) {
+        if (throwOnException) {
+            throw e
+        }
+        this
+    }
 }
 
 fun Modifier.fillMaxWidthWithPadding(

@@ -34,7 +34,7 @@ class LocalLinksRepoImpl(
                 return@flow
             }
             scrapeLinkData(
-                link.title, link.userAgent ?: primaryUserAgent()
+                link.url, link.userAgent ?: primaryUserAgent()
             ).let { scrapedLinkInfo ->
                 linksDao.addANewLink(
                     link.copy(

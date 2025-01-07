@@ -22,14 +22,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
@@ -37,7 +34,6 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -74,8 +70,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -112,9 +106,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddANewLinkDialogBox(
     shouldBeVisible: MutableState<Boolean>,
-    isDataExtractingForTheLink: Boolean,
     screenType: ScreenType, currentFolder: Folder?
 ) {
+    val isDataExtractingForTheLink = rememberSaveable {
+        mutableStateOf(false)
+    }
     val isDropDownMenuIconClicked = rememberSaveable {
         mutableStateOf(false)
     }
@@ -130,8 +126,10 @@ fun AddANewLinkDialogBox(
     val addTheFolderInRoot = rememberSaveable {
         mutableStateOf(false)
     }
-    if (isDataExtractingForTheLink) {
-        isDropDownMenuIconClicked.value = false
+    LaunchedEffect(isDataExtractingForTheLink.value) {
+        if (isDataExtractingForTheLink.value) {
+            isDropDownMenuIconClicked.value = false
+        }
     }
     val coroutineScope = rememberCoroutineScope()
     val isChildFoldersBottomSheetExpanded = mutableStateOf(false)
@@ -151,6 +149,7 @@ fun AddANewLinkDialogBox(
             mutableStateOf("")
         }
         LaunchedEffect(Unit) {
+            isDataExtractingForTheLink.value = false
             lifecycleOwner.lifecycle.currentStateFlow.collectLatest {
                 when (it) {
                     Lifecycle.State.DESTROYED -> {}
@@ -197,7 +196,7 @@ fun AddANewLinkDialogBox(
         val rootFolders = specificCollectionScreenVM.rootFolders.collectAsStateWithLifecycle()
         BasicAlertDialog(
             onDismissRequest = {
-                if (!isDataExtractingForTheLink) {
+                if (!isDataExtractingForTheLink.value) {
                     shouldBeVisible.value = false
                 }
             },
@@ -211,7 +210,7 @@ fun AddANewLinkDialogBox(
                 if (platform() == Platform.Android.Mobile) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         TopPartOfAddANewLinkDialogBox(
-                            isDataExtractingForTheLink = isDataExtractingForTheLink,
+                            isDataExtractingForTheLink = isDataExtractingForTheLink.value,
                             screenType = screenType,
                             linkTextFieldValue = linkTextFieldValue,
                             titleTextFieldValue = titleTextFieldValue,
@@ -238,23 +237,16 @@ fun AddANewLinkDialogBox(
                             isCreateANewFolderIconClicked = isCreateANewFolderIconClicked,
                             rootFolders,
                             specificCollectionScreenVM = specificCollectionScreenVM,
-                            currentFolder = currentFolder,
                         )
                     }
                 } else {
                     Box(Modifier.fillMaxSize()) {
-                        IconButton(
-                            modifier = Modifier.align(Alignment.TopEnd).padding(15.dp), onClick = {
-                                shouldBeVisible.value = false
-                            }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
-                        }
                         Row(
                             modifier = Modifier.animateContentSize().fillMaxSize()
                                 .navigationBarsPadding()
                         ) {
                             TopPartOfAddANewLinkDialogBox(
-                                isDataExtractingForTheLink = isDataExtractingForTheLink,
+                                isDataExtractingForTheLink = isDataExtractingForTheLink.value,
                                 screenType = screenType,
                                 linkTextFieldValue = linkTextFieldValue,
                                 titleTextFieldValue = titleTextFieldValue,
@@ -286,8 +278,15 @@ fun AddANewLinkDialogBox(
                                 isCreateANewFolderIconClicked = isCreateANewFolderIconClicked,
                                 rootFolders = rootFolders,
                                 specificCollectionScreenVM = specificCollectionScreenVM,
-                                currentFolder = currentFolder,
                             )
+                        }
+                        IconButton(
+                            modifier = Modifier.align(Alignment.TopEnd).padding(15.dp), onClick = {
+                                if (!isDataExtractingForTheLink.value) {
+                                    shouldBeVisible.value = false
+                                }
+                            }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
                         }
                     }
                 }
@@ -474,7 +473,7 @@ private fun TopPartOfAddANewLinkDialogBox(
 @Composable
 private fun BottomPartOfAddANewLinkDialogBox(
     shouldBeVisible: MutableState<Boolean>,
-    isDataExtractingForTheLink: Boolean,
+    isDataExtractingForTheLink: MutableState<Boolean>,
     screenType: ScreenType,
     linkTextFieldValue: MutableState<String>,
     titleTextFieldValue: MutableState<String>,
@@ -490,8 +489,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
     addTheFolderInRoot: MutableState<Boolean>,
     isCreateANewFolderIconClicked: MutableState<Boolean>,
     rootFolders: State<List<Folder>>,
-    specificCollectionScreenVM: SpecificCollectionScreenVM,
-    currentFolder: Folder?
+    specificCollectionScreenVM: SpecificCollectionScreenVM
 ) {
     val coroutineScope = rememberCoroutineScope()
     Column(
@@ -513,7 +511,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
             ) {
                 FilledTonalButton(
                     modifier = Modifier.pulsateEffect().fillMaxWidth(0.8f), onClick = {
-                        if (!isDataExtractingForTheLink) {
+                        if (!isDataExtractingForTheLink.value) {
                             isDropDownMenuIconClicked.value = !isDropDownMenuIconClicked.value
                             //  AddANewLinkDialogBox.subFoldersList.clear()
                         }
@@ -532,7 +530,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     modifier = Modifier.pulsateEffect(
                         0.75f
                     ), onClick = {
-                        if (!isDataExtractingForTheLink) {
+                        if (!isDataExtractingForTheLink.value) {
                             isDropDownMenuIconClicked.value = !isDropDownMenuIconClicked.value
                             // AddANewLinkDialogBox.subFoldersList.clear()
                         }
@@ -604,7 +602,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
-        if (isDataExtractingForTheLink.not() && screenType == ScreenType.INTENT_ACTIVITY) {
+        if (isDataExtractingForTheLink.value.not() && screenType == ScreenType.INTENT_ACTIVITY) {
             Button(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary,
@@ -641,7 +639,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
 
         Spacer(Modifier.height(10.dp))
 
-        if (!isDataExtractingForTheLink) {
+        if (!isDataExtractingForTheLink.value) {
             OutlinedButton(
                 colors = ButtonDefaults.outlinedButtonColors(), border = BorderStroke(
                     width = 1.dp, color = MaterialTheme.colorScheme.secondary
@@ -663,6 +661,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     end = 20.dp, top = 10.dp, start = 20.dp
                 ).fillMaxWidth().pulsateEffect(),
                 onClick = {
+                    isDataExtractingForTheLink.value = true
                     specificCollectionScreenVM.addANewLink(
                         link = Link(
                             linkType = when (screenType) {
@@ -677,11 +676,9 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             },
                             title = titleTextFieldValue.value,
                             url = linkTextFieldValue.value,
-                            baseURL = "",
                             imgURL = "",
                             note = noteTextFieldValue.value,
-                            lastModified = "",
-                            idOfLinkedFolder = currentFolder?.id,
+                            idOfLinkedFolder = selectedFolderIDForSaving.longValue,
                             userAgent = AppPreferences.primaryJsoupUserAgent.value
                         ), linkSaveConfig = LinkSaveConfig(
                             forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
@@ -760,80 +757,6 @@ private fun BottomPartOfAddANewLinkDialogBox(
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp)
             )
-            if (/*RequestResult.isThisFirstRequest.not()*/false) {
-                Spacer(modifier = Modifier.height(15.dp))
-                Card(
-                    border = BorderStroke(
-                        1.dp, contentColorFor(MaterialTheme.colorScheme.surface)
-                    ),
-                    colors = CardDefaults.cardColors(containerColor = AlertDialogDefaults.containerColor),
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp, top = 15.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(
-                            top = 10.dp, bottom = 10.dp
-                        ), verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Warning,
-                                contentDescription = null,
-                                modifier = Modifier.padding(
-                                    start = 10.dp, end = 10.dp
-                                )
-                            )
-                        }
-                        Text(
-                            text = Localization.rememberLocalizedString(
-                                Localization.Key.InitialRequestFailed
-                            ),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(end = 10.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(5.dp))
-                Card(
-                    border = BorderStroke(
-                        1.dp, contentColorFor(MaterialTheme.colorScheme.surface)
-                    ),
-                    colors = CardDefaults.cardColors(containerColor = AlertDialogDefaults.containerColor),
-                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.padding(
-                            end = 10.dp, top = 10.dp, start = 10.dp, bottom = 10.dp
-                        ).fillMaxWidth(), text = buildAnnotatedString {
-                            appendInlineContent(id = "infoIcon")
-                            append(
-                                Localization.rememberLocalizedString(
-                                    Localization.Key.RetryingWithSecondaryUserAgent
-                                )
-                            )
-                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append(AppPreferences.secondaryJsoupUserAgent.value)
-                            }
-                        }, style = MaterialTheme.typography.titleSmall, inlineContent = mapOf(
-                            "infoIcon" to InlineTextContent(
-                                Placeholder(
-                                    20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter
-                                )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Info,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentDescription = ""
-                                )
-                            })
-                    )
-                }
-            }
         }
     }
 }

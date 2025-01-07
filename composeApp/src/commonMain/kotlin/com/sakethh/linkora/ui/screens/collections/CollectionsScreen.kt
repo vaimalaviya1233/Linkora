@@ -355,7 +355,6 @@ fun CollectionsScreen() {
 
     AddANewLinkDialogBox(
         shouldBeVisible = shouldShowAddLinkDialog,
-        isDataExtractingForTheLink = false,
         screenType = ScreenType.ROOT_SCREEN,
         currentFolder = null
     )
