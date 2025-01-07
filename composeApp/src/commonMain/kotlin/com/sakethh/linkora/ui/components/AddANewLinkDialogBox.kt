@@ -82,9 +82,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Platform
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
@@ -95,8 +93,7 @@ import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.ScreenType
-import com.sakethh.linkora.ui.screens.collections.SpecificCollectionScreenVM
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
@@ -106,7 +103,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddANewLinkDialogBox(
     shouldBeVisible: MutableState<Boolean>,
-    screenType: ScreenType, currentFolder: Folder?
+    screenType: ScreenType, currentFolder: Folder?,
+    collectionsScreenVM: CollectionsScreenVM
 ) {
     val isDataExtractingForTheLink = rememberSaveable {
         mutableStateOf(false)
@@ -185,15 +183,7 @@ fun AddANewLinkDialogBox(
              AddANewLinkDialogBox.childFolders.collectAsStateWithLifecycle()*/
 
         val lazyRowState = rememberLazyListState()
-        val specificCollectionScreenVM =
-            viewModel<SpecificCollectionScreenVM>(factory = genericViewModelFactory {
-                SpecificCollectionScreenVM(
-                    localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                    localLinksRepo = DependencyContainer.localLinksRepo.value,
-                    loadRootFoldersOnInit = true
-                )
-            })
-        val rootFolders = specificCollectionScreenVM.rootFolders.collectAsStateWithLifecycle()
+        val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
         BasicAlertDialog(
             onDismissRequest = {
                 if (!isDataExtractingForTheLink.value) {
@@ -236,7 +226,7 @@ fun AddANewLinkDialogBox(
                             addTheFolderInRoot = addTheFolderInRoot,
                             isCreateANewFolderIconClicked = isCreateANewFolderIconClicked,
                             rootFolders,
-                            specificCollectionScreenVM = specificCollectionScreenVM,
+                            collectionsScreenVM = collectionsScreenVM,
                         )
                     }
                 } else {
@@ -277,7 +267,7 @@ fun AddANewLinkDialogBox(
                                 addTheFolderInRoot = addTheFolderInRoot,
                                 isCreateANewFolderIconClicked = isCreateANewFolderIconClicked,
                                 rootFolders = rootFolders,
-                                specificCollectionScreenVM = specificCollectionScreenVM,
+                                collectionsScreenVM = collectionsScreenVM,
                             )
                         }
                         IconButton(
@@ -489,7 +479,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
     addTheFolderInRoot: MutableState<Boolean>,
     isCreateANewFolderIconClicked: MutableState<Boolean>,
     rootFolders: State<List<Folder>>,
-    specificCollectionScreenVM: SpecificCollectionScreenVM
+    collectionsScreenVM: CollectionsScreenVM
 ) {
     val coroutineScope = rememberCoroutineScope()
     Column(
@@ -662,7 +652,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 ).fillMaxWidth().pulsateEffect(),
                 onClick = {
                     isDataExtractingForTheLink.value = true
-                    specificCollectionScreenVM.addANewLink(
+                    collectionsScreenVM.addANewLink(
                         link = Link(
                             linkType = when (screenType) {
                                 ScreenType.SAVED_LINKS_SCREEN -> LinkType.SAVED_LINK

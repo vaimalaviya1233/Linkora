@@ -14,6 +14,7 @@ import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 
@@ -106,5 +107,23 @@ class LocalLinksRepoImpl(
             else -> pageTitle
         }
         return ScrapedLinkInfo(title, imgURL)
+    }
+
+    private fun Flow<List<Link>>.mapToSuccessAndCatch(): Flow<Result<List<Link>>> {
+        return this.map {
+            Result.Success(it)
+        }.catchAsThrowableAndEmitFailure()
+    }
+
+    override fun getAllSavedLinks(): Flow<Result<List<Link>>> {
+        return linksDao.getAllSavedLinks().mapToSuccessAndCatch()
+    }
+
+    override fun getLinksFromFolder(folderId: Long): Flow<Result<List<Link>>> {
+        return linksDao.getLinksFromFolder(folderId).mapToSuccessAndCatch()
+    }
+
+    override fun getAllImportantLinks(): Flow<Result<List<Link>>> {
+        return linksDao.getAllImportantLinks().mapToSuccessAndCatch()
     }
 }

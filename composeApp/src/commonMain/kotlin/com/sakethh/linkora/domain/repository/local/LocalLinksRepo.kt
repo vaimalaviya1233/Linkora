@@ -10,4 +10,10 @@ interface LocalLinksRepo {
         link: Link,
         linkSaveConfig: LinkSaveConfig
     ): Flow<Result<Unit>>
+
+    fun getAllSavedLinks(): Flow<Result<List<Link>>>
+
+    fun getAllImportantLinks(): Flow<Result<List<Link>>>
+
+    fun getLinksFromFolder(folderId: Long): Flow<Result<List<Link>>>
 }

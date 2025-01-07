@@ -58,6 +58,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
@@ -91,7 +92,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun CollectionsScreen() {
     val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
-        CollectionsScreenVM(DependencyContainer.localFoldersRepo.value)
+        CollectionsScreenVM(
+            DependencyContainer.localFoldersRepo.value,
+            DependencyContainer.localLinksRepo.value
+        )
     })
     val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
     val shouldRenameDialogBoxBeVisible = rememberSaveable {
@@ -181,6 +185,7 @@ fun CollectionsScreen() {
                             name = Localization.rememberLocalizedString(Localization.Key.AllLinks),
                             icon = Icons.Outlined.DatasetLinked,
                             onClick = {
+                                collectionsScreenVM.emptyCollectableLinks()
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.AllLinks),
@@ -207,6 +212,7 @@ fun CollectionsScreen() {
                             name = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
                             icon = Icons.Outlined.Link,
                             onClick = { ->
+                                collectionsScreenVM.updateCollectableLinks(LinkType.SAVED_LINK)
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.SavedLinks),
@@ -224,6 +230,7 @@ fun CollectionsScreen() {
                             name = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
                             icon = Icons.Outlined.StarOutline,
                             onClick = { ->
+                                collectionsScreenVM.updateCollectableLinks(LinkType.IMPORTANT_LINK)
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.ImportantLinks),
@@ -241,6 +248,7 @@ fun CollectionsScreen() {
                             name = Localization.rememberLocalizedString(Localization.Key.Archive),
                             icon = Icons.Outlined.Archive,
                             onClick = { ->
+                                collectionsScreenVM.updateCollectableLinks(LinkType.ARCHIVE_LINK)
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.Archive),
@@ -291,6 +299,10 @@ fun CollectionsScreen() {
                             FolderComponentParam(
                                 folder = folder,
                                 onClick = { ->
+                                    collectionsScreenVM.updateCollectableLinks(
+                                        linkType = LinkType.FOLDER_LINK,
+                                        folderId = folder.id
+                                    )
                                     listDetailPaneNavigator.navigateTo(
                                         ListDetailPaneScaffoldRole.Detail, folder
                                     )
@@ -328,7 +340,8 @@ fun CollectionsScreen() {
                     } else {
                         CollectionDetailPane(
                             folder = listDetailPaneNavigator.currentDestination?.content!!,
-                            paneNavigator = listDetailPaneNavigator
+                            paneNavigator = listDetailPaneNavigator,
+                            collectionsScreenVM
                         )
                     }
                 }
@@ -356,7 +369,8 @@ fun CollectionsScreen() {
     AddANewLinkDialogBox(
         shouldBeVisible = shouldShowAddLinkDialog,
         screenType = ScreenType.ROOT_SCREEN,
-        currentFolder = null
+        currentFolder = null,
+        collectionsScreenVM
     )
 
     AddANewFolderDialogBox(

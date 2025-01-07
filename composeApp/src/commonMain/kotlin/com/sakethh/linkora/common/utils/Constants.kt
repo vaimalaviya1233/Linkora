@@ -11,3 +11,11 @@ object Constants {
     const val DEFAULT_APP_LANGUAGE_CODE = "en"
     const val DEFAULT_APP_LANGUAGE_NAME = "English"
 }
+
+object LinkType {
+    const val SAVED_LINK = "SAVED_LINK"
+    const val FOLDER_LINK = "FOLDER_LINK"
+    const val HISTORY_LINK = "HISTORY_LINK"
+    const val IMPORTANT_LINK = "IMPORTANT_LINK"
+    const val ARCHIVE_LINK = "ARCHIVE_LINK"
+}
