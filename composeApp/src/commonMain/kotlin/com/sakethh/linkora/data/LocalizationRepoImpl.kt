@@ -1,5 +1,6 @@
 package com.sakethh.linkora.data
 
+import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
 import com.sakethh.linkora.data.local.dao.LocalizationDao
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.localization.LocalizationInfoDTO
@@ -11,7 +12,6 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -28,11 +28,7 @@ class LocalizationRepoImpl(
             httpClient.get(localizationServerURL() + "info").body<LocalizationInfoDTO>().let {
                 emit(Result.Success(it))
             }
-        }.catch {
-            it.printStackTrace()
-            it as Exception
-            emit(Result.Failure(it.message.toString()))
-        }
+        }.catchAsExceptionAndEmitFailure()
     }
 
     override suspend fun getLanguagePackFromServer(languageCode: String): Flow<Result<List<LocalizedString>>> {
@@ -58,11 +54,7 @@ class LocalizationRepoImpl(
                     }
                 }
             emit(Result.Success(localizedStrings.toList()))
-        }.catch {
-            it.printStackTrace()
-            it as Exception
-            emit(Result.Failure(it.message.toString()))
-        }
+        }.catchAsExceptionAndEmitFailure()
     }
 
     private fun unitFlowResult(init: suspend () -> Unit): Flow<Result<Unit>> {
@@ -70,11 +62,7 @@ class LocalizationRepoImpl(
             emit(Result.Loading())
             init()
             emit(Result.Success(Unit))
-        }.catch {
-            it.printStackTrace()
-            it as Exception
-            emit(Result.Failure(it.message.toString()))
-        }
+        }.catchAsExceptionAndEmitFailure()
     }
 
     override suspend fun addLocalizedStrings(localizedStrings: List<LocalizedString>): Flow<Result<Unit>> {
@@ -143,10 +131,6 @@ class LocalizationRepoImpl(
             Result.Success(it)
         }.onStart {
             Result.Loading<List<LocalizedLanguage>>()
-        }.catch {
-            it.printStackTrace()
-            it as Exception
-            Result.Failure<List<LocalizedLanguage>>(it.message.toString())
-        }
+        }.catchAsExceptionAndEmitFailure()
     }
 }

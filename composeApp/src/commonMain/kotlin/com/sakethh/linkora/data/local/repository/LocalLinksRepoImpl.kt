@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.baseUrl
-import com.sakethh.linkora.common.utils.catchAndEmitFailure
+import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
@@ -44,7 +44,7 @@ class LocalLinksRepoImpl(
                 )
             }
             emit(Result.Success(Unit))
-        }.catchAndEmitFailure()
+        }.catchAsThrowableAndEmitFailure()
     }
 
     private suspend fun scrapeLinkData(

@@ -1,5 +1,6 @@
 package com.sakethh.linkora.data.remote.repository
 
+import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
@@ -20,7 +21,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
 class RemoteFoldersRepoImpl(
@@ -53,10 +53,7 @@ class RemoteFoldersRepoImpl(
             }.handleResponseBody<IncomingBody>().run {
                 emit(this)
             }
-        }.catch {
-            it as Exception
-            emit(Result.Failure(it.message.toString()))
-        }
+        }.catchAsExceptionAndEmitFailure()
     }
 
     override suspend fun createFolder(folder: Folder): Flow<Result<Message>> {

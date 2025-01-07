@@ -1,5 +1,6 @@
 package com.sakethh.linkora.data.local.repository
 
+import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
@@ -10,7 +11,6 @@ import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -42,10 +42,7 @@ class LocalFoldersRepoImpl(
                 }
                 emit(success)
             }
-        }.catch {
-            it.printStackTrace()
-            emit(Result.Failure(message = it.message.toString()))
-        }
+        }.catchAsThrowableAndEmitFailure()
     }
 
     override suspend fun insertANewFolder(
@@ -108,9 +105,7 @@ class LocalFoldersRepoImpl(
             Result.Success(it)
         }.onStart {
             Result.Loading<List<Folder>>()
-        }.catch {
-            Result.Failure<List<Folder>>(message = it.message.toString())
-        }
+        }.catchAsThrowableAndEmitFailure()
     }
 
     override suspend fun getAllArchiveFoldersAsList(): Flow<Result<List<Folder>>> {
@@ -125,7 +120,7 @@ class LocalFoldersRepoImpl(
     override fun getAllRootFoldersAsFlow(): Flow<Result<List<Folder>>> {
         return foldersDao.getAllRootFoldersAsFlow().map { Result.Success(it) }
             .onStart { Result.Loading<List<Folder>>() }
-            .catch { Result.Failure<List<Folder>>(message = it.message.toString()) }
+            .catchAsThrowableAndEmitFailure()
     }
 
     override suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>> {
@@ -191,9 +186,7 @@ class LocalFoldersRepoImpl(
             Result.Success(it)
         }.onStart {
             Result.Loading<Int>()
-        }.catch {
-            Result.Failure<Int>(message = it.message.toString())
-        }
+        }.catchAsThrowableAndEmitFailure()
     }
 
     override suspend fun changeTheParentIdOfASpecificFolder(
@@ -213,9 +206,7 @@ class LocalFoldersRepoImpl(
             .map { Result.Success(it) }
             .onStart {
                 Result.Loading<List<Folder>>()
-            }.catch {
-                Result.Failure<List<Folder>>(it.message.toString())
-            }
+            }.catchAsThrowableAndEmitFailure()
     }
 
     override suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>> {

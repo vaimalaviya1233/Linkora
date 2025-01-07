@@ -96,8 +96,16 @@ suspend fun <T> Result<T>.pushSnackbarOnFailure() {
     }
 }
 
-fun <T> Flow<Result<T>>.catchAndEmitFailure(): Flow<Result<T>> {
+fun <T> Flow<Result<T>>.catchAsThrowableAndEmitFailure(): Flow<Result<T>> {
     return this.catch {
+        it.printStackTrace()
+        emit(Result.Failure(message = it.message.toString()))
+    }
+}
+
+fun <T> Flow<Result<T>>.catchAsExceptionAndEmitFailure(): Flow<Result<T>> {
+    return this.catch {
+        it as Exception
         it.printStackTrace()
         emit(Result.Failure(message = it.message.toString()))
     }
