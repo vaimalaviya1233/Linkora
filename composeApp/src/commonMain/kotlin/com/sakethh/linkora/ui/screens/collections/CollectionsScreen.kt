@@ -56,10 +56,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
@@ -81,7 +79,6 @@ import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
-import com.sakethh.localDatabase
 import com.sakethh.platform
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -94,13 +91,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CollectionsScreen() {
     val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
-        CollectionsScreenVM(
-            LocalFoldersRepoImpl(
-                foldersDao = localDatabase?.foldersDao!!,
-                remoteFoldersRepo = DependencyContainer.remoteFoldersRepo.value,
-                canPushToServer = AppPreferences.canPushToServer()
-            )
-        )
+        CollectionsScreenVM(DependencyContainer.localFoldersRepo.value)
     })
     val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
     val shouldRenameDialogBoxBeVisible = rememberSaveable {
@@ -361,13 +352,13 @@ fun CollectionsScreen() {
                     })
         }
     }
+
     AddANewLinkDialogBox(
         shouldBeVisible = shouldShowAddLinkDialog,
         isDataExtractingForTheLink = false,
         screenType = ScreenType.ROOT_SCREEN,
-        onSaveClick = { saveLinkActionData ->
-
-        })
+        currentFolder = null
+    )
 
     AddANewFolderDialogBox(
         AddNewFolderDialogBoxParam(

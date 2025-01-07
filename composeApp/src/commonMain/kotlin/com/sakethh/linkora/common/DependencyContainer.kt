@@ -6,6 +6,8 @@ import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.network.repository.NetworkRepoImpl
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.LocalizationRepoImpl
+import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
+import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.localDatabase
@@ -19,8 +21,9 @@ object DependencyContainer {
 
     val localizationRepo = lazy {
         LocalizationRepoImpl(
-            Network.client,
-            AppPreferences.localizationServerURL.value,
+            Network.client, {
+                AppPreferences.localizationServerURL.value
+            },
             localDatabase!!.localizationDao
         )
     }
@@ -32,8 +35,27 @@ object DependencyContainer {
     val remoteFoldersRepo = lazy {
         RemoteFoldersRepoImpl(
             Network.client,
-            AppPreferences.serverUrl.value,
-            AppPreferences.serverSecurityToken.value
+            baseUrl = { AppPreferences.serverBaseUrl.value },
+            authToken = { AppPreferences.serverSecurityToken.value }
         )
     }
+
+    val localFoldersRepo = lazy {
+        LocalFoldersRepoImpl(
+            foldersDao = localDatabase?.foldersDao!!,
+            remoteFoldersRepo = remoteFoldersRepo.value,
+            canPushToServer = {
+                AppPreferences.canPushToServer()
+            })
+    }
+
+    val localLinksRepo = lazy {
+        LocalLinksRepoImpl(
+            linksDao = localDatabase?.linksDao!!,
+            primaryUserAgent = {
+                AppPreferences.primaryJsoupUserAgent.value
+            }
+        )
+    }
+
 }

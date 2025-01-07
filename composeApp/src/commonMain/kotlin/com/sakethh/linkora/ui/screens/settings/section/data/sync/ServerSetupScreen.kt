@@ -61,7 +61,7 @@ fun ServerSetupScreen(
             )
         })
     val serverUrl = rememberSaveable {
-        mutableStateOf(AppPreferences.serverUrl.value)
+        mutableStateOf(AppPreferences.serverBaseUrl.value)
     }
     val securityToken = rememberSaveable {
         mutableStateOf(AppPreferences.serverSecurityToken.value)

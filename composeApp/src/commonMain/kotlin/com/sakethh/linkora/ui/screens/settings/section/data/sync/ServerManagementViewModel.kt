@@ -79,7 +79,7 @@ class ServerManagementViewModel(
                     AppPreferenceType.SERVER_URL.name
                 ), newValue = serverConnection.serverUrl
             )
-            AppPreferences.serverUrl.value = serverConnection.serverUrl
+            AppPreferences.serverBaseUrl.value = serverConnection.serverUrl
 
             preferencesRepository.changePreferenceValue(
                 preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_AUTH_TOKEN.name),
@@ -106,7 +106,7 @@ class ServerManagementViewModel(
                     AppPreferenceType.SERVER_URL.name
                 ), newValue = ""
             )
-            AppPreferences.serverUrl.value = ""
+            AppPreferences.serverBaseUrl.value = ""
 
             preferencesRepository.changePreferenceValue(
                 preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_AUTH_TOKEN.name),

@@ -59,12 +59,12 @@ object AppPreferences {
     val shouldFollowAmoledTheme = mutableStateOf(false)
     val forceSaveWithoutFetchingAnyMetaData = mutableStateOf(false)
     val startDestination = mutableStateOf(Navigation.Root.HomeScreen.toString())
-    val serverUrl = mutableStateOf("")
+    val serverBaseUrl = mutableStateOf("")
     val serverSecurityToken = mutableStateOf("")
     val serverSyncType = mutableStateOf(SyncType.TwoWay)
 
     fun isServerConfigured(): Boolean {
-        return serverUrl.value.isNotBlank()
+        return serverBaseUrl.value.isNotBlank()
     }
 
     fun canPushToServer(): Boolean {
@@ -77,9 +77,9 @@ object AppPreferences {
         supervisorScope {
             listOf(
                 launch {
-                    serverUrl.value = preferencesRepository.readPreferenceValue(
+                    serverBaseUrl.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_URL.name),
-                    ) ?: serverUrl.value
+                    ) ?: serverBaseUrl.value
                 },
                 launch {
                     serverSecurityToken.value = preferencesRepository.readPreferenceValue(

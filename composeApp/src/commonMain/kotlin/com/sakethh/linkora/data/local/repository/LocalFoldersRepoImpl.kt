@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.onStart
 class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
     private val remoteFoldersRepo: RemoteFoldersRepo,
-    private val canPushToServer: Boolean
+    private val canPushToServer: () -> Boolean
 ) : LocalFoldersRepo {
 
     private fun <LocalType, RemoteType> executeWithResultFlow(
@@ -32,7 +32,7 @@ class LocalFoldersRepoImpl(
             emit(Result.Loading())
             val localResult = localOperation()
             Result.Success(localResult).let { success ->
-                if (performRemoteOperation && canPushToServer) {
+                if (performRemoteOperation && canPushToServer()) {
                     remoteOperation().collect { remoteResult ->
                         remoteResult.onFailure { failureMessage ->
                             success.isRemoteExecutionSuccessful = false

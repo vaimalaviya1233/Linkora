@@ -14,6 +14,8 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.platform
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 
 fun String?.ifNullOrBlank(string: () -> String): String {
     return if (this.isNullOrBlank()) {
@@ -53,6 +55,25 @@ fun Any?.isNull(): Boolean {
     return this == null
 }
 
+fun String?.isNotNullOrNotBlank(): Boolean {
+    return !this.isNullOrBlank()
+}
+
+fun String.isAValidLink(): Boolean {
+    return try {
+        this.baseUrl()
+        true
+    } catch (e: Exception) {
+        false
+    }
+}
+
+fun Boolean.ifNot(init: () -> Unit) {
+    if (!this) {
+        init()
+    }
+}
+
 fun Localization.Key.getLocalizedString(): String {
     return Localization.getLocalizedString(this)
 }
@@ -65,6 +86,13 @@ fun Localization.Key.rememberLocalizedString(): String {
 suspend fun <T> Result<T>.pushSnackbarOnFailure() {
     if (this is Result.Failure) {
         pushUIEvent(UIEvent.Type.ShowSnackbar(this.message))
+    }
+}
+
+fun <T> Flow<Result<T>>.catchAndEmitFailure(): Flow<Result<T>> {
+    return this.catch {
+        it.printStackTrace()
+        emit(Result.Failure(message = it.message.toString()))
     }
 }
 

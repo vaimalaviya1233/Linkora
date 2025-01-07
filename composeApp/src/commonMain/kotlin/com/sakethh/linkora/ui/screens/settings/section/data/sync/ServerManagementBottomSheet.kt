@@ -84,7 +84,7 @@ fun ServerManagementBottomSheet(
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                text = AppPreferences.serverUrl.value,
+                                text = AppPreferences.serverBaseUrl.value,
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }

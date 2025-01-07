@@ -33,7 +33,7 @@ interface FoldersDao {
     @Query("SELECT * FROM folders")
     suspend fun getAllFolders(): List<Folder>
 
-    @Query("SELECT COUNT(*) FROM links WHERE isLinkedWithFolders=1 AND idOfLinkedFolder = :folderID")
+    @Query("SELECT COUNT(*) FROM links WHERE idOfLinkedFolder = :folderID")
     suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Int
 
     @Query("SELECT * FROM folders WHERE id = :folderID")

@@ -24,7 +24,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
 class RemoteFoldersRepoImpl(
-    private val httpClient: HttpClient, private val baseUrl: String, private val authToken: String
+    private val httpClient: HttpClient,
+    private val baseUrl: () -> String,
+    private val authToken: () -> String
 ) : RemoteFoldersRepo {
 
     private suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Result<IncomingBody> {
@@ -44,8 +46,8 @@ class RemoteFoldersRepoImpl(
     ): Flow<Result<IncomingBody>> {
         return flow {
             emit(Result.Loading())
-            httpClient.post(baseUrl + endPoint) {
-                bearerAuth(authToken)
+            httpClient.post(baseUrl() + endPoint) {
+                bearerAuth(authToken())
                 contentType(contentType)
                 setBody(body)
             }.handleResponseBody<IncomingBody>().run {

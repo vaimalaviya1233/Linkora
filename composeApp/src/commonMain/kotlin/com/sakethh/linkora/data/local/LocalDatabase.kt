@@ -7,7 +7,7 @@ import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.LocalizationDao
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.Link
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.domain.model.localization.LocalizedString
 

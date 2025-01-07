@@ -18,14 +18,14 @@ import kotlinx.coroutines.flow.onStart
 
 class LocalizationRepoImpl(
     private val httpClient: HttpClient,
-    private val localizationServerURL: String,
+    private val localizationServerURL: () -> String,
     private val localizationDao: LocalizationDao
 ) :
     LocalizationRepo.Remote, LocalizationRepo.Local {
     override fun getLanguagesFromServer(): Flow<Result<LocalizationInfoDTO>> {
         return flow {
             emit(Result.Loading())
-            httpClient.get(localizationServerURL + "info").body<LocalizationInfoDTO>().let {
+            httpClient.get(localizationServerURL() + "info").body<LocalizationInfoDTO>().let {
                 emit(Result.Success(it))
             }
         }.catch {
@@ -39,7 +39,7 @@ class LocalizationRepoImpl(
         return flow {
             emit(Result.Loading())
             val localizedStrings = mutableListOf<LocalizedString>()
-            httpClient.get(localizationServerURL + languageCode)
+            httpClient.get(localizationServerURL() + languageCode)
                 .bodyAsText()
                 .substringAfter("<resources>")
                 .substringBefore("</resources>")

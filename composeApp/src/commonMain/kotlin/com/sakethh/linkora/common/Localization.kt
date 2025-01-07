@@ -946,6 +946,16 @@ object Localization {
                 return "updated_the_name"
             }
         },
+        InvalidLink(defaultValue = "The link provided is invalid. Please check and try again.") {
+            override fun toString(): String {
+                return "InvalidLink"
+            }
+        },
+        SavedTheLink(defaultValue = "Saved the link successfully.") {
+            override fun toString(): String {
+                return "saved_the_link"
+            }
+        }
     }
 }
 

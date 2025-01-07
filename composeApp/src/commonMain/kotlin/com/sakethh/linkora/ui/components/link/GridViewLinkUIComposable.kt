@@ -117,7 +117,7 @@ fun GridViewLinkUIComponent(
         }
         if (AppPreferences.enableTitleForNonListViews.value) {
             Text(
-                text = linkUIComponentParam.link.linkTitle,
+                text = linkUIComponentParam.link.title,
                 modifier = Modifier.padding(
                     start = if (AppPreferences.enableBorderForNonListViews.value) 10.dp else 0.dp,
                     top = 10.dp,

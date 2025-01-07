@@ -1,5 +1,7 @@
 package com.sakethh.linkora.ui.utils
 
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.getLocalizedString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -17,6 +19,10 @@ object UIEvent {
         this.launch {
             _uiChannel.send(type)
         }
+    }
+
+    suspend fun Localization.Key.pushLocalizedSnackbar() {
+        _uiChannel.send(Type.ShowSnackbar(this.getLocalizedString()))
     }
 
     sealed interface Type {

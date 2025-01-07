@@ -80,7 +80,7 @@ fun LinkListItemComposable(linkUIComponentParam: LinkUIComponentParam,forTitleOn
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = linkUIComponentParam.link.linkTitle,
+                text = linkUIComponentParam.link.title,
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 16.sp,
                 modifier = Modifier
@@ -169,7 +169,7 @@ fun LinkListItemComposable(linkUIComponentParam: LinkUIComponentParam,forTitleOn
                     ) {
                         IconButton(onClick = {
                             linkUIComponentParam.onForceOpenInExternalBrowserClicked()
-                            localURIHandler.openUri(linkUIComponentParam.link.webURL)
+                            localURIHandler.openUri(linkUIComponentParam.link.url)
                         }) {
                             Icon(
                                 imageVector = Icons.Outlined.OpenInBrowser,
@@ -178,7 +178,7 @@ fun LinkListItemComposable(linkUIComponentParam: LinkUIComponentParam,forTitleOn
                         }
                         IconButton(onClick = {
                             localClipBoardManager.setText(
-                                AnnotatedString(linkUIComponentParam.link.webURL)
+                                AnnotatedString(linkUIComponentParam.link.url)
                             )
                         }) {
                             Icon(

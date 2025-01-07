@@ -17,18 +17,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class CollectionsScreenVM(
-    private val localFoldersRepo: LocalFoldersRepo
+open class CollectionsScreenVM(
+    private val localFoldersRepo: LocalFoldersRepo,
+    loadRootFoldersOnInit: Boolean = true
 ) : ViewModel() {
 
     private val _rootFolders = MutableStateFlow(emptyList<Folder>())
     val rootFolders = _rootFolders.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            localFoldersRepo.getAllRootFoldersAsFlow().collectLatest {
-                it.onSuccess {
-                    _rootFolders.emit(it.data)
+        if (loadRootFoldersOnInit) {
+            viewModelScope.launch {
+                localFoldersRepo.getAllRootFoldersAsFlow().collectLatest {
+                    it.onSuccess {
+                        _rootFolders.emit(it.data)
+                    }.pushSnackbarOnFailure()
                 }
             }
         }
