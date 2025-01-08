@@ -50,6 +50,34 @@ open class CollectionsScreenVM(
         }
     }
 
+    private val _childFolders = MutableStateFlow(emptyList<Folder>())
+    val childFolders = _childFolders.asStateFlow()
+
+    private var collectableChildFoldersJob: Job? = null
+
+    fun emptyCollectableChildFolders() {
+        viewModelScope.launch {
+            _childFolders.emit(emptyList())
+        }
+    }
+
+    private suspend fun Flow<Result<List<Folder>>>.collectAndEmitChildFolders() {
+        return this.cancellable().collectLatest {
+            it.onSuccess {
+                _childFolders.emit(it.data)
+            }.pushSnackbarOnFailure()
+        }
+    }
+
+    fun updateCollectableChildFolders(parentFolderId: Long) {
+        collectableChildFoldersJob?.cancel()
+        collectableChildFoldersJob = viewModelScope.launch {
+            _childFolders.emit(emptyList())
+            localFoldersRepo.getChildFoldersOfThisParentIDAsFlow(parentFolderId)
+                .collectAndEmitChildFolders()
+        }
+    }
+
     fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsThrowable: Boolean, onCompletion: () -> Unit
     ) {

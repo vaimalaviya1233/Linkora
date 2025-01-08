@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -33,10 +32,6 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
     val isFolderCreationInProgress = rememberSaveable {
         mutableStateOf(false)
     }
-    val folderName: MutableState<String?> =
-        rememberSaveable(addNewFolderDialogBoxParam.thisFolder?.name) {
-            mutableStateOf(addNewFolderDialogBoxParam.thisFolder?.name)
-        }
     if (addNewFolderDialogBoxParam.shouldBeVisible.value) {
         val folderNameTextFieldValue = rememberSaveable {
             mutableStateOf("")

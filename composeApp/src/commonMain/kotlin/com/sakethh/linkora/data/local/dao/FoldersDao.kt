@@ -24,10 +24,10 @@ interface FoldersDao {
     @Query("SELECT * FROM folders WHERE parentFolderID IS NULL AND isArchived = 1")
     suspend fun getAllArchiveFoldersAsList(): List<Folder>
 
-    @Query("SELECT * FROM folders WHERE parentFolderID IS NULL AND isArchived = 0")
+    @Query("SELECT * FROM folders WHERE parentFolderID IS NULL")
     fun getAllRootFoldersAsFlow(): Flow<List<Folder>>
 
-    @Query("SELECT * FROM folders WHERE parentFolderID IS NULL AND isArchived = 0")
+    @Query("SELECT * FROM folders WHERE parentFolderID IS NULL")
     suspend fun getAllRootFoldersAsList(): List<Folder>
 
     @Query("SELECT * FROM folders")
@@ -69,10 +69,10 @@ interface FoldersDao {
         targetParentId: Long?
     )
 
-    @Query("SELECT * FROM folders WHERE parentFolderID = :parentFolderID AND isArchived = 0")
+    @Query("SELECT * FROM folders WHERE parentFolderID = :parentFolderID")
     fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<List<Folder>>
 
-    @Query("SELECT * FROM folders WHERE parentFolderID = :parentFolderID AND isArchived = 0")
+    @Query("SELECT * FROM folders WHERE parentFolderID = :parentFolderID")
     suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): List<Folder>
 
     @Query("SELECT COUNT(*) FROM folders WHERE parentFolderID = :parentFolderID")

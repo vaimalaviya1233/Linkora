@@ -9,6 +9,7 @@ import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
+import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -20,7 +21,8 @@ import kotlinx.coroutines.flow.onStart
 class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
     private val remoteFoldersRepo: RemoteFoldersRepo,
-    private val canPushToServer: () -> Boolean
+    private val canPushToServer: () -> Boolean,
+    private val localLinksRepo: LocalLinksRepo
 ) : LocalFoldersRepo {
 
     private fun <LocalType, RemoteType> executeWithResultFlow(
@@ -287,8 +289,18 @@ class LocalFoldersRepoImpl(
         return executeWithResultFlow(performRemoteOperation = false, remoteOperation = {
             remoteFoldersRepo.deleteFolder(folderID)
         }, localOperation = {
+            deleteLocalDataRelatedToTheFolder(folderID)
+            localLinksRepo.deleteLinksOfFolder(folderID)
             foldersDao.deleteAFolder(folderID)
         })
+    }
+
+    private suspend fun deleteLocalDataRelatedToTheFolder(folderID: Long) {
+        foldersDao.getChildFoldersOfThisParentIDAsAList(folderID).forEach {
+            foldersDao.deleteAFolder(it.id)
+            localLinksRepo.deleteLinksOfFolder(it.id)
+            deleteLocalDataRelatedToTheFolder(it.id)
+        }
     }
 
     override suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long): Flow<Result<Unit>> {

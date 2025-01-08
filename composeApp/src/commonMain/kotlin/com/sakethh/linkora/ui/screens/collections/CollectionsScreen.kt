@@ -186,6 +186,7 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.DatasetLinked,
                             onClick = {
                                 collectionsScreenVM.emptyCollectableLinks()
+                                collectionsScreenVM.emptyCollectableChildFolders()
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.AllLinks),
@@ -213,6 +214,7 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.Link,
                             onClick = { ->
                                 collectionsScreenVM.updateCollectableLinks(LinkType.SAVED_LINK)
+                                collectionsScreenVM.emptyCollectableChildFolders()
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.SavedLinks),
@@ -231,6 +233,7 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.StarOutline,
                             onClick = { ->
                                 collectionsScreenVM.updateCollectableLinks(LinkType.IMPORTANT_LINK)
+                                collectionsScreenVM.emptyCollectableChildFolders()
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.ImportantLinks),
@@ -249,6 +252,7 @@ fun CollectionsScreen() {
                             icon = Icons.Outlined.Archive,
                             onClick = { ->
                                 collectionsScreenVM.updateCollectableLinks(LinkType.ARCHIVE_LINK)
+                                collectionsScreenVM.emptyCollectableChildFolders()
                                 listDetailPaneNavigator.navigateTo(
                                     ListDetailPaneScaffoldRole.Detail, Folder(
                                         name = Localization.getLocalizedString(Localization.Key.Archive),
@@ -302,6 +306,9 @@ fun CollectionsScreen() {
                                     collectionsScreenVM.updateCollectableLinks(
                                         linkType = LinkType.FOLDER_LINK,
                                         folderId = folder.id
+                                    )
+                                    collectionsScreenVM.updateCollectableChildFolders(
+                                        parentFolderId = folder.id
                                     )
                                     listDetailPaneNavigator.navigateTo(
                                         ListDetailPaneScaffoldRole.Detail, folder
@@ -369,7 +376,7 @@ fun CollectionsScreen() {
     AddANewLinkDialogBox(
         shouldBeVisible = shouldShowAddLinkDialog,
         screenType = ScreenType.ROOT_SCREEN,
-        currentFolder = null,
+        currentFolder = listDetailPaneNavigator.currentDestination?.content,
         collectionsScreenVM
     )
 

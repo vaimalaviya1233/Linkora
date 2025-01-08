@@ -46,7 +46,9 @@ object DependencyContainer {
             remoteFoldersRepo = remoteFoldersRepo.value,
             canPushToServer = {
                 AppPreferences.canPushToServer()
-            })
+            },
+            localLinksRepo = localLinksRepo.value
+        )
     }
 
     val localLinksRepo = lazy {

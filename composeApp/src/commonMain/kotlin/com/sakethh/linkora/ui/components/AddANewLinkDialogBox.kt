@@ -62,7 +62,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -87,6 +86,8 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isAValidURL
+import com.sakethh.linkora.common.utils.isNull
+import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
@@ -94,6 +95,7 @@ import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
@@ -201,12 +203,12 @@ fun AddANewLinkDialogBox(
                     Column(modifier = Modifier.fillMaxSize()) {
                         TopPartOfAddANewLinkDialogBox(
                             isDataExtractingForTheLink = isDataExtractingForTheLink.value,
-                            screenType = screenType,
                             linkTextFieldValue = linkTextFieldValue,
                             titleTextFieldValue = titleTextFieldValue,
                             noteTextFieldValue = noteTextFieldValue,
                             isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
-                            isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled
+                            isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
+                            currentFolder
                         )
                         BottomPartOfAddANewLinkDialogBox(
                             shouldBeVisible = shouldBeVisible,
@@ -225,8 +227,8 @@ fun AddANewLinkDialogBox(
                             lazyRowState = lazyRowState,
                             addTheFolderInRoot = addTheFolderInRoot,
                             isCreateANewFolderIconClicked = isCreateANewFolderIconClicked,
-                            rootFolders,
                             collectionsScreenVM = collectionsScreenVM,
+                            currentFolder
                         )
                     }
                 } else {
@@ -237,12 +239,12 @@ fun AddANewLinkDialogBox(
                         ) {
                             TopPartOfAddANewLinkDialogBox(
                                 isDataExtractingForTheLink = isDataExtractingForTheLink.value,
-                                screenType = screenType,
                                 linkTextFieldValue = linkTextFieldValue,
                                 titleTextFieldValue = titleTextFieldValue,
                                 noteTextFieldValue = noteTextFieldValue,
                                 isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
-                                isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled
+                                isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
+                                currentFolder
                             )
                             VerticalDivider(
                                 modifier = Modifier.padding(
@@ -266,8 +268,8 @@ fun AddANewLinkDialogBox(
                                 lazyRowState = lazyRowState,
                                 addTheFolderInRoot = addTheFolderInRoot,
                                 isCreateANewFolderIconClicked = isCreateANewFolderIconClicked,
-                                rootFolders = rootFolders,
                                 collectionsScreenVM = collectionsScreenVM,
+                                currentFolder
                             )
                         }
                         IconButton(
@@ -288,34 +290,25 @@ fun AddANewLinkDialogBox(
 @Composable
 private fun TopPartOfAddANewLinkDialogBox(
     isDataExtractingForTheLink: Boolean,
-    screenType: ScreenType,
     linkTextFieldValue: MutableState<String>,
     titleTextFieldValue: MutableState<String>,
     noteTextFieldValue: MutableState<String>,
     isAutoDetectTitleEnabled: MutableState<Boolean>,
-    isForceSaveWithoutFetchingMetaDataEnabled: MutableState<Boolean>,
+    isForceSaveWithoutFetchingMetaDataEnabled: MutableState<Boolean>, currentFolder: Folder?
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(0.5f).fillMaxHeight(),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = when (screenType) {
-                ScreenType.IMPORTANT_LINKS_SCREEN -> Localization.rememberLocalizedString(
-                    Localization.Key.AddANewLinkInImportantLinks
+            color = AlertDialogDefaults.titleContentColor, text = when (currentFolder) {
+                null -> Localization.rememberLocalizedString(
+                    Localization.Key.AddANewLink
                 )
 
-                ScreenType.SAVED_LINKS_SCREEN -> Localization.rememberLocalizedString(
-                    Localization.Key.AddANewLinkInSavedLinks
-                )
-
-                ScreenType.SPECIFIC_FOLDER_LINKS_SCREEN -> Localization.rememberLocalizedString(
-                    Localization.Key.AddANewLinkIn
-                )
-
-                else -> Localization.rememberLocalizedString(Localization.Key.AddANewLink)
-            } + if (screenType == ScreenType.SPECIFIC_FOLDER_LINKS_SCREEN) " \"${"CollectionsScreenVM.currentClickedFolderData.value.folderName"}\"" else "",
-            color = AlertDialogDefaults.titleContentColor,
+                else -> Localization.rememberLocalizedString(Localization.Key.AddANewLinkIn)
+                    .replaceFirstPlaceHolderWith(currentFolder.name)
+            },
             style = MaterialTheme.typography.titleMedium,
             fontSize = 22.sp,
             modifier = Modifier.padding(
@@ -478,15 +471,17 @@ private fun BottomPartOfAddANewLinkDialogBox(
     lazyRowState: LazyListState,
     addTheFolderInRoot: MutableState<Boolean>,
     isCreateANewFolderIconClicked: MutableState<Boolean>,
-    rootFolders: State<List<Folder>>,
-    collectionsScreenVM: CollectionsScreenVM
+    collectionsScreenVM: CollectionsScreenVM,
+    currentFolder: Folder?
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
+    val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center
     ) {
-        if (screenType == ScreenType.ROOT_SCREEN || screenType == ScreenType.INTENT_ACTIVITY) {
+        if (currentFolder.isNull()) {
             Text(
                 text = Localization.rememberLocalizedString(Localization.Key.AddIn),
                 color = contentColorFor(backgroundColor = AlertDialogDefaults.containerColor),
@@ -652,23 +647,22 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 ).fillMaxWidth().pulsateEffect(),
                 onClick = {
                     isDataExtractingForTheLink.value = true
+                    val linkType =
+                        when (if (currentFolder.isNull()) selectedFolderIDForSaving.longValue else currentFolder?.id) {
+                            Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
+                            Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
+                            else -> LinkType.FOLDER_LINK
+                        }
+                    linkoraLog(linkType)
                     collectionsScreenVM.addANewLink(
                         link = Link(
-                            linkType = when (screenType) {
-                                ScreenType.SAVED_LINKS_SCREEN -> LinkType.SAVED_LINK
-                                ScreenType.IMPORTANT_LINKS_SCREEN -> LinkType.IMPORTANT_LINK
-                                ScreenType.SPECIFIC_FOLDER_LINKS_SCREEN -> LinkType.FOLDER_LINK
-                                else -> when (selectedFolderIDForSaving.longValue) {
-                                    Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
-                                    Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
-                                    else -> LinkType.FOLDER_LINK
-                                }
-                            },
+                            linkType = linkType,
                             title = titleTextFieldValue.value,
                             url = linkTextFieldValue.value,
                             imgURL = "",
                             note = noteTextFieldValue.value,
-                            idOfLinkedFolder = selectedFolderIDForSaving.longValue,
+                            idOfLinkedFolder = currentFolder?.id
+                                ?: selectedFolderIDForSaving.longValue,
                             userAgent = AppPreferences.primaryJsoupUserAgent.value
                         ), linkSaveConfig = LinkSaveConfig(
                             forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,

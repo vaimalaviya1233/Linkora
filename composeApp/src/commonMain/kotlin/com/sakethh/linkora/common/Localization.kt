@@ -236,7 +236,7 @@ object Localization {
                 return "add_a_new_link_in_saved_links"
             }
         },
-        AddANewLinkIn(defaultValue = "Add a new link in") {
+        AddANewLinkIn(defaultValue = "Add a new link in ${LinkoraPlaceHolder.First.value}") {
             override fun toString(): String {
                 return "add_a_new_link_in"
             }

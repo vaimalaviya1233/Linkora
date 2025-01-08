@@ -126,4 +126,8 @@ class LocalLinksRepoImpl(
     override fun getAllImportantLinks(): Flow<Result<List<Link>>> {
         return linksDao.getAllImportantLinks().mapToSuccessAndCatch()
     }
+
+    override suspend fun deleteLinksOfFolder(folderId: Long) {
+        linksDao.deleteLinksOfFolder(folderId)
+    }
 }

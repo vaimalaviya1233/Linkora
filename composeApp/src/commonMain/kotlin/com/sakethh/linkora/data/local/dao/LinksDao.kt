@@ -20,4 +20,7 @@ interface LinksDao {
 
     @Query("SELECT * FROM links WHERE linkType = '${LinkType.FOLDER_LINK}' AND idOfLinkedFolder = :folderId")
     fun getLinksFromFolder(folderId: Long): Flow<List<Link>>
+
+    @Query("DELETE FROM links WHERE idOfLinkedFolder = :folderId")
+    suspend fun deleteLinksOfFolder(folderId: Long)
 }
