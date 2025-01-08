@@ -5,8 +5,10 @@ import androidx.room.PrimaryKey
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.baseUrl
 import com.sakethh.linkora.domain.LinkType
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "links")
+@Serializable
 data class Link(
     val linkType: LinkType,
     @PrimaryKey(autoGenerate = true)

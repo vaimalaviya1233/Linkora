@@ -21,13 +21,13 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
-enum class DataDialogBoxType {
+enum class DeleteDialogBoxType {
     LINK, FOLDER, REMOVE_ENTIRE_DATA, SELECTED_DATA
 }
 
 data class DeleteDialogBoxParam(
     val shouldDialogBoxAppear: MutableState<Boolean>,
-    val deleteDialogBoxType: DataDialogBoxType,
+    val deleteDialogBoxType: DeleteDialogBoxType,
     val onDeleteClick: (onCompletion: () -> Unit) -> Unit,
     val areFoldersSelectable: Boolean = false
 )
@@ -103,20 +103,20 @@ fun DeleteDialogBox(
     }
 }
 
-private fun DataDialogBoxType.getTitle(areFoldersSelectable: Boolean): String {
-    return if (this == DataDialogBoxType.LINK && areFoldersSelectable) Localization.getLocalizedString(
+private fun DeleteDialogBoxType.getTitle(areFoldersSelectable: Boolean): String {
+    return if (this == DeleteDialogBoxType.LINK && areFoldersSelectable) Localization.getLocalizedString(
         Localization.Key.AreYouSureDeleteSelectedLinks
     )
-    else if (this == DataDialogBoxType.LINK) Localization.getLocalizedString(
+    else if (this == DeleteDialogBoxType.LINK) Localization.getLocalizedString(
         Localization.Key.AreYouSureDeleteLink
     )
-    else if (this == DataDialogBoxType.FOLDER && areFoldersSelectable) Localization.getLocalizedString(
+    else if (this == DeleteDialogBoxType.FOLDER && areFoldersSelectable) Localization.getLocalizedString(
         Localization.Key.AreYouSureDeleteSelectedFolders
     )
-    else if (this == DataDialogBoxType.FOLDER) Localization.getLocalizedString(
+    else if (this == DeleteDialogBoxType.FOLDER) Localization.getLocalizedString(
         Localization.Key.AreYouSureDeleteFolder
     )
-    else if (this == DataDialogBoxType.SELECTED_DATA) Localization.getLocalizedString(
+    else if (this == DeleteDialogBoxType.SELECTED_DATA) Localization.getLocalizedString(
         Localization.Key.AreYouSureDeleteSelectedItems
     )
     else Localization.getLocalizedString(Localization.Key.AreYouSureDeleteAllFoldersAndLinks)

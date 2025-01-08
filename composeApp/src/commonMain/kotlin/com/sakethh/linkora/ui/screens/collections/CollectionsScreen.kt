@@ -56,17 +56,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
-import com.sakethh.linkora.ui.components.DataDialogBoxType
 import com.sakethh.linkora.ui.components.DeleteDialogBox
 import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
+import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.RenameDialogBox
 import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -105,11 +107,27 @@ fun CollectionsScreen() {
         mutableStateOf(false)
     }
     val coroutineScope = rememberCoroutineScope()
-    val btmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val menuBtmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val selectedFolder = rememberDeserializableMutableObject {
         mutableStateOf(
             Folder(
                 name = "", note = "", parentFolderId = null, id = 0L, isArchived = false
+            )
+        )
+    }
+    val selectedLink = rememberDeserializableMutableObject {
+        mutableStateOf(
+            Link(
+                linkType = LinkType.SAVED_LINK,
+                id = 0L,
+                title = "",
+                url = "",
+                baseURL = "",
+                imgURL = "",
+                note = "",
+                lastModified = "",
+                idOfLinkedFolder = null,
+                userAgent = null
             )
         )
     }
@@ -142,7 +160,9 @@ fun CollectionsScreen() {
     val shouldBtmSheetForNewLinkAdditionBeEnabled = rememberSaveable {
         mutableStateOf(false)
     }
-
+    val menuBtmSheetFor = rememberDeserializableMutableObject {
+        mutableStateOf(MenuItemType.FOLDER)
+    }
     val listDetailPaneNavigator = rememberListDetailPaneScaffoldNavigator<Folder>()
     Scaffold(
         floatingActionButton = {
@@ -316,6 +336,7 @@ fun CollectionsScreen() {
                                 },
                                 onLongClick = { -> },
                                 onMoreIconClick = { ->
+                                    menuBtmSheetFor.value = MenuItemType.FOLDER
                                     selectedFolder.value = folder
                                     shouldMenuBtmModalSheetBeVisible.value = true
                                 },
@@ -346,9 +367,13 @@ fun CollectionsScreen() {
                         }
                     } else {
                         CollectionDetailPane(
-                            folder = listDetailPaneNavigator.currentDestination?.content!!,
+                            currentlyInFolder = listDetailPaneNavigator.currentDestination?.content!!,
                             paneNavigator = listDetailPaneNavigator,
-                            collectionsScreenVM
+                            collectionsScreenVM,
+                            btmModalSheetState = menuBtmModalSheetState,
+                            selectedFolder = selectedFolder,
+                            shouldMenuBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
+                            menuBtmSheetFor, selectedLink
                         )
                     }
                 }
@@ -385,17 +410,19 @@ fun CollectionsScreen() {
             shouldBeVisible = shouldShowNewFolderDialog,
             inAChildFolderScreen = listDetailPaneNavigator.currentDestination?.content?.id != null && listDetailPaneNavigator.currentDestination?.content?.id!! > 0,
             onFolderCreateClick = { folderName, folderNote, onCompletion ->
-                collectionsScreenVM.insertANewFolder(
-                    folder = Folder(
-                        name = folderName,
-                        note = folderNote,
-                        parentFolderId = if ((listDetailPaneNavigator.currentDestination?.content?.id
-                                ?: 0) > 0
-                        ) listDetailPaneNavigator.currentDestination?.content?.id else null
-                    ),
-                    ignoreFolderAlreadyExistsThrowable = false,
-                    onCompletion = onCompletion
-                )
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                    collectionsScreenVM.insertANewFolder(
+                        folder = Folder(
+                            name = folderName,
+                            note = folderNote,
+                            parentFolderId = if ((listDetailPaneNavigator.currentDestination?.content?.id
+                                    ?: 0) > 0
+                            ) listDetailPaneNavigator.currentDestination?.content?.id else null
+                        ),
+                        ignoreFolderAlreadyExistsThrowable = false,
+                        onCompletion = onCompletion
+                    )
+                }
             },
             thisFolder = listDetailPaneNavigator.currentDestination?.content
         )
@@ -407,56 +434,76 @@ fun CollectionsScreen() {
             }, onCopy = {
 
             },
-            btmModalSheetState = btmModalSheetState,
+            btmModalSheetState = menuBtmModalSheetState,
             shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-            btmSheetFor = MenuItemType.FOLDER,
+            btmSheetFor = menuBtmSheetFor.value,
             onDelete = {
                 shouldDeleteDialogBoxBeVisible.value = true
             }, onRename = {
                 shouldRenameDialogBoxBeVisible.value = true
             }, onArchive = {
-                collectionsScreenVM.archiveAFolder(selectedFolder.value)
-            }, noteForSaving = selectedFolder.value.note, onDeleteNote = {
-                collectionsScreenVM.deleteTheNote(selectedFolder.value)
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                    collectionsScreenVM.archiveAFolder(selectedFolder.value)
+                }
+            }, noteForSaving =
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                    selectedFolder.value.note
+                } else selectedLink.value.note, onDeleteNote = {
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                    collectionsScreenVM.deleteTheNote(selectedFolder.value)
+                }
             },
-            linkTitle = "", folderName = selectedFolder.value.name,
-            imgLink = "",
+            linkTitle = selectedLink.value.title, folderName = selectedFolder.value.name,
+            imgLink = selectedLink.value.imgURL,
             onRefreshClick = {},
-            webUrl = "", forceBrowserLaunch = { },
+            webUrl = selectedLink.value.url, forceBrowserLaunch = { },
             showQuickActions = rememberSaveable { mutableStateOf(false) },
             shouldTransferringOptionShouldBeVisible = true,
-            imgUserAgent = ""
+            imgUserAgent = selectedLink.value.userAgent
+                ?: AppPreferences.primaryJsoupUserAgent.value
         )
     )
     DeleteDialogBox(
         DeleteDialogBoxParam(
             shouldDeleteDialogBoxBeVisible,
-            DataDialogBoxType.FOLDER,
+            if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                DeleteDialogBoxType.FOLDER
+            } else DeleteDialogBoxType.LINK,
             onDeleteClick = { onCompletion ->
-                collectionsScreenVM.deleteAFolder(selectedFolder.value, onCompletion)
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                    collectionsScreenVM.deleteAFolder(selectedFolder.value, onCompletion)
+                }
             })
     )
     RenameDialogBox(
         RenameDialogBoxParam(
             onNoteChangeClick = {
-                collectionsScreenVM.updateFolderNote(selectedFolder.value.id, newNote = it)
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                    collectionsScreenVM.updateFolderNote(selectedFolder.value.id, newNote = it)
+                }
                 shouldRenameDialogBoxBeVisible.value = false
             },
             shouldDialogBoxAppear = shouldRenameDialogBoxBeVisible,
             existingFolderName = selectedFolder.value.name,
             onBothTitleAndNoteChangeClick = { title, note ->
-                collectionsScreenVM.updateFolderNote(
-                    selectedFolder.value.id, newNote = note, pushSnackbarOnSuccess = false
-                )
-                collectionsScreenVM.updateFolderName(
-                    folder = selectedFolder.value,
-                    newName = title,
-                    ignoreFolderAlreadyExistsThrowable = true
-                )
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                    collectionsScreenVM.updateFolderNote(
+                        selectedFolder.value.id, newNote = note, pushSnackbarOnSuccess = false
+                    )
+                    collectionsScreenVM.updateFolderName(
+                        folder = selectedFolder.value,
+                        newName = title,
+                        ignoreFolderAlreadyExistsThrowable = true
+                    )
+                }
                 shouldRenameDialogBoxBeVisible.value = false
             },
-            existingTitle = selectedFolder.value.name,
-            existingNote = selectedFolder.value.note
+            existingTitle =
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER)
+                    selectedFolder.value.name else selectedLink.value.title,
+            existingNote =
+                if (menuBtmSheetFor.value == MenuItemType.FOLDER)
+                    selectedFolder.value.note else selectedLink.value.note
         )
     )
 }

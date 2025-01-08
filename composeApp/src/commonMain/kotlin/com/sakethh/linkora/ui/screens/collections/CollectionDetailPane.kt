@@ -13,14 +13,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
@@ -29,37 +32,46 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
+import com.sakethh.linkora.ui.components.menu.MenuItemType
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun CollectionDetailPane(
-    folder: Folder,
+    currentlyInFolder: Folder,
     paneNavigator: ThreePaneScaffoldNavigator<Folder>,
-    collectionsScreenVM: CollectionsScreenVM
+    collectionsScreenVM: CollectionsScreenVM,
+    btmModalSheetState: SheetState,
+    selectedFolder: MutableState<Folder>,
+    shouldMenuBtmModalSheetBeVisible: MutableState<Boolean>,
+    menuBtmSheetFor: MutableState<MenuItemType>,
+    selectedLink: MutableState<Link>
 ) {
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
             TopAppBar(actions = {}, navigationIcon = {
                 IconButton(onClick = {
-                    if (folder.parentFolderId.isNotNull()) {
-                        folder.parentFolderId as Long
+                    if (currentlyInFolder.parentFolderId.isNotNull()) {
+                        currentlyInFolder.parentFolderId as Long
                         paneNavigator.navigateTo(
                             ListDetailPaneScaffoldRole.Detail,
-                            content = collectionsScreenVM.getFolder(folder.parentFolderId)
+                            content = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId)
                         )
                         collectionsScreenVM.updateCollectableLinks(
                             linkType = LinkType.FOLDER_LINK,
-                            folderId = folder.parentFolderId
+                            folderId = currentlyInFolder.parentFolderId
                         )
                         collectionsScreenVM.updateCollectableChildFolders(
-                            parentFolderId = folder.parentFolderId
+                            parentFolderId = currentlyInFolder.parentFolderId
                         )
                     } else {
                         paneNavigator.navigateBack()
@@ -69,7 +81,7 @@ fun CollectionDetailPane(
                 }
             }, title = {
                 Text(
-                    text = folder.name,
+                    text = currentlyInFolder.name,
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
@@ -97,7 +109,12 @@ fun CollectionDetailPane(
                         },
                         onLongClick = { -> },
                         onMoreIconClick = { ->
-
+                            menuBtmSheetFor.value = MenuItemType.FOLDER
+                            selectedFolder.value = childFolder
+                            shouldMenuBtmModalSheetBeVisible.value = true
+                            coroutineScope.launch {
+                                btmModalSheetState.show()
+                            }
                         },
                         isCurrentlyInDetailsView = remember(paneNavigator.currentDestination?.content?.id) {
                             mutableStateOf(paneNavigator.currentDestination?.content?.id == childFolder.id)
@@ -113,7 +130,12 @@ fun CollectionDetailPane(
                         link = it,
                         isSelectionModeEnabled = mutableStateOf(false),
                         onMoreIconClick = {
-
+                            menuBtmSheetFor.value = MenuItemType.LINK
+                            selectedLink.value = it
+                            shouldMenuBtmModalSheetBeVisible.value = true
+                            coroutineScope.launch {
+                                btmModalSheetState.show()
+                            }
                         },
                         onLinkClick = {
 
