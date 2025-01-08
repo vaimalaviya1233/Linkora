@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -47,7 +48,22 @@ fun CollectionDetailPane(
         Column {
             TopAppBar(actions = {}, navigationIcon = {
                 IconButton(onClick = {
-                    paneNavigator.navigateBack()
+                    if (folder.parentFolderId.isNotNull()) {
+                        folder.parentFolderId as Long
+                        paneNavigator.navigateTo(
+                            ListDetailPaneScaffoldRole.Detail,
+                            content = collectionsScreenVM.getFolder(folder.parentFolderId)
+                        )
+                        collectionsScreenVM.updateCollectableLinks(
+                            linkType = LinkType.FOLDER_LINK,
+                            folderId = folder.parentFolderId
+                        )
+                        collectionsScreenVM.updateCollectableChildFolders(
+                            parentFolderId = folder.parentFolderId
+                        )
+                    } else {
+                        paneNavigator.navigateBack()
+                    }
                 }) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                 }

@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 open class CollectionsScreenVM(
     private val localFoldersRepo: LocalFoldersRepo,
@@ -76,6 +77,18 @@ open class CollectionsScreenVM(
             localFoldersRepo.getChildFoldersOfThisParentIDAsFlow(parentFolderId)
                 .collectAndEmitChildFolders()
         }
+    }
+
+    fun getFolder(id: Long): Folder {
+        lateinit var folder: Folder
+        runBlocking {
+            localFoldersRepo.getThisFolderData(id).collectLatest {
+                it.onSuccess {
+                    folder = it.data
+                }.pushSnackbarOnFailure()
+            }
+        }
+        return folder
     }
 
     fun insertANewFolder(
