@@ -17,5 +17,17 @@ interface LocalLinksRepo {
 
     fun getLinksFromFolder(folderId: Long): Flow<Result<List<Link>>>
 
-    suspend fun deleteLinksOfFolder(folderId: Long)
+    suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>>
+
+    suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>>
+
+    suspend fun deleteALink(linkId: Long): Flow<Result<Unit>>
+
+    suspend fun archiveALink(linkId: Long): Flow<Result<Unit>>
+
+    suspend fun updateLinkNote(linkId: Long, newNote: String): Flow<Result<Unit>>
+
+    suspend fun updateLinkTitle(linkId: Long, newTitle: String): Flow<Result<Unit>>
+
+    suspend fun markedAsImportant(linkId: Long): Flow<Result<Boolean>>
 }

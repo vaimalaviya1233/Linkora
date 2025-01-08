@@ -82,7 +82,7 @@ fun DeleteDialogBox(
                     textAlign = TextAlign.Start
                 )
             }, text = {
-                if (isDeletionInProgress.value.not()) {
+                if (isDeletionInProgress.value.not() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.FOLDER) {
                     Text(
                         text = Localization.Key.FolderDeletionLabel.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
@@ -91,7 +91,7 @@ fun DeleteDialogBox(
                         textAlign = TextAlign.Start,
                         overflow = TextOverflow.Ellipsis
                     )
-                } else {
+                } else if (isDeletionInProgress.value) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
             }, onDismissRequest = {

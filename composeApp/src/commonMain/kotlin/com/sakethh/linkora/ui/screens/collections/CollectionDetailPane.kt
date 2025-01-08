@@ -35,6 +35,7 @@ import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.components.menu.MenuItemType
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -51,7 +52,8 @@ fun CollectionDetailPane(
     selectedFolder: MutableState<Folder>,
     shouldMenuBtmModalSheetBeVisible: MutableState<Boolean>,
     menuBtmSheetFor: MutableState<MenuItemType>,
-    selectedLink: MutableState<Link>
+    selectedLink: MutableState<Link>,
+    menuBtmSheetVM: MenuBtmSheetVM
 ) {
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
@@ -132,6 +134,7 @@ fun CollectionDetailPane(
                         onMoreIconClick = {
                             menuBtmSheetFor.value = MenuItemType.LINK
                             selectedLink.value = it
+                            menuBtmSheetVM.updateImpLinkInfo(selectedLink.value.id)
                             shouldMenuBtmModalSheetBeVisible.value = true
                             coroutineScope.launch {
                                 btmModalSheetState.show()

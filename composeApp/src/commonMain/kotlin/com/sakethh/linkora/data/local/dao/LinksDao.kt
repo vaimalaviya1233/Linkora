@@ -23,4 +23,22 @@ interface LinksDao {
 
     @Query("DELETE FROM links WHERE idOfLinkedFolder = :folderId")
     suspend fun deleteLinksOfFolder(folderId: Long)
+
+    @Query("UPDATE links SET note = '' WHERE id=:linkId")
+    suspend fun deleteALinkNote(linkId: Long)
+
+    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE id=:linkId")
+    suspend fun archiveALink(linkId: Long)
+
+    @Query("DELETE FROM links WHERE id = :linkId")
+    suspend fun deleteALink(linkId: Long)
+
+    @Query("UPDATE links SET note = :newNote WHERE id=:linkId")
+    suspend fun updateLinkNote(linkId: Long, newNote: String)
+
+    @Query("UPDATE links SET title = :newTitle WHERE id=:linkId")
+    suspend fun updateLinkTitle(linkId: Long, newTitle: String)
+
+    @Query("SELECT linkType = '${LinkType.IMPORTANT_LINK}' FROM links WHERE url=:url")
+    suspend fun markedAsImportant(url: String): Boolean
 }

@@ -74,6 +74,7 @@ import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.components.menu.MenuItemType
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
@@ -164,6 +165,11 @@ fun CollectionsScreen() {
         mutableStateOf(MenuItemType.FOLDER)
     }
     val listDetailPaneNavigator = rememberListDetailPaneScaffoldNavigator<Folder>()
+
+    val menuBtmSheetVM: MenuBtmSheetVM = viewModel(factory = genericViewModelFactory {
+        MenuBtmSheetVM(DependencyContainer.localLinksRepo.value)
+    })
+
     Scaffold(
         floatingActionButton = {
             AddItemFab(
@@ -373,7 +379,9 @@ fun CollectionsScreen() {
                             btmModalSheetState = menuBtmModalSheetState,
                             selectedFolder = selectedFolder,
                             shouldMenuBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-                            menuBtmSheetFor, selectedLink
+                            menuBtmSheetFor,
+                            selectedLink,
+                            menuBtmSheetVM
                         )
                     }
                 }
@@ -444,6 +452,8 @@ fun CollectionsScreen() {
             }, onArchive = {
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
                     collectionsScreenVM.archiveAFolder(selectedFolder.value)
+                } else {
+                    collectionsScreenVM.archiveALink(selectedLink.value)
                 }
             }, noteForSaving =
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
@@ -451,6 +461,8 @@ fun CollectionsScreen() {
                 } else selectedLink.value.note, onDeleteNote = {
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
                     collectionsScreenVM.deleteTheNote(selectedFolder.value)
+                } else {
+                    collectionsScreenVM.deleteTheNote(selectedLink.value)
                 }
             },
             linkTitle = selectedLink.value.title, folderName = selectedFolder.value.name,
@@ -472,6 +484,8 @@ fun CollectionsScreen() {
             onDeleteClick = { onCompletion ->
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
                     collectionsScreenVM.deleteAFolder(selectedFolder.value, onCompletion)
+                } else {
+                    collectionsScreenVM.deleteALink(selectedLink.value, onCompletion)
                 }
             })
     )
@@ -480,6 +494,8 @@ fun CollectionsScreen() {
             onNoteChangeClick = {
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
                     collectionsScreenVM.updateFolderNote(selectedFolder.value.id, newNote = it)
+                } else {
+                    collectionsScreenVM.updateLinkNote(selectedLink.value.id, newNote = it)
                 }
                 shouldRenameDialogBoxBeVisible.value = false
             },
@@ -494,6 +510,15 @@ fun CollectionsScreen() {
                         folder = selectedFolder.value,
                         newName = title,
                         ignoreFolderAlreadyExistsThrowable = true
+                    )
+                } else {
+                    collectionsScreenVM.updateLinkNote(
+                        linkId = selectedLink.value.id,
+                        newNote = note,
+                        pushSnackbarOnSuccess = false
+                    )
+                    collectionsScreenVM.updateLinkTitle(
+                        linkId = selectedLink.value.id, newTitle = title
                     )
                 }
                 shouldRenameDialogBoxBeVisible.value = false

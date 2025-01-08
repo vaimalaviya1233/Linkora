@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data
 
 import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
+import com.sakethh.linkora.common.utils.unitFlowResult
 import com.sakethh.linkora.data.local.dao.LocalizationDao
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.localization.LocalizationInfoDTO
@@ -54,14 +55,6 @@ class LocalizationRepoImpl(
                     }
                 }
             emit(Result.Success(localizedStrings.toList()))
-        }.catchAsExceptionAndEmitFailure()
-    }
-
-    private fun unitFlowResult(init: suspend () -> Unit): Flow<Result<Unit>> {
-        return flow {
-            emit(Result.Loading())
-            init()
-            emit(Result.Success(Unit))
         }.catchAsExceptionAndEmitFailure()
     }
 

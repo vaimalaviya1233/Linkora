@@ -806,6 +806,11 @@ object Localization {
                 return "delete_the_link"
             }
         },
+        DeletedTheLink(defaultValue = "Deleted the Link") {
+            override fun toString(): String {
+                return "deleted_the_link"
+            }
+        },
         CopyFolder(defaultValue = "Copy Folder") {
             override fun toString(): String {
                 return "copy_folder"
@@ -836,9 +841,14 @@ object Localization {
                 return "deleted_the_folder"
             }
         },
-        DeletedTheNote(defaultValue = "Successfully deleted the note of the ${LinkoraPlaceHolder.First.value}.") {
+        DeletedTheNoteOfAFolder(defaultValue = "Successfully deleted the note of the ${LinkoraPlaceHolder.First.value}.") {
             override fun toString(): String {
-                return "deleted_the_note"
+                return "deleted_the_folder_note"
+            }
+        },
+        DeletedTheNoteOfALink(defaultValue = "Successfully deleted the note.") {
+            override fun toString(): String {
+                return "deleted_the_link_note"
             }
         },
         FolderDeletionLabel(defaultValue = "Deleting this folder will also remove all its subfolders") {
@@ -896,6 +906,11 @@ object Localization {
                 return "archived_the_folder"
             }
         },
+        ArchivedTheLink(defaultValue = "Link has been archived.") {
+            override fun toString(): String {
+                return "archived_the_link"
+            }
+        },
         ChangeBothNameAndNote(defaultValue = "Change Name and Note") {
             override fun toString(): String {
                 return "change_both_name_and_note"
@@ -941,6 +956,11 @@ object Localization {
                 return "updated_the_name"
             }
         },
+        UpdatedTheTitle(defaultValue = "Updated the title successfully.") {
+            override fun toString(): String {
+                return "updated_the_title"
+            }
+        },
         UpdatedTheFolderData(defaultValue = "Folder data has been updated successfully.") {
             override fun toString(): String {
                 return "updated_the_name"
@@ -959,6 +979,16 @@ object Localization {
         DeletionInProgress(defaultValue = "Deletion In Progress..") {
             override fun toString(): String {
                 return "deletion_in_progress"
+            }
+        },
+        RemoveALinkFromImpLink(defaultValue = "Remove from Important Links") {
+            override fun toString(): String {
+                return "remove_a_link_from_imp_link"
+            }
+        },
+        MarkALinkAsImpLink(defaultValue = "Mark Link as Important") {
+            override fun toString(): String {
+                return "mark_a_link_as_imp_link"
             }
         }
     }

@@ -20,7 +20,7 @@ data class Link(
     val note: String,
     val lastModified: String = "",
     val idOfLinkedFolder: Long?,
-    val userAgent: String?,
+    val userAgent: String?, val markedAsImportant: Boolean = linkType == LinkType.IMPORTANT_LINK
 ) {
     class Invalid(message: String = Localization.getLocalizedString(Localization.Key.InvalidLink)) :
         Throwable(message)

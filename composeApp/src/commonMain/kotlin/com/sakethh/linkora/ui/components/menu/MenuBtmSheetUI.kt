@@ -23,7 +23,6 @@ import androidx.compose.material.icons.automirrored.outlined.TextSnippet
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
@@ -56,6 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
@@ -65,6 +65,7 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.fadedEdges
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.platform
 import kotlinx.coroutines.launch
 
 
@@ -78,7 +79,6 @@ fun MenuBtmSheetUI(
         rememberSaveable(inputs = arrayOf(menuBtmSheetParam.noteForSaving)) {
             mutableStateOf(menuBtmSheetParam.noteForSaving)
         }
-
     if (menuBtmSheetParam.shouldBtmModalSheetBeVisible.value) {
         val isNoteBtnSelected = rememberSaveable {
             mutableStateOf(false)
@@ -97,36 +97,23 @@ fun MenuBtmSheetUI(
             dragHandle = {},
             sheetState = menuBtmSheetParam.btmModalSheetState
         ) {
-            Column(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
-            ) {
-
-                if (menuBtmSheetParam.imgLink.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN || menuBtmSheetParam.btmSheetFor == MenuItemType.LINK)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (platform() !is Platform.Android.Mobile && menuBtmSheetParam.imgLink.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN || menuBtmSheetParam.btmSheetFor == MenuItemType.LINK)) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 15.dp)
-                            .wrapContentHeight()
+                        modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
+                            .padding(bottom = 15.dp).wrapContentHeight()
                     ) {
                         CoilImage(
-                            modifier = Modifier
-                                .animateContentSize()
-                                .fillMaxWidth()
-                                .then(
-                                    if (isImageAssociatedWithTheLinkIsExpanded.value) Modifier.wrapContentHeight() else Modifier.heightIn(
-                                        max = 150.dp
-                                    )
+                            modifier = Modifier.animateContentSize().fillMaxWidth().then(
+                                if (isImageAssociatedWithTheLinkIsExpanded.value) Modifier.wrapContentHeight() else Modifier.heightIn(
+                                    max = 150.dp
                                 )
-                                .fadedEdges(MaterialTheme.colorScheme),
+                            ).fadedEdges(MaterialTheme.colorScheme),
                             imgURL = menuBtmSheetParam.imgLink,
                             userAgent = menuBtmSheetParam.imgUserAgent
                         )
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomStart)
+                            modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)
                                 .padding(end = 15.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -134,9 +121,7 @@ fun MenuBtmSheetUI(
                                 onClick = {
                                     isImageAssociatedWithTheLinkIsExpanded.value =
                                         !isImageAssociatedWithTheLinkIsExpanded.value
-                                }, modifier = Modifier
-                                    .alpha(0.75f)
-                                    .padding(5.dp)
+                                }, modifier = Modifier.alpha(0.75f).padding(5.dp)
                             ) {
                                 Icon(
                                     imageVector = if (!isImageAssociatedWithTheLinkIsExpanded.value) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -154,92 +139,117 @@ fun MenuBtmSheetUI(
                             )
                         }
                     }
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 25.dp, end = 25.dp),
-                        thickness = 1.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                    )
-                } else {
-                    Row(
-                        modifier = Modifier
-                            .combinedClickable(
-                                interactionSource = remember {
+                }
+                Column(
+                    modifier = Modifier.navigationBarsPadding()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    if (platform() is Platform.Android.Mobile && menuBtmSheetParam.imgLink.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN || menuBtmSheetParam.btmSheetFor == MenuItemType.LINK)) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp)
+                                .wrapContentHeight()
+                        ) {
+                            CoilImage(
+                                modifier = Modifier.animateContentSize().fillMaxWidth().then(
+                                    if (isImageAssociatedWithTheLinkIsExpanded.value) Modifier.wrapContentHeight() else Modifier.heightIn(
+                                        max = 150.dp
+                                    )
+                                ).fadedEdges(MaterialTheme.colorScheme),
+                                imgURL = menuBtmSheetParam.imgLink,
+                                userAgent = menuBtmSheetParam.imgUserAgent
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)
+                                    .padding(end = 15.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                FilledTonalIconButton(
+                                    onClick = {
+                                        isImageAssociatedWithTheLinkIsExpanded.value =
+                                            !isImageAssociatedWithTheLinkIsExpanded.value
+                                    }, modifier = Modifier.alpha(0.75f).padding(5.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (!isImageAssociatedWithTheLinkIsExpanded.value) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = ""
+                                    )
+                                }
+                                Text(
+                                    text = menuBtmSheetParam.linkTitle,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontSize = 16.sp,
+                                    maxLines = 2,
+                                    lineHeight = 20.sp,
+                                    textAlign = TextAlign.Start,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 25.dp, end = 25.dp),
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                        )
+                    }
+                    if (platform() is Platform.Android.Mobile && menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) {
+                        Row(
+                            modifier = Modifier.combinedClickable(interactionSource = remember {
                                     MutableInteractionSource()
-                                }, indication = null,
-                                onClick = {
+                            }, indication = null, onClick = {
                                     localClipBoardManager.setText(AnnotatedString(if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) menuBtmSheetParam.folderName else menuBtmSheetParam.linkTitle))
                                     coroutineScope.pushUIEvent(
                                         UIEvent.Type.ShowSnackbar(
                                             Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
                                         )
                                     )
-                                })
-                            .pulsateEffect()
-                            .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.Folder else Icons.Outlined.Link,
-                            null,
-                            modifier = Modifier
-                                .padding(20.dp)
-                                .size(28.dp)
-                        )
+                            }).pulsateEffect().fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.Folder else Icons.Outlined.Link,
+                                null,
+                                modifier = Modifier.padding(20.dp).size(28.dp)
+                            )
 
-                        Text(
-                            text = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) menuBtmSheetParam.folderName else menuBtmSheetParam.linkTitle,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(
-                                end = 20.dp
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            lineHeight = 20.sp
-                        )
+                            Text(
+                                text = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) menuBtmSheetParam.folderName else menuBtmSheetParam.linkTitle,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(
+                                    end = 20.dp
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                lineHeight = 20.sp
+                            )
+                        }
                     }
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 25.dp, end = 25.dp),
                         thickness = 1.dp,
                         color = MaterialTheme.colorScheme.outline.copy(0.25f)
                     )
-                }
-                if (!isNoteBtnSelected.value) {
-                    IndividualMenuComponent(
-                        onOptionClick = {
-                            coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                            }.invokeOnCompletion {
-                                isNoteBtnSelected.value = true
-                                coroutineScope.launch {
-                                    menuBtmSheetParam.btmModalSheetState.show()
-                                }
-                            }
-                        },
-                        elementName = Localization.Key.ViewNote.rememberLocalizedString(),
-                        elementImageVector = Icons.AutoMirrored.Outlined.TextSnippet
-                    )
-                    // TODO  if (TransferActions.currentTransferActionType.value != TransferActionType.NOTHING) return@Column
-                    IndividualMenuComponent(
-                        onOptionClick = {
-                            coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                            }.invokeOnCompletion {
-                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                            }
-                            menuBtmSheetParam.onRename()
-                        },
-                        elementName = Localization.Key.Rename.getLocalizedString(),
-                        elementImageVector = Icons.Outlined.DriveFileRenameOutline
-                    )
-                    if (menuBtmSheetParam.btmSheetFor == MenuItemType.LINK || menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN) {
+                    if (!isNoteBtnSelected.value) {
                         IndividualMenuComponent(
                             onOptionClick = {
-                                menuBtmSheetParam.onRefreshClick()
+                                coroutineScope.launch {
+                                    if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                        menuBtmSheetParam.btmModalSheetState.hide()
+                                    }
+                                }.invokeOnCompletion {
+                                    isNoteBtnSelected.value = true
+                                    coroutineScope.launch {
+                                        menuBtmSheetParam.btmModalSheetState.show()
+                                    }
+                                }
+                            },
+                            elementName = Localization.Key.ViewNote.rememberLocalizedString(),
+                            elementImageVector = Icons.AutoMirrored.Outlined.TextSnippet
+                        )
+                        // TODO  if (TransferActions.currentTransferActionType.value != TransferActionType.NOTHING) return@Column
+                        IndividualMenuComponent(
+                            onOptionClick = {
                                 coroutineScope.launch {
                                     if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                         menuBtmSheetParam.btmModalSheetState.hide()
@@ -247,177 +257,190 @@ fun MenuBtmSheetUI(
                                 }.invokeOnCompletion {
                                     menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                 }
+                                menuBtmSheetParam.onRename()
                             },
-                            elementName = Localization.Key.RefreshImageAndTitle.rememberLocalizedString(),
-                            elementImageVector = Icons.Outlined.Refresh
+                            elementName = Localization.Key.Rename.getLocalizedString(),
+                            elementImageVector = Icons.Outlined.DriveFileRenameOutline
                         )
-                    }
+                        if (menuBtmSheetParam.btmSheetFor == MenuItemType.LINK || menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onRefreshClick()
+                                    coroutineScope.launch {
+                                        if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                            menuBtmSheetParam.btmModalSheetState.hide()
+                                        }
+                                    }.invokeOnCompletion {
+                                        menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
+                                    }
+                                },
+                                elementName = Localization.Key.RefreshImageAndTitle.rememberLocalizedString(),
+                                elementImageVector = Icons.Outlined.Refresh
+                            )
+                        }
 
-                    if (menuBtmSheetParam.shouldImportantLinkOptionBeVisible.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.LINK || menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN) && !menuBtmSheetParam.inArchiveScreen.value) {
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onImportantLinkClick?.let { it() }
-                                coroutineScope.launch {
-                                    if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                        menuBtmSheetParam.btmModalSheetState.hide()
+                        if (menuBtmSheetParam.shouldImportantLinkOptionBeVisible.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.LINK || menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN) && !menuBtmSheetParam.inArchiveScreen.value) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onImportantLinkClick?.let { it() }
+                                    coroutineScope.launch {
+                                        if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                            menuBtmSheetParam.btmModalSheetState.hide()
+                                        }
+                                        menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
-                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value =
-                                        false
-                                }
-                            },
-                            elementName = "Archive",
-                            elementImageVector = Icons.Default.Favorite
-                        )
-                    }
-                    if (!menuBtmSheetParam.inSpecificArchiveScreen.value/* && optionsBtmSheetVM.archiveCardIcon.value != Icons.Outlined.Unarchive*/ && !menuBtmSheetParam.inArchiveScreen.value) {
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onArchive()
-                                coroutineScope.launch {
-                                    if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                        menuBtmSheetParam.btmModalSheetState.hide()
+                                },
+                                elementName = MenuBtmSheetVM.importantOptionText.value,
+                                elementImageVector = MenuBtmSheetVM.importantOptionIcon.value
+                            )
+                        }
+                        if (!menuBtmSheetParam.inSpecificArchiveScreen.value/* && optionsBtmSheetVM.archiveCardIcon.value != Icons.Outlined.Unarchive*/ && !menuBtmSheetParam.inArchiveScreen.value) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onArchive()
+                                    coroutineScope.launch {
+                                        if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                            menuBtmSheetParam.btmModalSheetState.hide()
+                                        }
+                                    }.invokeOnCompletion {
+                                        menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
-                                }.invokeOnCompletion {
-                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value =
-                                        false
-                                }
-                            },
-                            elementName = "Archive",
-                            elementImageVector = Icons.Default.Archive
-                        )
-                    }
-                    if (menuBtmSheetParam.inArchiveScreen.value && !menuBtmSheetParam.inSpecificArchiveScreen.value) {
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onUnarchiveClick()
-                                coroutineScope.launch {
-                                    if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                        menuBtmSheetParam.btmModalSheetState.hide()
+                                },
+                                elementName = "Archive",
+                                elementImageVector = Icons.Default.Archive
+                            )
+                        }
+                        if (menuBtmSheetParam.inArchiveScreen.value && !menuBtmSheetParam.inSpecificArchiveScreen.value) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onUnarchiveClick()
+                                    coroutineScope.launch {
+                                        if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                            menuBtmSheetParam.btmModalSheetState.hide()
+                                        }
+                                    }.invokeOnCompletion {
+                                        menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
-                                }.invokeOnCompletion {
-                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value =
-                                        false
-                                }
-                            },
-                            elementName = Localization.Key.UnArchive.rememberLocalizedString(),
-                            elementImageVector = Icons.Outlined.Unarchive
-                        )
-                    }
-                    if (mutableStateNote.value.isNotEmpty()) {
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onDeleteNote()
-                                coroutineScope.launch {
-                                    if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                        menuBtmSheetParam.btmModalSheetState.hide()
+                                },
+                                elementName = Localization.Key.UnArchive.rememberLocalizedString(),
+                                elementImageVector = Icons.Outlined.Unarchive
+                            )
+                        }
+                        if (mutableStateNote.value.isNotEmpty()) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onDeleteNote()
+                                    coroutineScope.launch {
+                                        if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                            menuBtmSheetParam.btmModalSheetState.hide()
+                                        }
+                                    }.invokeOnCompletion {
+                                        menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
-                                }.invokeOnCompletion {
-                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value =
-                                        false
-                                }
-                            },
-                            elementName = Localization.Key.DeleteTheNote.rememberLocalizedString(),
-                            elementImageVector = Icons.Outlined.Delete
-                        )
-                    }
-                    if (menuBtmSheetParam.forAChildFolder.value && menuBtmSheetParam.shouldTransferringOptionShouldBeVisible && menuBtmSheetParam.btmSheetFor != MenuItemType.LINK) {
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onMoveToRootFoldersClick()
-                            },
-                            elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.MoveToRootFolders.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
-                            elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.VerticalAlignTop else Icons.Outlined.DeleteForever
-                        )
-                    }
-                    if (/*TransferActions.currentTransferActionType.value == TransferActionType.NOTHING &&*/ menuBtmSheetParam.shouldTransferringOptionShouldBeVisible) {
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onCopy()
-                            },
-                            elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.CopyFolder.rememberLocalizedString() else Localization.Key.CopyLink.rememberLocalizedString(),
-                            elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.FolderCopy else Icons.Outlined.CopyAll
-                        )
+                                },
+                                elementName = Localization.Key.DeleteTheNote.rememberLocalizedString(),
+                                elementImageVector = Icons.Outlined.Delete
+                            )
+                        }
+                        if (menuBtmSheetParam.forAChildFolder.value && menuBtmSheetParam.shouldTransferringOptionShouldBeVisible && menuBtmSheetParam.btmSheetFor != MenuItemType.LINK) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onMoveToRootFoldersClick()
+                                },
+                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.MoveToRootFolders.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
+                                elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.VerticalAlignTop else Icons.Outlined.DeleteForever
+                            )
+                        }
+                        if (/*TransferActions.currentTransferActionType.value == TransferActionType.NOTHING &&*/ menuBtmSheetParam.shouldTransferringOptionShouldBeVisible) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onCopy()
+                                },
+                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.CopyFolder.rememberLocalizedString() else Localization.Key.CopyLink.rememberLocalizedString(),
+                                elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.FolderCopy else Icons.Outlined.CopyAll
+                            )
 
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onMove()
-                            },
-                            elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.MoveToOtherFolder.rememberLocalizedString() else Localization.Key.MoveLink.rememberLocalizedString(),
-                            elementImageVector = Icons.AutoMirrored.Outlined.DriveFileMove
-                        )
-                    }
-                    if (menuBtmSheetParam.inSpecificArchiveScreen.value || menuBtmSheetParam.btmSheetFor != MenuItemType.IMPORTANT_LINKS_SCREEN) {
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onDelete()
-                                coroutineScope.launch {
-                                    if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                        menuBtmSheetParam.btmModalSheetState.hide()
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onMove()
+                                },
+                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.MoveToOtherFolder.rememberLocalizedString() else Localization.Key.MoveLink.rememberLocalizedString(),
+                                elementImageVector = Icons.AutoMirrored.Outlined.DriveFileMove
+                            )
+                        }
+                        if (menuBtmSheetParam.inSpecificArchiveScreen.value || menuBtmSheetParam.btmSheetFor != MenuItemType.IMPORTANT_LINKS_SCREEN) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onDelete()
+                                    coroutineScope.launch {
+                                        if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                            menuBtmSheetParam.btmModalSheetState.hide()
+                                        }
+                                    }.invokeOnCompletion {
+                                        menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
-                                }.invokeOnCompletion {
-                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value =
-                                        false
-                                }
-                            },
-                            elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.DeleteTheFolder.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
-                            elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
-                        )
-                    }
-                } else {
-                    if (mutableStateNote.value.isNotEmpty()) {
-                        Text(
-                            text = Localization.Key.SavedNote.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 16.sp,
-                            modifier = Modifier
-                                .padding(20.dp)
-                        )
-                        Text(
-                            text = mutableStateNote.value,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 20.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(onClick = {}, onLongClick = {
-                                    localClipBoardManager.setText(AnnotatedString(mutableStateNote.value))
-                                    coroutineScope.pushUIEvent(
-                                        UIEvent.Type.ShowSnackbar(
-                                            Localization.Key.CopiedNoteToTheClipboard.getLocalizedString()
-                                        )
-                                    )
-                                })
-                                .padding(
-                                    start = 20.dp, end = 25.dp
-                                ),
-                            textAlign = TextAlign.Start,
-                            lineHeight = 24.sp
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
+                                },
+                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.DeleteTheFolder.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
+                                elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
+                            )
+                        }
                     } else {
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        if (mutableStateNote.value.isNotEmpty()) {
                             Text(
-                                text = Localization.Key.NoNoteAdded.rememberLocalizedString(),
+                                text = Localization.Key.SavedNote.rememberLocalizedString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(20.dp)
+                            )
+                            Text(
+                                text = mutableStateNote.value,
                                 style = MaterialTheme.typography.titleSmall,
-                                fontSize = 15.sp,
+                                fontSize = 20.sp,
+                                modifier = Modifier.fillMaxWidth()
+                                    .combinedClickable(onClick = {}, onLongClick = {
+                                        localClipBoardManager.setText(
+                                            AnnotatedString(
+                                                mutableStateNote.value
+                                            )
+                                        )
+                                        coroutineScope.pushUIEvent(
+                                            UIEvent.Type.ShowSnackbar(
+                                                Localization.Key.CopiedNoteToTheClipboard.getLocalizedString()
+                                            )
+                                        )
+                                    }).padding(
+                                        start = 20.dp, end = 25.dp
+                                    ),
                                 textAlign = TextAlign.Start,
                                 lineHeight = 24.sp
                             )
+                            Spacer(modifier = Modifier.height(20.dp))
+                        } else {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = Localization.Key.NoNoteAdded.rememberLocalizedString(),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontSize = 15.sp,
+                                    textAlign = TextAlign.Start,
+                                    lineHeight = 24.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
                         }
-                        Spacer(modifier = Modifier.height(20.dp))
                     }
-                }
-                if (menuBtmSheetParam.showQuickActions.value) {
-                    QuickActions(
-                        onForceOpenInExternalBrowserClicked = menuBtmSheetParam.forceBrowserLaunch,
-                        webUrl = menuBtmSheetParam.webUrl
-                    )
-                }
+                    if (menuBtmSheetParam.showQuickActions.value) {
+                        QuickActions(
+                            onForceOpenInExternalBrowserClicked = menuBtmSheetParam.forceBrowserLaunch,
+                            webUrl = menuBtmSheetParam.webUrl
+                        )
+                    }
 
+                }
             }
         }
     }

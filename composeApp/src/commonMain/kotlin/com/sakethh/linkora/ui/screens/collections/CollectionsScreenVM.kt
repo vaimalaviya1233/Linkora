@@ -132,6 +132,18 @@ open class CollectionsScreenVM(
         }
     }
 
+    fun deleteALink(link: Link, onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            localLinksRepo.deleteALink(link.id).collectLatest {
+                it.onSuccess {
+                    Localization.Key.DeletedTheLink.pushLocalizedSnackbar()
+                }.pushSnackbarOnFailure()
+            }
+        }.invokeOnCompletion {
+            onCompletion()
+        }
+    }
+
     fun deleteTheNote(folder: Folder) {
         viewModelScope.launch {
             localFoldersRepo.deleteAFolderNote(folder.id).collectLatest {
@@ -139,10 +151,20 @@ open class CollectionsScreenVM(
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             Localization.getLocalizedString(
-                                Localization.Key.DeletedTheNote
+                                Localization.Key.DeletedTheNoteOfAFolder
                             ).replaceFirstPlaceHolderWith(folder.name)
                         )
                     )
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
+    fun deleteTheNote(link: Link) {
+        viewModelScope.launch {
+            localLinksRepo.deleteALinkNote(link.id).collectLatest {
+                it.onSuccess {
+                    Localization.Key.DeletedTheNoteOfALink.pushLocalizedSnackbar()
                 }.pushSnackbarOnFailure()
             }
         }
@@ -164,6 +186,16 @@ open class CollectionsScreenVM(
         }
     }
 
+    fun archiveALink(link: Link) {
+        viewModelScope.launch {
+            localLinksRepo.archiveALink(link.id).collectLatest {
+                it.onSuccess {
+                    Localization.Key.ArchivedTheLink.pushLocalizedSnackbar()
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
     fun updateFolderNote(folderId: Long, newNote: String, pushSnackbarOnSuccess: Boolean = true) {
         viewModelScope.launch {
             localFoldersRepo.renameAFolderNote(folderId, newNote).collectLatest {
@@ -177,6 +209,27 @@ open class CollectionsScreenVM(
                             )
                         )
                     }
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+    fun updateLinkNote(linkId: Long, newNote: String, pushSnackbarOnSuccess: Boolean = true) {
+        viewModelScope.launch {
+            localLinksRepo.updateLinkNote(linkId, newNote).collectLatest {
+                it.onSuccess {
+                    if (pushSnackbarOnSuccess) {
+                        Localization.Key.UpdatedTheNote.pushLocalizedSnackbar()
+                    }
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
+    fun updateLinkTitle(linkId: Long, newTitle: String) {
+        viewModelScope.launch {
+            localLinksRepo.updateLinkTitle(linkId, newTitle).collectLatest {
+                it.onSuccess {
+                    Localization.Key.UpdatedTheTitle.pushLocalizedSnackbar()
                 }.pushSnackbarOnFailure()
             }
         }

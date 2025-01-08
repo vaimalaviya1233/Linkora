@@ -5,6 +5,7 @@ import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
+import com.sakethh.linkora.common.utils.unitFlowResult
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.Result
@@ -127,7 +128,43 @@ class LocalLinksRepoImpl(
         return linksDao.getAllImportantLinks().mapToSuccessAndCatch()
     }
 
-    override suspend fun deleteLinksOfFolder(folderId: Long) {
-        linksDao.deleteLinksOfFolder(folderId)
+    override suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>> {
+        return unitFlowResult {
+            linksDao.deleteLinksOfFolder(folderId)
+        }
+    }
+
+    override suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>> {
+        return unitFlowResult {
+            linksDao.deleteALinkNote(linkId)
+        }
+    }
+
+    override suspend fun deleteALink(linkId: Long): Flow<Result<Unit>> {
+        return unitFlowResult {
+            linksDao.deleteALink(linkId)
+        }
+    }
+
+    override suspend fun archiveALink(linkId: Long): Flow<Result<Unit>> {
+        return unitFlowResult {
+            linksDao.archiveALink(linkId)
+        }
+    }
+
+    override suspend fun updateLinkNote(linkId: Long, newNote: String): Flow<Result<Unit>> {
+        return unitFlowResult {
+            linksDao.updateLinkNote(linkId, newNote)
+        }
+    }
+
+    override suspend fun updateLinkTitle(linkId: Long, newTitle: String): Flow<Result<Unit>> {
+        return unitFlowResult {
+            linksDao.updateLinkTitle(linkId, newTitle)
+        }
+    }
+
+    override suspend fun markedAsImportant(linkId: Long): Flow<Result<Boolean>> {
+        return TODO()
     }
 }
