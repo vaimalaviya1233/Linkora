@@ -955,6 +955,11 @@ object Localization {
             override fun toString(): String {
                 return "saved_the_link"
             }
+        },
+        DeletionInProgress(defaultValue = "Deletion In Progress..") {
+            override fun toString(): String {
+                return "deletion_in_progress"
+            }
         }
     }
 }

@@ -1,14 +1,18 @@
 package com.sakethh.linkora.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,7 +28,7 @@ enum class DataDialogBoxType {
 data class DeleteDialogBoxParam(
     val shouldDialogBoxAppear: MutableState<Boolean>,
     val deleteDialogBoxType: DataDialogBoxType,
-    val onDeleteClick: () -> Unit,
+    val onDeleteClick: (onCompletion: () -> Unit) -> Unit,
     val areFoldersSelectable: Boolean = false
 )
 
@@ -32,50 +36,68 @@ data class DeleteDialogBoxParam(
 fun DeleteDialogBox(
     deleteDialogBoxParam: DeleteDialogBoxParam
 ) {
+    val isDeletionInProgress: MutableState<Boolean> = rememberSaveable {
+        mutableStateOf(false)
+    }
     Column {
         if (deleteDialogBoxParam.shouldDialogBoxAppear.value) {
-            AlertDialog(confirmButton = {
-                Button(
-                    modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                        deleteDialogBoxParam.onDeleteClick()
-                        deleteDialogBoxParam.shouldDialogBoxAppear.value = false
-                    }) {
-                    Text(
-                        text = Localization.rememberLocalizedString(Localization.Key.Delete),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontSize = 16.sp
-                    )
+            AlertDialog(modifier = Modifier.animateContentSize(), confirmButton = {
+                if (isDeletionInProgress.value.not()) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                            isDeletionInProgress.value = true
+                            deleteDialogBoxParam.onDeleteClick({
+                                isDeletionInProgress.value = false
+                                deleteDialogBoxParam.shouldDialogBoxAppear.value = false
+                            })
+                        }) {
+                        Text(
+                            text = Localization.rememberLocalizedString(Localization.Key.Delete),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }, dismissButton = {
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                        deleteDialogBoxParam.shouldDialogBoxAppear.value = false
-                    }) {
-                    Text(
-                        text = Localization.rememberLocalizedString(Localization.Key.Cancel),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontSize = 16.sp
-                    )
+                if (isDeletionInProgress.value.not()) {
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                            deleteDialogBoxParam.shouldDialogBoxAppear.value = false
+                        }) {
+                        Text(
+                            text = Localization.rememberLocalizedString(Localization.Key.Cancel),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }, title = {
                 Text(
-                    text = deleteDialogBoxParam.deleteDialogBoxType.getTitle(areFoldersSelectable = deleteDialogBoxParam.areFoldersSelectable),
+                    text = if (isDeletionInProgress.value) Localization.Key.DeletionInProgress.rememberLocalizedString() else deleteDialogBoxParam.deleteDialogBoxType.getTitle(
+                        areFoldersSelectable = deleteDialogBoxParam.areFoldersSelectable
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 22.sp,
                     lineHeight = 27.sp,
                     textAlign = TextAlign.Start
                 )
             }, text = {
-                Text(
-                    text = Localization.Key.FolderDeletionLabel.rememberLocalizedString(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 14.sp,
-                    lineHeight = 18.sp,
-                    textAlign = TextAlign.Start,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (isDeletionInProgress.value.not()) {
+                    Text(
+                        text = Localization.Key.FolderDeletionLabel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        textAlign = TextAlign.Start,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                } else {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
             }, onDismissRequest = {
-                deleteDialogBoxParam.shouldDialogBoxAppear.value = false
+                if (isDeletionInProgress.value.not()) {
+                    deleteDialogBoxParam.shouldDialogBoxAppear.value = false
+                }
             })
         }
     }

@@ -113,10 +113,11 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun deleteAFolder(folder: Folder) {
+    fun deleteAFolder(folder: Folder, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localFoldersRepo.deleteAFolder(folderID = folder.id).collectLatest {
                 it.onSuccess {
+                    onCompletion()
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             Localization.getLocalizedString(
@@ -124,6 +125,8 @@ open class CollectionsScreenVM(
                             ).replaceFirstPlaceHolderWith(folder.name)
                         )
                     )
+                }.onFailure {
+                    onCompletion()
                 }.pushSnackbarOnFailure()
             }
         }

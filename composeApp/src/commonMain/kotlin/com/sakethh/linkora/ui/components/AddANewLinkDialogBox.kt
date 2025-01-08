@@ -272,13 +272,14 @@ fun AddANewLinkDialogBox(
                                 currentFolder
                             )
                         }
-                        IconButton(
-                            modifier = Modifier.align(Alignment.TopEnd).padding(15.dp), onClick = {
-                                if (!isDataExtractingForTheLink.value) {
+                        if (!isDataExtractingForTheLink.value) {
+                            IconButton(
+                                modifier = Modifier.align(Alignment.TopEnd).padding(15.dp),
+                                onClick = {
                                     shouldBeVisible.value = false
-                                }
-                            }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                                }) {
+                                Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                            }
                         }
                     }
                 }

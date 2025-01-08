@@ -430,8 +430,10 @@ fun CollectionsScreen() {
     )
     DeleteDialogBox(
         DeleteDialogBoxParam(
-            shouldDeleteDialogBoxBeVisible, DataDialogBoxType.FOLDER, onDeleteClick = {
-                collectionsScreenVM.deleteAFolder(selectedFolder.value)
+            shouldDeleteDialogBoxBeVisible,
+            DataDialogBoxType.FOLDER,
+            onDeleteClick = { onCompletion ->
+                collectionsScreenVM.deleteAFolder(selectedFolder.value, onCompletion)
             })
     )
     RenameDialogBox(
