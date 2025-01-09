@@ -1,8 +1,10 @@
 package com.sakethh.linkora.ui.screens.collections
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
@@ -16,6 +18,7 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -34,6 +37,49 @@ open class CollectionsScreenVM(
     private val localLinksRepo: LocalLinksRepo,
     loadRootFoldersOnInit: Boolean = true
 ) : ViewModel() {
+
+    private val _collectionDetailPaneInfo = mutableStateOf(
+        CollectionDetailPaneInfo(
+            currentFolder = null, isAnyCollectionSelected = false
+        )
+    )
+
+    val collectionDetailPaneInfo = _collectionDetailPaneInfo
+
+    fun updateCollectionDetailPaneInfo(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
+        _collectionDetailPaneInfo.value = collectionDetailPaneInfo
+
+        if (collectionDetailPaneInfo.isAnyCollectionSelected.not()) return
+
+        emptyCollectableLinks()
+        emptyCollectableChildFolders()
+
+        when (collectionDetailPaneInfo.currentFolder?.localId) {
+            Constants.SAVED_LINKS_ID -> {
+                updateCollectableLinks(LinkType.SAVED_LINK)
+            }
+
+            Constants.IMPORTANT_LINKS_ID -> {
+                updateCollectableLinks(LinkType.IMPORTANT_LINK)
+            }
+
+            Constants.ALL_LINKS_ID -> {
+
+            }
+
+            Constants.ARCHIVE_ID -> {
+
+            }
+
+            else -> {
+                updateCollectableLinks(
+                    LinkType.FOLDER_LINK,
+                    collectionDetailPaneInfo.currentFolder?.localId
+                )
+                updateCollectableChildFolders(collectionDetailPaneInfo.currentFolder?.localId!!)
+            }
+        }
+    }
 
     private val _rootFolders = MutableStateFlow(emptyList<Folder>())
     val rootFolders = _rootFolders.asStateFlow()
@@ -56,7 +102,7 @@ open class CollectionsScreenVM(
 
     private var collectableChildFoldersJob: Job? = null
 
-    fun emptyCollectableChildFolders() {
+    private fun emptyCollectableChildFolders() {
         viewModelScope.launch {
             _childFolders.emit(emptyList())
         }
@@ -70,7 +116,7 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun updateCollectableChildFolders(parentFolderId: Long) {
+    private fun updateCollectableChildFolders(parentFolderId: Long) {
         collectableChildFoldersJob?.cancel()
         collectableChildFoldersJob = viewModelScope.launch {
             _childFolders.emit(emptyList())
@@ -115,7 +161,7 @@ open class CollectionsScreenVM(
 
     fun deleteAFolder(folder: Folder, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            localFoldersRepo.deleteAFolder(folderID = folder.id).collectLatest {
+            localFoldersRepo.deleteAFolder(folderID = folder.localId).collectLatest {
                 it.onSuccess {
                     onCompletion()
                     pushUIEvent(
@@ -146,7 +192,7 @@ open class CollectionsScreenVM(
 
     fun deleteTheNote(folder: Folder) {
         viewModelScope.launch {
-            localFoldersRepo.deleteAFolderNote(folder.id).collectLatest {
+            localFoldersRepo.deleteAFolderNote(folder.localId).collectLatest {
                 it.onSuccess {
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
@@ -172,7 +218,7 @@ open class CollectionsScreenVM(
 
     fun archiveAFolder(folder: Folder) {
         viewModelScope.launch {
-            localFoldersRepo.markFolderAsArchive(folder.id).collectLatest {
+            localFoldersRepo.markFolderAsArchive(folder.localId).collectLatest {
                 it.onSuccess {
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
@@ -242,7 +288,7 @@ open class CollectionsScreenVM(
     ) {
         viewModelScope.launch {
             localFoldersRepo.renameAFolderName(
-                folderID = folder.id,
+                folderID = folder.localId,
                 existingFolderName = folder.name,
                 newFolderName = newName,
                 ignoreFolderAlreadyExistsException = ignoreFolderAlreadyExistsThrowable
@@ -265,7 +311,7 @@ open class CollectionsScreenVM(
 
     private var collectableLinksJob: Job? = null
 
-    fun emptyCollectableLinks() {
+    private fun emptyCollectableLinks() {
         viewModelScope.launch {
             _links.emit(emptyList())
         }
@@ -279,7 +325,7 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun updateCollectableLinks(linkType: LinkType, folderId: Long? = null) {
+    private fun updateCollectableLinks(linkType: LinkType, folderId: Long? = null) {
         collectableLinksJob?.cancel()
         collectableLinksJob = viewModelScope.launch {
             _links.emit(emptyList())

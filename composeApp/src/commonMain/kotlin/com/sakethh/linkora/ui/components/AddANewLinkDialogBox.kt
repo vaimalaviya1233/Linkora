@@ -561,10 +561,10 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 FolderSelectorComponent(
                     onItemClick = {
                         selectedFolderName.value = it.name
-                        selectedFolderIDForSaving.longValue = it.id
+                        selectedFolderIDForSaving.longValue = it.localId
                         isDropDownMenuIconClicked.value = false
                     },
-                    isCurrentFolderSelected = mutableStateOf(it.id == selectedFolderIDForSaving.longValue),
+                    isCurrentFolderSelected = mutableStateOf(it.localId == selectedFolderIDForSaving.longValue),
                     folderName = it.name,
                     onSubDirectoryIconClick = {
                         /*AddANewLinkDialogBox.changeParentFolderId(it.id, context)
@@ -580,7 +580,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             }
                         }
                         selectedFolderName.value = it.name
-                        selectedFolderIDForSaving.longValue = it.id
+                        selectedFolderIDForSaving.longValue = it.localId
                     })
 
             }
@@ -649,7 +649,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 onClick = {
                     isDataExtractingForTheLink.value = true
                     val linkType =
-                        when (if (currentFolder.isNull()) selectedFolderIDForSaving.longValue else currentFolder?.id) {
+                        when (if (currentFolder.isNull()) selectedFolderIDForSaving.longValue else currentFolder?.localId) {
                             Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
                             Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
                             else -> LinkType.FOLDER_LINK
@@ -662,7 +662,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             url = linkTextFieldValue.value,
                             imgURL = "",
                             note = noteTextFieldValue.value,
-                            idOfLinkedFolder = currentFolder?.id
+                            idOfLinkedFolder = currentFolder?.localId
                                 ?: selectedFolderIDForSaving.longValue,
                             userAgent = AppPreferences.primaryJsoupUserAgent.value
                         ), linkSaveConfig = LinkSaveConfig(

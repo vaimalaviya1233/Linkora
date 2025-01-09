@@ -212,6 +212,9 @@ fun App(
                 composable<Navigation.Settings.LanguageSettingsScreen> {
                     LanguageSettingsScreen()
                 }
+                composable<Navigation.Collection.CollectionDetailPane> {
+                    // CollectionDetailPane()
+                }
             }
         }
     }

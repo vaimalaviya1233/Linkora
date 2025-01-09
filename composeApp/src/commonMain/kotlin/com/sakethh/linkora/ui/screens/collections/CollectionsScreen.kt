@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,10 +37,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -58,10 +55,13 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
@@ -78,6 +78,7 @@ import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.components.menu.MenuItemType
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
+import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
@@ -88,10 +89,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3AdaptiveApi::class,
-)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionsScreen() {
     val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
@@ -109,14 +107,14 @@ fun CollectionsScreen() {
     }
     val coroutineScope = rememberCoroutineScope()
     val menuBtmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val selectedFolder = rememberDeserializableMutableObject {
+    val selectedFolderForMenuBtmSheet = rememberDeserializableMutableObject {
         mutableStateOf(
             Folder(
-                name = "", note = "", parentFolderId = null, id = 0L, isArchived = false
+                name = "", note = "", parentFolderId = null, localId = 0L, isArchived = false
             )
         )
     }
-    val selectedLink = rememberDeserializableMutableObject {
+    val selectedLinkForMenuBtmSheet = rememberDeserializableMutableObject {
         mutableStateOf(
             Link(
                 linkType = LinkType.SAVED_LINK,
@@ -164,12 +162,12 @@ fun CollectionsScreen() {
     val menuBtmSheetFor = rememberDeserializableMutableObject {
         mutableStateOf(MenuItemType.FOLDER)
     }
-    val listDetailPaneNavigator = rememberListDetailPaneScaffoldNavigator<Folder>()
 
     val menuBtmSheetVM: MenuBtmSheetVM = viewModel(factory = genericViewModelFactory {
         MenuBtmSheetVM(DependencyContainer.localLinksRepo.value)
     })
-
+    val navController = LocalNavController.current
+    val platform = platform()
     Scaffold(
         floatingActionButton = {
             AddItemFab(
@@ -200,192 +198,207 @@ fun CollectionsScreen() {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.25f))
             }
         }) { padding ->
-        ListDetailPaneScaffold(
-            modifier = Modifier.padding(padding).fillMaxSize(),
-            directive = listDetailPaneNavigator.scaffoldDirective,
-            value = listDetailPaneNavigator.scaffoldValue,
-            listPane = {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    item {
-                        DefaultFolderComponent(
-                            name = Localization.rememberLocalizedString(Localization.Key.AllLinks),
-                            icon = Icons.Outlined.DatasetLinked,
-                            onClick = {
-                                collectionsScreenVM.emptyCollectableLinks()
-                                collectionsScreenVM.emptyCollectableChildFolders()
-                                listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = Localization.getLocalizedString(Localization.Key.AllLinks),
-                                        id = Constants.ALL_LINKS_ID,
+        Row(modifier = Modifier.padding(padding).fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxHeight()
+                    .fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.4f)
+            ) {
+                item {
+                    DefaultFolderComponent(
+                        name = Localization.rememberLocalizedString(Localization.Key.AllLinks),
+                        icon = Icons.Outlined.DatasetLinked,
+                        onClick = {
+                            collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                CollectionDetailPaneInfo(
+                                    currentFolder = Folder(
+                                        name = Localization.Key.AllLinks.getLocalizedString(),
                                         note = "",
-                                        parentFolderId = null
-                                    )
+                                        parentFolderId = null,
+                                        localId = Constants.ALL_LINKS_ID
+                                    ),
+                                    isAnyCollectionSelected = true
                                 )
-                            },
-                            listDetailPaneNavigator.currentDestination?.content?.id == Constants.ALL_LINKS_ID
-                        )
-                    }
-                    item {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(
-                                top = 15.dp, start = 25.dp, end = 5.dp
-                            ),
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                        )
-                    }
-                    item {
-                        DefaultFolderComponent(
-                            name = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
-                            icon = Icons.Outlined.Link,
-                            onClick = { ->
-                                collectionsScreenVM.updateCollectableLinks(LinkType.SAVED_LINK)
-                                collectionsScreenVM.emptyCollectableChildFolders()
-                                listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = Localization.getLocalizedString(Localization.Key.SavedLinks),
-                                        id = Constants.SAVED_LINKS_ID,
-                                        note = "",
-                                        parentFolderId = null
-                                    )
-                                )
-                            },
-                            listDetailPaneNavigator.currentDestination?.content?.id == Constants.SAVED_LINKS_ID
-                        )
-                    }
-                    item {
-                        DefaultFolderComponent(
-                            name = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
-                            icon = Icons.Outlined.StarOutline,
-                            onClick = { ->
-                                collectionsScreenVM.updateCollectableLinks(LinkType.IMPORTANT_LINK)
-                                collectionsScreenVM.emptyCollectableChildFolders()
-                                listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = Localization.getLocalizedString(Localization.Key.ImportantLinks),
-                                        id = Constants.IMPORTANT_LINKS_ID,
-                                        note = "",
-                                        parentFolderId = null
-                                    )
-                                )
-                            },
-                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == Constants.IMPORTANT_LINKS_ID
-                        )
-                    }
-                    item {
-                        DefaultFolderComponent(
-                            name = Localization.rememberLocalizedString(Localization.Key.Archive),
-                            icon = Icons.Outlined.Archive,
-                            onClick = { ->
-                                collectionsScreenVM.updateCollectableLinks(LinkType.ARCHIVE_LINK)
-                                collectionsScreenVM.emptyCollectableChildFolders()
-                                listDetailPaneNavigator.navigateTo(
-                                    ListDetailPaneScaffoldRole.Detail, Folder(
-                                        name = Localization.getLocalizedString(Localization.Key.Archive),
-                                        id = Constants.ARCHIVE_ID,
-                                        note = "",
-                                        parentFolderId = null
-                                    )
-                                )
-                            },
-                            isSelected = listDetailPaneNavigator.currentDestination?.content?.id == Constants.ARCHIVE_ID
-                        )
-
-                    }
-                    item {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(
-                                start = 20.dp, top = 15.dp, bottom = 10.dp
-                            ),
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                        )
-                    }
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = Localization.rememberLocalizedString(Localization.Key.Folders),
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(start = 15.dp)
                             )
-                            IconButton(modifier = Modifier.pulsateEffect(), onClick = {
-
-                            }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.Sort,
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    }
-                    items(rootFolders.value) { folder ->
-                        FolderComponent(
-                            FolderComponentParam(
-                                folder = folder,
-                                onClick = { ->
-                                    collectionsScreenVM.updateCollectableLinks(
-                                        linkType = LinkType.FOLDER_LINK,
-                                        folderId = folder.id
-                                    )
-                                    collectionsScreenVM.updateCollectableChildFolders(
-                                        parentFolderId = folder.id
-                                    )
-                                    listDetailPaneNavigator.navigateTo(
-                                        ListDetailPaneScaffoldRole.Detail, folder
-                                    )
-                                },
-                                onLongClick = { -> },
-                                onMoreIconClick = { ->
-                                    menuBtmSheetFor.value = MenuItemType.FOLDER
-                                    selectedFolder.value = folder
-                                    shouldMenuBtmModalSheetBeVisible.value = true
-                                },
-                                isCurrentlyInDetailsView = remember(listDetailPaneNavigator.currentDestination?.content?.id) {
-                                    mutableStateOf(listDetailPaneNavigator.currentDestination?.content?.id == folder.id)
-                                },
-                                showMoreIcon = rememberSaveable {
-                                    mutableStateOf(true)
-                                })
-                        )
-                    }
-                    item {
-                        Spacer(Modifier.height(150.dp))
-                    }
+                            if (platform is Platform.Android.Mobile) navController.navigate(
+                                Navigation.Collection.CollectionDetailPane
+                            )
+                        },
+                        isSelected = selectedFolderForMenuBtmSheet.value.localId == Constants.ALL_LINKS_ID
+                    )
                 }
-            },
-            detailPane = {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    VerticalDivider()
-                    if (listDetailPaneNavigator.currentDestination?.content == null) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = Localization.Key.SelectACollection.rememberLocalizedString(),
-                                style = MaterialTheme.typography.titleMedium
+                item {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(
+                            top = 15.dp,
+                            start = 25.dp,
+                            end = if (platform() is Platform.Android.Mobile) 25.dp else 5.dp
+                        ),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                    )
+                }
+                item {
+                    DefaultFolderComponent(
+                        name = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
+                        icon = Icons.Outlined.Link,
+                        onClick = { ->
+                            collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                CollectionDetailPaneInfo(
+                                    currentFolder = Folder(
+                                        name = Localization.Key.SavedLinks.getLocalizedString(),
+                                        note = "",
+                                        parentFolderId = null,
+                                        localId = Constants.SAVED_LINKS_ID
+                                    ),
+                                    isAnyCollectionSelected = true
+                                )
+                            )
+                            if (platform is Platform.Android.Mobile) navController.navigate(
+                                Navigation.Collection.CollectionDetailPane
+                            )
+                        },
+                        collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.SAVED_LINKS_ID
+                    )
+                }
+                item {
+                    DefaultFolderComponent(
+                        name = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
+                        icon = Icons.Outlined.StarOutline,
+                        onClick = { ->
+                            collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                CollectionDetailPaneInfo(
+                                    currentFolder = Folder(
+                                        name = Localization.Key.ImportantLinks.getLocalizedString(),
+                                        note = "",
+                                        parentFolderId = null,
+                                        localId = Constants.IMPORTANT_LINKS_ID
+                                    ),
+                                    isAnyCollectionSelected = true
+                                )
+                            )
+                            if (platform is Platform.Android.Mobile) navController.navigate(
+                                Navigation.Collection.CollectionDetailPane
+                            )
+                        },
+                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
+                    )
+                }
+                item {
+                    DefaultFolderComponent(
+                        name = Localization.rememberLocalizedString(Localization.Key.Archive),
+                        icon = Icons.Outlined.Archive,
+                        onClick = { ->
+                            collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                CollectionDetailPaneInfo(
+                                    currentFolder = Folder(
+                                        name = Localization.Key.Archive.getLocalizedString(),
+                                        note = "",
+                                        parentFolderId = null,
+                                        localId = Constants.ARCHIVE_ID
+                                    ),
+                                    isAnyCollectionSelected = true
+                                )
+                            )
+                            if (platform is Platform.Android.Mobile) navController.navigate(
+                                Navigation.Collection.CollectionDetailPane
+                            )
+                        },
+                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID
+                    )
+
+                }
+                item {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(
+                            start = 20.dp,
+                            top = 15.dp,
+                            bottom = 10.dp,
+                            end = if (platform() is Platform.Android.Mobile) 20.dp else 0.dp
+                        ),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                    )
+                }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = Localization.rememberLocalizedString(Localization.Key.Folders),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(start = 15.dp)
+                        )
+                        IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.Sort,
+                                contentDescription = null
                             )
                         }
-                    } else {
-                        CollectionDetailPane(
-                            currentlyInFolder = listDetailPaneNavigator.currentDestination?.content!!,
-                            paneNavigator = listDetailPaneNavigator,
-                            collectionsScreenVM,
-                            btmModalSheetState = menuBtmModalSheetState,
-                            selectedFolder = selectedFolder,
-                            shouldMenuBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-                            menuBtmSheetFor,
-                            selectedLink,
-                            menuBtmSheetVM
-                        )
                     }
                 }
-            })
+                items(rootFolders.value) { folder ->
+                    FolderComponent(
+                        FolderComponentParam(
+                            folder = folder,
+                            onClick = { ->
+                                collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    CollectionDetailPaneInfo(
+                                        currentFolder = folder,
+                                        isAnyCollectionSelected = true
+                                    )
+                                )
+                                if (platform is Platform.Android.Mobile) navController.navigate(
+                                    Navigation.Collection.CollectionDetailPane
+                                )
+                            },
+                            onLongClick = { -> },
+                            onMoreIconClick = { ->
+                                menuBtmSheetFor.value = MenuItemType.FOLDER
+                                selectedFolderForMenuBtmSheet.value = folder
+                                shouldMenuBtmModalSheetBeVisible.value = true
+                            },
+                            isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
+                                mutableStateOf(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == folder.localId)
+                            },
+                            showMoreIcon = rememberSaveable {
+                                mutableStateOf(true)
+                            })
+                    )
+                }
+                item {
+                    Spacer(Modifier.height(150.dp))
+                }
+            }
+            if (platform() is Platform.Android.Mobile) return@Row
+            VerticalDivider(modifier = Modifier.padding(start = 20.dp))
+            if (collectionsScreenVM.collectionDetailPaneInfo.value.isAnyCollectionSelected.not() || collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder.isNull()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = Localization.Key.SelectACollection.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            } else {
+                CollectionDetailPane(
+                    collectionsScreenVM = collectionsScreenVM,
+                    btmModalSheetState = menuBtmModalSheetState,
+                    selectedFolderForMenuBtmSheet = selectedFolderForMenuBtmSheet,
+                    shouldMenuBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
+                    menuBtmSheetFor = menuBtmSheetFor,
+                    selectedLinkForMenuBtmSheet = selectedLinkForMenuBtmSheet,
+                    menuBtmSheetVM = menuBtmSheetVM,
+                    currentlyInFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder!!
+                )
+            }
+        }
         if (shouldScreenTransparencyDecreasedBoxVisible.value) {
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -409,30 +422,30 @@ fun CollectionsScreen() {
     AddANewLinkDialogBox(
         shouldBeVisible = shouldShowAddLinkDialog,
         screenType = ScreenType.ROOT_SCREEN,
-        currentFolder = listDetailPaneNavigator.currentDestination?.content,
+        currentFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
         collectionsScreenVM
     )
 
     AddANewFolderDialogBox(
         AddNewFolderDialogBoxParam(
             shouldBeVisible = shouldShowNewFolderDialog,
-            inAChildFolderScreen = listDetailPaneNavigator.currentDestination?.content?.id != null && listDetailPaneNavigator.currentDestination?.content?.id!! > 0,
+            inAChildFolderScreen = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != null && collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!! > 0,
             onFolderCreateClick = { folderName, folderNote, onCompletion ->
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
                     collectionsScreenVM.insertANewFolder(
                         folder = Folder(
                             name = folderName,
                             note = folderNote,
-                            parentFolderId = if ((listDetailPaneNavigator.currentDestination?.content?.id
+                            parentFolderId = if ((collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
                                     ?: 0) > 0
-                            ) listDetailPaneNavigator.currentDestination?.content?.id else null
+                            ) collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
                         ),
                         ignoreFolderAlreadyExistsThrowable = false,
                         onCompletion = onCompletion
                     )
                 }
             },
-            thisFolder = listDetailPaneNavigator.currentDestination?.content
+            thisFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
         )
     )
     MenuBtmSheetUI(
@@ -451,27 +464,30 @@ fun CollectionsScreen() {
                 shouldRenameDialogBoxBeVisible.value = true
             }, onArchive = {
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
-                    collectionsScreenVM.archiveAFolder(selectedFolder.value)
+                    collectionsScreenVM.archiveAFolder(selectedFolderForMenuBtmSheet.value)
                 } else {
-                    collectionsScreenVM.archiveALink(selectedLink.value)
+                    collectionsScreenVM.archiveALink(selectedLinkForMenuBtmSheet.value)
                 }
             }, noteForSaving =
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
-                    selectedFolder.value.note
-                } else selectedLink.value.note, onDeleteNote = {
+                    selectedFolderForMenuBtmSheet.value.note
+                } else selectedLinkForMenuBtmSheet.value.note,
+            onDeleteNote = {
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
-                    collectionsScreenVM.deleteTheNote(selectedFolder.value)
+                    collectionsScreenVM.deleteTheNote(selectedFolderForMenuBtmSheet.value)
                 } else {
-                    collectionsScreenVM.deleteTheNote(selectedLink.value)
+                    collectionsScreenVM.deleteTheNote(selectedLinkForMenuBtmSheet.value)
                 }
             },
-            linkTitle = selectedLink.value.title, folderName = selectedFolder.value.name,
-            imgLink = selectedLink.value.imgURL,
+            linkTitle = selectedLinkForMenuBtmSheet.value.title,
+            folderName = selectedFolderForMenuBtmSheet.value.name,
+            imgLink = selectedLinkForMenuBtmSheet.value.imgURL,
             onRefreshClick = {},
-            webUrl = selectedLink.value.url, forceBrowserLaunch = { },
+            webUrl = selectedLinkForMenuBtmSheet.value.url,
+            forceBrowserLaunch = { },
             showQuickActions = rememberSaveable { mutableStateOf(false) },
             shouldTransferringOptionShouldBeVisible = true,
-            imgUserAgent = selectedLink.value.userAgent
+            imgUserAgent = selectedLinkForMenuBtmSheet.value.userAgent
                 ?: AppPreferences.primaryJsoupUserAgent.value
         )
     )
@@ -483,9 +499,12 @@ fun CollectionsScreen() {
             } else DeleteDialogBoxType.LINK,
             onDeleteClick = { onCompletion ->
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
-                    collectionsScreenVM.deleteAFolder(selectedFolder.value, onCompletion)
+                    collectionsScreenVM.deleteAFolder(
+                        selectedFolderForMenuBtmSheet.value,
+                        onCompletion
+                    )
                 } else {
-                    collectionsScreenVM.deleteALink(selectedLink.value, onCompletion)
+                    collectionsScreenVM.deleteALink(selectedLinkForMenuBtmSheet.value, onCompletion)
                 }
             })
     )
@@ -493,42 +512,50 @@ fun CollectionsScreen() {
         RenameDialogBoxParam(
             onNoteChangeClick = {
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
-                    collectionsScreenVM.updateFolderNote(selectedFolder.value.id, newNote = it)
+                    collectionsScreenVM.updateFolderNote(
+                        selectedFolderForMenuBtmSheet.value.localId,
+                        newNote = it
+                    )
                 } else {
-                    collectionsScreenVM.updateLinkNote(selectedLink.value.id, newNote = it)
+                    collectionsScreenVM.updateLinkNote(
+                        selectedLinkForMenuBtmSheet.value.id,
+                        newNote = it
+                    )
                 }
                 shouldRenameDialogBoxBeVisible.value = false
             },
             shouldDialogBoxAppear = shouldRenameDialogBoxBeVisible,
-            existingFolderName = selectedFolder.value.name,
+            existingFolderName = selectedFolderForMenuBtmSheet.value.name,
             onBothTitleAndNoteChangeClick = { title, note ->
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
                     collectionsScreenVM.updateFolderNote(
-                        selectedFolder.value.id, newNote = note, pushSnackbarOnSuccess = false
+                        selectedFolderForMenuBtmSheet.value.localId,
+                        newNote = note,
+                        pushSnackbarOnSuccess = false
                     )
                     collectionsScreenVM.updateFolderName(
-                        folder = selectedFolder.value,
+                        folder = selectedFolderForMenuBtmSheet.value,
                         newName = title,
                         ignoreFolderAlreadyExistsThrowable = true
                     )
                 } else {
                     collectionsScreenVM.updateLinkNote(
-                        linkId = selectedLink.value.id,
+                        linkId = selectedLinkForMenuBtmSheet.value.id,
                         newNote = note,
                         pushSnackbarOnSuccess = false
                     )
                     collectionsScreenVM.updateLinkTitle(
-                        linkId = selectedLink.value.id, newTitle = title
+                        linkId = selectedLinkForMenuBtmSheet.value.id, newTitle = title
                     )
                 }
                 shouldRenameDialogBoxBeVisible.value = false
             },
             existingTitle =
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER)
-                    selectedFolder.value.name else selectedLink.value.title,
+                    selectedFolderForMenuBtmSheet.value.name else selectedLinkForMenuBtmSheet.value.title,
             existingNote =
                 if (menuBtmSheetFor.value == MenuItemType.FOLDER)
-                    selectedFolder.value.note else selectedLink.value.note
+                    selectedFolderForMenuBtmSheet.value.note else selectedLinkForMenuBtmSheet.value.note
         )
     )
 }

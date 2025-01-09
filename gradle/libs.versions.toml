@@ -1,6 +1,5 @@
 [versions]
 accompanistSystemuicontroller = "0.26.3-beta"
-adaptiveLayout = "1.0.0-alpha03"
 agp = "8.5.2"
 android-compileSdk = "34"
 android-minSdk = "24"
@@ -24,16 +23,12 @@ kotlinxSerializationJson = "1.7.3"
 ktorVersion = "3.0.2"
 lifecycleViewmodelCompose = "2.8.2"
 navigationCompose = "2.8.0-alpha10"
-voyagerVersion = "1.1.0-beta02"
 ksp = "2.0.20-1.0.24"
 sqlite = "2.5.0-SNAPSHOT"
 androidx-room = "2.7.0-alpha12"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "adaptiveLayout" }
-adaptive-layout = { module = "org.jetbrains.compose.material3.adaptive:adaptive-layout", version.ref = "adaptiveLayout" }
-adaptive-navigation = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation", version.ref = "adaptiveLayout" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferencesCore" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
@@ -58,8 +53,6 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorVer
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorVersion" }
 lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
-voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyagerVersion" }
-voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyagerVersion" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidx-room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidx-room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }

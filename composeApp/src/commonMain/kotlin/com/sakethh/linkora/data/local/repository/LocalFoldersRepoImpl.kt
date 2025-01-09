@@ -11,6 +11,7 @@ import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -264,6 +265,7 @@ class LocalFoldersRepoImpl(
     }
 
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
+        linkoraLog(folderID)
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
             remoteFoldersRepo.updateFolderNote(folderID, newNote)
         }) {
@@ -297,9 +299,9 @@ class LocalFoldersRepoImpl(
 
     private suspend fun deleteLocalDataRelatedToTheFolder(folderID: Long) {
         foldersDao.getChildFoldersOfThisParentIDAsAList(folderID).forEach {
-            foldersDao.deleteAFolder(it.id)
-            localLinksRepo.deleteLinksOfFolder(it.id)
-            deleteLocalDataRelatedToTheFolder(it.id)
+            foldersDao.deleteAFolder(it.localId)
+            localLinksRepo.deleteLinksOfFolder(it.localId)
+            deleteLocalDataRelatedToTheFolder(it.localId)
         }
     }
 

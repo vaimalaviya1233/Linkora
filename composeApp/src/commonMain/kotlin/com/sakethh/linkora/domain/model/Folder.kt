@@ -11,7 +11,8 @@ data class Folder(
     val note: String,
     val parentFolderId: Long?,
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    val localId: Long = 0,
+    val remoteId: Long? = null,
     val isArchived: Boolean = false
 ) {
     class FolderAlreadyExists(message: String) : Throwable(message)

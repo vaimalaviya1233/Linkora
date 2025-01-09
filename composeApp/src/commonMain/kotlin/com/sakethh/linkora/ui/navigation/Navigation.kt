@@ -94,4 +94,12 @@ sealed interface Navigation {
             }
         }
     }
+
+    sealed interface Collection {
+        data object CollectionDetailPane : Collection {
+            override fun toString(): String {
+                return Localization.getLocalizedString(Localization.Key.CollectionDetailPane)
+            }
+        }
+    }
 }

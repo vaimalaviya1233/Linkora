@@ -198,6 +198,12 @@ object Localization {
             }
         },
 
+        CollectionDetailPane(defaultValue = "Collection Detail Pane") {
+            override fun toString(): String {
+                return "collection_detail_pane"
+            }
+        },
+
         CreateANewFolder(defaultValue = "Create A New Folder") {
             override fun toString(): String {
                 return "create_a_new_folder"

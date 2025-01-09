@@ -45,9 +45,6 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.androidx.datastore.preferences.core)
             implementation(libs.lifecycle.viewmodel.compose)
-            implementation(libs.adaptive)
-            implementation(libs.adaptive.layout)
-            implementation(libs.adaptive.navigation)
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
 
