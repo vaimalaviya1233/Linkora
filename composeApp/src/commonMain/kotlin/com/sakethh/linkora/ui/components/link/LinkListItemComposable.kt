@@ -48,7 +48,11 @@ import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LinkListItemComposable(linkUIComponentParam: LinkUIComponentParam,forTitleOnlyView:Boolean) {
+fun LinkListItemComposable(
+    linkUIComponentParam: LinkUIComponentParam,
+    forTitleOnlyView: Boolean,
+    modifier: Modifier = Modifier
+) {
     val localClipBoardManager = LocalClipboardManager.current
     val localURIHandler = LocalUriHandler.current
     Column(
@@ -69,7 +73,8 @@ fun LinkListItemComposable(linkUIComponentParam: LinkUIComponentParam,forTitleOn
             .fillMaxWidth()
             .wrapContentHeight()
             .pulsateEffect()
-            .animateContentSize(),
+            .animateContentSize()
+            .then(modifier),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Row(

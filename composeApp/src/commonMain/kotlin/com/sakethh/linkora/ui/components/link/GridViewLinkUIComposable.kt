@@ -43,7 +43,8 @@ import com.sakethh.linkora.ui.utils.pulsateEffect
 @Composable
 fun GridViewLinkUIComponent(
     linkUIComponentParam: LinkUIComponentParam,
-    forStaggeredView: Boolean
+    forStaggeredView: Boolean,
+    modifier: Modifier = Modifier
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -75,6 +76,7 @@ fun GridViewLinkUIComponent(
                 ) else Modifier
             )
             .animateContentSize()
+            .then(modifier)
     ) {
         if (linkUIComponentParam.isItemSelected.value) {
             Box(

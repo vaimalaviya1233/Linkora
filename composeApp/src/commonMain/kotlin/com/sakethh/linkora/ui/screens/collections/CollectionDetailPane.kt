@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.collections
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,21 +33,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.folder.FolderComponent
-import com.sakethh.linkora.ui.components.link.LinkListItemComposable
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
-import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
-import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,41 +126,34 @@ fun CollectionDetailPane(
                 HorizontalPager(state = pagerState) { pageIndex ->
                     when (pageIndex) {
                         0 -> {
-                            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                items(links.value) {
-                                    LinkListItemComposable(
-                                        linkUIComponentParam = LinkUIComponentParam(
-                                            link = it,
-                                            isSelectionModeEnabled = mutableStateOf(false),
-                                            onMoreIconClick = {
-                                                menuBtmSheetFor.value =
-                                                    it.linkType.asMenuBtmSheetType()
-                                                selectedLinkForMenuBtmSheet.value = it
-                                                menuBtmSheetVM.updateImpLinkInfo(
-                                                    selectedLinkForMenuBtmSheet.value.url
-                                                )
-                                                menuBtmSheetVM.updateArchiveLinkInfo(
-                                                    selectedLinkForMenuBtmSheet.value.url
-                                                )
-                                                shouldMenuBtmModalSheetBeVisible.value = true
-                                                coroutineScope.launch {
-                                                    btmModalSheetState.show()
-                                                }
-                                            },
-                                            onLinkClick = {
-
-                                            },
-                                            onForceOpenInExternalBrowserClicked = {
-
-                                            },
-                                            isItemSelected = mutableStateOf(false),
-                                            onLongClick = {
-
-                                            }),
-                                        forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
+                            CollectionLayoutManager(
+                                folders = emptyList(),
+                                links = links.value,
+                                isInSelectionMode = mutableStateOf(false),
+                                paddingValues = PaddingValues(0.dp),
+                                linkMoreIconClick = {
+                                    menuBtmSheetFor.value =
+                                        it.linkType.asMenuBtmSheetType()
+                                    selectedLinkForMenuBtmSheet.value = it
+                                    menuBtmSheetVM.updateImpLinkInfo(
+                                        selectedLinkForMenuBtmSheet.value.url
                                     )
-                                }
-                            }
+                                    menuBtmSheetVM.updateArchiveLinkInfo(
+                                        selectedLinkForMenuBtmSheet.value.url
+                                    )
+                                    shouldMenuBtmModalSheetBeVisible.value = true
+                                    coroutineScope.launch {
+                                        btmModalSheetState.show()
+                                    }
+                                },
+                                folderMoreIconClick = {},
+                                onFolderClick = {},
+                                onLinkClick = {
+
+                                },
+                                isCurrentlyInDetailsView = {
+                                    collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
+                                })
                         }
 
                         1 -> {
@@ -209,67 +200,45 @@ fun CollectionDetailPane(
             return@Scaffold
         }
 
-        LazyColumn(Modifier.padding(padding).fillMaxSize()) {
-            items(childFolders.value) { childFolder ->
-                FolderComponent(
-                    FolderComponentParam(
-                        folder = childFolder,
-                        onClick = { ->
-                            collectionsScreenVM.updateCollectionDetailPaneInfo(
-                                CollectionDetailPaneInfo(
-                                    currentFolder = childFolder,
-                                    isAnyCollectionSelected = true
-                                )
-                            )
-                        },
-                        onLongClick = { -> },
-                        onMoreIconClick = { ->
-                            menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
-                            selectedFolderForMenuBtmSheet.value = childFolder
-                            shouldMenuBtmModalSheetBeVisible.value = true
-                            menuBtmSheetVM.updateArchiveFolderCardData(
-                                selectedFolderForMenuBtmSheet.value.isArchived
-                            )
-                            coroutineScope.launch {
-                                btmModalSheetState.show()
-                            }
-                        },
-                        isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
-                            mutableStateOf(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == childFolder.localId)
-                        },
-                        showMoreIcon = rememberSaveable {
-                            mutableStateOf(true)
-                        })
+        CollectionLayoutManager(
+            folders = childFolders.value,
+            links = links.value,
+            isInSelectionMode = mutableStateOf(false),
+            paddingValues = padding,
+            linkMoreIconClick = {
+                menuBtmSheetFor.value = it.linkType.asMenuBtmSheetType()
+                selectedLinkForMenuBtmSheet.value = it
+                menuBtmSheetVM.updateImpLinkInfo(selectedLinkForMenuBtmSheet.value.url)
+                menuBtmSheetVM.updateArchiveLinkInfo(selectedLinkForMenuBtmSheet.value.url)
+                shouldMenuBtmModalSheetBeVisible.value = true
+                coroutineScope.launch {
+                    btmModalSheetState.show()
+                }
+            },
+            folderMoreIconClick = {
+                menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
+                selectedFolderForMenuBtmSheet.value = it
+                shouldMenuBtmModalSheetBeVisible.value = true
+                menuBtmSheetVM.updateArchiveFolderCardData(
+                    selectedFolderForMenuBtmSheet.value.isArchived
                 )
-            }
-            items(links.value) {
-                LinkListItemComposable(
-                    linkUIComponentParam = LinkUIComponentParam(
-                        link = it,
-                        isSelectionModeEnabled = mutableStateOf(false),
-                        onMoreIconClick = {
-                            menuBtmSheetFor.value = it.linkType.asMenuBtmSheetType()
-                            selectedLinkForMenuBtmSheet.value = it
-                            menuBtmSheetVM.updateImpLinkInfo(selectedLinkForMenuBtmSheet.value.url)
-                            menuBtmSheetVM.updateArchiveLinkInfo(selectedLinkForMenuBtmSheet.value.url)
-                            shouldMenuBtmModalSheetBeVisible.value = true
-                            coroutineScope.launch {
-                                btmModalSheetState.show()
-                            }
-                        },
-                        onLinkClick = {
+                coroutineScope.launch {
+                    btmModalSheetState.show()
+                }
+            },
+            onFolderClick = {
+                collectionsScreenVM.updateCollectionDetailPaneInfo(
+                    CollectionDetailPaneInfo(
+                        currentFolder = it, isAnyCollectionSelected = true
+                    )
+                )
+            },
+            onLinkClick = {
 
-                        },
-                        onForceOpenInExternalBrowserClicked = {
+            },
+            isCurrentlyInDetailsView = {
+                collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
+            })
 
-                        },
-                        isItemSelected = mutableStateOf(false),
-                        onLongClick = {
-
-                        }
-                    ),
-                    forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name)
-            }
-        }
     }
 }
