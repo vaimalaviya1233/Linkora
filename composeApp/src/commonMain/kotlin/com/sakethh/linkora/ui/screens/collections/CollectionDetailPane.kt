@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,6 +16,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -23,10 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -55,6 +64,8 @@ fun CollectionDetailPane(
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(pageCount = { 2 })
+    val rootArchiveFolders = collectionsScreenVM.rootArchiveFolders.collectAsStateWithLifecycle()
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
             TopAppBar(actions = {}, navigationIcon = {
@@ -89,6 +100,115 @@ fun CollectionDetailPane(
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.25f))
         }
     }) { padding ->
+
+        if (collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
+            Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+                TabRow(selectedTabIndex = pagerState.currentPage) {
+                    listOf(
+                        Localization.Key.Links.rememberLocalizedString(),
+                        Localization.Key.Folders.rememberLocalizedString()
+                    ).forEachIndexed { index, screenName ->
+                        Tab(selected = pagerState.currentPage == index, onClick = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }.start()
+                        }) {
+                            Text(
+                                text = screenName,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontSize = 18.sp,
+                                modifier = Modifier.padding(15.dp),
+                                color = if (pagerState.currentPage == index) primaryContentColor else MaterialTheme.colorScheme.onSurface.copy(
+                                    0.70f
+                                )
+                            )
+                        }
+                    }
+                }
+                HorizontalPager(state = pagerState) { pageIndex ->
+                    when (pageIndex) {
+                        0 -> {
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                items(links.value) {
+                                    LinkListItemComposable(
+                                        linkUIComponentParam = LinkUIComponentParam(
+                                            link = it,
+                                            isSelectionModeEnabled = mutableStateOf(false),
+                                            onMoreIconClick = {
+                                                menuBtmSheetFor.value =
+                                                    it.linkType.asMenuBtmSheetType()
+                                                selectedLinkForMenuBtmSheet.value = it
+                                                menuBtmSheetVM.updateImpLinkInfo(
+                                                    selectedLinkForMenuBtmSheet.value.url
+                                                )
+                                                menuBtmSheetVM.updateArchiveLinkInfo(
+                                                    selectedLinkForMenuBtmSheet.value.url
+                                                )
+                                                shouldMenuBtmModalSheetBeVisible.value = true
+                                                coroutineScope.launch {
+                                                    btmModalSheetState.show()
+                                                }
+                                            },
+                                            onLinkClick = {
+
+                                            },
+                                            onForceOpenInExternalBrowserClicked = {
+
+                                            },
+                                            isItemSelected = mutableStateOf(false),
+                                            onLongClick = {
+
+                                            }),
+                                        forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
+                                    )
+                                }
+                            }
+                        }
+
+                        1 -> {
+                            LazyColumn(Modifier.fillMaxSize()) {
+                                items(rootArchiveFolders.value) { rootArchiveFolder ->
+                                    FolderComponent(
+                                        FolderComponentParam(
+                                            folder = rootArchiveFolder,
+                                            onClick = { ->
+                                                collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                                    CollectionDetailPaneInfo(
+                                                        currentFolder = rootArchiveFolder,
+                                                        isAnyCollectionSelected = true
+                                                    )
+                                                )
+                                            },
+                                            onLongClick = { -> },
+                                            onMoreIconClick = { ->
+                                                menuBtmSheetFor.value =
+                                                    MenuBtmSheetType.Folder.RegularFolder
+                                                selectedFolderForMenuBtmSheet.value =
+                                                    rootArchiveFolder
+                                                menuBtmSheetVM.updateArchiveFolderCardData(
+                                                    selectedFolderForMenuBtmSheet.value.isArchived
+                                                )
+                                                shouldMenuBtmModalSheetBeVisible.value = true
+                                                coroutineScope.launch {
+                                                    btmModalSheetState.show()
+                                                }
+                                            },
+                                            isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
+                                                mutableStateOf(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == rootArchiveFolder.localId)
+                                            },
+                                            showMoreIcon = rememberSaveable {
+                                                mutableStateOf(true)
+                                            })
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return@Scaffold
+        }
+
         LazyColumn(Modifier.padding(padding).fillMaxSize()) {
             items(childFolders.value) { childFolder ->
                 FolderComponent(
@@ -107,6 +227,9 @@ fun CollectionDetailPane(
                             menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
                             selectedFolderForMenuBtmSheet.value = childFolder
                             shouldMenuBtmModalSheetBeVisible.value = true
+                            menuBtmSheetVM.updateArchiveFolderCardData(
+                                selectedFolderForMenuBtmSheet.value.isArchived
+                            )
                             coroutineScope.launch {
                                 btmModalSheetState.show()
                             }

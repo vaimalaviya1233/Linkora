@@ -15,6 +15,8 @@ interface LocalLinksRepo {
 
     fun getAllImportantLinks(): Flow<Result<List<Link>>>
 
+    fun getAllArchivedLinks(): Flow<Result<List<Link>>>
+
     fun getLinksFromFolder(folderId: Long): Flow<Result<List<Link>>>
 
     suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>>

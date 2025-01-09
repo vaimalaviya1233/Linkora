@@ -18,6 +18,9 @@ interface LinksDao {
     @Query("SELECT * FROM links WHERE linkType = '${LinkType.IMPORTANT_LINK}'")
     fun getAllImportantLinks(): Flow<List<Link>>
 
+    @Query("SELECT * FROM links WHERE linkType = '${LinkType.ARCHIVE_LINK}'")
+    fun getAllArchiveLinks(): Flow<List<Link>>
+
     @Query("SELECT * FROM links WHERE linkType = '${LinkType.FOLDER_LINK}' AND idOfLinkedFolder = :folderId")
     fun getLinksFromFolder(folderId: Long): Flow<List<Link>>
 

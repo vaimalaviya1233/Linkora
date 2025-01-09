@@ -68,7 +68,7 @@ open class CollectionsScreenVM(
             }
 
             Constants.ARCHIVE_ID -> {
-
+                updateCollectableLinks(LinkType.ARCHIVE_LINK)
             }
 
             else -> {
@@ -81,8 +81,11 @@ open class CollectionsScreenVM(
         }
     }
 
-    private val _rootFolders = MutableStateFlow(emptyList<Folder>())
-    val rootFolders = _rootFolders.asStateFlow()
+    private val _rootRegularFolders = MutableStateFlow(emptyList<Folder>())
+    val rootRegularFolders = _rootRegularFolders.asStateFlow()
+
+    private val _rootArchiveFolders = MutableStateFlow(emptyList<Folder>())
+    val rootArchiveFolders = _rootArchiveFolders.asStateFlow()
 
     init {
         linkoraLog("CollectionScreenVM initialized with loadRootFoldersOnInit: $loadRootFoldersOnInit")
@@ -90,7 +93,15 @@ open class CollectionsScreenVM(
             viewModelScope.launch {
                 localFoldersRepo.getAllRootFoldersAsFlow().collectLatest {
                     it.onSuccess {
-                        _rootFolders.emit(it.data)
+                        _rootRegularFolders.emit(it.data)
+                    }.pushSnackbarOnFailure()
+                }
+            }
+
+            viewModelScope.launch {
+                localFoldersRepo.getAllArchiveFoldersAsFlow().collectLatest {
+                    it.onSuccess {
+                        _rootArchiveFolders.emit(it.data)
                     }.pushSnackbarOnFailure()
                 }
             }
@@ -218,16 +229,30 @@ open class CollectionsScreenVM(
 
     fun archiveAFolder(folder: Folder) {
         viewModelScope.launch {
-            localFoldersRepo.markFolderAsArchive(folder.localId).collectLatest {
-                it.onSuccess {
-                    pushUIEvent(
-                        UIEvent.Type.ShowSnackbar(
-                            Localization.getLocalizedString(
-                                Localization.Key.ArchivedTheFolder
-                            ).replaceFirstPlaceHolderWith(folder.name)
+            if (folder.isArchived) {
+                localFoldersRepo.markFolderAsRegularFolder(folder.localId).collectLatest {
+                    it.onSuccess {
+                        pushUIEvent(
+                            UIEvent.Type.ShowSnackbar(
+                                Localization.getLocalizedString(
+                                    Localization.Key.UnArchivedTheFolder
+                                ).replaceFirstPlaceHolderWith(folder.name)
+                            )
                         )
-                    )
-                }.pushSnackbarOnFailure()
+                    }.pushSnackbarOnFailure()
+                }
+            } else {
+                localFoldersRepo.markFolderAsArchive(folder.localId).collectLatest {
+                    it.onSuccess {
+                        pushUIEvent(
+                            UIEvent.Type.ShowSnackbar(
+                                Localization.getLocalizedString(
+                                    Localization.Key.ArchivedTheFolder
+                                ).replaceFirstPlaceHolderWith(folder.name)
+                            )
+                        )
+                    }.pushSnackbarOnFailure()
+                }
             }
         }
     }
@@ -348,7 +373,7 @@ open class CollectionsScreenVM(
                 }
 
                 LinkType.ARCHIVE_LINK -> {
-
+                    localLinksRepo.getAllArchivedLinks().collectAndEmitLinks()
                 }
             }
         }

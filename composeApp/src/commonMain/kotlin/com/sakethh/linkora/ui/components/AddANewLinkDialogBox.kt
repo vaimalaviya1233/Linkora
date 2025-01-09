@@ -185,7 +185,7 @@ fun AddANewLinkDialogBox(
              AddANewLinkDialogBox.childFolders.collectAsStateWithLifecycle()*/
 
         val lazyRowState = rememberLazyListState()
-        val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
+        val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
         BasicAlertDialog(
             onDismissRequest = {
                 if (!isDataExtractingForTheLink.value) {
@@ -476,7 +476,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
     currentFolder: Folder?
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
+    val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),

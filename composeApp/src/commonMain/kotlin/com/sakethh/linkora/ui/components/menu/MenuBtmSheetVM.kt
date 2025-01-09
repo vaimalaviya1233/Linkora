@@ -69,13 +69,13 @@ class MenuBtmSheetVM(private val localLinksRepo: LocalLinksRepo) : ViewModel() {
         }
     }
 
-    fun updateArchiveFolderCardData(folderID: Long) {
-        if (false) {
+    fun updateArchiveFolderCardData(isFolderArchived: Boolean) {
+        if (isFolderArchived) {
             archiveOptionIcon.value = Icons.Outlined.Unarchive
-            archiveOptionText.value = ""
+            archiveOptionText.value = Localization.Key.UnArchive.getLocalizedString()
         } else {
             archiveOptionIcon.value = Icons.Outlined.Archive
-            archiveOptionText.value = ""
+            archiveOptionText.value = Localization.Key.Archive.getLocalizedString()
         }
     }
 }

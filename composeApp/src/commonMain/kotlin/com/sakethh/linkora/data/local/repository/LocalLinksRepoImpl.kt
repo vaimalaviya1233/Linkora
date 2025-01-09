@@ -9,13 +9,13 @@ import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.mapToSuccessAndCatch
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 
@@ -110,11 +110,6 @@ class LocalLinksRepoImpl(
         return ScrapedLinkInfo(title, imgURL)
     }
 
-    private fun Flow<List<Link>>.mapToSuccessAndCatch(): Flow<Result<List<Link>>> {
-        return this.map {
-            Result.Success(it)
-        }.catchAsThrowableAndEmitFailure()
-    }
 
     override fun getAllSavedLinks(): Flow<Result<List<Link>>> {
         return linksDao.getAllSavedLinks().mapToSuccessAndCatch()
@@ -128,6 +123,9 @@ class LocalLinksRepoImpl(
         return linksDao.getAllImportantLinks().mapToSuccessAndCatch()
     }
 
+    override fun getAllArchivedLinks(): Flow<Result<List<Link>>> {
+        return linksDao.getAllArchiveLinks().mapToSuccessAndCatch()
+    }
     override suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>> {
         return wrappedResultFlow {
             linksDao.deleteLinksOfFolder(folderId)

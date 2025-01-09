@@ -327,6 +327,11 @@ object Localization {
                 return "all_links"
             }
         },
+        Links(defaultValue = "Links") {
+            override fun toString(): String {
+                return "links"
+            }
+        },
         Archive(defaultValue = "Archive") {
             override fun toString(): String {
                 return "archive"
@@ -910,6 +915,11 @@ object Localization {
         ArchivedTheFolder(defaultValue = "The folder ${LinkoraPlaceHolder.First.value} has been archived.") {
             override fun toString(): String {
                 return "archived_the_folder"
+            }
+        },
+        UnArchivedTheFolder(defaultValue = "The folder ${LinkoraPlaceHolder.First.value} has been unarchived.") {
+            override fun toString(): String {
+                return "unarchived_the_folder"
             }
         },
         ArchivedTheLink(defaultValue = "Link has been archived.") {

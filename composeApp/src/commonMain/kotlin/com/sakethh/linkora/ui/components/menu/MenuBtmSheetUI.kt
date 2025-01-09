@@ -189,7 +189,7 @@ fun MenuBtmSheetUI(
                             color = MaterialTheme.colorScheme.outline.copy(0.25f)
                         )
                     }
-                    if (platform() is Platform.Android.Mobile && menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) {
+                    if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) {
                         Row(
                             modifier = Modifier.combinedClickable(interactionSource = remember {
                                     MutableInteractionSource()
@@ -277,19 +277,22 @@ fun MenuBtmSheetUI(
                             )
                         }
 
-                        IndividualMenuComponent(
-                            onOptionClick = {
-                                menuBtmSheetParam.onAddToImportantLinks?.let { it() }
+                        if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
+                            IndividualMenuComponent(
+                                onOptionClick = {
+                                    menuBtmSheetParam.onAddToImportantLinks?.let { it() }
                                     coroutineScope.launch {
                                         if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                             menuBtmSheetParam.btmModalSheetState.hide()
                                         }
                                         menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
-                            },
-                            elementName = MenuBtmSheetVM.importantOptionText.value,
-                            elementImageVector = MenuBtmSheetVM.importantOptionIcon.value
-                        )
+                                },
+                                elementName = MenuBtmSheetVM.importantOptionText.value,
+                                elementImageVector = MenuBtmSheetVM.importantOptionIcon.value
+                            )
+                        }
+
                         if (menuBtmSheetParam.shouldShowArchiveOption()) {
                             IndividualMenuComponent(
                                 onOptionClick = {

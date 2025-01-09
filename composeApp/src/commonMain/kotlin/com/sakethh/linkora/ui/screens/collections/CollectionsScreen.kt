@@ -99,7 +99,7 @@ fun CollectionsScreen() {
             DependencyContainer.localLinksRepo.value
         )
     })
-    val rootFolders = collectionsScreenVM.rootFolders.collectAsStateWithLifecycle()
+    val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val shouldRenameDialogBoxBeVisible = rememberSaveable {
         mutableStateOf(false)
     }
@@ -363,6 +363,9 @@ fun CollectionsScreen() {
                             onMoreIconClick = { ->
                                 menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
                                 selectedFolderForMenuBtmSheet.value = folder
+                                menuBtmSheetVM.updateArchiveFolderCardData(
+                                    selectedFolderForMenuBtmSheet.value.isArchived
+                                )
                                 shouldMenuBtmModalSheetBeVisible.value = true
                             },
                             isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
