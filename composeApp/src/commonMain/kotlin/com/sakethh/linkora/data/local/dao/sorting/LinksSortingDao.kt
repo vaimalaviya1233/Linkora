@@ -8,16 +8,17 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LinksSortingDao {
+
     @Query("SELECT * FROM links WHERE linkType = :linkType ORDER BY title COLLATE NOCASE ASC")
     fun sortByAToZ(linkType: LinkType): Flow<List<Link>>
 
     @Query("SELECT * FROM links WHERE linkType = :linkType ORDER BY title COLLATE NOCASE DESC")
     fun sortByZToA(linkType: LinkType): Flow<List<Link>>
 
-    @Query("SELECT * FROM links WHERE linkType = :linkType ORDER BY id COLLATE NOCASE DESC")
+    @Query("SELECT * FROM links WHERE linkType = :linkType ORDER BY id DESC")
     fun sortByLatestToOldest(linkType: LinkType): Flow<List<Link>>
 
-    @Query("SELECT * FROM links WHERE linkType = :linkType ORDER BY id COLLATE NOCASE ASC")
+    @Query("SELECT * FROM links WHERE linkType = :linkType ORDER BY id ASC")
     fun sortByOldestToLatest(linkType: LinkType): Flow<List<Link>>
 
     @Query("SELECT * FROM links WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId ORDER BY title COLLATE NOCASE ASC")
@@ -26,9 +27,9 @@ interface LinksSortingDao {
     @Query("SELECT * FROM links WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId ORDER BY title COLLATE NOCASE DESC")
     fun sortByZToA(linkType: LinkType, parentFolderId: Long): Flow<List<Link>>
 
-    @Query("SELECT * FROM links WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId ORDER BY id COLLATE NOCASE DESC")
+    @Query("SELECT * FROM links WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId ORDER BY id DESC")
     fun sortByLatestToOldest(linkType: LinkType, parentFolderId: Long): Flow<List<Link>>
 
-    @Query("SELECT * FROM links WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId ORDER BY id COLLATE NOCASE ASC")
+    @Query("SELECT * FROM links WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId ORDER BY id ASC")
     fun sortByOldestToLatest(linkType: LinkType, parentFolderId: Long): Flow<List<Link>>
 }
