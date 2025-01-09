@@ -1,7 +1,6 @@
 package com.sakethh.linkora.domain
 
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,7 +15,7 @@ fun LinkType.asMenuBtmSheetType(): MenuBtmSheetType.Link {
     }
 }
 
-fun Flow<List<Link>>.mapToSuccessAndCatch(): Flow<Result<List<Link>>> {
+fun <T> Flow<T>.mapToResultFlow(): Flow<Result<T>> {
     return this.map {
         Result.Success(it)
     }.catchAsThrowableAndEmitFailure()

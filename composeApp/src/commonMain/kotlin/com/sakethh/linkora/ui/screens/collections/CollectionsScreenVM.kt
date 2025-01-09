@@ -1,9 +1,11 @@
 package com.sakethh.linkora.ui.screens.collections
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNull
@@ -18,6 +20,7 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.ui.domain.Sorting
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
@@ -29,6 +32,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -87,24 +92,31 @@ open class CollectionsScreenVM(
     private val _rootArchiveFolders = MutableStateFlow(emptyList<Folder>())
     val rootArchiveFolders = _rootArchiveFolders.asStateFlow()
 
+    private fun Flow<Result<List<Folder>>>.collectAndEmitRootFolders() {
+        viewModelScope.launch {
+            collectLatest { result ->
+                result.onSuccess { folders ->
+                    _rootArchiveFolders.emit(folders.data.filter { it.isArchived })
+                    _rootRegularFolders.emit(folders.data.filterNot { it.isArchived })
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
+
     init {
         linkoraLog("CollectionScreenVM initialized with loadRootFoldersOnInit: $loadRootFoldersOnInit")
         if (loadRootFoldersOnInit) {
-            viewModelScope.launch {
-                localFoldersRepo.getAllRootFoldersAsFlow().collectLatest {
-                    it.onSuccess {
-                        _rootRegularFolders.emit(it.data)
-                    }.pushSnackbarOnFailure()
-                }
-            }
-
-            viewModelScope.launch {
-                localFoldersRepo.getAllArchiveFoldersAsFlow().collectLatest {
-                    it.onSuccess {
-                        _rootArchiveFolders.emit(it.data)
-                    }.pushSnackbarOnFailure()
-                }
-            }
+            snapshotFlow {
+                AppPreferences.selectedSortingType.value
+            }.onEach {
+                when (Sorting.valueOf(it)) {
+                    Sorting.A_TO_Z -> localFoldersRepo.sortByAToZ(null)
+                    Sorting.Z_TO_A -> localFoldersRepo.sortByZToA(null)
+                    Sorting.NEW_TO_OLD -> localFoldersRepo.sortByLatestToOldest(null)
+                    Sorting.OLD_TO_NEW -> localFoldersRepo.sortByOldestToLatest(null)
+                }.collectAndEmitRootFolders()
+            }.launchIn(viewModelScope)
         }
     }
 
@@ -130,9 +142,16 @@ open class CollectionsScreenVM(
     private fun updateCollectableChildFolders(parentFolderId: Long) {
         collectableChildFoldersJob?.cancel()
         collectableChildFoldersJob = viewModelScope.launch {
-            _childFolders.emit(emptyList())
-            localFoldersRepo.getChildFoldersOfThisParentIDAsFlow(parentFolderId)
-                .collectAndEmitChildFolders()
+            snapshotFlow {
+                AppPreferences.selectedSortingType.value
+            }.collectLatest { sortingType ->
+                when (Sorting.valueOf(sortingType)) {
+                    Sorting.A_TO_Z -> localFoldersRepo.sortByAToZ(parentFolderId)
+                    Sorting.Z_TO_A -> localFoldersRepo.sortByZToA(parentFolderId)
+                    Sorting.NEW_TO_OLD -> localFoldersRepo.sortByLatestToOldest(parentFolderId)
+                    Sorting.OLD_TO_NEW -> localFoldersRepo.sortByOldestToLatest(parentFolderId)
+                }.collectAndEmitChildFolders()
+            }
         }
     }
 
@@ -354,27 +373,34 @@ open class CollectionsScreenVM(
         collectableLinksJob?.cancel()
         collectableLinksJob = viewModelScope.launch {
             _links.emit(emptyList())
-            when (linkType) {
-                LinkType.SAVED_LINK -> {
-                    localLinksRepo.getAllSavedLinks().collectAndEmitLinks()
-                }
+            snapshotFlow {
+                AppPreferences.selectedSortingType.value
+            }.collectLatest { sortingType ->
+                when (Sorting.valueOf(sortingType)) {
+                    Sorting.A_TO_Z -> if (folderId.isNull()) {
+                        localLinksRepo.sortByAToZ(linkType)
+                    } else {
+                        localLinksRepo.sortByAToZ(linkType, folderId!!)
+                    }
 
-                LinkType.FOLDER_LINK -> {
-                    if (folderId.isNull()) return@launch
-                    localLinksRepo.getLinksFromFolder(folderId as Long).collectAndEmitLinks()
-                }
+                    Sorting.Z_TO_A -> if (folderId.isNull()) {
+                        localLinksRepo.sortByZToA(linkType)
+                    } else {
+                        localLinksRepo.sortByZToA(linkType, folderId!!)
+                    }
 
-                LinkType.HISTORY_LINK -> {
+                    Sorting.NEW_TO_OLD -> if (folderId.isNull()) {
+                        localLinksRepo.sortByLatestToOldest(linkType)
+                    } else {
+                        localLinksRepo.sortByLatestToOldest(linkType, folderId!!)
+                    }
 
-                }
-
-                LinkType.IMPORTANT_LINK -> {
-                    localLinksRepo.getAllImportantLinks().collectAndEmitLinks()
-                }
-
-                LinkType.ARCHIVE_LINK -> {
-                    localLinksRepo.getAllArchivedLinks().collectAndEmitLinks()
-                }
+                    Sorting.OLD_TO_NEW -> if (folderId.isNull()) {
+                        localLinksRepo.sortByOldestToLatest(linkType)
+                    } else {
+                        localLinksRepo.sortByOldestToLatest(linkType, folderId!!)
+                    }
+                }.collectAndEmitLinks()
             }
         }
     }

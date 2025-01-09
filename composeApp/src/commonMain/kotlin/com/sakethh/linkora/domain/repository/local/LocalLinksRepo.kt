@@ -1,6 +1,7 @@
 package com.sakethh.linkora.domain.repository.local
 
 import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.link.Link
 import kotlinx.coroutines.flow.Flow
@@ -11,13 +12,21 @@ interface LocalLinksRepo {
         linkSaveConfig: LinkSaveConfig
     ): Flow<Result<Unit>>
 
-    fun getAllSavedLinks(): Flow<Result<List<Link>>>
+    fun sortByAToZ(linkType: LinkType): Flow<Result<List<Link>>>
 
-    fun getAllImportantLinks(): Flow<Result<List<Link>>>
+    fun sortByZToA(linkType: LinkType): Flow<Result<List<Link>>>
 
-    fun getAllArchivedLinks(): Flow<Result<List<Link>>>
+    fun sortByLatestToOldest(linkType: LinkType): Flow<Result<List<Link>>>
 
-    fun getLinksFromFolder(folderId: Long): Flow<Result<List<Link>>>
+    fun sortByOldestToLatest(linkType: LinkType): Flow<Result<List<Link>>>
+
+    fun sortByAToZ(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
+
+    fun sortByZToA(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
+
+    fun sortByLatestToOldest(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
+
+    fun sortByOldestToLatest(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
 
     suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>>
 

@@ -7,9 +7,11 @@ import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
 import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.LinksDao
+import com.sakethh.linkora.data.local.dao.sorting.LinksSortingDao
 import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.mapToSuccessAndCatch
+import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -20,7 +22,9 @@ import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 
 class LocalLinksRepoImpl(
-    private val linksDao: LinksDao, private val primaryUserAgent: () -> String
+    private val linksDao: LinksDao,
+    private val linksSortingDao: LinksSortingDao,
+    private val primaryUserAgent: () -> String
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig
@@ -47,6 +51,42 @@ class LocalLinksRepoImpl(
             }
             emit(Result.Success(Unit))
         }.catchAsThrowableAndEmitFailure()
+    }
+
+    override fun sortByAToZ(linkType: LinkType): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByAToZ(linkType).mapToResultFlow()
+    }
+
+    override fun sortByAToZ(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByAToZ(linkType, parentFolderId).mapToResultFlow()
+    }
+
+    override fun sortByZToA(linkType: LinkType): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByZToA(linkType).mapToResultFlow()
+    }
+
+    override fun sortByZToA(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByZToA(linkType, parentFolderId).mapToResultFlow()
+    }
+
+    override fun sortByLatestToOldest(linkType: LinkType): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByLatestToOldest(linkType).mapToResultFlow()
+    }
+
+    override fun sortByLatestToOldest(
+        linkType: LinkType, parentFolderId: Long
+    ): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByLatestToOldest(linkType, parentFolderId).mapToResultFlow()
+    }
+
+    override fun sortByOldestToLatest(linkType: LinkType): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByOldestToLatest(linkType).mapToResultFlow()
+    }
+
+    override fun sortByOldestToLatest(
+        linkType: LinkType, parentFolderId: Long
+    ): Flow<Result<List<Link>>> {
+        return linksSortingDao.sortByOldestToLatest(linkType, parentFolderId).mapToResultFlow()
     }
 
     private suspend fun scrapeLinkData(
@@ -111,21 +151,6 @@ class LocalLinksRepoImpl(
     }
 
 
-    override fun getAllSavedLinks(): Flow<Result<List<Link>>> {
-        return linksDao.getAllSavedLinks().mapToSuccessAndCatch()
-    }
-
-    override fun getLinksFromFolder(folderId: Long): Flow<Result<List<Link>>> {
-        return linksDao.getLinksFromFolder(folderId).mapToSuccessAndCatch()
-    }
-
-    override fun getAllImportantLinks(): Flow<Result<List<Link>>> {
-        return linksDao.getAllImportantLinks().mapToSuccessAndCatch()
-    }
-
-    override fun getAllArchivedLinks(): Flow<Result<List<Link>>> {
-        return linksDao.getAllArchiveLinks().mapToSuccessAndCatch()
-    }
     override suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>> {
         return wrappedResultFlow {
             linksDao.deleteLinksOfFolder(folderId)

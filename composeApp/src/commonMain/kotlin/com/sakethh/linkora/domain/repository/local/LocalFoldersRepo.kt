@@ -16,11 +16,7 @@ interface LocalFoldersRepo {
 
     suspend fun insertMultipleNewFolders(foldersTable: List<Folder>): Flow<Result<Unit>>
 
-    fun getAllArchiveFoldersAsFlow(): Flow<Result<List<Folder>>>
-
     suspend fun getAllArchiveFoldersAsList(): Flow<Result<List<Folder>>>
-
-    fun getAllRootFoldersAsFlow(): Flow<Result<List<Folder>>>
 
     suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>>
 
@@ -50,7 +46,14 @@ interface LocalFoldersRepo {
         targetParentId: Long?
     ): Flow<Result<Unit>>
 
-    fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<Result<List<Folder>>>
+    fun sortByAToZ(parentFolderId: Long?): Flow<Result<List<Folder>>>
+
+    fun sortByZToA(parentFolderId: Long?): Flow<Result<List<Folder>>>
+
+    fun sortByLatestToOldest(parentFolderId: Long?): Flow<Result<List<Folder>>>
+
+    fun sortByOldestToLatest(parentFolderId: Long?): Flow<Result<List<Folder>>>
+
 
     suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>>
 

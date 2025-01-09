@@ -2,9 +2,11 @@ package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.data.local.dao.FoldersDao
+import com.sakethh.linkora.data.local.dao.sorting.FoldersSortingDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.linkoraPlaceHolders
+import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
@@ -23,7 +25,8 @@ class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val canPushToServer: () -> Boolean,
-    private val localLinksRepo: LocalLinksRepo
+    private val localLinksRepo: LocalLinksRepo,
+    private val foldersSortingDao: FoldersSortingDao
 ) : LocalFoldersRepo {
 
     private fun <LocalType, RemoteType> executeWithResultFlow(
@@ -103,14 +106,6 @@ class LocalFoldersRepoImpl(
         )
     }
 
-    override fun getAllArchiveFoldersAsFlow(): Flow<Result<List<Folder>>> {
-        return foldersDao.getAllArchiveFoldersAsFlow().map {
-            Result.Success(it)
-        }.onStart {
-            Result.Loading<List<Folder>>()
-        }.catchAsThrowableAndEmitFailure()
-    }
-
     override suspend fun getAllArchiveFoldersAsList(): Flow<Result<List<Folder>>> {
         return executeWithResultFlow<List<Folder>, Unit>(
             performRemoteOperation = false,
@@ -118,12 +113,6 @@ class LocalFoldersRepoImpl(
             foldersDao.getAllArchiveFoldersAsList()
             },
         )
-    }
-
-    override fun getAllRootFoldersAsFlow(): Flow<Result<List<Folder>>> {
-        return foldersDao.getAllRootFoldersAsFlow().map { Result.Success(it) }
-            .onStart { Result.Loading<List<Folder>>() }
-            .catchAsThrowableAndEmitFailure()
     }
 
     override suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>> {
@@ -204,13 +193,22 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<Result<List<Folder>>> {
-        return foldersDao.getChildFoldersOfThisParentIDAsFlow(parentFolderID)
-            .map { Result.Success(it) }
-            .onStart {
-                Result.Loading<List<Folder>>()
-            }.catchAsThrowableAndEmitFailure()
+    override fun sortByAToZ(parentFolderId: Long?): Flow<Result<List<Folder>>> {
+        return foldersSortingDao.sortByAToZ(parentFolderId).mapToResultFlow()
     }
+
+    override fun sortByZToA(parentFolderId: Long?): Flow<Result<List<Folder>>> {
+        return foldersSortingDao.sortByZToA(parentFolderId).mapToResultFlow()
+    }
+
+    override fun sortByLatestToOldest(parentFolderId: Long?): Flow<Result<List<Folder>>> {
+        return foldersSortingDao.sortByLatestToOldest(parentFolderId).mapToResultFlow()
+    }
+
+    override fun sortByOldestToLatest(parentFolderId: Long?): Flow<Result<List<Folder>>> {
+        return foldersSortingDao.sortByOldestToLatest(parentFolderId).mapToResultFlow()
+    }
+
 
     override suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>> {
         return executeWithResultFlow<List<Folder>, Unit>(performRemoteOperation = false) {
