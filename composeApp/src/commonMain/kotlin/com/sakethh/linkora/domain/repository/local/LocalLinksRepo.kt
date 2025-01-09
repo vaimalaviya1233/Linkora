@@ -29,5 +29,7 @@ interface LocalLinksRepo {
 
     suspend fun updateLinkTitle(linkId: Long, newTitle: String): Flow<Result<Unit>>
 
-    suspend fun markedAsImportant(linkId: Long): Flow<Result<Boolean>>
+    suspend fun markedAsImportant(linkUrl: String): Flow<Result<Boolean>>
+
+    suspend fun isInArchive(url: String): Flow<Result<Boolean>>
 }

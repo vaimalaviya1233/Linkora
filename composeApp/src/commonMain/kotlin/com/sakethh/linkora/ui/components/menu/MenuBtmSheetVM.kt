@@ -15,6 +15,7 @@ import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.runBlocking
+import kotlin.properties.Delegates
 
 class MenuBtmSheetVM(private val localLinksRepo: LocalLinksRepo) : ViewModel() {
 
@@ -26,9 +27,8 @@ class MenuBtmSheetVM(private val localLinksRepo: LocalLinksRepo) : ViewModel() {
         val archiveOptionText = mutableStateOf("")
     }
 
-    fun updateImpLinkInfo(linkId: Long) = runBlocking {
-        return@runBlocking
-        localLinksRepo.markedAsImportant(linkId).collectLatest {
+    fun updateImpLinkInfo(linkUrl: String) = runBlocking {
+        localLinksRepo.markedAsImportant(linkUrl).collectLatest {
             it.onSuccess {
                 if (it.data) {
                     importantOptionIcon.value = Icons.Outlined.DeleteForever
@@ -43,13 +43,29 @@ class MenuBtmSheetVM(private val localLinksRepo: LocalLinksRepo) : ViewModel() {
         }
     }
 
-    fun updateArchiveLinkCardData(url: String) {
-        if (false) {
-            archiveOptionIcon.value = Icons.Outlined.Unarchive
-            archiveOptionText.value = ""
-        } else {
-            archiveOptionIcon.value = Icons.Outlined.Archive
-            archiveOptionText.value = ""
+    fun shouldShowArchiveOption(url: String): Boolean {
+        var isArchived by Delegates.notNull<Boolean>()
+        runBlocking {
+            localLinksRepo.isInArchive(url).collectLatest {
+                it.onSuccess {
+                    isArchived = it.data
+                }.pushSnackbarOnFailure()
+            }
+        }
+        return isArchived.not()
+    }
+
+    fun updateArchiveLinkInfo(url: String) = runBlocking {
+        localLinksRepo.isInArchive(url).collectLatest {
+            it.onSuccess {
+                if (it.data) {
+                    archiveOptionIcon.value = Icons.Outlined.Unarchive
+                    archiveOptionText.value = Localization.Key.UnArchive.getLocalizedString()
+                } else {
+                    archiveOptionIcon.value = Icons.Outlined.Archive
+                    archiveOptionText.value = Localization.Key.Archive.getLocalizedString()
+                }
+            }.pushSnackbarOnFailure()
         }
     }
 

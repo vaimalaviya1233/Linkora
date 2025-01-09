@@ -39,6 +39,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,7 +54,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNull
@@ -73,9 +73,10 @@ import com.sakethh.linkora.ui.components.RenameDialogBox
 import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
-import com.sakethh.linkora.ui.components.menu.MenuItemType
+import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
@@ -159,8 +160,9 @@ fun CollectionsScreen() {
     val shouldBtmSheetForNewLinkAdditionBeEnabled = rememberSaveable {
         mutableStateOf(false)
     }
-    val menuBtmSheetFor = rememberDeserializableMutableObject {
-        mutableStateOf(MenuItemType.FOLDER)
+
+    val menuBtmSheetFor: MutableState<MenuBtmSheetType> = rememberDeserializableMutableObject {
+        mutableStateOf(MenuBtmSheetType.Folder.RegularFolder)
     }
 
     val menuBtmSheetVM: MenuBtmSheetVM = viewModel(factory = genericViewModelFactory {
@@ -359,7 +361,7 @@ fun CollectionsScreen() {
                             },
                             onLongClick = { -> },
                             onMoreIconClick = { ->
-                                menuBtmSheetFor.value = MenuItemType.FOLDER
+                                menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
                                 selectedFolderForMenuBtmSheet.value = folder
                                 shouldMenuBtmModalSheetBeVisible.value = true
                             },
@@ -431,7 +433,7 @@ fun CollectionsScreen() {
             shouldBeVisible = shouldShowNewFolderDialog,
             inAChildFolderScreen = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != null && collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!! > 0,
             onFolderCreateClick = { folderName, folderNote, onCompletion ->
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                     collectionsScreenVM.insertANewFolder(
                         folder = Folder(
                             name = folderName,
@@ -457,48 +459,47 @@ fun CollectionsScreen() {
             },
             btmModalSheetState = menuBtmModalSheetState,
             shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-            btmSheetFor = menuBtmSheetFor.value,
+            menuBtmSheetFor = menuBtmSheetFor.value,
             onDelete = {
                 shouldDeleteDialogBoxBeVisible.value = true
             }, onRename = {
                 shouldRenameDialogBoxBeVisible.value = true
             }, onArchive = {
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                     collectionsScreenVM.archiveAFolder(selectedFolderForMenuBtmSheet.value)
                 } else {
                     collectionsScreenVM.archiveALink(selectedLinkForMenuBtmSheet.value)
                 }
-            }, noteForSaving =
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
-                    selectedFolderForMenuBtmSheet.value.note
-                } else selectedLinkForMenuBtmSheet.value.note,
+            },
             onDeleteNote = {
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                     collectionsScreenVM.deleteTheNote(selectedFolderForMenuBtmSheet.value)
                 } else {
                     collectionsScreenVM.deleteTheNote(selectedLinkForMenuBtmSheet.value)
                 }
             },
-            linkTitle = selectedLinkForMenuBtmSheet.value.title,
-            folderName = selectedFolderForMenuBtmSheet.value.name,
-            imgLink = selectedLinkForMenuBtmSheet.value.imgURL,
             onRefreshClick = {},
-            webUrl = selectedLinkForMenuBtmSheet.value.url,
-            forceBrowserLaunch = { },
+            onForceLaunchInAnExternalBrowser = { },
             showQuickActions = rememberSaveable { mutableStateOf(false) },
             shouldTransferringOptionShouldBeVisible = true,
-            imgUserAgent = selectedLinkForMenuBtmSheet.value.userAgent
-                ?: AppPreferences.primaryJsoupUserAgent.value
+            link = selectedLinkForMenuBtmSheet,
+            folder = selectedFolderForMenuBtmSheet,
+            onAddToImportantLinks = {
+
+            },
+            shouldShowArchiveOption = {
+                menuBtmSheetVM.shouldShowArchiveOption(selectedLinkForMenuBtmSheet.value.url)
+            }
         )
     )
     DeleteDialogBox(
         DeleteDialogBoxParam(
             shouldDeleteDialogBoxBeVisible,
-            if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+            if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                 DeleteDialogBoxType.FOLDER
             } else DeleteDialogBoxType.LINK,
             onDeleteClick = { onCompletion ->
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                     collectionsScreenVM.deleteAFolder(
                         selectedFolderForMenuBtmSheet.value,
                         onCompletion
@@ -511,7 +512,7 @@ fun CollectionsScreen() {
     RenameDialogBox(
         RenameDialogBoxParam(
             onNoteChangeClick = {
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                     collectionsScreenVM.updateFolderNote(
                         selectedFolderForMenuBtmSheet.value.localId,
                         newNote = it
@@ -527,7 +528,7 @@ fun CollectionsScreen() {
             shouldDialogBoxAppear = shouldRenameDialogBoxBeVisible,
             existingFolderName = selectedFolderForMenuBtmSheet.value.name,
             onBothTitleAndNoteChangeClick = { title, note ->
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER) {
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                     collectionsScreenVM.updateFolderNote(
                         selectedFolderForMenuBtmSheet.value.localId,
                         newNote = note,
@@ -551,10 +552,10 @@ fun CollectionsScreen() {
                 shouldRenameDialogBoxBeVisible.value = false
             },
             existingTitle =
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER)
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value))
                     selectedFolderForMenuBtmSheet.value.name else selectedLinkForMenuBtmSheet.value.title,
             existingNote =
-                if (menuBtmSheetFor.value == MenuItemType.FOLDER)
+                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value))
                     selectedFolderForMenuBtmSheet.value.note else selectedLinkForMenuBtmSheet.value.note
         )
     )

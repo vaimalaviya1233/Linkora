@@ -27,12 +27,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.isNotNull
+import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
-import com.sakethh.linkora.ui.components.menu.MenuItemType
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -47,7 +48,7 @@ fun CollectionDetailPane(
     btmModalSheetState: SheetState,
     selectedFolderForMenuBtmSheet: MutableState<Folder>,
     shouldMenuBtmModalSheetBeVisible: MutableState<Boolean>,
-    menuBtmSheetFor: MutableState<MenuItemType>,
+    menuBtmSheetFor: MutableState<MenuBtmSheetType>,
     selectedLinkForMenuBtmSheet: MutableState<Link>,
     menuBtmSheetVM: MenuBtmSheetVM
 ) {
@@ -103,7 +104,7 @@ fun CollectionDetailPane(
                         },
                         onLongClick = { -> },
                         onMoreIconClick = { ->
-                            menuBtmSheetFor.value = MenuItemType.FOLDER
+                            menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
                             selectedFolderForMenuBtmSheet.value = childFolder
                             shouldMenuBtmModalSheetBeVisible.value = true
                             coroutineScope.launch {
@@ -124,9 +125,10 @@ fun CollectionDetailPane(
                         link = it,
                         isSelectionModeEnabled = mutableStateOf(false),
                         onMoreIconClick = {
-                            menuBtmSheetFor.value = MenuItemType.LINK
+                            menuBtmSheetFor.value = it.linkType.asMenuBtmSheetType()
                             selectedLinkForMenuBtmSheet.value = it
-                            menuBtmSheetVM.updateImpLinkInfo(selectedLinkForMenuBtmSheet.value.id)
+                            menuBtmSheetVM.updateImpLinkInfo(selectedLinkForMenuBtmSheet.value.url)
+                            menuBtmSheetVM.updateArchiveLinkInfo(selectedLinkForMenuBtmSheet.value.url)
                             shouldMenuBtmModalSheetBeVisible.value = true
                             coroutineScope.launch {
                                 btmModalSheetState.show()

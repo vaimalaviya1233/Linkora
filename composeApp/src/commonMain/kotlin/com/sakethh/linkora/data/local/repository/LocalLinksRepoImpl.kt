@@ -5,7 +5,7 @@ import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
-import com.sakethh.linkora.common.utils.unitFlowResult
+import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.Result
@@ -129,42 +129,50 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             linksDao.deleteLinksOfFolder(folderId)
         }
     }
 
     override suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             linksDao.deleteALinkNote(linkId)
         }
     }
 
     override suspend fun deleteALink(linkId: Long): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             linksDao.deleteALink(linkId)
         }
     }
 
     override suspend fun archiveALink(linkId: Long): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             linksDao.archiveALink(linkId)
         }
     }
 
     override suspend fun updateLinkNote(linkId: Long, newNote: String): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             linksDao.updateLinkNote(linkId, newNote)
         }
     }
 
     override suspend fun updateLinkTitle(linkId: Long, newTitle: String): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             linksDao.updateLinkTitle(linkId, newTitle)
         }
     }
 
-    override suspend fun markedAsImportant(linkId: Long): Flow<Result<Boolean>> {
-        return TODO()
+    override suspend fun markedAsImportant(linkUrl: String): Flow<Result<Boolean>> {
+        return wrappedResultFlow {
+            linksDao.markedAsImportant(linkUrl)
+        }
+    }
+
+    override suspend fun isInArchive(url: String): Flow<Result<Boolean>> {
+        return wrappedResultFlow {
+            linksDao.isInArchive(url)
+        }
     }
 }

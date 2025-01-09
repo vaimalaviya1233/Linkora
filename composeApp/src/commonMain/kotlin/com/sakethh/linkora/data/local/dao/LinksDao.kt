@@ -39,6 +39,9 @@ interface LinksDao {
     @Query("UPDATE links SET title = :newTitle WHERE id=:linkId")
     suspend fun updateLinkTitle(linkId: Long, newTitle: String)
 
-    @Query("SELECT linkType = '${LinkType.IMPORTANT_LINK}' FROM links WHERE url=:url")
+    @Query("SELECT linkType = '${LinkType.IMPORTANT_LINK}' OR markedAsImportant FROM links WHERE url=:url")
     suspend fun markedAsImportant(url: String): Boolean
+
+    @Query("SELECT linkType = '${LinkType.ARCHIVE_LINK}' FROM links WHERE url=:url")
+    suspend fun isInArchive(url: String): Boolean
 }

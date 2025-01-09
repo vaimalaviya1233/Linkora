@@ -38,13 +38,14 @@ import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
-import com.sakethh.linkora.ui.components.menu.MenuItemType
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 
 data class RenameDialogBoxParam(
     val shouldDialogBoxAppear: MutableState<Boolean>,
-    val renameDialogBoxFor: MenuItemType = MenuItemType.FOLDER,
+    val renameDialogBoxFor: MenuBtmSheetType = MenuBtmSheetType.Folder.RegularFolder,
     val onNoteChangeClick: ((newNote: String) -> Unit),
     val onBothTitleAndNoteChangeClick: ((newTitle: String, newNote: String) -> Unit),
     val existingFolderName: String?,
@@ -82,7 +83,7 @@ fun RenameDialogBox(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (renameDialogBoxParam.renameDialogBoxFor == MenuItemType.FOLDER && renameDialogBoxParam.existingFolderName?.isNotBlank() == true) Localization.Key.RenameFolder.rememberLocalizedString()
+                            text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.renameDialogBoxFor) && renameDialogBoxParam.existingFolderName?.isNotBlank() == true) Localization.Key.RenameFolder.rememberLocalizedString()
                                 .replaceFirstPlaceHolderWith(renameDialogBoxParam.existingFolderName) else Localization.Key.ChangeLinkData.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 22.sp,
@@ -107,7 +108,7 @@ fun RenameDialogBox(
                     OutlinedTextField(
                         label = {
                             Text(
-                                text = if (renameDialogBoxParam.renameDialogBoxFor == MenuItemType.FOLDER) Localization.Key.NewName.rememberLocalizedString()
+                                text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.renameDialogBoxFor)) Localization.Key.NewName.rememberLocalizedString()
                                 else Localization.Key.NewTitle.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp

@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data
 
 import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
-import com.sakethh.linkora.common.utils.unitFlowResult
+import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.LocalizationDao
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.localization.LocalizationInfoDTO
@@ -59,7 +59,7 @@ class LocalizationRepoImpl(
     }
 
     override suspend fun addLocalizedStrings(localizedStrings: List<LocalizedString>): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             localizationDao.addLocalizedStrings(localizedStrings)
         }
     }
@@ -69,7 +69,7 @@ class LocalizationRepoImpl(
     }
 
     override suspend fun deleteAllLocalizedStringsForThisLanguage(languageCode: String): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             localizationDao.deleteAllLocalizedStringsForThisLanguage(languageCode)
         }
     }
@@ -82,31 +82,31 @@ class LocalizationRepoImpl(
     }
 
     override suspend fun addANewLanguage(localizedLanguage: LocalizedLanguage): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             localizationDao.addANewLanguage(localizedLanguage)
         }
     }
 
     override suspend fun addNewLanguages(languages: List<LocalizedLanguage>): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             localizationDao.addNewLanguages(languages)
         }
     }
 
     override suspend fun deleteALanguage(localizedLanguage: LocalizedLanguage): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             localizationDao.deleteALanguage(localizedLanguage)
         }
     }
 
     override suspend fun deleteALanguage(languageName: String): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             localizationDao.deleteALanguage(languageName)
         }
     }
 
     override suspend fun deleteALanguageBasedOnLanguageCode(languageCode: String): Flow<Result<Unit>> {
-        return unitFlowResult {
+        return wrappedResultFlow {
             localizationDao.deleteALanguageBasedOnLanguageCode(languageCode)
         }
     }

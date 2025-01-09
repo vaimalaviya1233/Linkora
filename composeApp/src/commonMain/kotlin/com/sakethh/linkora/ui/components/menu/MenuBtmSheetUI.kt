@@ -18,22 +18,16 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.automirrored.outlined.TextSnippet
-import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.FolderCopy
 import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Unarchive
-import androidx.compose.material.icons.outlined.VerticalAlignTop
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -75,10 +69,6 @@ fun MenuBtmSheetUI(
     menuBtmSheetParam: MenuBtmSheetParam
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val mutableStateNote =
-        rememberSaveable(inputs = arrayOf(menuBtmSheetParam.noteForSaving)) {
-            mutableStateOf(menuBtmSheetParam.noteForSaving)
-        }
     if (menuBtmSheetParam.shouldBtmModalSheetBeVisible.value) {
         val isNoteBtnSelected = rememberSaveable {
             mutableStateOf(false)
@@ -98,7 +88,10 @@ fun MenuBtmSheetUI(
             sheetState = menuBtmSheetParam.btmModalSheetState
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (platform() !is Platform.Android.Mobile && menuBtmSheetParam.imgLink.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN || menuBtmSheetParam.btmSheetFor == MenuItemType.LINK)) {
+                if (platform() !is Platform.Android.Mobile && menuBtmSheetLinkEntries().contains(
+                        menuBtmSheetParam.menuBtmSheetFor
+                    ) && menuBtmSheetParam.link!!.value.imgURL.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value
+                ) {
                     Box(
                         modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
                             .padding(bottom = 15.dp).wrapContentHeight()
@@ -109,8 +102,9 @@ fun MenuBtmSheetUI(
                                     max = 150.dp
                                 )
                             ).fadedEdges(MaterialTheme.colorScheme),
-                            imgURL = menuBtmSheetParam.imgLink,
-                            userAgent = menuBtmSheetParam.imgUserAgent
+                            imgURL = menuBtmSheetParam.link.value.imgURL,
+                            userAgent = menuBtmSheetParam.link.value.userAgent
+                                ?: AppPreferences.primaryJsoupUserAgent.value
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)
@@ -129,7 +123,7 @@ fun MenuBtmSheetUI(
                                 )
                             }
                             Text(
-                                text = menuBtmSheetParam.linkTitle,
+                                text = menuBtmSheetParam.link.value.title,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 16.sp,
                                 maxLines = 2,
@@ -144,7 +138,10 @@ fun MenuBtmSheetUI(
                     modifier = Modifier.navigationBarsPadding()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    if (platform() is Platform.Android.Mobile && menuBtmSheetParam.imgLink.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN || menuBtmSheetParam.btmSheetFor == MenuItemType.LINK)) {
+                    if (platform() is Platform.Android.Mobile && menuBtmSheetLinkEntries().contains(
+                            menuBtmSheetParam.menuBtmSheetFor
+                        ) && menuBtmSheetParam.link!!.value.imgURL.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value
+                    ) {
                         Box(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp)
                                 .wrapContentHeight()
@@ -155,8 +152,9 @@ fun MenuBtmSheetUI(
                                         max = 150.dp
                                     )
                                 ).fadedEdges(MaterialTheme.colorScheme),
-                                imgURL = menuBtmSheetParam.imgLink,
-                                userAgent = menuBtmSheetParam.imgUserAgent
+                                imgURL = menuBtmSheetParam.link.value.imgURL,
+                                userAgent = menuBtmSheetParam.link.value.userAgent
+                                    ?: AppPreferences.primaryJsoupUserAgent.value
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)
@@ -175,7 +173,7 @@ fun MenuBtmSheetUI(
                                     )
                                 }
                                 Text(
-                                    text = menuBtmSheetParam.linkTitle,
+                                    text = menuBtmSheetParam.link.value.title,
                                     style = MaterialTheme.typography.titleSmall,
                                     fontSize = 16.sp,
                                     maxLines = 2,
@@ -191,12 +189,12 @@ fun MenuBtmSheetUI(
                             color = MaterialTheme.colorScheme.outline.copy(0.25f)
                         )
                     }
-                    if (platform() is Platform.Android.Mobile && menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) {
+                    if (platform() is Platform.Android.Mobile && menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) {
                         Row(
                             modifier = Modifier.combinedClickable(interactionSource = remember {
                                     MutableInteractionSource()
                             }, indication = null, onClick = {
-                                    localClipBoardManager.setText(AnnotatedString(if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) menuBtmSheetParam.folderName else menuBtmSheetParam.linkTitle))
+                                localClipBoardManager.setText(AnnotatedString(if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) menuBtmSheetParam.folder!!.value.name else menuBtmSheetParam.link!!.value.title))
                                     coroutineScope.pushUIEvent(
                                         UIEvent.Type.ShowSnackbar(
                                             Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
@@ -206,13 +204,13 @@ fun MenuBtmSheetUI(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.Folder else Icons.Outlined.Link,
+                                imageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.Folder else Icons.Outlined.Link,
                                 null,
                                 modifier = Modifier.padding(20.dp).size(28.dp)
                             )
 
                             Text(
-                                text = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) menuBtmSheetParam.folderName else menuBtmSheetParam.linkTitle,
+                                text = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) menuBtmSheetParam.folder!!.value.name else menuBtmSheetParam.link!!.value.title,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 16.sp,
@@ -262,7 +260,7 @@ fun MenuBtmSheetUI(
                             elementName = Localization.Key.Rename.getLocalizedString(),
                             elementImageVector = Icons.Outlined.DriveFileRenameOutline
                         )
-                        if (menuBtmSheetParam.btmSheetFor == MenuItemType.LINK || menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN) {
+                        if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
                             IndividualMenuComponent(
                                 onOptionClick = {
                                     menuBtmSheetParam.onRefreshClick()
@@ -279,22 +277,20 @@ fun MenuBtmSheetUI(
                             )
                         }
 
-                        if (menuBtmSheetParam.shouldImportantLinkOptionBeVisible.value && (menuBtmSheetParam.btmSheetFor == MenuItemType.LINK || menuBtmSheetParam.btmSheetFor == MenuItemType.IMPORTANT_LINKS_SCREEN) && !menuBtmSheetParam.inArchiveScreen.value) {
-                            IndividualMenuComponent(
-                                onOptionClick = {
-                                    menuBtmSheetParam.onImportantLinkClick?.let { it() }
+                        IndividualMenuComponent(
+                            onOptionClick = {
+                                menuBtmSheetParam.onAddToImportantLinks?.let { it() }
                                     coroutineScope.launch {
                                         if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                             menuBtmSheetParam.btmModalSheetState.hide()
                                         }
                                         menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
-                                },
-                                elementName = MenuBtmSheetVM.importantOptionText.value,
-                                elementImageVector = MenuBtmSheetVM.importantOptionIcon.value
-                            )
-                        }
-                        if (!menuBtmSheetParam.inSpecificArchiveScreen.value/* && optionsBtmSheetVM.archiveCardIcon.value != Icons.Outlined.Unarchive*/ && !menuBtmSheetParam.inArchiveScreen.value) {
+                            },
+                            elementName = MenuBtmSheetVM.importantOptionText.value,
+                            elementImageVector = MenuBtmSheetVM.importantOptionIcon.value
+                        )
+                        if (menuBtmSheetParam.shouldShowArchiveOption()) {
                             IndividualMenuComponent(
                                 onOptionClick = {
                                     menuBtmSheetParam.onArchive()
@@ -306,27 +302,14 @@ fun MenuBtmSheetUI(
                                         menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
                                 },
-                                elementName = "Archive",
-                                elementImageVector = Icons.Default.Archive
+                                elementName = MenuBtmSheetVM.archiveOptionText.value,
+                                elementImageVector = MenuBtmSheetVM.archiveOptionIcon.value
                             )
                         }
-                        if (menuBtmSheetParam.inArchiveScreen.value && !menuBtmSheetParam.inSpecificArchiveScreen.value) {
-                            IndividualMenuComponent(
-                                onOptionClick = {
-                                    menuBtmSheetParam.onUnarchiveClick()
-                                    coroutineScope.launch {
-                                        if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                            menuBtmSheetParam.btmModalSheetState.hide()
-                                        }
-                                    }.invokeOnCompletion {
-                                        menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                                    }
-                                },
-                                elementName = Localization.Key.UnArchive.rememberLocalizedString(),
-                                elementImageVector = Icons.Outlined.Unarchive
-                            )
-                        }
-                        if (mutableStateNote.value.isNotEmpty()) {
+                        if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor) && menuBtmSheetParam.link!!.value.note.isNotBlank() || menuBtmSheetFolderEntries().contains(
+                                menuBtmSheetParam.menuBtmSheetFor
+                            ) && menuBtmSheetParam.folder!!.value.note.isNotBlank()
+                        ) {
                             IndividualMenuComponent(
                                 onOptionClick = {
                                     menuBtmSheetParam.onDeleteNote()
@@ -341,34 +324,32 @@ fun MenuBtmSheetUI(
                                 elementName = Localization.Key.DeleteTheNote.rememberLocalizedString(),
                                 elementImageVector = Icons.Outlined.Delete
                             )
-                        }
-                        if (menuBtmSheetParam.forAChildFolder.value && menuBtmSheetParam.shouldTransferringOptionShouldBeVisible && menuBtmSheetParam.btmSheetFor != MenuItemType.LINK) {
+                        }/*if (menuBtmSheetParam.forAChildFolder.value && menuBtmSheetParam.shouldTransferringOptionShouldBeVisible && menuBtmSheetParam.menuBtmSheetFor != MenuBtmSheetType.LINK) {
                             IndividualMenuComponent(
                                 onOptionClick = {
                                     menuBtmSheetParam.onMoveToRootFoldersClick()
                                 },
-                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.MoveToRootFolders.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
-                                elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.VerticalAlignTop else Icons.Outlined.DeleteForever
+                                elementName = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.RegularFolder) Localization.Key.MoveToRootFolders.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
+                                elementImageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.RegularFolder) Icons.Outlined.VerticalAlignTop else Icons.Outlined.DeleteForever
                             )
-                        }
-                        if (/*TransferActions.currentTransferActionType.value == TransferActionType.NOTHING &&*/ menuBtmSheetParam.shouldTransferringOptionShouldBeVisible) {
+                        }*//*if (*//*TransferActions.currentTransferActionType.value == TransferActionType.NOTHING &&*//* menuBtmSheetParam.shouldTransferringOptionShouldBeVisible) {
                             IndividualMenuComponent(
                                 onOptionClick = {
                                     menuBtmSheetParam.onCopy()
                                 },
-                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.CopyFolder.rememberLocalizedString() else Localization.Key.CopyLink.rememberLocalizedString(),
-                                elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.FolderCopy else Icons.Outlined.CopyAll
+                                elementName = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.RegularFolder) Localization.Key.CopyFolder.rememberLocalizedString() else Localization.Key.CopyLink.rememberLocalizedString(),
+                                elementImageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.RegularFolder) Icons.Outlined.FolderCopy else Icons.Outlined.CopyAll
                             )
 
                             IndividualMenuComponent(
                                 onOptionClick = {
                                     menuBtmSheetParam.onMove()
                                 },
-                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.MoveToOtherFolder.rememberLocalizedString() else Localization.Key.MoveLink.rememberLocalizedString(),
+                                elementName = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.RegularFolder) Localization.Key.MoveToOtherFolder.rememberLocalizedString() else Localization.Key.MoveLink.rememberLocalizedString(),
                                 elementImageVector = Icons.AutoMirrored.Outlined.DriveFileMove
                             )
-                        }
-                        if (menuBtmSheetParam.inSpecificArchiveScreen.value || menuBtmSheetParam.btmSheetFor != MenuItemType.IMPORTANT_LINKS_SCREEN) {
+                        }*/
+                        if (menuBtmSheetParam.menuBtmSheetFor != MenuBtmSheetType.Link.ImportantLink) {
                             IndividualMenuComponent(
                                 onOptionClick = {
                                     menuBtmSheetParam.onDelete()
@@ -380,12 +361,14 @@ fun MenuBtmSheetUI(
                                         menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                                     }
                                 },
-                                elementName = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Localization.Key.DeleteTheFolder.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
-                                elementImageVector = if (menuBtmSheetParam.btmSheetFor == MenuItemType.FOLDER) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
+                                elementName = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Localization.Key.DeleteTheFolder.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
+                                elementImageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
                             )
                         }
                     } else {
-                        if (mutableStateNote.value.isNotEmpty()) {
+                        val note =
+                            if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) menuBtmSheetParam.link!!.value.note else menuBtmSheetParam.folder!!.value.note
+                        if (note.isNotEmpty()) {
                             Text(
                                 text = Localization.Key.SavedNote.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleMedium,
@@ -394,14 +377,14 @@ fun MenuBtmSheetUI(
                                 modifier = Modifier.padding(20.dp)
                             )
                             Text(
-                                text = mutableStateNote.value,
+                                text = note,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 20.sp,
                                 modifier = Modifier.fillMaxWidth()
                                     .combinedClickable(onClick = {}, onLongClick = {
                                         localClipBoardManager.setText(
                                             AnnotatedString(
-                                                mutableStateNote.value
+                                                note
                                             )
                                         )
                                         coroutineScope.pushUIEvent(
@@ -435,8 +418,8 @@ fun MenuBtmSheetUI(
                     }
                     if (menuBtmSheetParam.showQuickActions.value) {
                         QuickActions(
-                            onForceOpenInExternalBrowserClicked = menuBtmSheetParam.forceBrowserLaunch,
-                            webUrl = menuBtmSheetParam.webUrl
+                            onForceOpenInExternalBrowserClicked = menuBtmSheetParam.onForceLaunchInAnExternalBrowser,
+                            webUrl = menuBtmSheetParam.link!!.value.url
                         )
                     }
 
