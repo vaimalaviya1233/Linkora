@@ -6,8 +6,6 @@ import androidx.room.TypeConverters
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.LocalizationDao
-import com.sakethh.linkora.data.local.dao.sorting.FoldersSortingDao
-import com.sakethh.linkora.data.local.dao.sorting.LinksSortingDao
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
@@ -26,8 +24,6 @@ abstract class LocalDatabase : RoomDatabase() {
     }
 
     abstract val linksDao: LinksDao
-    abstract val linksSortingDao: LinksSortingDao
     abstract val foldersDao: FoldersDao
-    abstract val foldersSortingDao: FoldersSortingDao
     abstract val localizationDao: LocalizationDao
 }

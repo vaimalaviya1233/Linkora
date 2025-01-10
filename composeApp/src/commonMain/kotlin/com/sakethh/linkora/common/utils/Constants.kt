@@ -20,3 +20,10 @@ object LinkType {
     const val IMPORTANT_LINK = "IMPORTANT_LINK"
     const val ARCHIVE_LINK = "ARCHIVE_LINK"
 }
+
+object Sorting {
+    const val A_TO_Z = "A_TO_Z"
+    const val Z_TO_A = "Z_TO_A"
+    const val NEW_TO_OLD = "NEW_TO_OLD"
+    const val OLD_TO_NEW = "OLD_TO_NEW"
+}

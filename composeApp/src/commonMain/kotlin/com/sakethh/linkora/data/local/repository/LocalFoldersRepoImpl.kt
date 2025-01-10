@@ -2,7 +2,6 @@ package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.data.local.dao.FoldersDao
-import com.sakethh.linkora.data.local.dao.sorting.FoldersSortingDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.linkoraPlaceHolders
@@ -26,7 +25,6 @@ class LocalFoldersRepoImpl(
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val canPushToServer: () -> Boolean,
     private val localLinksRepo: LocalLinksRepo,
-    private val foldersSortingDao: FoldersSortingDao
 ) : LocalFoldersRepo {
 
     private fun <LocalType, RemoteType> executeWithResultFlow(
@@ -193,20 +191,14 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override fun sortByAToZ(parentFolderId: Long?): Flow<Result<List<Folder>>> {
-        return foldersSortingDao.sortByAToZ(parentFolderId).mapToResultFlow()
+    override suspend fun sortFolders(sortOption: String): Flow<Result<List<Folder>>> {
+        return foldersDao.sortFolders(sortOption).mapToResultFlow()
     }
 
-    override fun sortByZToA(parentFolderId: Long?): Flow<Result<List<Folder>>> {
-        return foldersSortingDao.sortByZToA(parentFolderId).mapToResultFlow()
-    }
-
-    override fun sortByLatestToOldest(parentFolderId: Long?): Flow<Result<List<Folder>>> {
-        return foldersSortingDao.sortByLatestToOldest(parentFolderId).mapToResultFlow()
-    }
-
-    override fun sortByOldestToLatest(parentFolderId: Long?): Flow<Result<List<Folder>>> {
-        return foldersSortingDao.sortByOldestToLatest(parentFolderId).mapToResultFlow()
+    override suspend fun sortFolders(
+        parentFolderId: Long, sortOption: String
+    ): Flow<Result<List<Folder>>> {
+        return foldersDao.sortFolders(parentFolderId, sortOption).mapToResultFlow()
     }
 
 

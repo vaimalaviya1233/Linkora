@@ -34,8 +34,8 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
-import com.sakethh.linkora.ui.domain.Sorting
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
+import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
@@ -92,13 +92,13 @@ fun SortingBottomSheetUI(
                             text = it.sortingName,
                             fontSize = 16.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = if (it.sortingType == Sorting.valueOf(
-                                    AppPreferences.selectedSortingType.value
+                            color = if (it.sortingType == SortingType.valueOf(
+                                    AppPreferences.selectedSortingTypeType.value
                                 ) && !didAnyCheckBoxStateChanged.value
                             ) MaterialTheme.colorScheme.primary else LocalTextStyle.current.color
                         )
                         RadioButton(
-                            selected = it.sortingType.name == AppPreferences.selectedSortingType.value && !didAnyCheckBoxStateChanged.value,
+                            selected = it.sortingType.name == AppPreferences.selectedSortingTypeType.value && !didAnyCheckBoxStateChanged.value,
                             onClick = {
                                 sortingBottomSheetParam.onSelected(
                                     it.sortingType,

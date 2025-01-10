@@ -46,13 +46,12 @@ interface LocalFoldersRepo {
         targetParentId: Long?
     ): Flow<Result<Unit>>
 
-    fun sortByAToZ(parentFolderId: Long?): Flow<Result<List<Folder>>>
+    suspend fun sortFolders(sortOption: String): Flow<Result<List<Folder>>>
 
-    fun sortByZToA(parentFolderId: Long?): Flow<Result<List<Folder>>>
-
-    fun sortByLatestToOldest(parentFolderId: Long?): Flow<Result<List<Folder>>>
-
-    fun sortByOldestToLatest(parentFolderId: Long?): Flow<Result<List<Folder>>>
+    suspend fun sortFolders(
+        parentFolderId: Long,
+        sortOption: String
+    ): Flow<Result<List<Folder>>>
 
 
     suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>>

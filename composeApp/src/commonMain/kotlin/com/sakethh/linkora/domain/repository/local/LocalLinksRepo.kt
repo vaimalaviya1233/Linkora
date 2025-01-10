@@ -12,21 +12,13 @@ interface LocalLinksRepo {
         linkSaveConfig: LinkSaveConfig
     ): Flow<Result<Unit>>
 
-    fun sortByAToZ(linkType: LinkType): Flow<Result<List<Link>>>
+    suspend fun sortLinks(
+        linkType: LinkType, parentFolderId: Long, sortOption: String
+    ): Flow<Result<List<Link>>>
 
-    fun sortByZToA(linkType: LinkType): Flow<Result<List<Link>>>
-
-    fun sortByLatestToOldest(linkType: LinkType): Flow<Result<List<Link>>>
-
-    fun sortByOldestToLatest(linkType: LinkType): Flow<Result<List<Link>>>
-
-    fun sortByAToZ(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
-
-    fun sortByZToA(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
-
-    fun sortByLatestToOldest(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
-
-    fun sortByOldestToLatest(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>>
+    suspend fun sortLinks(
+        linkType: LinkType, sortOption: String
+    ): Flow<Result<List<Link>>>
 
     suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>>
 
@@ -43,4 +35,6 @@ interface LocalLinksRepo {
     suspend fun markedAsImportant(linkUrl: String): Flow<Result<Boolean>>
 
     suspend fun isInArchive(url: String): Flow<Result<Boolean>>
+
+    fun search(query: String, sortOption: String): Flow<Result<List<Link>>>
 }

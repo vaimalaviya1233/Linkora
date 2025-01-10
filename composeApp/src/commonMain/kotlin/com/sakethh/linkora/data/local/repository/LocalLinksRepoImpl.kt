@@ -7,7 +7,6 @@ import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
 import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.LinksDao
-import com.sakethh.linkora.data.local.dao.sorting.LinksSortingDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
@@ -23,7 +22,6 @@ import org.jsoup.Jsoup
 
 class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
-    private val linksSortingDao: LinksSortingDao,
     private val primaryUserAgent: () -> String
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
@@ -53,41 +51,18 @@ class LocalLinksRepoImpl(
         }.catchAsThrowableAndEmitFailure()
     }
 
-    override fun sortByAToZ(linkType: LinkType): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByAToZ(linkType).mapToResultFlow()
-    }
-
-    override fun sortByAToZ(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByAToZ(linkType, parentFolderId).mapToResultFlow()
-    }
-
-    override fun sortByZToA(linkType: LinkType): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByZToA(linkType).mapToResultFlow()
-    }
-
-    override fun sortByZToA(linkType: LinkType, parentFolderId: Long): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByZToA(linkType, parentFolderId).mapToResultFlow()
-    }
-
-    override fun sortByLatestToOldest(linkType: LinkType): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByLatestToOldest(linkType).mapToResultFlow()
-    }
-
-    override fun sortByLatestToOldest(
-        linkType: LinkType, parentFolderId: Long
+    override suspend fun sortLinks(
+        linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByLatestToOldest(linkType, parentFolderId).mapToResultFlow()
+        return linksDao.sortLinks(linkType, parentFolderId, sortOption).mapToResultFlow()
     }
 
-    override fun sortByOldestToLatest(linkType: LinkType): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByOldestToLatest(linkType).mapToResultFlow()
-    }
-
-    override fun sortByOldestToLatest(
-        linkType: LinkType, parentFolderId: Long
+    override suspend fun sortLinks(
+        linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>> {
-        return linksSortingDao.sortByOldestToLatest(linkType, parentFolderId).mapToResultFlow()
+        return linksDao.sortLinks(linkType, sortOption).mapToResultFlow()
     }
+
 
     private suspend fun scrapeLinkData(
         linkUrl: String, userAgent: String
@@ -197,5 +172,9 @@ class LocalLinksRepoImpl(
         return wrappedResultFlow {
             linksDao.isInArchive(url)
         }
+    }
+
+    override fun search(query: String, sortOption: String): Flow<Result<List<Link>>> {
+        return linksDao.search(query, sortOption).mapToResultFlow()
     }
 }

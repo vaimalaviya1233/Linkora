@@ -11,7 +11,7 @@ import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
-import com.sakethh.linkora.ui.domain.Sorting
+import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.showFollowSystemThemeOption
 import kotlinx.coroutines.joinAll
@@ -37,7 +37,7 @@ object AppPreferences {
     val useLanguageStringsBasedOnFetchedValuesFromServer = mutableStateOf(false)
     val isOnLatestUpdate = mutableStateOf(false)
     val didServerTimeOutErrorOccurred = mutableStateOf(false)
-    val selectedSortingType = mutableStateOf(Sorting.NEW_TO_OLD.name)
+    val selectedSortingTypeType = mutableStateOf(SortingType.NEW_TO_OLD.name)
     val primaryJsoupUserAgent =
         mutableStateOf("Twitterbot/1.0")
     val secondaryJsoupUserAgent =
@@ -180,9 +180,9 @@ object AppPreferences {
                     ) ?: BUILD_FLAVOUR) != "fdroid"
                 },
                 launch {
-                    selectedSortingType.value = preferencesRepository.readPreferenceValue(
+                    selectedSortingTypeType.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.SORTING_PREFERENCE.name),
-                    ) ?: Sorting.NEW_TO_OLD.name
+                    ) ?: SortingType.NEW_TO_OLD.name
                 },
                 launch {
                     showAssociatedImagesInLinkMenu.value = preferencesRepository.readPreferenceValue(

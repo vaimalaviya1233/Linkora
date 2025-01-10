@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.sakethh.linkora.common.utils.Sorting
 import com.sakethh.linkora.domain.model.Folder
 import kotlinx.coroutines.flow.Flow
 
@@ -109,4 +110,34 @@ interface FoldersDao {
 
     @Query("SELECT (SELECT COUNT(*) FROM folders) == 0")
     suspend fun isFoldersTableEmpty(): Boolean
+
+    @Query(
+        """
+    SELECT * FROM folders 
+    WHERE parentFolderID = :parentFolderId
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
+    """
+    )
+    fun sortFolders(
+        parentFolderId: Long,
+        sortOption: String
+    ): Flow<List<Folder>>
+
+
+    @Query(
+        """
+    SELECT * FROM folders 
+    WHERE parentFolderID IS NULL
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
+    """
+    )
+    fun sortFolders(sortOption: String): Flow<List<Folder>>
 }

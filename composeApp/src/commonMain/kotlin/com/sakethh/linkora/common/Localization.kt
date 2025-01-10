@@ -1063,6 +1063,9 @@ object Localization {
                 return "sort_based_on"
             }
         },
+        SearchTitlesToFindLinksAndFolders(defaultValue = "Search titles or notes to find links and folders") {
+            override fun toString() = "search_titles_to_find_links_and_folders"
+        }
     }
 }
 

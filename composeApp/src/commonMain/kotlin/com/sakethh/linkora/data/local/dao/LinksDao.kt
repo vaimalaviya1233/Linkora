@@ -4,7 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.sakethh.linkora.common.utils.LinkType
+import com.sakethh.linkora.common.utils.Sorting
 import com.sakethh.linkora.domain.model.link.Link
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LinksDao {
@@ -34,4 +36,47 @@ interface LinksDao {
 
     @Query("SELECT linkType = '${LinkType.ARCHIVE_LINK}' FROM links WHERE url=:url")
     suspend fun isInArchive(url: String): Boolean
+
+    @Query(
+        "SELECT * FROM links \n" +
+                "    WHERE (LOWER(title) LIKE '%' || LOWER(:query) || '%' \n" +
+                "           OR LOWER(note) LIKE '%' || LOWER(:query) || '%') \n" +
+                "    ORDER BY \n" +
+                "        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,\n" +
+                "        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,\n" +
+                "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,\n" +
+                "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC"
+    )
+    fun search(query: String, sortOption: String): Flow<List<Link>>
+
+    @Query(
+        """
+    SELECT * FROM links 
+    WHERE linkType = :linkType
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC
+    """
+    )
+    fun sortLinks(
+        linkType: com.sakethh.linkora.domain.LinkType, sortOption: String
+    ): Flow<List<Link>>
+
+
+    @Query(
+        """
+    SELECT * FROM links 
+    WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId 
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC
+    """
+    )
+    fun sortLinks(
+        linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String
+    ): Flow<List<Link>>
 }

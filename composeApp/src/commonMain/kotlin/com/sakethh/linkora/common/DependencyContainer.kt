@@ -48,7 +48,6 @@ object DependencyContainer {
                 AppPreferences.canPushToServer()
             },
             localLinksRepo = localLinksRepo.value,
-            foldersSortingDao = localDatabase.foldersSortingDao
         )
     }
 
@@ -58,7 +57,6 @@ object DependencyContainer {
             primaryUserAgent = {
                 AppPreferences.primaryJsoupUserAgent.value
             },
-            linksSortingDao = localDatabase.linksSortingDao
         )
     }
 
