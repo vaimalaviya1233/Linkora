@@ -1,13 +1,19 @@
 package com.sakethh.linkora.ui.screens.collections
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Sort
@@ -37,6 +43,7 @@ import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.asHistoryLinkWithoutId
+import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
@@ -45,6 +52,7 @@ import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -104,10 +112,10 @@ fun CollectionDetailPane(
             })
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.25f))
         }
-    }) { padding ->
+    }) { paddingValues ->
 
         if (collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
-            Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
                 TabRow(selectedTabIndex = pagerState.currentPage) {
                     listOf(
                         Localization.Key.Links.rememberLocalizedString(),
@@ -205,50 +213,64 @@ fun CollectionDetailPane(
             return@Scaffold
         }
 
-        CollectionLayoutManager(
-            folders = childFolders.value,
-            links = links.value,
-            isInSelectionMode = mutableStateOf(false),
-            paddingValues = padding,
-            linkMoreIconClick = {
-                coroutineScope.pushUIEvent(
-                    UIEvent.Type.ShowMenuBtmSheetUI(
-                        menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
-                        selectedLinkForMenuBtmSheet = it,
-                        selectedFolderForMenuBtmSheet = null
+        Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            if (collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+                    collectionsScreenVM.availableFiltersForAllLinks.forEach {
+                        FilterChip(
+                            text = it.asLocalizedString(),
+                            isSelected = collectionsScreenVM.appliedFiltersForAllLinks.contains(
+                                it
+                            ),
+                            onClick = {
+                                collectionsScreenVM.toggleAllLinksFilter(it)
+                            })
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                }
+            }
+            CollectionLayoutManager(
+                folders = childFolders.value,
+                links = links.value,
+                isInSelectionMode = mutableStateOf(false),
+                paddingValues = PaddingValues(0.dp),
+                linkMoreIconClick = {
+                    coroutineScope.pushUIEvent(
+                        UIEvent.Type.ShowMenuBtmSheetUI(
+                            menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                            selectedLinkForMenuBtmSheet = it,
+                            selectedFolderForMenuBtmSheet = null
+                        )
                     )
-                )
-            },
-            folderMoreIconClick = {
-                coroutineScope.pushUIEvent(
-                    UIEvent.Type.ShowMenuBtmSheetUI(
-                        menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
-                        selectedLinkForMenuBtmSheet = null,
-                        selectedFolderForMenuBtmSheet = it
+                },
+                folderMoreIconClick = {
+                    coroutineScope.pushUIEvent(
+                        UIEvent.Type.ShowMenuBtmSheetUI(
+                            menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
+                            selectedLinkForMenuBtmSheet = null,
+                            selectedFolderForMenuBtmSheet = it
+                        )
                     )
-                )
-            },
-            onFolderClick = {
-                collectionsScreenVM.updateCollectionDetailPaneInfo(
-                    CollectionDetailPaneInfo(
-                        currentFolder = it, isAnyCollectionSelected = true
+                },
+                onFolderClick = {
+                    collectionsScreenVM.updateCollectionDetailPaneInfo(
+                        CollectionDetailPaneInfo(
+                            currentFolder = it, isAnyCollectionSelected = true
+                        )
                     )
-                )
-            },
-            onLinkClick = {
-                collectionsScreenVM.addANewLink(
-                    link = it.asHistoryLinkWithoutId(),
-                    linkSaveConfig = LinkSaveConfig(
-                        forceAutoDetectTitle = false,
-                        forceSaveWithoutRetrievingData = true
-                    ),
-                    onCompletion = {},
-                    pushSnackbarOnSuccess = false
-                )
-            },
-            isCurrentlyInDetailsView = {
-                collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
-            })
+                },
+                onLinkClick = {
+                    collectionsScreenVM.addANewLink(
+                        link = it.asHistoryLinkWithoutId(), linkSaveConfig = LinkSaveConfig(
+                            forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
+                        ), onCompletion = {}, pushSnackbarOnSuccess = false
+                    )
+                },
+                isCurrentlyInDetailsView = {
+                    collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
+                })
+        }
+
 
     }
 }

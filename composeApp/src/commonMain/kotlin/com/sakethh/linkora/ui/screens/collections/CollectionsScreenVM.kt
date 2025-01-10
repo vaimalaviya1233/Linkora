@@ -1,5 +1,6 @@
 package com.sakethh.linkora.ui.screens.collections
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -68,7 +69,7 @@ open class CollectionsScreenVM(
             }
 
             Constants.ALL_LINKS_ID -> {
-
+                updateFilterableAllLinks()
             }
 
             Constants.ARCHIVE_ID -> {
@@ -85,6 +86,46 @@ open class CollectionsScreenVM(
                     collectionDetailPaneInfo.currentFolder?.localId
                 )
                 updateCollectableChildFolders(collectionDetailPaneInfo.currentFolder?.localId!!)
+            }
+        }
+    }
+
+    private val _availableFiltersForAllLinks = mutableStateListOf<LinkType>()
+    val availableFiltersForAllLinks = _availableFiltersForAllLinks
+
+    private val _appliedFiltersForAllLinks = mutableStateListOf<LinkType>()
+    val appliedFiltersForAllLinks = _appliedFiltersForAllLinks
+
+    fun toggleAllLinksFilter(filter: LinkType) {
+        if (_appliedFiltersForAllLinks.contains(filter).not()) {
+            _appliedFiltersForAllLinks.add(filter)
+        } else {
+            _appliedFiltersForAllLinks.remove(filter)
+        }
+    }
+
+    private fun updateFilterableAllLinks() {
+        collectableLinksJob?.cancel()
+        collectableLinksJob = viewModelScope.launch {
+            combine(snapshotFlow {
+                _appliedFiltersForAllLinks.toList()
+            }, snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }) { appliedFilters, sortingType ->
+                appliedFilters to sortingType
+            }.collectLatest { (appliedFilters, sortingType) ->
+                _availableFiltersForAllLinks.clear()
+                localLinksRepo.sortAllLinks(sortingType).collectLatest {
+                    it.onSuccess { result ->
+                        _availableFiltersForAllLinks.addAll(result.data.map { it.linkType }
+                            .distinct())
+                        val filteredResults = result.data.filter {
+                            appliedFilters.isEmpty() || it.linkType in appliedFilters
+                        }
+                        _links.emit(filteredResults)
+                    }
+                    it.pushSnackbarOnFailure()
+                }
             }
         }
     }

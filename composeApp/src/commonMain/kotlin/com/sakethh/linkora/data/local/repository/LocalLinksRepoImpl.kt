@@ -63,6 +63,9 @@ class LocalLinksRepoImpl(
         return linksDao.sortLinks(linkType, sortOption).mapToResultFlow()
     }
 
+    override suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>> {
+        return linksDao.sortAllLinks(sortOption).mapToResultFlow()
+    }
 
     private suspend fun scrapeLinkData(
         linkUrl: String, userAgent: String

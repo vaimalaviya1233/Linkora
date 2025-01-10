@@ -20,6 +20,8 @@ interface LocalLinksRepo {
         linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>>
 
+    suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>>
+
     suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>>
 
     suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>>

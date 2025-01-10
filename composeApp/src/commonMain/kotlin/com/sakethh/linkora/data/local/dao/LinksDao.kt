@@ -64,6 +64,20 @@ interface LinksDao {
         linkType: com.sakethh.linkora.domain.LinkType, sortOption: String
     ): Flow<List<Link>>
 
+    @Query(
+        """
+    SELECT * FROM links 
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC
+    """
+    )
+    fun sortAllLinks(
+        sortOption: String
+    ): Flow<List<Link>>
+
 
     @Query(
         """
