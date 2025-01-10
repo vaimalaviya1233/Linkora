@@ -1006,7 +1006,57 @@ object Localization {
             override fun toString(): String {
                 return "mark_a_link_as_imp_link"
             }
-        }
+        },
+        NewestToOldest(defaultValue = "Newest to Oldest") {
+            override fun toString(): String {
+                return "newest_to_oldest"
+            }
+        },
+        OldestToNewest(defaultValue = "Oldest to Newest") {
+            override fun toString(): String {
+                return "oldest_to_newest"
+            }
+        },
+        AToZSequence(defaultValue = "A to Z Sequence") {
+            override fun toString(): String {
+                return "a_to_z_sequence"
+            }
+        },
+        ZToASequence(defaultValue = "Z to A Sequence") {
+            override fun toString(): String {
+                return "z_to_a_sequence"
+            }
+        },
+        SortFoldersBy(defaultValue = "Sort folders by") {
+            override fun toString(): String {
+                return "sort_folders_by"
+            }
+        },
+        SortHistoryLinksBy(defaultValue = "Sort History Links by") {
+            override fun toString(): String {
+                return "sort_history_links_by"
+            }
+        },
+        SortBy(defaultValue = "Sort by") {
+            override fun toString(): String {
+                return "sort_by"
+            }
+        },
+        SortSavedLinksBy(defaultValue = "Sort Saved Links by") {
+            override fun toString(): String {
+                return "sort_saved_links_by"
+            }
+        },
+        SortImportantLinksBy(defaultValue = "Sort Important Links by") {
+            override fun toString(): String {
+                return "sort_important_links_by"
+            }
+        },
+        SortBasedOn(defaultValue = "Sort Based on") {
+            override fun toString(): String {
+                return "sort_based_on"
+            }
+        },
     }
 }
 

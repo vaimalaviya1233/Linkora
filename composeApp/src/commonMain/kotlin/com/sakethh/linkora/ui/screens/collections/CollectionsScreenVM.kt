@@ -32,8 +32,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -103,14 +103,26 @@ open class CollectionsScreenVM(
         }
     }
 
+    private val triggerForFoldersSorting = mutableStateOf(false)
+    private val triggerForLinksSorting = mutableStateOf(false)
+
+    fun triggerFoldersSorting() {
+        triggerForFoldersSorting.value = triggerForFoldersSorting.value.not()
+    }
+
+    fun triggerLinksSorting() {
+        triggerForLinksSorting.value = triggerForLinksSorting.value.not()
+    }
 
     init {
         linkoraLog("CollectionScreenVM initialized with loadRootFoldersOnInit: $loadRootFoldersOnInit")
         if (loadRootFoldersOnInit) {
-            snapshotFlow {
+            combine(snapshotFlow {
                 AppPreferences.selectedSortingType.value
-            }.onEach {
-                when (Sorting.valueOf(it)) {
+            }, snapshotFlow {
+                triggerForFoldersSorting.value
+            }) { sortingType, _ ->
+                when (Sorting.valueOf(sortingType)) {
                     Sorting.A_TO_Z -> localFoldersRepo.sortByAToZ(null)
                     Sorting.Z_TO_A -> localFoldersRepo.sortByZToA(null)
                     Sorting.NEW_TO_OLD -> localFoldersRepo.sortByLatestToOldest(null)
@@ -142,8 +154,12 @@ open class CollectionsScreenVM(
     private fun updateCollectableChildFolders(parentFolderId: Long) {
         collectableChildFoldersJob?.cancel()
         collectableChildFoldersJob = viewModelScope.launch {
-            snapshotFlow {
+            combine(snapshotFlow {
                 AppPreferences.selectedSortingType.value
+            }, snapshotFlow {
+                triggerForFoldersSorting.value
+            }) { sortingType, _ ->
+                sortingType
             }.collectLatest { sortingType ->
                 when (Sorting.valueOf(sortingType)) {
                     Sorting.A_TO_Z -> localFoldersRepo.sortByAToZ(parentFolderId)
@@ -246,7 +262,7 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun archiveAFolder(folder: Folder) {
+    fun archiveAFolder(folder: Folder, onCompletion: () -> Unit) {
         viewModelScope.launch {
             if (folder.isArchived) {
                 localFoldersRepo.markFolderAsRegularFolder(folder.localId).collectLatest {
@@ -273,20 +289,29 @@ open class CollectionsScreenVM(
                     }.pushSnackbarOnFailure()
                 }
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
-    fun archiveALink(link: Link) {
+    fun archiveALink(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localLinksRepo.archiveALink(link.id).collectLatest {
                 it.onSuccess {
                     Localization.Key.ArchivedTheLink.pushLocalizedSnackbar()
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
-    fun updateFolderNote(folderId: Long, newNote: String, pushSnackbarOnSuccess: Boolean = true) {
+    fun updateFolderNote(
+        folderId: Long,
+        newNote: String,
+        onCompletion: () -> Unit,
+        pushSnackbarOnSuccess: Boolean = true
+    ) {
         viewModelScope.launch {
             localFoldersRepo.renameAFolderNote(folderId, newNote).collectLatest {
                 it.onSuccess {
@@ -301,9 +326,17 @@ open class CollectionsScreenVM(
                     }
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
-    fun updateLinkNote(linkId: Long, newNote: String, pushSnackbarOnSuccess: Boolean = true) {
+
+    fun updateLinkNote(
+        linkId: Long,
+        newNote: String,
+        onCompletion: () -> Unit,
+        pushSnackbarOnSuccess: Boolean = true
+    ) {
         viewModelScope.launch {
             localLinksRepo.updateLinkNote(linkId, newNote).collectLatest {
                 it.onSuccess {
@@ -312,23 +345,26 @@ open class CollectionsScreenVM(
                     }
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
-    fun updateLinkTitle(linkId: Long, newTitle: String) {
+    fun updateLinkTitle(linkId: Long, newTitle: String, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localLinksRepo.updateLinkTitle(linkId, newTitle).collectLatest {
                 it.onSuccess {
                     Localization.Key.UpdatedTheTitle.pushLocalizedSnackbar()
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
     fun updateFolderName(
         folder: Folder,
-        newName: String,
-        ignoreFolderAlreadyExistsThrowable: Boolean
+        newName: String, ignoreFolderAlreadyExistsThrowable: Boolean, onCompletion: () -> Unit
     ) {
         viewModelScope.launch {
             localFoldersRepo.renameAFolderName(
@@ -347,6 +383,8 @@ open class CollectionsScreenVM(
                     )
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
@@ -373,8 +411,12 @@ open class CollectionsScreenVM(
         collectableLinksJob?.cancel()
         collectableLinksJob = viewModelScope.launch {
             _links.emit(emptyList())
-            snapshotFlow {
+            combine(snapshotFlow {
                 AppPreferences.selectedSortingType.value
+            }, snapshotFlow {
+                triggerForLinksSorting.value
+            }) { sortingType, _ ->
+                sortingType
             }.collectLatest { sortingType ->
                 when (Sorting.valueOf(sortingType)) {
                     Sorting.A_TO_Z -> if (folderId.isNull()) {

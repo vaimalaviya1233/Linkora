@@ -20,8 +20,8 @@ import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.launch
 
-class SettingsScreenViewModel(
-    val preferencesRepository: PreferencesRepository
+open class SettingsScreenViewModel(
+    private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
     fun generalSection(): List<SettingComponentParam> {

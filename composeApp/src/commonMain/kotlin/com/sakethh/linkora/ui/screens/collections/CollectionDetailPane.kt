@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,6 +46,7 @@ import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +59,9 @@ fun CollectionDetailPane(
     shouldMenuBtmModalSheetBeVisible: MutableState<Boolean>,
     menuBtmSheetFor: MutableState<MenuBtmSheetType>,
     selectedLinkForMenuBtmSheet: MutableState<Link>,
-    menuBtmSheetVM: MenuBtmSheetVM
+    menuBtmSheetVM: MenuBtmSheetVM,
+    shouldSortingBottomSheetAppear: MutableState<Boolean>,
+    sortingBtmSheetState: SheetState
 ) {
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
@@ -66,7 +70,19 @@ fun CollectionDetailPane(
     val rootArchiveFolders = collectionsScreenVM.rootArchiveFolders.collectAsStateWithLifecycle()
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
-            TopAppBar(actions = {}, navigationIcon = {
+            TopAppBar(actions = {
+                IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                    shouldSortingBottomSheetAppear.value = true
+                    coroutineScope.launch {
+                        sortingBtmSheetState.show()
+                    }
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.Sort,
+                        contentDescription = null
+                    )
+                }
+            }, navigationIcon = {
                 IconButton(onClick = {
                     if (currentlyInFolder.parentFolderId.isNotNull()) {
                         currentlyInFolder.parentFolderId as Long

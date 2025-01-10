@@ -669,6 +669,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
                             forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
                         ), onCompletion = {
+                            collectionsScreenVM.triggerLinksSorting()
                             shouldBeVisible.value = false
                         })
                 }) {
