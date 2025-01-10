@@ -128,16 +128,7 @@ fun SortingBottomSheetUI(
                 modifier = Modifier.animateContentSize()
             ) {
                 androidx.compose.material3.Text(
-                    text = when (sortingBottomSheetParam.sortingBtmSheetType) {
-                        SortingBtmSheetType.COLLECTIONS_SCREEN -> Localization.Key.SortFoldersBy.rememberLocalizedString()
-                        SortingBtmSheetType.HISTORY_SCREEN -> Localization.Key.SortHistoryLinksBy.rememberLocalizedString()
-                        SortingBtmSheetType.PARENT_ARCHIVE_SCREEN -> Localization.Key.SortBy.rememberLocalizedString()
-                        SortingBtmSheetType.SAVED_LINKS_SCREEN -> Localization.Key.SortSavedLinksBy.rememberLocalizedString()
-                        SortingBtmSheetType.IMPORTANT_LINKS_SCREEN -> Localization.Key.SortImportantLinksBy.rememberLocalizedString()
-                        else -> {
-                            Localization.Key.SortBasedOn.rememberLocalizedString()
-                        }
-                    },
+                    text = Localization.Key.SortBy.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp,

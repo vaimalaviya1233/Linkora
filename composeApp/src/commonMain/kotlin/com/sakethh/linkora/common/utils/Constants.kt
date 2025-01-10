@@ -7,6 +7,7 @@ object Constants {
     const val SAVED_LINKS_ID: Long = -2
     const val IMPORTANT_LINKS_ID: Long = -3
     const val ARCHIVE_ID: Long = -4
+    const val HISTORY_ID: Long = -5
 
     const val DEFAULT_APP_LANGUAGE_CODE = "en"
     const val DEFAULT_APP_LANGUAGE_NAME = "English"

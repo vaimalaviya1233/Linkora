@@ -76,6 +76,10 @@ open class CollectionsScreenVM(
                 updateCollectableLinks(LinkType.ARCHIVE_LINK)
             }
 
+            Constants.HISTORY_ID -> {
+                updateCollectableLinks(LinkType.HISTORY_LINK)
+            }
+
             else -> {
                 updateCollectableLinks(
                     LinkType.FOLDER_LINK,
@@ -447,12 +451,19 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun addANewLink(link: Link, linkSaveConfig: LinkSaveConfig, onCompletion: () -> Unit) {
+    fun addANewLink(
+        link: Link,
+        linkSaveConfig: LinkSaveConfig,
+        onCompletion: () -> Unit,
+        pushSnackbarOnSuccess: Boolean = true
+    ) {
         viewModelScope.launch {
             localLinksRepo.addANewLink(link, linkSaveConfig).collectLatest {
                 it.onSuccess {
                     onCompletion()
-                    Localization.Key.SavedTheLink.pushLocalizedSnackbar()
+                    if (pushSnackbarOnSuccess) {
+                        Localization.Key.SavedTheLink.pushLocalizedSnackbar()
+                    }
                 }.onFailure {
                     onCompletion()
                     UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(it))

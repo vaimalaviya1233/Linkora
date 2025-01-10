@@ -180,7 +180,7 @@ fun App(
             }) {
             NavHost(
                 navController = localNavController,
-                startDestination = Navigation.Root.CollectionsScreen
+                startDestination = Navigation.Root.SearchScreen
             ) {
                 composable<Navigation.Root.HomeScreen> {
                     HomeScreen()

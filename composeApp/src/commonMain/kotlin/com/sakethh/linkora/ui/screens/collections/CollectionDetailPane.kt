@@ -37,6 +37,8 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -165,7 +167,15 @@ fun CollectionDetailPane(
                                 folderMoreIconClick = {},
                                 onFolderClick = {},
                                 onLinkClick = {
-
+                                    collectionsScreenVM.addANewLink(
+                                        link = it.asHistoryLinkWithoutId(),
+                                        linkSaveConfig = LinkSaveConfig(
+                                            forceAutoDetectTitle = false,
+                                            forceSaveWithoutRetrievingData = true
+                                        ),
+                                        onCompletion = {},
+                                        pushSnackbarOnSuccess = false
+                                    )
                                 },
                                 isCurrentlyInDetailsView = {
                                     collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
@@ -250,7 +260,15 @@ fun CollectionDetailPane(
                 )
             },
             onLinkClick = {
-
+                collectionsScreenVM.addANewLink(
+                    link = it.asHistoryLinkWithoutId(),
+                    linkSaveConfig = LinkSaveConfig(
+                        forceAutoDetectTitle = false,
+                        forceSaveWithoutRetrievingData = true
+                    ),
+                    onCompletion = {},
+                    pushSnackbarOnSuccess = false
+                )
             },
             isCurrentlyInDetailsView = {
                 collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId

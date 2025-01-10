@@ -186,6 +186,12 @@ object Localization {
             }
         },
 
+        History(defaultValue = "History") {
+            override fun toString(): String {
+                return "history"
+            }
+        },
+
         Collections(defaultValue = "Collections") {
             override fun toString(): String {
                 return "collections"
