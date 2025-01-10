@@ -192,6 +192,18 @@ object Localization {
             }
         },
 
+        HistoryLinks(defaultValue = "History Links") {
+            override fun toString(): String {
+                return "history_links"
+            }
+        },
+
+        FolderLinks(defaultValue = "Folder Links") {
+            override fun toString(): String {
+                return "folder_links"
+            }
+        },
+
         Collections(defaultValue = "Collections") {
             override fun toString(): String {
                 return "collections"
@@ -341,6 +353,11 @@ object Localization {
         Archive(defaultValue = "Archive") {
             override fun toString(): String {
                 return "archive"
+            }
+        },
+        ArchiveLinks(defaultValue = "Archive Links") {
+            override fun toString(): String {
+                return "archive_links"
             }
         },
         Folders(defaultValue = "Folders") {
@@ -1065,6 +1082,16 @@ object Localization {
         },
         SearchTitlesToFindLinksAndFolders(defaultValue = "Search titles or notes to find links and folders") {
             override fun toString() = "search_titles_to_find_links_and_folders"
+        },
+        RegularFolder(defaultValue = "Regular Folder") {
+            override fun toString(): String {
+                return "regular_folder"
+            }
+        },
+        ArchiveFolder(defaultValue = "Archive Folder") {
+            override fun toString(): String {
+                return "archive_folder"
+            }
         }
     }
 }

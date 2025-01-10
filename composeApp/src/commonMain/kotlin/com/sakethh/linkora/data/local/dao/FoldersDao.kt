@@ -140,4 +140,16 @@ interface FoldersDao {
     """
     )
     fun sortFolders(sortOption: String): Flow<List<Folder>>
+
+    @Query(
+        "SELECT * FROM folders \n" +
+                "    WHERE (LOWER(name) LIKE '%' || LOWER(:query) || '%' \n" +
+                "           OR LOWER(note) LIKE '%' || LOWER(:query) || '%') \n" +
+                "    ORDER BY \n" +
+                "        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,\n" +
+                "        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC,\n" +
+                "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,\n" +
+                "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC"
+    )
+    fun search(query: String, sortOption: String): Flow<List<Folder>>
 }

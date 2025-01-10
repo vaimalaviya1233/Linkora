@@ -78,4 +78,6 @@ interface LocalFoldersRepo {
     suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long): Flow<Result<Unit>>
 
     suspend fun isFoldersTableEmpty(): Flow<Result<Boolean>>
+
+    fun search(query: String, sortOption: String): Flow<Result<List<Folder>>>
 }
