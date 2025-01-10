@@ -2,6 +2,7 @@ package com.sakethh.linkora.ui.screens.search
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.filled.Check
@@ -103,9 +105,9 @@ fun SearchScreen() {
 
                 } else {
                     Column {
-                        Row(Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                             searchScreenVM.availableFolderFilters.forEach {
-                                SearchFilterChip(
+                                FilterChip(
                                     text = it.asLocalizedString(),
                                     isSelected = searchScreenVM.appliedFolderFilters.contains(
                                         it
@@ -115,7 +117,7 @@ fun SearchScreen() {
                                     })
                             }
                             searchScreenVM.availableLinkFilters.forEach {
-                                SearchFilterChip(
+                                FilterChip(
                                     text = it.asLocalizedString(),
                                     isSelected = searchScreenVM.appliedLinkFilters.contains(
                                         it
@@ -124,6 +126,7 @@ fun SearchScreen() {
                                         searchScreenVM.toggleLinkFilter(it)
                                     })
                             }
+                            Spacer(modifier = Modifier.width(10.dp))
                         }
                         CollectionLayoutManager(
                             folders = searchQueryFolderResults.value,
@@ -208,7 +211,7 @@ fun SearchScreen() {
 }
 
 @Composable
-private fun SearchFilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
+fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier.animateContentSize()
     ) {
