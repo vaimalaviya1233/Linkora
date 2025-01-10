@@ -50,44 +50,25 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Platform
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
-import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
-import com.sakethh.linkora.ui.components.DeleteDialogBox
-import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
-import com.sakethh.linkora.ui.components.DeleteDialogBoxType
-import com.sakethh.linkora.ui.components.RenameDialogBox
-import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.folder.FolderComponent
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
-import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
-import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
-import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetUI
-import com.sakethh.linkora.ui.domain.ScreenType
-import com.sakethh.linkora.ui.domain.SortingBtmSheetType
-import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.platform
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -95,49 +76,15 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollectionsScreen() {
-    val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
-        CollectionsScreenVM(
-            DependencyContainer.localFoldersRepo.value,
-            DependencyContainer.localLinksRepo.value
-        )
-    })
+fun CollectionsScreen(
+    collectionsScreenVM: CollectionsScreenVM, menuBtmSheetVM: MenuBtmSheetVM,
+    shouldShowNewFolderDialog: MutableState<Boolean>,
+    shouldShowAddLinkDialog: MutableState<Boolean>
+) {
     val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
-    val shouldRenameDialogBoxBeVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val shouldDeleteDialogBoxBeVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
     val coroutineScope = rememberCoroutineScope()
-    val menuBtmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val selectedFolderForMenuBtmSheet = rememberDeserializableMutableObject {
-        mutableStateOf(
-            Folder(
-                name = "", note = "", parentFolderId = null, localId = 0L, isArchived = false
-            )
-        )
-    }
-    val selectedLinkForMenuBtmSheet = rememberDeserializableMutableObject {
-        mutableStateOf(
-            Link(
-                linkType = LinkType.SAVED_LINK,
-                id = 0L,
-                title = "",
-                url = "",
-                baseURL = "",
-                imgURL = "",
-                note = "",
-                lastModified = "",
-                idOfLinkedFolder = null,
-                userAgent = null
-            )
-        )
-    }
     val btmModalSheetStateForSavingLinks = rememberModalBottomSheetState()
-    val shouldMenuBtmModalSheetBeVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
+
     val isMainFabRotated = rememberSaveable {
         mutableStateOf(false)
     }
@@ -147,30 +94,9 @@ fun CollectionsScreen() {
     val shouldScreenTransparencyDecreasedBoxVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    val areFoldersSelectable = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val shouldShowAddLinkDialog = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val shouldShowNewFolderDialog = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val shouldSortingBottomSheetAppear = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val sortingBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val shouldBtmSheetForNewLinkAdditionBeEnabled = rememberSaveable {
         mutableStateOf(false)
     }
-
-    val menuBtmSheetFor: MutableState<MenuBtmSheetType> = rememberDeserializableMutableObject {
-        mutableStateOf(MenuBtmSheetType.Folder.RegularFolder)
-    }
-
-    val menuBtmSheetVM: MenuBtmSheetVM = viewModel(factory = genericViewModelFactory {
-        MenuBtmSheetVM(DependencyContainer.localLinksRepo.value)
-    })
     val navController = LocalNavController.current
     val platform = platform()
     Scaffold(
@@ -228,7 +154,7 @@ fun CollectionsScreen() {
                                 Navigation.Collection.CollectionDetailPane
                             )
                         },
-                        isSelected = selectedFolderForMenuBtmSheet.value.localId == Constants.ALL_LINKS_ID
+                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID
                     )
                 }
                 item {
@@ -262,7 +188,7 @@ fun CollectionsScreen() {
                                 Navigation.Collection.CollectionDetailPane
                             )
                         },
-                        collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.SAVED_LINKS_ID
+                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.SAVED_LINKS_ID
                     )
                 }
                 item {
@@ -338,10 +264,7 @@ fun CollectionsScreen() {
                             modifier = Modifier.padding(start = 15.dp)
                         )
                         IconButton(modifier = Modifier.pulsateEffect(), onClick = {
-                            shouldSortingBottomSheetAppear.value = true
-                            coroutineScope.launch {
-                                sortingBtmSheetState.show()
-                            }
+                            coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheetUI)
                         }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.Sort,
@@ -367,12 +290,13 @@ fun CollectionsScreen() {
                             },
                             onLongClick = { -> },
                             onMoreIconClick = { ->
-                                menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
-                                selectedFolderForMenuBtmSheet.value = folder
-                                menuBtmSheetVM.updateArchiveFolderCardData(
-                                    selectedFolderForMenuBtmSheet.value.isArchived
+                                coroutineScope.pushUIEvent(
+                                    UIEvent.Type.ShowMenuBtmSheetUI(
+                                        menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
+                                        selectedLinkForMenuBtmSheet = null,
+                                        selectedFolderForMenuBtmSheet = folder
+                                    )
                                 )
-                                shouldMenuBtmModalSheetBeVisible.value = true
                             },
                             isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
                                 mutableStateOf(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == folder.localId)
@@ -400,15 +324,8 @@ fun CollectionsScreen() {
             } else {
                 CollectionDetailPane(
                     collectionsScreenVM = collectionsScreenVM,
-                    btmModalSheetState = menuBtmModalSheetState,
-                    selectedFolderForMenuBtmSheet = selectedFolderForMenuBtmSheet,
-                    shouldMenuBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-                    menuBtmSheetFor = menuBtmSheetFor,
-                    selectedLinkForMenuBtmSheet = selectedLinkForMenuBtmSheet,
                     menuBtmSheetVM = menuBtmSheetVM,
                     currentlyInFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder!!,
-                    shouldSortingBottomSheetAppear = shouldSortingBottomSheetAppear,
-                    sortingBtmSheetState = sortingBtmSheetState,
                 )
             }
         }
@@ -431,183 +348,6 @@ fun CollectionsScreen() {
                     })
         }
     }
-
-    AddANewLinkDialogBox(
-        shouldBeVisible = shouldShowAddLinkDialog,
-        screenType = ScreenType.ROOT_SCREEN,
-        currentFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
-        collectionsScreenVM
-    )
-
-    AddANewFolderDialogBox(
-        AddNewFolderDialogBoxParam(
-            shouldBeVisible = shouldShowNewFolderDialog,
-            inAChildFolderScreen = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != null && collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!! > 0,
-            onFolderCreateClick = { folderName, folderNote, onCompletion ->
-                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-                    collectionsScreenVM.insertANewFolder(
-                        folder = Folder(
-                            name = folderName,
-                            note = folderNote,
-                            parentFolderId = if ((collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
-                                    ?: 0) > 0
-                            ) collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
-                        ),
-                        ignoreFolderAlreadyExistsThrowable = false,
-                        onCompletion = {
-                            collectionsScreenVM.triggerFoldersSorting()
-                            onCompletion()
-                        }
-                    )
-                }
-            },
-            thisFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
-        )
-    )
-    MenuBtmSheetUI(
-        menuBtmSheetParam = MenuBtmSheetParam(
-            onMove = {
-
-            }, onCopy = {
-
-            },
-            btmModalSheetState = menuBtmModalSheetState,
-            shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
-            menuBtmSheetFor = menuBtmSheetFor.value,
-            onDelete = {
-                shouldDeleteDialogBoxBeVisible.value = true
-            }, onRename = {
-                shouldRenameDialogBoxBeVisible.value = true
-            }, onArchive = {
-                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-                    collectionsScreenVM.archiveAFolder(
-                        selectedFolderForMenuBtmSheet.value,
-                        onCompletion = {
-                            collectionsScreenVM.triggerFoldersSorting()
-                        })
-                } else {
-                    collectionsScreenVM.archiveALink(
-                        selectedLinkForMenuBtmSheet.value,
-                        onCompletion = {
-                            collectionsScreenVM.triggerLinksSorting()
-                        })
-                }
-            },
-            onDeleteNote = {
-                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-                    collectionsScreenVM.deleteTheNote(selectedFolderForMenuBtmSheet.value)
-                } else {
-                    collectionsScreenVM.deleteTheNote(selectedLinkForMenuBtmSheet.value)
-                }
-            },
-            onRefreshClick = {},
-            onForceLaunchInAnExternalBrowser = { },
-            showQuickActions = rememberSaveable { mutableStateOf(false) },
-            shouldTransferringOptionShouldBeVisible = true,
-            link = selectedLinkForMenuBtmSheet,
-            folder = selectedFolderForMenuBtmSheet,
-            onAddToImportantLinks = {
-
-            },
-            shouldShowArchiveOption = {
-                menuBtmSheetVM.shouldShowArchiveOption(selectedLinkForMenuBtmSheet.value.url)
-            }
-        )
-    )
-    DeleteDialogBox(
-        DeleteDialogBoxParam(
-            shouldDeleteDialogBoxBeVisible,
-            if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-                DeleteDialogBoxType.FOLDER
-            } else DeleteDialogBoxType.LINK,
-            onDeleteClick = { onCompletion ->
-                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-                    collectionsScreenVM.deleteAFolder(
-                        selectedFolderForMenuBtmSheet.value,
-                        {
-                            collectionsScreenVM.triggerFoldersSorting()
-                            onCompletion()
-                        }
-                    )
-                } else {
-                    collectionsScreenVM.deleteALink(selectedLinkForMenuBtmSheet.value, {
-                        collectionsScreenVM.triggerLinksSorting()
-                        onCompletion()
-                    })
-                }
-            })
-    )
-    RenameDialogBox(
-        RenameDialogBoxParam(
-            onNoteChangeClick = {
-                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-                    collectionsScreenVM.updateFolderNote(
-                        selectedFolderForMenuBtmSheet.value.localId,
-                        newNote = it,
-                        onCompletion = {}
-                    )
-                } else {
-                    collectionsScreenVM.updateLinkNote(
-                        selectedLinkForMenuBtmSheet.value.id,
-                        newNote = it,
-                        onCompletion = {}
-                    )
-                }
-                shouldRenameDialogBoxBeVisible.value = false
-            },
-            shouldDialogBoxAppear = shouldRenameDialogBoxBeVisible,
-            existingFolderName = selectedFolderForMenuBtmSheet.value.name,
-            onBothTitleAndNoteChangeClick = { title, note ->
-                if (menuBtmSheetFor.value in menuBtmSheetFolderEntries()) {
-                    collectionsScreenVM.updateFolderNote(
-                        selectedFolderForMenuBtmSheet.value.localId,
-                        newNote = note,
-                        pushSnackbarOnSuccess = false,
-                        onCompletion = {}
-                    )
-                    collectionsScreenVM.updateFolderName(
-                        folder = selectedFolderForMenuBtmSheet.value,
-                        newName = title,
-                        ignoreFolderAlreadyExistsThrowable = true,
-                        onCompletion = {
-                            collectionsScreenVM.triggerFoldersSorting()
-                        }
-                    )
-                } else {
-                    collectionsScreenVM.updateLinkNote(
-                        linkId = selectedLinkForMenuBtmSheet.value.id,
-                        newNote = note,
-                        pushSnackbarOnSuccess = false, onCompletion = {}
-                    )
-                    collectionsScreenVM.updateLinkTitle(
-                        linkId = selectedLinkForMenuBtmSheet.value.id,
-                        newTitle = title,
-                        onCompletion = {
-                            collectionsScreenVM.triggerLinksSorting()
-                        }
-                    )
-                }
-                shouldRenameDialogBoxBeVisible.value = false
-            },
-            existingTitle =
-                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value))
-                    selectedFolderForMenuBtmSheet.value.name else selectedLinkForMenuBtmSheet.value.title,
-            existingNote =
-                if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value))
-                    selectedFolderForMenuBtmSheet.value.note else selectedLinkForMenuBtmSheet.value.note
-        )
-    )
-
-    SortingBottomSheetUI(
-        SortingBottomSheetParam(
-            shouldBottomSheetBeVisible = shouldSortingBottomSheetAppear,
-            onSelected = { sortingPreferences, _, _ -> },
-            bottomModalSheetState = sortingBtmSheetState,
-            sortingBtmSheetType = SortingBtmSheetType.COLLECTIONS_SCREEN,
-            shouldFoldersSelectionBeVisible = mutableStateOf(false),
-            shouldLinksSelectionBeVisible = mutableStateOf(false)
-        )
-    )
 }
 
 

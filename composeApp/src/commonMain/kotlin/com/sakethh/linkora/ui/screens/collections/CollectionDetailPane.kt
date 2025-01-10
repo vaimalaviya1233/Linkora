@@ -17,14 +17,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,13 +39,14 @@ import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
@@ -56,14 +55,7 @@ import kotlinx.coroutines.launch
 fun CollectionDetailPane(
     currentlyInFolder: Folder,
     collectionsScreenVM: CollectionsScreenVM,
-    btmModalSheetState: SheetState,
-    selectedFolderForMenuBtmSheet: MutableState<Folder>,
-    shouldMenuBtmModalSheetBeVisible: MutableState<Boolean>,
-    menuBtmSheetFor: MutableState<MenuBtmSheetType>,
-    selectedLinkForMenuBtmSheet: MutableState<Link>,
     menuBtmSheetVM: MenuBtmSheetVM,
-    shouldSortingBottomSheetAppear: MutableState<Boolean>,
-    sortingBtmSheetState: SheetState
 ) {
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
@@ -74,10 +66,7 @@ fun CollectionDetailPane(
         Column {
             TopAppBar(actions = {
                 IconButton(modifier = Modifier.pulsateEffect(), onClick = {
-                    shouldSortingBottomSheetAppear.value = true
-                    coroutineScope.launch {
-                        sortingBtmSheetState.show()
-                    }
+                    coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheetUI)
                 }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.Sort,
@@ -150,19 +139,13 @@ fun CollectionDetailPane(
                                 isInSelectionMode = mutableStateOf(false),
                                 paddingValues = PaddingValues(0.dp),
                                 linkMoreIconClick = {
-                                    menuBtmSheetFor.value =
-                                        it.linkType.asMenuBtmSheetType()
-                                    selectedLinkForMenuBtmSheet.value = it
-                                    menuBtmSheetVM.updateImpLinkInfo(
-                                        selectedLinkForMenuBtmSheet.value.url
+                                    coroutineScope.pushUIEvent(
+                                        UIEvent.Type.ShowMenuBtmSheetUI(
+                                            menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                                            selectedLinkForMenuBtmSheet = it,
+                                            selectedFolderForMenuBtmSheet = null
+                                        )
                                     )
-                                    menuBtmSheetVM.updateArchiveLinkInfo(
-                                        selectedLinkForMenuBtmSheet.value.url
-                                    )
-                                    shouldMenuBtmModalSheetBeVisible.value = true
-                                    coroutineScope.launch {
-                                        btmModalSheetState.show()
-                                    }
                                 },
                                 folderMoreIconClick = {},
                                 onFolderClick = {},
@@ -198,17 +181,13 @@ fun CollectionDetailPane(
                                             },
                                             onLongClick = { -> },
                                             onMoreIconClick = { ->
-                                                menuBtmSheetFor.value =
-                                                    MenuBtmSheetType.Folder.RegularFolder
-                                                selectedFolderForMenuBtmSheet.value =
-                                                    rootArchiveFolder
-                                                menuBtmSheetVM.updateArchiveFolderCardData(
-                                                    selectedFolderForMenuBtmSheet.value.isArchived
+                                                coroutineScope.pushUIEvent(
+                                                    UIEvent.Type.ShowMenuBtmSheetUI(
+                                                        menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
+                                                        selectedLinkForMenuBtmSheet = null,
+                                                        selectedFolderForMenuBtmSheet = rootArchiveFolder
+                                                    )
                                                 )
-                                                shouldMenuBtmModalSheetBeVisible.value = true
-                                                coroutineScope.launch {
-                                                    btmModalSheetState.show()
-                                                }
                                             },
                                             isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
                                                 mutableStateOf(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == rootArchiveFolder.localId)
@@ -232,25 +211,22 @@ fun CollectionDetailPane(
             isInSelectionMode = mutableStateOf(false),
             paddingValues = padding,
             linkMoreIconClick = {
-                menuBtmSheetFor.value = it.linkType.asMenuBtmSheetType()
-                selectedLinkForMenuBtmSheet.value = it
-                menuBtmSheetVM.updateImpLinkInfo(selectedLinkForMenuBtmSheet.value.url)
-                menuBtmSheetVM.updateArchiveLinkInfo(selectedLinkForMenuBtmSheet.value.url)
-                shouldMenuBtmModalSheetBeVisible.value = true
-                coroutineScope.launch {
-                    btmModalSheetState.show()
-                }
+                coroutineScope.pushUIEvent(
+                    UIEvent.Type.ShowMenuBtmSheetUI(
+                        menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                        selectedLinkForMenuBtmSheet = it,
+                        selectedFolderForMenuBtmSheet = null
+                    )
+                )
             },
             folderMoreIconClick = {
-                menuBtmSheetFor.value = MenuBtmSheetType.Folder.RegularFolder
-                selectedFolderForMenuBtmSheet.value = it
-                shouldMenuBtmModalSheetBeVisible.value = true
-                menuBtmSheetVM.updateArchiveFolderCardData(
-                    selectedFolderForMenuBtmSheet.value.isArchived
+                coroutineScope.pushUIEvent(
+                    UIEvent.Type.ShowMenuBtmSheetUI(
+                        menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
+                        selectedLinkForMenuBtmSheet = null,
+                        selectedFolderForMenuBtmSheet = it
+                    )
                 )
-                coroutineScope.launch {
-                    btmModalSheetState.show()
-                }
             },
             onFolderClick = {
                 collectionsScreenVM.updateCollectionDetailPaneInfo(

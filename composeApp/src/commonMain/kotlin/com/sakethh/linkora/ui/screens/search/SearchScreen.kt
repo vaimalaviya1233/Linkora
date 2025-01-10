@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
@@ -35,6 +39,7 @@ fun SearchScreen() {
     })
 
     val historyLinks = searchScreenVM.links.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -49,11 +54,12 @@ fun SearchScreen() {
                 modifier = Modifier.padding(start = 15.dp)
             )
             IconButton(modifier = Modifier.pulsateEffect(), onClick = {
-
+                coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheetUI)
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.Sort, contentDescription = null
                 )
+
             }
         }
         CollectionLayoutManager(
@@ -64,7 +70,13 @@ fun SearchScreen() {
             folderMoreIconClick = {},
             onFolderClick = {},
             linkMoreIconClick = {
-
+                coroutineScope.pushUIEvent(
+                    UIEvent.Type.ShowMenuBtmSheetUI(
+                        menuBtmSheetFor = MenuBtmSheetType.Link.HistoryLink,
+                        selectedLinkForMenuBtmSheet = it,
+                        selectedFolderForMenuBtmSheet = null
+                    )
+                )
             },
             onLinkClick = {
 
