@@ -49,6 +49,7 @@ object DependencyContainer {
                 AppPreferences.canPushToServer()
             },
             localLinksRepo = localLinksRepo.value,
+            panelsRepo = panelsRepo.value
         )
     }
 
