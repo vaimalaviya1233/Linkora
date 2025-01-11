@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,10 +47,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.asHistoryLinkWithoutId
+import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
@@ -60,7 +71,11 @@ import kotlinx.coroutines.launch
 fun HomeScreen() {
     val navController = LocalNavController.current
     val homeScreenVM: HomeScreenVM = viewModel(factory = genericViewModelFactory {
-        HomeScreenVM(DependencyContainer.panelsRepo.value)
+        HomeScreenVM(
+            panelsRepo = DependencyContainer.panelsRepo.value,
+            localLinksRepo = DependencyContainer.localLinksRepo.value,
+            localFoldersRepo = DependencyContainer.localFoldersRepo.value,
+        )
     })
     val shouldPanelsBtmSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
@@ -71,9 +86,9 @@ fun HomeScreen() {
     val selectedPanel = rememberDeserializableMutableObject {
         mutableStateOf(homeScreenVM.defaultPanel())
     }
-    val selectedPanelFolders = homeScreenVM.panelFolders.collectAsStateWithLifecycle()
+    val panelFolders = homeScreenVM.panelFolders.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = {
-        selectedPanelFolders.value.size
+        panelFolders.value.size
     })
     Scaffold(topBar = {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -140,7 +155,7 @@ fun HomeScreen() {
                 modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage,
                 divider = {}
             ) {
-                selectedPanelFolders.value.forEachIndexed { index, panelFolder ->
+                panelFolders.value.forEachIndexed { index, panelFolder ->
                     Tab(selected = pagerState.currentPage == index, onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
@@ -160,7 +175,74 @@ fun HomeScreen() {
             }
             HorizontalDivider()
             HorizontalPager(state = pagerState) { pageIndex ->
+                CollectionLayoutManager(
+                    folders = if (panelFolders.value.map { it.folderId }
+                            .contains(Constants.SAVED_LINKS_ID)) {
+                        emptyList()
+                    } else {
+                        homeScreenVM.localFoldersRepo.sortFoldersAsNonResultFlow(
+                            panelFolders.value[pageIndex].folderId,
+                            AppPreferences.selectedSortingTypeType.value
+                        ).collectAsStateWithLifecycle(
+                            emptyList()
+                        ).value
+                    },
+                    links = if (panelFolders.value.map { it.folderId }
+                            .contains(Constants.SAVED_LINKS_ID)) {
+                        when (pageIndex) {
+                            0 -> homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
+                                LinkType.SAVED_LINK, AppPreferences.selectedSortingTypeType.value
+                            ).collectAsStateWithLifecycle(
+                                emptyList()
+                            ).value
 
+                            else -> homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
+                                LinkType.IMPORTANT_LINK,
+                                AppPreferences.selectedSortingTypeType.value
+                            ).collectAsStateWithLifecycle(
+                                emptyList()
+                            ).value
+                        }
+                    } else homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
+                        LinkType.FOLDER_LINK,
+                        panelFolders.value[pageIndex].folderId,
+                        AppPreferences.selectedSortingTypeType.value
+                    ).collectAsStateWithLifecycle(
+                        emptyList()
+                    ).value,
+                    isInSelectionMode = mutableStateOf(false),
+                    paddingValues = PaddingValues(0.dp),
+                    folderMoreIconClick = {
+                        coroutineScope.pushUIEvent(
+                            UIEvent.Type.ShowMenuBtmSheetUI(
+                                menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
+                                selectedLinkForMenuBtmSheet = null,
+                                selectedFolderForMenuBtmSheet = it
+                            )
+                        )
+                    },
+                    onFolderClick = {
+
+                    },
+                    linkMoreIconClick = {
+                        coroutineScope.pushUIEvent(
+                            UIEvent.Type.ShowMenuBtmSheetUI(
+                                menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                                selectedLinkForMenuBtmSheet = it,
+                                selectedFolderForMenuBtmSheet = null
+                            )
+                        )
+                    },
+                    onLinkClick = {
+                        homeScreenVM.addANewLink(
+                            link = it.asHistoryLinkWithoutId(), linkSaveConfig = LinkSaveConfig(
+                                forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
+                            ), onCompletion = {}, pushSnackbarOnSuccess = false
+                        )
+                    },
+                    isCurrentlyInDetailsView = {
+                        false
+                    })
             }
         }
     }

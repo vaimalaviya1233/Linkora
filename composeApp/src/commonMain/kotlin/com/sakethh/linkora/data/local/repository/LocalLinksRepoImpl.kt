@@ -57,12 +57,25 @@ class LocalLinksRepoImpl(
         return linksDao.sortLinks(linkType, parentFolderId, sortOption).mapToResultFlow()
     }
 
+    override fun sortLinksAsNonResultFlow(
+        linkType: LinkType,
+        parentFolderId: Long,
+        sortOption: String
+    ): Flow<List<Link>> {
+        return linksDao.sortLinks(linkType, parentFolderId, sortOption)
+    }
     override suspend fun sortLinks(
         linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>> {
         return linksDao.sortLinks(linkType, sortOption).mapToResultFlow()
     }
 
+    override fun sortLinksAsNonResultFlow(
+        linkType: LinkType,
+        sortOption: String
+    ): Flow<List<Link>> {
+        return linksDao.sortLinks(linkType, sortOption)
+    }
     override suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>> {
         return linksDao.sortAllLinks(sortOption).mapToResultFlow()
     }

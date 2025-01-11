@@ -11,6 +11,7 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.PanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +26,7 @@ class LocalFoldersRepoImpl(
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val canPushToServer: () -> Boolean,
     private val localLinksRepo: LocalLinksRepo,
+    private val panelsRepo: PanelsRepo
 ) : LocalFoldersRepo {
 
     private fun <LocalType, RemoteType> executeWithResultFlow(
@@ -201,6 +203,11 @@ class LocalFoldersRepoImpl(
         return foldersDao.sortFolders(parentFolderId, sortOption).mapToResultFlow()
     }
 
+    override fun sortFoldersAsNonResultFlow(
+        parentFolderId: Long, sortOption: String
+    ): Flow<List<Folder>> {
+        return foldersDao.sortFolders(parentFolderId, sortOption)
+    }
 
     override suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>> {
         return executeWithResultFlow<List<Folder>, Unit>(performRemoteOperation = false) {
@@ -288,7 +295,9 @@ class LocalFoldersRepoImpl(
     }
 
     private suspend fun deleteLocalDataRelatedToTheFolder(folderID: Long) {
+        panelsRepo.deleteAFolderFromAllPanels(folderID)
         foldersDao.getChildFoldersOfThisParentIDAsAList(folderID).forEach {
+            panelsRepo.deleteAFolderFromAllPanels(it.localId)
             foldersDao.deleteAFolder(it.localId)
             localLinksRepo.deleteLinksOfFolder(it.localId)
             deleteLocalDataRelatedToTheFolder(it.localId)

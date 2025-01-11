@@ -1,14 +1,16 @@
 package com.sakethh.linkora.ui.screens.home
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
+import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
+import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,10 +19,16 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class HomeScreenVM(
+    val localFoldersRepo: LocalFoldersRepo,
+    val localLinksRepo: LocalLinksRepo,
     private val panelsRepo: PanelsRepo,
     triggerCollectionOfPanels: Boolean = true,
     triggerCollectionOfPanelFolders: Boolean = true
-) : ViewModel() {
+) : CollectionsScreenVM(
+    localFoldersRepo = localFoldersRepo,
+    localLinksRepo = localLinksRepo,
+    loadRootFoldersOnInit = false
+) {
     val currentPhaseOfTheDay = mutableStateOf("")
 
     private val _panels = MutableStateFlow(emptyList<Panel>())

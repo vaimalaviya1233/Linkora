@@ -16,9 +16,17 @@ interface LocalLinksRepo {
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>>
 
+    fun sortLinksAsNonResultFlow(
+        linkType: LinkType, parentFolderId: Long, sortOption: String
+    ): Flow<List<Link>>
+
     suspend fun sortLinks(
         linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>>
+
+    fun sortLinksAsNonResultFlow(
+        linkType: LinkType, sortOption: String
+    ): Flow<List<Link>>
 
     suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>>
 

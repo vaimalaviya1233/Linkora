@@ -61,6 +61,8 @@ fun PanelsManagerScreen() {
     val topAppBarState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val homeScreenVM: HomeScreenVM = viewModel(factory = genericViewModelFactory {
         HomeScreenVM(
+            localLinksRepo = DependencyContainer.localLinksRepo.value,
+            localFoldersRepo = DependencyContainer.localFoldersRepo.value,
             panelsRepo = DependencyContainer.panelsRepo.value,
             triggerCollectionOfPanels = true,
             triggerCollectionOfPanelFolders = false

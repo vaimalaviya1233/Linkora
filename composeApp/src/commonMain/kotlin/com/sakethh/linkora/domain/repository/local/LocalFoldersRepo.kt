@@ -53,6 +53,11 @@ interface LocalFoldersRepo {
         sortOption: String
     ): Flow<Result<List<Folder>>>
 
+    fun sortFoldersAsNonResultFlow(
+        parentFolderId: Long,
+        sortOption: String
+    ): Flow<List<Folder>>
+
 
     suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>>
 
