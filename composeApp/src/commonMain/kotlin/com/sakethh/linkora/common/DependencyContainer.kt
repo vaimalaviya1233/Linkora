@@ -8,6 +8,7 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.LocalizationRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
+import com.sakethh.linkora.data.local.repository.PanelsRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.localDatabase
@@ -60,4 +61,7 @@ object DependencyContainer {
         )
     }
 
+    val panelsRepo = lazy {
+        PanelsRepoImpl(panelsDao = localDatabase?.panelsDao!!)
+    }
 }

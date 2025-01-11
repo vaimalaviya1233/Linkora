@@ -745,6 +745,11 @@ object Localization {
                 return "select_a_collection"
             }
         },
+        SelectAPanel(defaultValue = "Select a Panel") {
+            override fun toString(): String {
+                return "select_a_panel"
+            }
+        },
         FolderHasBeenCreatedSuccessful(defaultValue = "The folder ${LinkoraPlaceHolder.First.value} has been successfully created.") {
             override fun toString(): String {
                 return "folder_has_been_created_successful"
@@ -1096,6 +1101,40 @@ object Localization {
         ArchiveFolder(defaultValue = "Archive Folder") {
             override fun toString(): String {
                 return "archive_folder"
+            }
+        },
+        GoodMorning(defaultValue = "Good Morning") {
+            override fun toString() = "good_morning"
+        },
+        GoodAfternoon(defaultValue = "Good Afternoon") {
+            override fun toString() = "good_afternoon"
+        },
+        GoodEvening(defaultValue = "Good Evening") {
+            override fun toString() = "good_evening"
+        },
+        HeyHi(defaultValue = "Hey, hi👋") {
+            override fun toString() = "hey_hi"
+        },
+        Default(defaultValue = "Default") {
+            override fun toString() = "default"
+        },
+        SelectedPanel(defaultValue = "Selected Panel") {
+            override fun toString() = "selected_panel"
+        },
+        AddANewPanel(defaultValue = "Add A New Panel") {
+            override fun toString() = "add_a_new_panel"
+        },
+        Panels(defaultValue = "Panels") {
+            override fun toString() = "panels"
+        },
+        FoldersInThisPanel(defaultValue = "Folders in This Panel") {
+            override fun toString(): String {
+                return "folders_in_this_panel"
+            }
+        },
+        FoldersThatCanBeAddedToThisPanel(defaultValue = "Folders that can be added to this panel") {
+            override fun toString(): String {
+                return "folders_that_can_be_added_to_this_panel"
             }
         }
     }

@@ -15,11 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +40,7 @@ import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
+import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -80,11 +79,7 @@ fun SearchScreen() {
                 ).fillMaxWidth().wrapContentHeight(), trailingIcon = {
                     Row {
                         if (searchScreenVM.isSearchActive.value) {
-                            IconButton(onClick = {
-                                coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheetUI)
-                            }) {
-                                Icon(imageVector = Icons.Default.Sort, contentDescription = null)
-                            }
+                            SortingIconButton()
                             IconButton(modifier = Modifier.pulsateEffect(), onClick = {
                                 if (searchScreenVM.searchQuery.value == "") {
                                     searchScreenVM.isSearchActive.value = false
@@ -176,14 +171,7 @@ fun SearchScreen() {
                 fontSize = 20.sp,
                 modifier = Modifier.padding(start = 15.dp)
             )
-            IconButton(modifier = Modifier.pulsateEffect(), onClick = {
-                coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheetUI)
-            }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Sort, contentDescription = null
-                )
-
-            }
+            SortingIconButton()
         }
         CollectionLayoutManager(
             folders = emptyList(),

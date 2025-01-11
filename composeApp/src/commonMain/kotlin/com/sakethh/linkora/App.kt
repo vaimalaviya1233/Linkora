@@ -69,6 +69,8 @@ import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.HomeScreen
+import com.sakethh.linkora.ui.screens.home.panels.PanelsManagerScreen
+import com.sakethh.linkora.ui.screens.home.panels.SpecificPanelManagerScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
@@ -301,7 +303,7 @@ fun App(
             }) {
             NavHost(
                 navController = localNavController,
-                startDestination = Navigation.Root.SearchScreen
+                startDestination = Navigation.Home.PanelsManagerScreen
             ) {
                 composable<Navigation.Root.HomeScreen> {
                     HomeScreen()
@@ -340,6 +342,12 @@ fun App(
                 }
                 composable<Navigation.Collection.CollectionDetailPane> {
                     // CollectionDetailPane()
+                }
+                composable<Navigation.Home.PanelsManagerScreen> {
+                    PanelsManagerScreen()
+                }
+                composable<Navigation.Home.SpecificPanelManagerScreen> {
+                    SpecificPanelManagerScreen()
                 }
             }
 
@@ -431,12 +439,14 @@ fun App(
                     onDeleteClick = { onCompletion ->
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.deleteAFolder(
-                                selectedFolderForMenuBtmSheet.value, {
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
                                     collectionsScreenVM.triggerFoldersSorting()
                                     onCompletion()
                                 })
                         } else {
-                            collectionsScreenVM.deleteALink(selectedLinkForMenuBtmSheet.value, {
+                            collectionsScreenVM.deleteALink(
+                                selectedLinkForMenuBtmSheet.value,
+                                onCompletion = {
                                 collectionsScreenVM.triggerLinksSorting()
                                 onCompletion()
                             })

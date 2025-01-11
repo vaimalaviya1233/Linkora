@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.components.menu
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DriveFileRenameOutline
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -17,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,10 +35,12 @@ fun IndividualMenuComponent(
     onOptionClick: () -> Unit,
     elementName: String,
     elementImageVector: ImageVector,
-    inPanelsScreen: Boolean = false
+    inPanelsScreen: Boolean = false,
+    isSelected: Boolean = false
 ) {
     Row(
         modifier = Modifier
+            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(0.1f) else Color.Transparent)
             .combinedClickable(
                 interactionSource = remember {
                     MutableInteractionSource()
@@ -50,21 +58,52 @@ fun IndividualMenuComponent(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(
-                modifier = Modifier.padding(10.dp), onClick = { onOptionClick() },
-                colors = IconButtonDefaults.filledTonalIconButtonColors()
-            ) {
-                Icon(imageVector = elementImageVector, contentDescription = null)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    modifier = Modifier.padding(10.dp), onClick = { onOptionClick() },
+                    colors = IconButtonDefaults.filledTonalIconButtonColors()
+                ) {
+                    Icon(imageVector = elementImageVector, contentDescription = null)
+                }
+                Text(
+                    text = elementName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontSize = 16.sp,
+                    modifier = Modifier.fillMaxWidth(if (inPanelsScreen) 0.4f else 1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-            Text(
-                text = elementName,
-                style = MaterialTheme.typography.titleSmall,
-                fontSize = 16.sp,
-                modifier = Modifier.fillMaxWidth(if (inPanelsScreen) 0.4f else 1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (inPanelsScreen) {
+                Row {
+                    IconButton(onClick = {
+
+                    }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DriveFileRenameOutline,
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = {
+
+                    }
+                    ) {
+                        Icon(imageVector = Icons.Default.Tune, contentDescription = null)
+                    }
+                    IconButton(onClick = {
+
+                    }
+                    ) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                    }
+                }
+            }
         }
     }
 }

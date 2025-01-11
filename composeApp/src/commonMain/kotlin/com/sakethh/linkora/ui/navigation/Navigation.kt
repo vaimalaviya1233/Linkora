@@ -95,6 +95,19 @@ sealed interface Navigation {
         }
     }
 
+    @Serializable
+    sealed interface Home : Navigation {
+        @Serializable
+        data object PanelsManagerScreen : Home {
+            override fun toString(): String {
+                return Localization.getLocalizedString(Localization.Key.Panels)
+            }
+        }
+
+        @Serializable
+        data class SpecificPanelManagerScreen(val panelId: Long) : Home
+    }
+
     sealed interface Collection {
         @Serializable
         data object CollectionDetailPane : Collection {

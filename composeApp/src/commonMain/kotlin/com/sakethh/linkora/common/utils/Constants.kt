@@ -8,6 +8,7 @@ object Constants {
     const val IMPORTANT_LINKS_ID: Long = -3
     const val ARCHIVE_ID: Long = -4
     const val HISTORY_ID: Long = -5
+    const val DEFAULT_PANELS_ID: Long = -6
 
     const val DEFAULT_APP_LANGUAGE_CODE = "en"
     const val DEFAULT_APP_LANGUAGE_NAME = "English"
