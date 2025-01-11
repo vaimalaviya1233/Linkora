@@ -27,7 +27,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.Platform
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.platform
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -36,7 +38,10 @@ fun IndividualMenuComponent(
     elementName: String,
     elementImageVector: ImageVector,
     inPanelsScreen: Boolean = false,
-    isSelected: Boolean = false
+    isSelected: Boolean = false,
+    onRenameClick: () -> Unit = {},
+    onTuneIconClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -81,25 +86,19 @@ fun IndividualMenuComponent(
             }
             if (inPanelsScreen) {
                 Row {
-                    IconButton(onClick = {
-
-                    }
-                    ) {
+                    IconButton(onClick = onRenameClick) {
                         Icon(
                             imageVector = Icons.Default.DriveFileRenameOutline,
                             contentDescription = null
                         )
                     }
-                    IconButton(onClick = {
+                    if (platform() is Platform.Android.Mobile) {
+                        IconButton(onClick = onTuneIconClick) {
+                            Icon(imageVector = Icons.Default.Tune, contentDescription = null)
+                        }
+                    }
 
-                    }
-                    ) {
-                        Icon(imageVector = Icons.Default.Tune, contentDescription = null)
-                    }
-                    IconButton(onClick = {
-
-                    }
-                    ) {
+                    IconButton(onClick = onDeleteClick) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = null)
                     }
                 }

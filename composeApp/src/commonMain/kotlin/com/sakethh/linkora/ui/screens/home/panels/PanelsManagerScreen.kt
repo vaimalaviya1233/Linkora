@@ -27,6 +27,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -40,7 +41,13 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.components.AddANewPanelDialogBox
+import com.sakethh.linkora.ui.components.AddANewShelfParam
+import com.sakethh.linkora.ui.components.DeleteAShelfDialogBoxParam
+import com.sakethh.linkora.ui.components.DeleteAShelfPanelDialogBox
+import com.sakethh.linkora.ui.components.RenameAShelfPanelDialogBox
 import com.sakethh.linkora.ui.components.menu.IndividualMenuComponent
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -60,8 +67,20 @@ fun PanelsManagerScreen() {
         )
     })
     val panels = homeScreenVM.panels.collectAsStateWithLifecycle()
-    val selectedPanel = rememberDeserializableMutableObject {
+    val selectedPanelForDetailView = rememberDeserializableMutableObject {
         mutableStateOf(Panel(panelId = -1, panelName = ""))
+    }
+    val selectedPanelForDialogBoxes = rememberDeserializableMutableObject {
+        mutableStateOf(Panel(panelId = -1, panelName = ""))
+    }
+    val isAddANewPanelDialogBoxVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val isDeleteAPanelDialogBoxVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val isRenameAPanelDialogBoxVisible = rememberSaveable {
+        mutableStateOf(false)
     }
     val specificPanelManagerScreenVM: SpecificPanelManagerScreenVM =
         viewModel(factory = genericViewModelFactory {
@@ -78,7 +97,7 @@ fun PanelsManagerScreen() {
             Button(
                 modifier = Modifier.padding(15.dp).navigationBarsPadding().fillMaxWidth()
                     .pulsateEffect(0.9f), onClick = {
-
+                    isAddANewPanelDialogBoxVisible.value = true
                 }) {
                 Text(
                     text = Localization.Key.AddANewPanel.rememberLocalizedString(),
@@ -116,17 +135,28 @@ fun PanelsManagerScreen() {
                         onOptionClick = { ->
                             SpecificPanelManagerScreenVM.updateSelectedPanelData(panel)
                             specificPanelManagerScreenVM.updateSpecificPanelManagerScreenData()
-                            selectedPanel.value = panel
+                            selectedPanelForDetailView.value = panel
                         },
                         elementName = panel.panelName,
                         elementImageVector = Icons.Default.ViewArray,
                         inPanelsScreen = true,
-                        isSelected = selectedPanel.value.panelId == panel.panelId
+                        isSelected = selectedPanelForDetailView.value.panelId == panel.panelId,
+                        onDeleteClick = {
+                            selectedPanelForDialogBoxes.value = panel
+                            isDeleteAPanelDialogBoxVisible.value = true
+                        },
+                        onRenameClick = {
+                            selectedPanelForDialogBoxes.value = panel
+                            isRenameAPanelDialogBoxVisible.value = true
+                        },
+                        onTuneIconClick = {
+                            navController.navigate(Navigation.Home.SpecificPanelManagerScreen)
+                        }
                     )
                 }
             }
             VerticalDivider()
-            if (selectedPanel.value.panelId <= 0) {
+            if (selectedPanelForDetailView.value.panelId <= 0) {
                 Box(
                     modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
@@ -143,4 +173,35 @@ fun PanelsManagerScreen() {
             }
         }
     }
+    AddANewPanelDialogBox(
+        addANewShelfParam = AddANewShelfParam(
+            isDialogBoxVisible = isAddANewPanelDialogBoxVisible, onCreateClick = { panelName ->
+                specificPanelManagerScreenVM.addANewAPanel(Panel(panelName = panelName))
+                isAddANewPanelDialogBoxVisible.value = false
+            })
+    )
+
+    DeleteAShelfPanelDialogBox(
+        deleteAShelfDialogBoxParam = DeleteAShelfDialogBoxParam(
+            isDialogBoxVisible = isDeleteAPanelDialogBoxVisible, onDeleteClick = {
+                specificPanelManagerScreenVM.deleteAPanel(selectedPanelForDialogBoxes.value.panelId)
+                selectedPanelForDetailView.value = Panel(panelId = -45, panelName = "")
+                isDeleteAPanelDialogBoxVisible.value = false
+            }, panelName = selectedPanelForDialogBoxes.value.panelName
+        )
+    )
+
+    RenameAShelfPanelDialogBox(
+        isDialogBoxVisible = isRenameAPanelDialogBoxVisible, onRenameClick = { newPanelName ->
+            specificPanelManagerScreenVM.renameAPanel(
+                selectedPanelForDialogBoxes.value.panelId, newPanelName
+            )
+            SpecificPanelManagerScreenVM.updateSelectedPanelData(
+                Panel(
+                    selectedPanelForDialogBoxes.value.panelId, newPanelName
+                )
+            )
+            isRenameAPanelDialogBoxVisible.value = false
+        }, panelName = selectedPanelForDialogBoxes.value.panelName
+    )
 }

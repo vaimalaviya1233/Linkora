@@ -72,7 +72,28 @@ class SpecificPanelManagerScreenVM(
         }
     }
 
-    fun removeAFolderFromAPanel(panelId: Long, folderId: Long) {
+    fun addANewAPanel(panel: Panel) {
+        viewModelScope.launch {
+            panelsRepo.addaNewPanel(panel)
+        }
+    }
+
+    fun deleteAPanel(panelId: Long) {
+        viewModelScope.launch {
+            panelsRepo.deleteAPanel(panelId)
+        }
+    }
+
+    fun renameAPanel(panelId: Long, newName: String) {
+        viewModelScope.launch {
+            panelsRepo.updateAPanelName(newName, panelId)
+        }
+    }
+
+    fun removeAFolderFromAPanel(
+        panelId: Long,
+        folderId: Long
+    ) {
         viewModelScope.launch {
             panelsRepo.deleteAFolderFromAPanel(panelId, folderId)
         }

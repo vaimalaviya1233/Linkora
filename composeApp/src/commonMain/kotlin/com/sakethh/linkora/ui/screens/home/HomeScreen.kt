@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -136,7 +137,8 @@ fun HomeScreen() {
     }) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             ScrollableTabRow(
-                modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage
+                modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage,
+                divider = {}
             ) {
                 selectedPanelFolders.value.forEachIndexed { index, panelFolder ->
                     Tab(selected = pagerState.currentPage == index, onClick = {
@@ -156,6 +158,7 @@ fun HomeScreen() {
                     }
                 }
             }
+            HorizontalDivider()
             HorizontalPager(state = pagerState) { pageIndex ->
 
             }

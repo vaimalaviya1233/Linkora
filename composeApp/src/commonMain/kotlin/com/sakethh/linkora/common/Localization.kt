@@ -1136,6 +1136,37 @@ object Localization {
             override fun toString(): String {
                 return "folders_that_can_be_added_to_this_panel"
             }
+        },
+        PanelName(defaultValue = "Panel Name") {
+            override fun toString(): String {
+                return "panel_name"
+            }
+        },
+        PermanentlyDeleteThePanel(defaultValue = "Permanently Delete Panel") {
+            override fun toString() = "permanently_delete_the_panel"
+        },
+        OnceDeletedThisPanelCannotBeRestored(defaultValue = "Once deleted, this Panel cannot be restored.") {
+            override fun toString() = "once_deleted_this_panel_cannot_be_restarted"
+        },
+        AreYouSureWantToDeleteThePanel(defaultValue = "Are you sure want to delete the panel named ${LinkoraPlaceHolder.First.value}?") {
+            override fun toString(): String {
+                return "are_you_sure_want_to_delete_the_panel"
+            }
+        },
+        NewNameForPanel(defaultValue = "New Name for Panel") {
+            override fun toString(): String {
+                return "new_name_for_panel"
+            }
+        },
+        ChangePanelName(defaultValue = "Change Panel Name") {
+            override fun toString(): String {
+                return "change_panel_name"
+            }
+        },
+        EditPanelName(defaultValue = "Edit ${LinkoraPlaceHolder.First.value} Panel Name") {
+            override fun toString(): String {
+                return "edit_panel_name"
+            }
         }
     }
 }

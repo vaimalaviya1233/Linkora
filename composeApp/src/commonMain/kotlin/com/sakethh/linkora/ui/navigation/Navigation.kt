@@ -105,7 +105,7 @@ sealed interface Navigation {
         }
 
         @Serializable
-        data class SpecificPanelManagerScreen(val panelId: Long) : Home
+        data object SpecificPanelManagerScreen : Home
     }
 
     sealed interface Collection {
