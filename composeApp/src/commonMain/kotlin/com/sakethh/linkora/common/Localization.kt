@@ -820,6 +820,11 @@ object Localization {
                 return "refresh_image_and_title"
             }
         },
+        Refresh(defaultValue = "Refresh") {
+            override fun toString(): String {
+                return "refresh"
+            }
+        },
         UnArchive(defaultValue = "Unarchive") {
             override fun toString(): String {
                 return "unarchive"
