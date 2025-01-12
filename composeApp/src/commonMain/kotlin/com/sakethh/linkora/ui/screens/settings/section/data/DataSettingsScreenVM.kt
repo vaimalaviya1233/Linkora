@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.onLoading
@@ -14,6 +13,7 @@ import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -34,16 +34,17 @@ class DataSettingsScreenVM(
                 exportDataRepo.exportDataAsHTMl()
             }.collectLatest {
                 it.onLoading { exportLogItem ->
+                    linkoraLog(exportLogItem)
                     importExportProgressLogs.add(exportLogItem)
                 }.onSuccess {
-                    linkoraLog(it.data)
+                    writeRawExportStringToFile(
+                        exportType = exportType, rawExportString = it.data, onCompletion = {
+                            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
+                        })
                 }.pushSnackbarOnFailure()
             }
         }
         importExportJob?.invokeOnCompletion { cause ->
-            if (cause.isNull()) {
-                viewModelScope.pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
-            }
             onCompletion()
             cause.pushSnackbar(viewModelScope)
             importExportProgressLogs.clear()

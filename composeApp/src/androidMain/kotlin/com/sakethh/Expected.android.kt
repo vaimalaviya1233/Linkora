@@ -8,6 +8,8 @@ import androidx.compose.ui.text.font.FontFamily
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.domain.RawExportString
+import com.sakethh.linkora.ui.screens.settings.section.data.ExportType
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.utils.isTablet
 
@@ -21,3 +23,10 @@ actual val localDatabase: LocalDatabase? = LinkoraApp.getLocalDb()
 
 actual val poppinsFontFamily: FontFamily = poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+actual fun writeRawExportStringToFile(
+    exportType: ExportType,
+    rawExportString: RawExportString,
+    onCompletion: () -> Unit
+) {
+
+}
