@@ -39,7 +39,7 @@ object AppPreferences {
     val didServerTimeOutErrorOccurred = mutableStateOf(false)
     val selectedSortingTypeType = mutableStateOf(SortingType.NEW_TO_OLD.name)
     val primaryJsoupUserAgent =
-        mutableStateOf("Twitterbot/1.0")
+        mutableStateOf(Constants.DEFAULT_USER_AGENT)
     val secondaryJsoupUserAgent =
         mutableStateOf("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0")
     val localizationServerURL =
