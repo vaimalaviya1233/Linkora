@@ -1167,7 +1167,61 @@ object Localization {
             override fun toString(): String {
                 return "edit_panel_name"
             }
-        }
+        },
+        RedirectToLatestReleasePage(defaultValue = "Redirect to latest release page") {
+            override fun toString() = "redirect_to_latest_release_page"
+        },
+        NewUpdateIsAvailable(defaultValue = "Linkora just got better, new update is available.") {
+            override fun toString() = "new_update_is_available"
+        },
+        CurrentVersion(defaultValue = "version you're using") {
+            override fun toString() = "current_version"
+        },
+        LatestVersion(defaultValue = "latest version which you should be using") {
+            override fun toString() = "latest_version"
+        },
+        TrackRecentChangesAndUpdatesToLinkora(defaultValue = "Track recent changes and updates to Linkora.") {
+            override fun toString() = "track_recent_changes_and_updates_to_linkora"
+        },
+        Changelog(defaultValue = "Changelog") {
+            override fun toString() = "changelog"
+        },
+        OpenAGithubIssue(defaultValue = "Open a GitHub Issue") {
+            override fun toString() = "open_a_github_issue"
+        },
+        HaveASuggestionCreateAnIssueOnGithubToImproveLinkora(defaultValue = "Have a suggestion? Create an issue on GitHub to improve Linkora.") {
+            override fun toString() =
+                "have_a_suggestion_create_an_issue_on_github_to_improve_linkora"
+        },
+        GithubDesc(defaultValue = "The Linkora app, sync server, and localization server are public and open-source—feel free to explore the code.") {
+            override fun toString() = "github_desc"
+        },
+        Github(defaultValue = "Github") {
+            override fun toString() = "github"
+        },
+        Discord(defaultValue = "Discord") {
+            override fun toString() = "discord"
+        },
+        Twitter(defaultValue = "Twitter") {
+            override fun toString() = "twitter"
+        },
+        Development(defaultValue = "Development") {
+            override fun toString() = "development"
+        },
+        Socials(defaultValue = "Socials") {
+            override fun toString(): String {
+                return "socials"
+            }
+        },
+        YouAreUsingLatestVersionOfLinkora(defaultValue = "You are using latest version of Linkora.") {
+            override fun toString() = "you_are_using_latest_version_of_linkora"
+        },
+        CheckForLatestVersion(defaultValue = "Check for latest version") {
+            override fun toString() = "check_for_latest_version"
+        },
+        RetrievingLatestInformation(defaultValue = "Retrieving latest information, this may take sometime.") {
+            override fun toString() = "retrieving_latest_information"
+        },
     }
 }
 

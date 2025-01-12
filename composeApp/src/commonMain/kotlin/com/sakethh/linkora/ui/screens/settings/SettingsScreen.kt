@@ -126,7 +126,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-
+                navController.navigate(Navigation.Settings.AboutSettingsScreen)
             },
             sectionTitle = Localization.getLocalizedString(Localization.Key.About),
             sectionIcon = Icons.Default.Info
