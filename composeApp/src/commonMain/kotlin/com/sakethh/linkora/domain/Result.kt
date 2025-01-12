@@ -24,9 +24,9 @@ suspend fun <T> Result<T>.onFailure(init: suspend (failureMessage: String) -> Un
     return this
 }
 
-suspend fun <T> Result<T>.onLoading(init: suspend () -> Unit): Result<T> {
+suspend fun <T> Result<T>.onLoading(init: suspend (loadingLog: String) -> Unit): Result<T> {
     if (this is Result.Loading) {
-        init()
+        init(this.message)
     }
     return this
 }

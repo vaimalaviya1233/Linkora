@@ -47,4 +47,8 @@ interface LocalLinksRepo {
     suspend fun isInArchive(url: String): Flow<Result<Boolean>>
 
     fun search(query: String, sortOption: String): Flow<Result<List<Link>>>
+
+    suspend fun getLinksOfThisFolderAsList(folderID: Long): List<Link>
+
+    suspend fun getAllLinks(): List<Link>
 }

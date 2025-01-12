@@ -133,6 +133,14 @@ class LocalFoldersRepoImpl(
         }
     }
 
+    override suspend fun getAllFoldersAsList(): List<Folder> {
+        return foldersDao.getAllFolders()
+    }
+
+    override suspend fun getChildFoldersOfThisParentIDAsList(parentFolderID: Long?): List<Folder> {
+        return foldersDao.getChildFoldersOfThisParentIDAsAList(parentFolderID)
+    }
+
     override suspend fun getThisFolderData(folderID: Long): Flow<Result<Folder>> {
         return executeWithResultFlow<Folder, Unit>(performRemoteOperation = false) {
             foldersDao.getThisFolderData(folderID)

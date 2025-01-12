@@ -93,4 +93,10 @@ interface LinksDao {
     fun sortLinks(
         linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>>
+
+    @Query("SELECT * FROM links")
+    suspend fun getAllLinks(): List<Link>
+
+    @Query("SELECT * FROM links WHERE idOfLinkedFolder=:folderId")
+    suspend fun getLinksOfThisFolderAsList(folderId: Long): List<Link>
 }

@@ -70,6 +70,14 @@ fun DataSettingsScreen() {
                 DependencyContainer.preferencesRepo.value
             )
         })
+    val dataSettingsScreenVM: DataSettingsScreenVM = viewModel(factory = genericViewModelFactory {
+        DataSettingsScreenVM(
+            exportDataRepo = DependencyContainer.exportDataRepo.value,
+        )
+    })
+    val isProgressUIVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
     val importModalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isPermissionDialogBoxVisible = rememberSaveable {
         mutableStateOf(false)
@@ -81,6 +89,9 @@ fun DataSettingsScreen() {
     val shouldDeleteEntireDialogBoxAppear = rememberSaveable { mutableStateOf(false) }
     var importBasedOnJsonFormat = rememberSaveable {
         false
+    }
+    val dataOperationTitle = rememberSaveable {
+        mutableStateOf("")
     }
     val shouldServerInfoBtmSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
@@ -162,7 +173,15 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
-
+                            dataOperationTitle.value = "Exporting Data to JSON..."
+                            dataSettingsScreenVM.exportDataToAFile(
+                                exportType = ExportType.JSON,
+                                onStart = {
+                                    isProgressUIVisible.value = true
+                                },
+                                onCompletion = {
+                                    isProgressUIVisible.value = false
+                                })
                         },
                         icon = Icons.Default.DataObject,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -178,7 +197,15 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
-
+                            dataOperationTitle.value = "Exporting Data to HTML..."
+                            dataSettingsScreenVM.exportDataToAFile(
+                                exportType = ExportType.HTML,
+                                onStart = {
+                                    isProgressUIVisible.value = true
+                                },
+                                onCompletion = {
+                                    isProgressUIVisible.value = false
+                                })
                         },
                         icon = Icons.Default.Html,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -427,4 +454,9 @@ fun DataSettingsScreen() {
             navController = navController
         )
     }
+    ImportExportProgressScreen(
+        isVisible = isProgressUIVisible,
+        dataSettingsScreenVM = dataSettingsScreenVM,
+        operationTitle = dataOperationTitle.value
+    )
 }

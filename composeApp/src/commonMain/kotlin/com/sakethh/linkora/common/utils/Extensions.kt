@@ -14,6 +14,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.platform
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 
@@ -93,6 +94,18 @@ fun Localization.Key.rememberLocalizedString(): String {
 suspend fun <T> Result<T>.pushSnackbarOnFailure() {
     if (this is Result.Failure) {
         pushUIEvent(UIEvent.Type.ShowSnackbar(this.message))
+    }
+}
+
+fun Exception?.pushSnackbar(coroutineScope: CoroutineScope) {
+    if (this.isNotNull()) {
+        coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))
+    }
+}
+
+fun Throwable?.pushSnackbar(coroutineScope: CoroutineScope) {
+    if (this.isNotNull()) {
+        coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))
     }
 }
 

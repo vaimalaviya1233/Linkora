@@ -11,8 +11,8 @@ import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
-import com.sakethh.linkora.domain.repository.GitHubReleasesRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.remote.GitHubReleasesRepo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.flow.collectLatest

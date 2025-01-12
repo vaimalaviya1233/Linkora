@@ -1,4 +1,4 @@
-package com.sakethh.linkora.domain.repository
+package com.sakethh.linkora.domain.repository.remote
 
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.github.GitHubReleaseDTOItem

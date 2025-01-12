@@ -216,4 +216,12 @@ class LocalLinksRepoImpl(
     override fun search(query: String, sortOption: String): Flow<Result<List<Link>>> {
         return linksDao.search(query, sortOption).mapToResultFlow()
     }
+
+    override suspend fun getLinksOfThisFolderAsList(folderID: Long): List<Link> {
+        return linksDao.getLinksOfThisFolderAsList(folderID)
+    }
+
+    override suspend fun getAllLinks(): List<Link> {
+        return linksDao.getAllLinks()
+    }
 }

@@ -22,6 +22,10 @@ interface LocalFoldersRepo {
 
     suspend fun getAllFolders(): Flow<Result<List<Folder>>>
 
+    suspend fun getAllFoldersAsList(): List<Folder>
+
+    suspend fun getChildFoldersOfThisParentIDAsList(parentFolderID: Long?): List<Folder>
+
     suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Flow<Result<Int>>
 
     suspend fun getThisFolderData(folderID: Long): Flow<Result<Folder>>

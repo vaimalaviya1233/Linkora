@@ -14,6 +14,7 @@ object Constants {
     const val DEFAULT_APP_LANGUAGE_CODE = "en"
     const val DEFAULT_APP_LANGUAGE_NAME = "English"
     const val DEFAULT_USER_AGENT = "Twitterbot/1.0"
+    const val EXPORT_SCHEMA_VERSION = 12
 }
 
 object LinkType {

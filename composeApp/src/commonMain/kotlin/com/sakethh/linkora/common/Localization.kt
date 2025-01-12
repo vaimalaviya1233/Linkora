@@ -1243,6 +1243,34 @@ object Localization {
         LocalizationServer(defaultValue = "Localization Server") {
             override fun toString() = "localization_server"
         },
+        PreparingToExportYourData(defaultValue = "Preparing to export your data...") {
+            override fun toString() = "preparing_to_export_your_data"
+        },
+        CollectingLinksForExport(defaultValue = "Collecting links for export...") {
+            override fun toString() = "collecting_links_for_export"
+        },
+        CollectingFoldersForExport(defaultValue = "Collecting folders for export...") {
+            override fun toString() = "collecting_folders_for_export"
+        },
+        CollectingPanelsForExport(defaultValue = "Collecting panels for export...") {
+            override fun toString() = "collecting_panels_for_export"
+        },
+        CollectingPanelFoldersForExport(defaultValue = "Collecting panel-folders for export...") {
+            override fun toString() = "collecting_panel_folders_for_export"
+        },
+        SerializingCollectedDataForExport(defaultValue = "Serializing the collected data for export...") {
+            override fun toString() = "serializing_collected_data_for_export"
+        },
+        ImportExportScreenTopAppBarDesc(defaultValue = "Stay on this page! DO NOT PANIC IF IT LOOKS STUCK.") {
+            override fun toString(): String {
+                return "import_export_screen_top_app_bar_desc"
+            }
+        },
+        ExportedSuccessfully(defaultValue = "ExportedSuccessfully") {
+            override fun toString(): String {
+                return "exported_successfully"
+            }
+        }
     }
 }
 
