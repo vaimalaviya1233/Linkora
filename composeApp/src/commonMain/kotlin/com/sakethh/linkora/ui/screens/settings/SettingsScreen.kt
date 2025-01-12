@@ -133,7 +133,7 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),
         SettingSectionComponentParam(
             onClick = {
-
+                navController.navigate(Navigation.Settings.AcknowledgementSettingsScreen)
             },
             sectionTitle = Localization.getLocalizedString(Localization.Key.Acknowledgments),
             sectionIcon = Icons.Default.Group

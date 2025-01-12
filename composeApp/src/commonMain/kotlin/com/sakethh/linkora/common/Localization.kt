@@ -1222,6 +1222,9 @@ object Localization {
         RetrievingLatestInformation(defaultValue = "Retrieving latest information, this may take sometime.") {
             override fun toString() = "retrieving_latest_information"
         },
+        LinkoraOpenSourceAcknowledgement(defaultValue = "Linkora wouldn't be possible without the following open-source software, libraries.") {
+            override fun toString() = "linkora_open_source_acknowledgement"
+        },
     }
 }
 

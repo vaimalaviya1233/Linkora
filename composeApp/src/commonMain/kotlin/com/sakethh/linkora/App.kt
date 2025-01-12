@@ -73,6 +73,7 @@ import com.sakethh.linkora.ui.screens.home.panels.PanelsManagerScreen
 import com.sakethh.linkora.ui.screens.home.panels.SpecificPanelManagerScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.AcknowledgementSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.GeneralSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LanguageSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
@@ -304,7 +305,7 @@ fun App(
             }) {
             NavHost(
                 navController = localNavController,
-                startDestination = Navigation.Root.SettingsScreen
+                startDestination = Navigation.Settings.AcknowledgementSettingsScreen
             ) {
                 composable<Navigation.Root.HomeScreen> {
                     HomeScreen()
@@ -352,6 +353,9 @@ fun App(
                 }
                 composable<Navigation.Settings.AboutSettingsScreen> {
                     AboutSettingsScreen()
+                }
+                composable<Navigation.Settings.AcknowledgementSettingsScreen> {
+                    AcknowledgementSettingsScreen()
                 }
             }
 

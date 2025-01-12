@@ -167,6 +167,142 @@ open class SettingsScreenViewModel(
         )
     }
 
+    fun acknowledgementSection(): List<SettingComponentParam> {
+        return listOf(
+            SettingComponentParam(
+                title = "Kotlin",
+                doesDescriptionExists = true,
+                description = "Apache License (Version 2.0)",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {},
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/JetBrains/kotlin")
+                },
+                isIconNeeded = mutableStateOf(false),
+                shouldArrowIconBeAppear = mutableStateOf(true)
+            ),
+            SettingComponentParam(
+                title = "Android Jetpack",
+                doesDescriptionExists = true,
+                description = "Apache License (Version 2.0)",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {},
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/androidx/androidx")
+                },
+                shouldArrowIconBeAppear = mutableStateOf(true),
+                isIconNeeded = mutableStateOf(false)
+            ),
+            SettingComponentParam(
+                title = "Coil",
+                doesDescriptionExists = true,
+                description = "Apache License (Version 2.0)",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/coil-kt/coil")
+                },
+                shouldArrowIconBeAppear = mutableStateOf(true),
+                isIconNeeded = mutableStateOf(false)
+            ),
+            SettingComponentParam(
+                title = "jsoup",
+                doesDescriptionExists = true,
+                description = "MIT License",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/jhy/jsoup")
+                },
+                shouldArrowIconBeAppear = mutableStateOf(true),
+                isIconNeeded = mutableStateOf(false)
+            ),
+            SettingComponentParam(
+                title = "Material Design 3",
+                doesDescriptionExists = true,
+                description = "Apache License (Version 2.0)",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://m3.material.io/")
+                },
+                shouldArrowIconBeAppear = mutableStateOf(true),
+                isIconNeeded = mutableStateOf(false)
+            ),
+            SettingComponentParam(
+                title = "kotlinx.serialization",
+                doesDescriptionExists = true,
+                description = "Apache License (Version 2.0)",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/Kotlin/kotlinx.serialization")
+                },
+                shouldArrowIconBeAppear = mutableStateOf(true),
+                isIconNeeded = mutableStateOf(false)
+            ),
+            SettingComponentParam(
+                title = "Material Icons",
+                doesDescriptionExists = true,
+                description = "Apache License (Version 2.0)",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/google/material-design-icons")
+                },
+                isIconNeeded = mutableStateOf(false),
+                shouldArrowIconBeAppear = mutableStateOf(true)
+            ),
+            SettingComponentParam(
+                title = "vxTwitter",
+                doesDescriptionExists = true,
+                description = "WTFPL License",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/dylanpdx/BetterTwitFix")
+                },
+                isIconNeeded = mutableStateOf(false),
+                shouldArrowIconBeAppear = mutableStateOf(true)
+            ),
+            SettingComponentParam(
+                title = "Poppins",
+                doesDescriptionExists = true,
+                description = "Open Font License",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://fonts.google.com/specimen/Poppins")
+                },
+                isIconNeeded = mutableStateOf(false),
+                shouldArrowIconBeAppear = mutableStateOf(true)
+            ),
+        )
+    }
+
     fun <T> changeSettingPreferenceValue(
         preferenceKey: Preferences.Key<T>,
         newValue: T,
