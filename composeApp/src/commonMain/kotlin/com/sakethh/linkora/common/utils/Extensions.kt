@@ -120,3 +120,10 @@ fun <T> Flow<Result<T>>.catchAsExceptionAndEmitFailure(): Flow<Result<T>> {
 fun String.replaceFirstPlaceHolderWith(string: String): String {
     return this.replace(LinkoraPlaceHolder.First.value, "\"${string}\"")
 }
+
+fun String.isATwitterUrl(): Boolean {
+    return this.trim().startsWith("http://twitter.com/") or this.trim()
+        .startsWith("https://twitter.com/") or this.trim().startsWith(
+        "http://x.com/"
+    ) or this.trim().startsWith("https://x.com/")
+}

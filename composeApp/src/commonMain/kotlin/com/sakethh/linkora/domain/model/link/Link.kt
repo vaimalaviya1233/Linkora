@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.baseUrl
+import com.sakethh.linkora.common.utils.isATwitterUrl
 import com.sakethh.linkora.domain.LinkType
 import kotlinx.serialization.Serializable
 
@@ -15,7 +16,7 @@ data class Link(
     val id: Long = 0,
     val title: String,
     val url: String,
-    val baseURL: String = url.baseUrl(throwOnException = false),
+    val baseURL: String = if (url.isATwitterUrl()) "twitter.com" else url.baseUrl(throwOnException = false),
     val imgURL: String,
     val note: String,
     val lastModified: String = "",

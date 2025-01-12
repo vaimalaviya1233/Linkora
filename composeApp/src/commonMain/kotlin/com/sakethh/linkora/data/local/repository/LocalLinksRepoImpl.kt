@@ -3,6 +3,7 @@ package com.sakethh.linkora.data.local.repository
 import com.sakethh.linkora.common.utils.baseUrl
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.ifNot
+import com.sakethh.linkora.common.utils.isATwitterUrl
 import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
 import com.sakethh.linkora.common.utils.wrappedResultFlow
@@ -89,12 +90,6 @@ class LocalLinksRepoImpl(
         return linksDao.sortAllLinks(sortOption).mapToResultFlow()
     }
 
-    private fun String.isATwitterUrl(): Boolean {
-        return this.trim().startsWith("http://twitter.com/") or this.trim()
-            .startsWith("https://twitter.com/") or this.trim().startsWith(
-            "http://x.com/"
-        ) or this.trim().startsWith("https://x.com/")
-    }
 
     private suspend fun retrieveFromVxTwitterApi(tweetURL: String): ScrapedLinkInfo {
         val vxTwitterResponseBody =
