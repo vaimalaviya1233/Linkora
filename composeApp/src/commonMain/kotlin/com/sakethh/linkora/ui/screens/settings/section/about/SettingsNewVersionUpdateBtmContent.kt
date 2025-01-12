@@ -47,7 +47,7 @@ fun NewVersionUpdateBtmContent(
                 style = MaterialTheme.typography.titleLarge,
                 fontSize = 24.sp,
                 textAlign = TextAlign.Start,
-                lineHeight = 28.sp,
+                lineHeight = 32.sp,
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp)
             )
         }

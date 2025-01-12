@@ -83,7 +83,7 @@ fun AboutSettingsScreen() {
         )
     }
     SettingsSectionScaffold(
-        topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
+        topAppBarText = Navigation.Settings.AboutSettingsScreen.toString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
