@@ -60,6 +60,7 @@ object DependencyContainer {
             primaryUserAgent = {
                 AppPreferences.primaryJsoupUserAgent.value
             },
+            httpClient = Network.client
         )
     }
 

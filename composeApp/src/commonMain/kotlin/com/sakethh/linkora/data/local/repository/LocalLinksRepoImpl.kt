@@ -10,10 +10,14 @@ import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
 import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -22,7 +26,8 @@ import org.jsoup.Jsoup
 
 class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
-    private val primaryUserAgent: () -> String
+    private val primaryUserAgent: () -> String,
+    private val httpClient: HttpClient
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig
@@ -37,9 +42,13 @@ class LocalLinksRepoImpl(
                 emit(Result.Success(Unit))
                 return@flow
             }
-            scrapeLinkData(
-                link.url, link.userAgent ?: primaryUserAgent()
-            ).let { scrapedLinkInfo ->
+            if (link.url.isATwitterUrl()) {
+                retrieveFromVxTwitterApi(link.url)
+            } else {
+                scrapeLinkData(
+                    link.url, link.userAgent ?: primaryUserAgent()
+                )
+            }.let { scrapedLinkInfo ->
                 linksDao.addANewLink(
                     link.copy(
                         title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
@@ -78,6 +87,25 @@ class LocalLinksRepoImpl(
     }
     override suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>> {
         return linksDao.sortAllLinks(sortOption).mapToResultFlow()
+    }
+
+    private fun String.isATwitterUrl(): Boolean {
+        return this.trim().startsWith("http://twitter.com/") or this.trim()
+            .startsWith("https://twitter.com/") or this.trim().startsWith(
+            "http://x.com/"
+        ) or this.trim().startsWith("https://x.com/")
+    }
+
+    private suspend fun retrieveFromVxTwitterApi(tweetURL: String): ScrapedLinkInfo {
+        val vxTwitterResponseBody =
+            httpClient.get("https://api.vxtwitter.com/${tweetURL.substringAfter(".com/")}")
+                .body<TwitterMetaDataDTO>()
+        return ScrapedLinkInfo(
+            title = vxTwitterResponseBody.text,
+            imgUrl = vxTwitterResponseBody.media.takeIf { vxTwitterResponseBody.hasMedia && it.isNotEmpty() }
+                ?.find { it.type in listOf("image", "video", "gif") }
+                ?.let { if (it.type == "image") it.url else it.thumbnailUrl }
+                ?: vxTwitterResponseBody.userPfp)
     }
 
     private suspend fun scrapeLinkData(
