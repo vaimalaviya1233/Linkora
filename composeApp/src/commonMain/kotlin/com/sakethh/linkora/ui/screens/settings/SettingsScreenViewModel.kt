@@ -1,13 +1,9 @@
 package com.sakethh.linkora.ui.screens.settings
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ShortText
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SystemUpdateAlt
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -27,40 +23,6 @@ open class SettingsScreenViewModel(
     fun generalSection(): List<SettingComponentParam> {
         return listOf(
             SettingComponentParam(
-                title = Localization.getLocalizedString(Localization.Key.UseInAppBrowser),
-                doesDescriptionExists = AppPreferences.showDescriptionForSettingsState.value,
-                description = Localization.getLocalizedString(Localization.Key.UseInAppBrowserDesc),
-                isSwitchNeeded = true,
-                isSwitchEnabled = AppPreferences.isInAppWebTabEnabled,
-                isIconNeeded = mutableStateOf(true),
-                icon = Icons.Default.OpenInBrowser,
-                onSwitchStateChange = {
-                    viewModelScope.launch {
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.CUSTOM_TABS.name
-                            ), newValue = it
-                        )
-                        AppPreferences.isInAppWebTabEnabled.value = it
-                    }
-                }), SettingComponentParam(
-                title = Localization.getLocalizedString(Localization.Key.EnableHomeScreen),
-                doesDescriptionExists = AppPreferences.showDescriptionForSettingsState.value,
-                description = Localization.getLocalizedString(Localization.Key.EnableHomeScreenDesc),
-                isSwitchNeeded = true,
-                isIconNeeded = mutableStateOf(true),
-                icon = Icons.Default.Home,
-                isSwitchEnabled = AppPreferences.isHomeScreenEnabled,
-                onSwitchStateChange = {
-                    viewModelScope.launch {
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.HOME_SCREEN_VISIBILITY.name
-                            ), newValue = it
-                        )
-                        AppPreferences.isHomeScreenEnabled.value = it
-                    }
-                }), SettingComponentParam(
                 title = Localization.getLocalizedString(Localization.Key.AutoDetectTitle),
                 doesDescriptionExists = true,
                 description = Localization.getLocalizedString(Localization.Key.AutoDetectTitleDesc),
@@ -128,40 +90,6 @@ open class SettingsScreenViewModel(
                             ), newValue = it
                         )
                         AppPreferences.showAssociatedImagesInLinkMenu.value = it
-                    }
-                }), SettingComponentParam(
-                title = Localization.getLocalizedString(Localization.Key.AutoCheckForUpdates),
-                doesDescriptionExists = AppPreferences.showDescriptionForSettingsState.value,
-                description = Localization.getLocalizedString(Localization.Key.AutoCheckForUpdatesDesc),
-                isIconNeeded = mutableStateOf(true),
-                icon = Icons.Default.SystemUpdateAlt,
-                isSwitchNeeded = true,
-                isSwitchEnabled = AppPreferences.isAutoCheckUpdatesEnabled,
-                onSwitchStateChange = {
-                    viewModelScope.launch {
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.AUTO_CHECK_UPDATES.name
-                            ), newValue = it
-                        )
-                        AppPreferences.isAutoCheckUpdatesEnabled.value = it
-                    }
-                }), SettingComponentParam(
-                title = Localization.getLocalizedString(Localization.Key.ShowDescriptionForSettings),
-                doesDescriptionExists = true,
-                description = Localization.getLocalizedString(Localization.Key.ShowDescriptionForSettingsDesc),
-                isSwitchNeeded = true,
-                isIconNeeded = mutableStateOf(true),
-                icon = Icons.AutoMirrored.Default.ShortText,
-                isSwitchEnabled = AppPreferences.showDescriptionForSettingsState,
-                onSwitchStateChange = {
-                    viewModelScope.launch {
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.SETTING_COMPONENT_DESCRIPTION_STATE.name
-                            ), newValue = it
-                        )
-                        AppPreferences.showDescriptionForSettingsState.value = it
                     }
                 })
         )

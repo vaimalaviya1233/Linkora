@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Launch
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,17 +27,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
@@ -47,6 +44,7 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingCompone
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.platform
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +57,7 @@ fun GeneralSettingsScreen() {
     val showInitialNavigationChangerDialogBox = rememberSaveable {
         mutableStateOf(false)
     }
-
+    val generalSectionData = settingsScreenViewModel.generalSection()
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.GeneralSettingsScreen.toString(),
         navController = navController
@@ -75,28 +73,31 @@ fun GeneralSettingsScreen() {
             item {
                 Spacer(Modifier)
             }
-            items(settingsScreenViewModel.generalSection()) {
-                SettingComponent(it)
+            itemsIndexed(generalSectionData) { index, setting ->
+                if (generalSectionData.lastIndex == index && platform() !is Platform.Android.Mobile) {
+                    return@itemsIndexed
+                }
+                SettingComponent(setting)
             }
-            item {
-                SettingComponent(
-                    SettingComponentParam(
-                        title = Localization.Key.InitialScreenOnLaunch.rememberLocalizedString(),
-                        doesDescriptionExists = true,
-                        description = Localization.Key.InitialScreenOnLaunchDesc.rememberLocalizedString(),
-                        isSwitchNeeded = false,
-                        isSwitchEnabled = mutableStateOf(false),
-                        onSwitchStateChange = {
-                            showInitialNavigationChangerDialogBox.value = true
-                        },
-                        onAcknowledgmentClick = { uriHandler: UriHandler ->
-                            showInitialNavigationChangerDialogBox.value = true
-                        },
-                        icon = Icons.AutoMirrored.Filled.Launch,
-                        isIconNeeded = mutableStateOf(true),
-                    )
-                )
-            }
+            /* item {
+                 SettingComponent(
+                     SettingComponentParam(
+                         title = Localization.Key.InitialScreenOnLaunch.rememberLocalizedString(),
+                         doesDescriptionExists = true,
+                         description = Localization.Key.InitialScreenOnLaunchDesc.rememberLocalizedString(),
+                         isSwitchNeeded = false,
+                         isSwitchEnabled = mutableStateOf(false),
+                         onSwitchStateChange = {
+                             showInitialNavigationChangerDialogBox.value = true
+                         },
+                         onAcknowledgmentClick = { uriHandler: UriHandler ->
+                             showInitialNavigationChangerDialogBox.value = true
+                         },
+                         icon = Icons.AutoMirrored.Filled.Launch,
+                         isIconNeeded = mutableStateOf(true),
+                     )
+                 )
+             }*/
             item {
                 Spacer(modifier = Modifier.height(100.dp))
             }
