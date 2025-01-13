@@ -8,15 +8,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -38,9 +35,9 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.AndroidUIEvent.pushUIEvent
-import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
@@ -48,6 +45,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
+            val currentBackStackEntryState = navController.currentBackStackEntryAsState()
+            val rootRouteList = rememberDeserializableObject {
+                listOf(
+                    Navigation.Root.HomeScreen,
+                    Navigation.Root.SearchScreen,
+                    Navigation.Root.CollectionsScreen,
+                    Navigation.Root.SettingsScreen,
+                )
+            }
             val coroutineScope = rememberCoroutineScope()
             val runtimePermission = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission(),
@@ -140,36 +146,21 @@ class MainActivity : ComponentActivity() {
                     typography = AndroidTypography, colorScheme = colors
                 ) {
                     val systemUIController = rememberSystemUiController()
-                    val platform = platform()
-                    val mainRoutes = remember {
-                        listOf(
-                            Navigation.Root.HomeScreen,
-                            Navigation.Root.SearchScreen,
-                            Navigation.Root.CollectionsScreen,
-                            Navigation.Root.SettingsScreen
-                        )
-                    }
-                    val currentBackStackEntry = navController.currentBackStackEntryAsState()
-                    val navigationBarElevation = NavigationBarDefaults.Elevation
-                    val rootRoutesColor = colorScheme.surfaceColorAtElevation(
-                        navigationBarElevation
-                    )
-                    LaunchedEffect(currentBackStackEntry.value) {
-                        systemUIController.setSystemBarsColor(colors.surface)
-                        if (platform == Platform.Android.Mobile) {
-                            systemUIController.setNavigationBarColor(
-                                color = if (mainRoutes.any {
-                                        currentBackStackEntry.value?.destination?.hasRoute(it::class) == true
-                                    }) rootRoutesColor else colors.surface
-                            )
-                        } else {
-                            systemUIController.setNavigationBarColor(
-                                color = colors.surface
-                            )
-                        }
+                    val rootBtmNavColor = BottomAppBarDefaults.containerColor
+                    LaunchedEffect(Unit) {
+                        systemUIController.setStatusBarColor(colors.surface)
                     }
                     Surface {
                         App()
+                    }
+                    LaunchedEffect(currentBackStackEntryState.value) {
+                        if (rootRouteList.any {
+                                currentBackStackEntryState.value?.destination?.hasRoute(it::class) == true
+                            }) {
+                            systemUIController.setNavigationBarColor(rootBtmNavColor)
+                        } else {
+                            systemUIController.setNavigationBarColor(colors.surface)
+                        }
                     }
                 }
             }
