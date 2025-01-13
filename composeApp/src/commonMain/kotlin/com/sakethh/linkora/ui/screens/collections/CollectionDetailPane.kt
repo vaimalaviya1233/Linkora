@@ -36,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sakethh.linkora.Platform
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
@@ -44,47 +47,60 @@ import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
-import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
+import com.sakethh.platform
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionDetailPane(
-    currentlyInFolder: Folder,
-    collectionsScreenVM: CollectionsScreenVM,
-    menuBtmSheetVM: MenuBtmSheetVM,
+    collectionsScreenVM: CollectionsScreenVM = viewModel(factory = genericViewModelFactory {
+        CollectionsScreenVM(
+            localFoldersRepo = DependencyContainer.localFoldersRepo.value,
+            localLinksRepo = DependencyContainer.localLinksRepo.value,
+            loadRootFoldersOnInit = false,
+            collectionDetailPaneInfo = CollectionsScreenVM.collectionDetailPaneInfo.value
+        )
+    }),
 ) {
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
     val rootArchiveFolders = collectionsScreenVM.rootArchiveFolders.collectAsStateWithLifecycle()
+    val currentlyInFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder!!
+    val platform = platform()
+    val navController = LocalNavController.current
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
             TopAppBar(actions = {
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
+                    if (platform is Platform.Android) {
+                        navController.navigateUp()
+                        return@IconButton
+                    }
                     if (currentlyInFolder.parentFolderId.isNotNull()) {
                         currentlyInFolder.parentFolderId as Long
-                        collectionsScreenVM.updateCollectionDetailPaneInfo(
+                        collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                             CollectionDetailPaneInfo(
                                 currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
                                 isAnyCollectionSelected = true
                             )
                         )
                     } else {
-                        collectionsScreenVM.updateCollectionDetailPaneInfo(
+                        collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                             CollectionDetailPaneInfo(
                                 currentFolder = null,
                                 isAnyCollectionSelected = false
@@ -106,7 +122,7 @@ fun CollectionDetailPane(
         }
     }) { paddingValues ->
 
-        if (collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
+        if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
             Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
                 TabRow(selectedTabIndex = pagerState.currentPage) {
                     listOf(
@@ -161,7 +177,7 @@ fun CollectionDetailPane(
                                     )
                                 },
                                 isCurrentlyInDetailsView = {
-                                    collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
+                                    CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
                                 })
                         }
 
@@ -172,7 +188,7 @@ fun CollectionDetailPane(
                                         FolderComponentParam(
                                             folder = rootArchiveFolder,
                                             onClick = { ->
-                                                collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                                                     CollectionDetailPaneInfo(
                                                         currentFolder = rootArchiveFolder,
                                                         isAnyCollectionSelected = true
@@ -189,8 +205,8 @@ fun CollectionDetailPane(
                                                     )
                                                 )
                                             },
-                                            isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
-                                                mutableStateOf(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == rootArchiveFolder.localId)
+                                            isCurrentlyInDetailsView = remember(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
+                                                mutableStateOf(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == rootArchiveFolder.localId)
                                             },
                                             showMoreIcon = rememberSaveable {
                                                 mutableStateOf(true)
@@ -206,7 +222,7 @@ fun CollectionDetailPane(
         }
 
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            if (collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
+            if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                     collectionsScreenVM.availableFiltersForAllLinks.forEach {
                         FilterChip(
@@ -245,7 +261,7 @@ fun CollectionDetailPane(
                     )
                 },
                 onFolderClick = {
-                    collectionsScreenVM.updateCollectionDetailPaneInfo(
+                    collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                         CollectionDetailPaneInfo(
                             currentFolder = it, isAnyCollectionSelected = true
                         )
@@ -259,7 +275,7 @@ fun CollectionDetailPane(
                     )
                 },
                 isCurrentlyInDetailsView = {
-                    collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
+                    CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
                 })
         }
 

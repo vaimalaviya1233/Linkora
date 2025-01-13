@@ -39,10 +39,12 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
+            .then(
+                if (platform() is Platform.Android.Mobile) Modifier else Modifier.background(
                 if (folderComponentParam.isCurrentlyInDetailsView.value) MaterialTheme.colorScheme.primary.copy(
                     0.25f
                 ) else Color.Transparent
+                )
             )
     ) {
         Row(

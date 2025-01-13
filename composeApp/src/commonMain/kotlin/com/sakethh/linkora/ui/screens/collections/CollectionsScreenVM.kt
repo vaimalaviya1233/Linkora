@@ -9,6 +9,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
@@ -26,6 +27,7 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,18 +42,24 @@ import kotlinx.coroutines.runBlocking
 open class CollectionsScreenVM(
     private val localFoldersRepo: LocalFoldersRepo,
     private val localLinksRepo: LocalLinksRepo,
-    loadRootFoldersOnInit: Boolean = true
+    loadRootFoldersOnInit: Boolean = true,
+    collectionDetailPaneInfo: CollectionDetailPaneInfo? = null
 ) : ViewModel() {
 
-    private val _collectionDetailPaneInfo = mutableStateOf(
-        CollectionDetailPaneInfo(
+    companion object {
+        private val _collectionDetailPaneInfo = mutableStateOf(
+            CollectionDetailPaneInfo(
             currentFolder = null, isAnyCollectionSelected = false
+            )
         )
-    )
+        val collectionDetailPaneInfo = _collectionDetailPaneInfo
 
-    val collectionDetailPaneInfo = _collectionDetailPaneInfo
+        fun updateCollectionDetailPaneInfo(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
+            _collectionDetailPaneInfo.value = collectionDetailPaneInfo
+        }
+    }
 
-    fun updateCollectionDetailPaneInfo(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
+    fun updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
         _collectionDetailPaneInfo.value = collectionDetailPaneInfo
 
         if (collectionDetailPaneInfo.isAnyCollectionSelected.not()) return
@@ -169,6 +177,9 @@ open class CollectionsScreenVM(
                 localFoldersRepo.sortFolders(sortingType).collectAndEmitRootFolders()
             }.launchIn(viewModelScope)
         }
+        if (collectionDetailPaneInfo.isNotNull()) {
+            updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo!!)
+        }
     }
 
     private val _childFolders = MutableStateFlow(emptyList<Folder>())
@@ -177,7 +188,7 @@ open class CollectionsScreenVM(
     private var collectableChildFoldersJob: Job? = null
 
     private fun emptyCollectableChildFolders() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             _childFolders.emit(emptyList())
         }
     }
@@ -429,7 +440,7 @@ open class CollectionsScreenVM(
     private var collectableLinksJob: Job? = null
 
     private fun emptyCollectableLinks() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             _links.emit(emptyList())
         }
     }
@@ -444,7 +455,7 @@ open class CollectionsScreenVM(
 
     private fun updateCollectableLinks(linkType: LinkType, folderId: Long? = null) {
         collectableLinksJob?.cancel()
-        collectableLinksJob = viewModelScope.launch {
+        collectableLinksJob = viewModelScope.launch(Dispatchers.Main) {
             _links.emit(emptyList())
             combine(snapshotFlow {
                 AppPreferences.selectedSortingTypeType.value

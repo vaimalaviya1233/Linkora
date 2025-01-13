@@ -71,6 +71,7 @@ import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.collections.CollectionDetailPane
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.HomeScreen
@@ -370,7 +371,7 @@ fun App(
                         LanguageSettingsScreen()
                     }
                     composable<Navigation.Collection.CollectionDetailPane> {
-                        // CollectionDetailPane()
+                        CollectionDetailPane()
                     }
                     composable<Navigation.Home.PanelsManagerScreen> {
                         PanelsManagerScreen()
@@ -393,30 +394,30 @@ fun App(
             AddANewLinkDialogBox(
                 shouldBeVisible = shouldShowAddLinkDialog,
                 screenType = ScreenType.ROOT_SCREEN,
-                currentFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
+                currentFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
                 collectionsScreenVM
             )
 
             AddANewFolderDialogBox(
                 AddNewFolderDialogBoxParam(
                     shouldBeVisible = shouldShowNewFolderDialog,
-                    inAChildFolderScreen = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != null && collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!! > 0,
+                    inAChildFolderScreen = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != null && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!! > 0,
                     onFolderCreateClick = { folderName, folderNote, onCompletion ->
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.insertANewFolder(
                                 folder = Folder(
                                     name = folderName,
                                     note = folderNote,
-                                    parentFolderId = if ((collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
+                                    parentFolderId = if ((CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
                                             ?: 0) > 0
-                                    ) collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
+                                    ) CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
                                 ), ignoreFolderAlreadyExistsThrowable = false, onCompletion = {
                                     collectionsScreenVM.triggerFoldersSorting()
                                     onCompletion()
                                 })
                         }
                     },
-                    thisFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
+                    thisFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
                 )
             )
             MenuBtmSheetUI(

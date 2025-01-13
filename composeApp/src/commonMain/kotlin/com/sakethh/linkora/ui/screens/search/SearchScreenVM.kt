@@ -146,7 +146,7 @@ class SearchScreenVM(
     }
 
     init {
-        updateCollectionDetailPaneInfo(
+        updateCollectionDetailPaneInfoAndCollectData(
             CollectionDetailPaneInfo(
                 Folder(
                     name = Localization.Key.History.getLocalizedString(),

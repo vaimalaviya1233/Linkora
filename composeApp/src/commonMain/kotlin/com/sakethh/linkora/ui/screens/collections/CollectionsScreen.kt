@@ -140,22 +140,28 @@ fun CollectionsScreen(
                         name = Localization.rememberLocalizedString(Localization.Key.AllLinks),
                         icon = Icons.Outlined.DatasetLinked,
                         onClick = {
-                            collectionsScreenVM.updateCollectionDetailPaneInfo(
-                                CollectionDetailPaneInfo(
-                                    currentFolder = Folder(
-                                        name = Localization.Key.AllLinks.getLocalizedString(),
-                                        note = "",
-                                        parentFolderId = null,
-                                        localId = Constants.ALL_LINKS_ID
-                                    ),
-                                    isAnyCollectionSelected = true
-                                )
+                            val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                currentFolder = Folder(
+                                    name = Localization.Key.AllLinks.getLocalizedString(),
+                                    note = "",
+                                    parentFolderId = null,
+                                    localId = Constants.ALL_LINKS_ID
+                                ), isAnyCollectionSelected = true
                             )
-                            if (platform is Platform.Android.Mobile) navController.navigate(
-                                Navigation.Collection.CollectionDetailPane
+                            if (platform is Platform.Android.Mobile) {
+                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    collectionDetailPaneInfo
+                                )
+                                navController.navigate(
+                                    Navigation.Collection.CollectionDetailPane
+                                )
+                                return@DefaultFolderComponent
+                            }
+                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                collectionDetailPaneInfo
                             )
                         },
-                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID
+                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID
                     )
                 }
                 item {
@@ -174,22 +180,28 @@ fun CollectionsScreen(
                         name = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
                         icon = Icons.Outlined.Link,
                         onClick = { ->
-                            collectionsScreenVM.updateCollectionDetailPaneInfo(
-                                CollectionDetailPaneInfo(
-                                    currentFolder = Folder(
-                                        name = Localization.Key.SavedLinks.getLocalizedString(),
-                                        note = "",
-                                        parentFolderId = null,
-                                        localId = Constants.SAVED_LINKS_ID
-                                    ),
-                                    isAnyCollectionSelected = true
-                                )
+                            val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                currentFolder = Folder(
+                                    name = Localization.Key.SavedLinks.getLocalizedString(),
+                                    note = "",
+                                    parentFolderId = null,
+                                    localId = Constants.SAVED_LINKS_ID
+                                ), isAnyCollectionSelected = true
                             )
-                            if (platform is Platform.Android.Mobile) navController.navigate(
-                                Navigation.Collection.CollectionDetailPane
+                            if (platform is Platform.Android.Mobile) {
+                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    collectionDetailPaneInfo
+                                )
+                                navController.navigate(
+                                    Navigation.Collection.CollectionDetailPane
+                                )
+                                return@DefaultFolderComponent
+                            }
+                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                collectionDetailPaneInfo
                             )
                         },
-                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.SAVED_LINKS_ID
+                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.SAVED_LINKS_ID
                     )
                 }
                 item {
@@ -197,22 +209,28 @@ fun CollectionsScreen(
                         name = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
                         icon = Icons.Outlined.StarOutline,
                         onClick = { ->
-                            collectionsScreenVM.updateCollectionDetailPaneInfo(
-                                CollectionDetailPaneInfo(
-                                    currentFolder = Folder(
-                                        name = Localization.Key.ImportantLinks.getLocalizedString(),
-                                        note = "",
-                                        parentFolderId = null,
-                                        localId = Constants.IMPORTANT_LINKS_ID
-                                    ),
-                                    isAnyCollectionSelected = true
-                                )
+                            val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                currentFolder = Folder(
+                                    name = Localization.Key.ImportantLinks.getLocalizedString(),
+                                    note = "",
+                                    parentFolderId = null,
+                                    localId = Constants.IMPORTANT_LINKS_ID
+                                ), isAnyCollectionSelected = true
                             )
-                            if (platform is Platform.Android.Mobile) navController.navigate(
-                                Navigation.Collection.CollectionDetailPane
+                            if (platform is Platform.Android.Mobile) {
+                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    collectionDetailPaneInfo
+                                )
+                                navController.navigate(
+                                    Navigation.Collection.CollectionDetailPane
+                                )
+                                return@DefaultFolderComponent
+                            }
+                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                collectionDetailPaneInfo
                             )
                         },
-                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
+                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
                     )
                 }
                 item {
@@ -220,22 +238,28 @@ fun CollectionsScreen(
                         name = Localization.rememberLocalizedString(Localization.Key.Archive),
                         icon = Icons.Outlined.Archive,
                         onClick = { ->
-                            collectionsScreenVM.updateCollectionDetailPaneInfo(
-                                CollectionDetailPaneInfo(
-                                    currentFolder = Folder(
-                                        name = Localization.Key.Archive.getLocalizedString(),
-                                        note = "",
-                                        parentFolderId = null,
-                                        localId = Constants.ARCHIVE_ID
-                                    ),
-                                    isAnyCollectionSelected = true
-                                )
+                            val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                currentFolder = Folder(
+                                    name = Localization.Key.Archive.getLocalizedString(),
+                                    note = "",
+                                    parentFolderId = null,
+                                    localId = Constants.ARCHIVE_ID
+                                ), isAnyCollectionSelected = true
                             )
-                            if (platform is Platform.Android.Mobile) navController.navigate(
-                                Navigation.Collection.CollectionDetailPane
+                            if (platform is Platform.Android.Mobile) {
+                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    collectionDetailPaneInfo
+                                )
+                                navController.navigate(
+                                    Navigation.Collection.CollectionDetailPane
+                                )
+                                return@DefaultFolderComponent
+                            }
+                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                collectionDetailPaneInfo
                             )
                         },
-                        isSelected = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID
+                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID
                     )
 
                 }
@@ -280,7 +304,7 @@ fun CollectionsScreen(
                         FolderComponentParam(
                             folder = folder,
                             onClick = { ->
-                                collectionsScreenVM.updateCollectionDetailPaneInfo(
+                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                                     CollectionDetailPaneInfo(
                                         currentFolder = folder,
                                         isAnyCollectionSelected = true
@@ -300,8 +324,8 @@ fun CollectionsScreen(
                                     )
                                 )
                             },
-                            isCurrentlyInDetailsView = remember(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
-                                mutableStateOf(collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == folder.localId)
+                            isCurrentlyInDetailsView = remember(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
+                                mutableStateOf(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == folder.localId)
                             },
                             showMoreIcon = rememberSaveable {
                                 mutableStateOf(true)
@@ -314,7 +338,7 @@ fun CollectionsScreen(
             }
             if (platform() is Platform.Android.Mobile) return@Row
             VerticalDivider(modifier = Modifier.padding(start = 20.dp))
-            if (collectionsScreenVM.collectionDetailPaneInfo.value.isAnyCollectionSelected.not() || collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder.isNull()) {
+            if (CollectionsScreenVM.collectionDetailPaneInfo.value.isAnyCollectionSelected.not() || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder.isNull()) {
                 Box(
                     modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
@@ -326,8 +350,6 @@ fun CollectionsScreen(
             } else {
                 CollectionDetailPane(
                     collectionsScreenVM = collectionsScreenVM,
-                    menuBtmSheetVM = menuBtmSheetVM,
-                    currentlyInFolder = collectionsScreenVM.collectionDetailPaneInfo.value.currentFolder!!,
                 )
             }
         }
@@ -367,7 +389,7 @@ private fun DefaultFolderComponent(
         }, indication = null, onClick = {
             onClick()
         }).pulsateEffect().then(
-            if (isSelected) Modifier.border(
+            if (isSelected && platform() !is Platform.Android.Mobile) Modifier.border(
                 width = 2.5.dp,
                 color = MaterialTheme.colorScheme.primary,
                 shape = CardDefaults.shape

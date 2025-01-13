@@ -153,3 +153,10 @@ suspend fun <T : Any> T.then(init: suspend () -> Unit): T {
     init()
     return this
 }
+
+fun <T> T?.ifNotNull(init: (T) -> Unit): T? {
+    if (this.isNotNull()) {
+        init(this!!)
+    }
+    return this
+}
