@@ -42,6 +42,7 @@ import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
@@ -97,7 +98,7 @@ fun SearchScreen() {
                     searchScreenVM.updateSearchActiveState(it)
                 }) {
                 if (searchScreenVM.searchQuery.value.isBlank()) {
-
+                    DataEmptyScreen(text = "Search Linkora: Browse through all your saved links and folders.")
                 } else {
                     Column {
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
@@ -124,6 +125,7 @@ fun SearchScreen() {
                             Spacer(modifier = Modifier.width(10.dp))
                         }
                         CollectionLayoutManager(
+                            emptyDataText = "Nothing matched your search. Remember, you can search both by title and note. Give it another try!",
                             folders = searchQueryFolderResults.value,
                             links = searchQueryLinkResults.value,
                             isInSelectionMode = mutableStateOf(false),
@@ -174,6 +176,7 @@ fun SearchScreen() {
             SortingIconButton()
         }
         CollectionLayoutManager(
+            emptyDataText = "No history found. Your history is clean!",
             folders = emptyList(),
             links = historyLinks.value,
             isInSelectionMode = mutableStateOf(false),

@@ -48,6 +48,7 @@ import com.sakethh.linkora.ui.components.DeleteAShelfPanelDialogBox
 import com.sakethh.linkora.ui.components.RenameAShelfPanelDialogBox
 import com.sakethh.linkora.ui.components.menu.IndividualMenuComponent
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -132,6 +133,11 @@ fun PanelsManagerScreen() {
                     .fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
                     .animateContentSize().nestedScroll(topAppBarState.nestedScrollConnection)
             ) {
+                if (panels.value.drop(1).isEmpty()) {
+                    item {
+                        DataEmptyScreen(text = "No panels available. Create panels and add respective folders to organize by projects, research, tasks, events, or any other category.")
+                    }
+                }
                 items(panels.value.drop(1)) { panel ->
                     IndividualMenuComponent(
                         onOptionClick = { ->

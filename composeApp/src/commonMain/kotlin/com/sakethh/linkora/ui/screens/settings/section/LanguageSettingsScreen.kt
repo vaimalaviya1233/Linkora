@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,6 +65,7 @@ import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.LoadingDialog
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -213,6 +215,15 @@ fun LanguageSettingsScreen() {
                         text = Localization.Key.AvailableLanguages.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            if (availableLanguages.value.isEmpty()) {
+                item {
+                    DataEmptyScreen(
+                        text = "No remote language packs found. Load them from the server.",
+                        paddingValues = PaddingValues(top = 30.dp)
                     )
                 }
             }

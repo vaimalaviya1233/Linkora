@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -65,6 +66,7 @@ import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -265,6 +267,14 @@ fun CollectionsScreen(
                         SortingIconButton()
                     }
                 }
+                if (rootFolders.value.isEmpty()) {
+                    item {
+                        DataEmptyScreen(
+                            text = "No folders found. Add folders to get started.",
+                            paddingValues = PaddingValues(top = 50.dp, start = 15.dp)
+                        )
+                    }
+                }
                 items(rootFolders.value) { folder ->
                     FolderComponent(
                         FolderComponentParam(
@@ -299,7 +309,7 @@ fun CollectionsScreen(
                     )
                 }
                 item {
-                    Spacer(Modifier.height(150.dp))
+                    Spacer(Modifier.height(250.dp))
                 }
             }
             if (platform() is Platform.Android.Mobile) return@Row

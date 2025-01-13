@@ -30,6 +30,7 @@ import com.sakethh.linkora.ui.components.link.LinkListItemComposable
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 
 @Composable
 fun CollectionLayoutManager(
@@ -41,7 +42,8 @@ fun CollectionLayoutManager(
     onFolderClick: (folder: Folder) -> Unit,
     linkMoreIconClick: (link: Link) -> Unit,
     onLinkClick: (link: Link) -> Unit,
-    isCurrentlyInDetailsView: (folder: Folder) -> Boolean
+    isCurrentlyInDetailsView: (folder: Folder) -> Boolean,
+    emptyDataText: String = ""
 ) {
     val linkUIComponentParam: (link: Link) -> LinkUIComponentParam = {
         LinkUIComponentParam(
@@ -92,6 +94,17 @@ fun CollectionLayoutManager(
                         linkUIComponentParam = linkUIComponentParam(it),
                         forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
                     )
+                }
+                if ((folders.isEmpty() && links.isEmpty()) || (folders.isNotEmpty() && links.isEmpty())) {
+                    item {
+                        val text = emptyDataText.ifBlank {
+                            when {
+                                folders.isEmpty() && links.isEmpty() -> "No folders or links found. Please add some folders or links to get started!"
+                                else -> "You have folders, but no links yet. Add some links to organize your content."
+                            }
+                        }
+                        DataEmptyScreen(text = text)
+                    }
                 }
                 item {
                     Spacer(Modifier.height(bottomSpacing.value))

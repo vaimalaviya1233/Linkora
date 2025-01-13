@@ -242,7 +242,9 @@ fun HomeScreen() {
                     },
                     isCurrentlyInDetailsView = {
                         false
-                    })
+                    },
+                    emptyDataText = if (panelFolders.value.map { it.folderId }
+                            .contains(Constants.SAVED_LINKS_ID)) "No links found. Please add some links to get started!" else "")
             }
         }
     }
