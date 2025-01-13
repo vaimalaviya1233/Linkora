@@ -12,6 +12,8 @@ interface LocalLinksRepo {
         linkSaveConfig: LinkSaveConfig
     ): Flow<Result<Unit>>
 
+    suspend fun addMultipleLinks(links: List<Link>)
+
     suspend fun sortLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>>

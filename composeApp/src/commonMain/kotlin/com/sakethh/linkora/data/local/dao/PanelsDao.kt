@@ -12,6 +12,12 @@ interface PanelsDao {
     @Insert
     suspend fun addaNewPanel(panel: Panel)
 
+    @Insert
+    suspend fun addMultiplePanels(panels: List<Panel>)
+
+    @Insert
+    suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>)
+
     @Query("DELETE FROM panel WHERE panelId = :id")
     suspend fun deleteAPanel(id: Long)
 

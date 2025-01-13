@@ -26,6 +26,8 @@ interface LocalFoldersRepo {
 
     suspend fun getChildFoldersOfThisParentIDAsList(parentFolderID: Long?): List<Folder>
 
+    suspend fun getLatestFoldersTableID(): Long
+
     suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Flow<Result<Int>>
 
     suspend fun getThisFolderData(folderID: Long): Flow<Result<Folder>>

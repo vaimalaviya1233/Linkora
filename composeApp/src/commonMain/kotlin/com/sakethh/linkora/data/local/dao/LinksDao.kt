@@ -13,6 +13,9 @@ interface LinksDao {
     @Insert
     suspend fun addANewLink(link: Link): Long
 
+    @Insert
+    suspend fun addMultipleLinks(links: List<Link>)
+
     @Query("DELETE FROM links WHERE idOfLinkedFolder = :folderId")
     suspend fun deleteLinksOfFolder(folderId: Long)
 

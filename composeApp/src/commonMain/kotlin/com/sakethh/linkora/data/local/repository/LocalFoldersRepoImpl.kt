@@ -141,6 +141,9 @@ class LocalFoldersRepoImpl(
         return foldersDao.getChildFoldersOfThisParentIDAsAList(parentFolderID)
     }
 
+    override suspend fun getLatestFoldersTableID(): Long {
+        return foldersDao.getLatestFoldersTableID()
+    }
     override suspend fun getThisFolderData(folderID: Long): Flow<Result<Folder>> {
         return executeWithResultFlow<Folder, Unit>(performRemoteOperation = false) {
             foldersDao.getThisFolderData(folderID)

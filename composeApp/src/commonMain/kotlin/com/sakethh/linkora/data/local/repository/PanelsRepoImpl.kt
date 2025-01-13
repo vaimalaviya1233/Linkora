@@ -48,4 +48,11 @@ class PanelsRepoImpl(private val panelsDao: PanelsDao) : PanelsRepo {
         return panelsDao.getAllTheFoldersFromAPanel(panelId)
     }
 
+    override suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>) {
+        panelsDao.addMultiplePanelFolders(panelFolders)
+    }
+
+    override suspend fun addMultiplePanels(panels: List<Panel>) {
+        panelsDao.addMultiplePanels(panels)
+    }
 }

@@ -61,6 +61,10 @@ class LocalLinksRepoImpl(
         }.catchAsThrowableAndEmitFailure()
     }
 
+    override suspend fun addMultipleLinks(links: List<Link>) {
+        linksDao.addMultipleLinks(links)
+    }
+
     override suspend fun sortLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>> {

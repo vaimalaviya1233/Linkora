@@ -34,6 +34,9 @@ interface FoldersDao {
     @Query("SELECT * FROM folders")
     suspend fun getAllFolders(): List<Folder>
 
+    @Query("SELECT localId FROM folders WHERE localId = (SELECT MAX(localId) FROM folders)")
+    suspend fun getLatestFoldersTableID(): Long
+
     @Query("SELECT COUNT(*) FROM links WHERE idOfLinkedFolder = :folderID")
     suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Int
 
