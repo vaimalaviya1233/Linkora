@@ -1,5 +1,6 @@
 package com.sakethh.linkora
 
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -57,6 +58,14 @@ class MainActivity : ComponentActivity() {
                         )
                     )
                 })
+            val activityResultLauncher =
+                rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                    coroutineScope.pushUIEvent(
+                        AndroidUIEvent.Type.UriOfTheFileForImporting(
+                            uri
+                        )
+                    )
+                }
             LaunchedEffect(Unit) {
                 AndroidUIEvent.androidUIEventChannel.collectLatest {
                     when (it) {
@@ -72,6 +81,12 @@ class MainActivity : ComponentActivity() {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.PermissionGranted.getLocalizedString()))
                             }
                         }
+
+                        is AndroidUIEvent.Type.ImportAFile -> {
+                            activityResultLauncher.launch(it.fileType)
+                        }
+
+                        else -> {}
                     }
                 }
             }

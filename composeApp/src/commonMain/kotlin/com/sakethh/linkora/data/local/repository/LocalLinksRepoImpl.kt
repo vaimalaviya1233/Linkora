@@ -228,4 +228,8 @@ class LocalLinksRepoImpl(
     override suspend fun getAllLinks(): List<Link> {
         return linksDao.getAllLinks()
     }
+
+    override suspend fun deleteAllLinks() {
+        linksDao.deleteAllLinks()
+    }
 }

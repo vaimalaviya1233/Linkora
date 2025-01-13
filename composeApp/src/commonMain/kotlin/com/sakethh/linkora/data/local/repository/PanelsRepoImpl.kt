@@ -52,6 +52,14 @@ class PanelsRepoImpl(private val panelsDao: PanelsDao) : PanelsRepo {
         panelsDao.addMultiplePanelFolders(panelFolders)
     }
 
+    override suspend fun deleteAllPanels() {
+        panelsDao.deleteAllPanels()
+    }
+
+    override suspend fun deleteAllPanelFolders() {
+        panelsDao.deleteAllPanelFolders()
+    }
+
     override suspend fun addMultiplePanels(panels: List<Panel>) {
         panelsDao.addMultiplePanels(panels)
     }

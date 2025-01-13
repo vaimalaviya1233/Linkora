@@ -1,5 +1,6 @@
 package com.sakethh.linkora.utils
 
+import android.net.Uri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -22,5 +23,7 @@ object AndroidUIEvent {
     sealed interface Type {
         data object ShowRuntimePermissionForStorage : Type
         data class PermissionGrantedForAndBelowQ(val isGranted: Boolean) : Type
+        data class UriOfTheFileForImporting(val uri: Uri?) : Type
+        data class ImportAFile(val fileType: String) : Type
     }
 }

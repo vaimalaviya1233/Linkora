@@ -46,9 +46,6 @@ fun SettingComponent(
                 onClick = {
                     settingComponentParam.onSwitchStateChange(!settingComponentParam.isSwitchEnabled.value)
                     settingComponentParam.onAcknowledgmentClick(uriHandler)
-                },
-                onLongClick = {
-
                 })
             .pulsateEffect()
             .fillMaxWidth()

@@ -102,4 +102,7 @@ interface LinksDao {
 
     @Query("SELECT * FROM links WHERE idOfLinkedFolder=:folderId")
     suspend fun getLinksOfThisFolderAsList(folderId: Long): List<Link>
+
+    @Query("DELETE FROM links")
+    suspend fun deleteAllLinks()
 }

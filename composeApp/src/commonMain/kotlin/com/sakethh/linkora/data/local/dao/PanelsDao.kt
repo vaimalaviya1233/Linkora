@@ -47,4 +47,10 @@ interface PanelsDao {
 
     @Query("SELECT * FROM panel_folder WHERE connectedPanelId = :panelId")
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
+
+    @Query("DELETE FROM panel")
+    suspend fun deleteAllPanels()
+
+    @Query("DELETE FROM panel_folder")
+    suspend fun deleteAllPanelFolders()
 }

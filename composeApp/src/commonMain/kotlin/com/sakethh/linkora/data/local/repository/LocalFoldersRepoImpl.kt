@@ -330,4 +330,8 @@ class LocalFoldersRepoImpl(
     override fun search(query: String, sortOption: String): Flow<Result<List<Folder>>> {
         return foldersDao.search(query, sortOption).mapToResultFlow()
     }
+
+    override suspend fun deleteAllFolders() {
+        foldersDao.deleteAllFolders()
+    }
 }

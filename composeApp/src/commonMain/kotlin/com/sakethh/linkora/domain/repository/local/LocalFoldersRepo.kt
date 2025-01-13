@@ -91,4 +91,6 @@ interface LocalFoldersRepo {
     suspend fun isFoldersTableEmpty(): Flow<Result<Boolean>>
 
     fun search(query: String, sortOption: String): Flow<Result<List<Folder>>>
+
+    suspend fun deleteAllFolders()
 }

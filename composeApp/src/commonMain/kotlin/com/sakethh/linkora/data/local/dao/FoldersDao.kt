@@ -155,4 +155,7 @@ interface FoldersDao {
                 "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC"
     )
     fun search(query: String, sortOption: String): Flow<List<Folder>>
+
+    @Query("DELETE FROM folders")
+    suspend fun deleteAllFolders()
 }

@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.core.content.ContextCompat
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
@@ -17,6 +18,12 @@ import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.DateFormat
 import java.util.Date
@@ -81,5 +88,34 @@ actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean {
 }
 
 actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): File? {
-    return File("")
+    AndroidUIEvent.pushUIEvent(
+        AndroidUIEvent.Type.ImportAFile(
+            fileType = if (importFileType == ImportFileType.JSON) "application/json" else "text/html"
+        )
+    )
+    val deferredFile = CompletableDeferred<File?>()
+    CoroutineScope(Dispatchers.IO).launch {
+        AndroidUIEvent.androidUIEventChannel.collectLatest {
+            if (it is AndroidUIEvent.Type.UriOfTheFileForImporting) {
+                try {
+                    if (it.uri.isNull()) {
+                        throw NullPointerException()
+                    }
+                    val file = createTempFile()
+                    LinkoraApp.getContext().contentResolver.openInputStream(it.uri!!).use { input ->
+                        file.outputStream().use { output ->
+                            input?.copyTo(output)
+                        }
+                    }
+                    deferredFile.complete(file)
+                    this.cancel()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    deferredFile.complete(null)
+                    this.cancel()
+                }
+            }
+        }
+    }
+    return deferredFile.await()
 }

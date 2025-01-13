@@ -17,8 +17,12 @@ import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.ImportDataRepo
+import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
+import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.PanelsRepo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.pickAValidFileForImporting
 import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +34,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class DataSettingsScreenVM(
-    private val exportDataRepo: ExportDataRepo, private val importDataRepo: ImportDataRepo
+    private val exportDataRepo: ExportDataRepo, private val importDataRepo: ImportDataRepo,
+    private val linksRepo: LocalLinksRepo, private val foldersRepo: LocalFoldersRepo,
+    private val panelsRepo: PanelsRepo
 ) : ViewModel() {
     val importExportProgressLogs = mutableStateListOf<String>()
 
@@ -44,6 +50,7 @@ class DataSettingsScreenVM(
             val file = pickAValidFileForImporting(importFileType)
             if (file.isNull()) return@launch
             file as File
+            linkoraLog(file.readText())
             if (importFileType == ImportFileType.JSON) {
                 importDataRepo.importDataFromAJSONFile(file)
             } else {
@@ -115,5 +122,14 @@ class DataSettingsScreenVM(
 
     fun cancelImportExportJob() {
         importExportJob?.cancel()
+    }
+
+    fun deleteEntireDatabase() {
+        viewModelScope.launch {
+            linksRepo.deleteAllLinks()
+            foldersRepo.deleteAllFolders()
+            panelsRepo.deleteAllPanels()
+            panelsRepo.deleteAllPanelFolders()
+        }
     }
 }

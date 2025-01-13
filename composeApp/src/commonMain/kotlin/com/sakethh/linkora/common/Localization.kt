@@ -605,7 +605,7 @@ object Localization {
                 return "delete_entire_data_permanently"
             }
         },
-        DeleteEntireDataPermanentlyDesc(defaultValue = "Delete all links and folders permanently including archives.") {
+        DeleteEntireDataPermanentlyDesc(defaultValue = "Permanently delete all links, folders, panels, and localized strings.") {
             override fun toString(): String {
                 return "delete_entire_data_permanently_desc"
             }

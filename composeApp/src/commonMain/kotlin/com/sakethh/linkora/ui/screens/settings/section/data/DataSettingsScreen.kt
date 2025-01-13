@@ -76,7 +76,10 @@ fun DataSettingsScreen() {
     val dataSettingsScreenVM: DataSettingsScreenVM = viewModel(factory = genericViewModelFactory {
         DataSettingsScreenVM(
             exportDataRepo = DependencyContainer.exportDataRepo.value,
-            importDataRepo = DependencyContainer.importDataRepo.value
+            importDataRepo = DependencyContainer.importDataRepo.value,
+            linksRepo = DependencyContainer.localLinksRepo.value,
+            foldersRepo = DependencyContainer.localFoldersRepo.value,
+            panelsRepo = DependencyContainer.panelsRepo.value,
         )
     })
     val isProgressUIVisible = rememberSaveable {
@@ -295,6 +298,7 @@ fun DataSettingsScreen() {
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
                             shouldDeleteEntireDialogBoxAppear.value = true
+                            dataSettingsScreenVM.deleteEntireDatabase()
                         },
                         icon = Icons.Default.DeleteForever,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })

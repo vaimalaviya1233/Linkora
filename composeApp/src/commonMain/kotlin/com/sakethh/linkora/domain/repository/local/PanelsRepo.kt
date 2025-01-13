@@ -18,4 +18,7 @@ interface PanelsRepo {
 
     suspend fun addMultiplePanels(panels: List<Panel>)
     suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>)
+
+    suspend fun deleteAllPanels()
+    suspend fun deleteAllPanelFolders()
 }
