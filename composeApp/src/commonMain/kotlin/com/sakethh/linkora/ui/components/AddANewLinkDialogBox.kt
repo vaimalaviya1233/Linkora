@@ -192,7 +192,12 @@ fun AddANewLinkDialogBox(
                     shouldBeVisible.value = false
                 }
             },
-            modifier = Modifier.fillMaxSize(0.9f).clip(RoundedCornerShape(10.dp))
+            modifier = Modifier.fillMaxSize(if (platform() is Platform.Android.Mobile) 1f else 0.9f)
+                .then(
+                    if (platform() !is Platform.Android.Mobile) Modifier.clip(
+                        RoundedCornerShape(10.dp)
+                    ) else Modifier
+                )
                 .background(AlertDialogDefaults.containerColor),
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
@@ -200,7 +205,9 @@ fun AddANewLinkDialogBox(
                 modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface
             ) {
                 if (platform() == Platform.Android.Mobile) {
-                    Column(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                    ) {
                         TopPartOfAddANewLinkDialogBox(
                             isDataExtractingForTheLink = isDataExtractingForTheLink.value,
                             linkTextFieldValue = linkTextFieldValue,
@@ -230,6 +237,7 @@ fun AddANewLinkDialogBox(
                             collectionsScreenVM = collectionsScreenVM,
                             currentFolder
                         )
+                        Spacer(Modifier.height(50.dp))
                     }
                 } else {
                     Box(Modifier.fillMaxSize()) {
@@ -298,7 +306,8 @@ private fun TopPartOfAddANewLinkDialogBox(
     isForceSaveWithoutFetchingMetaDataEnabled: MutableState<Boolean>, currentFolder: Folder?
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(0.5f).fillMaxHeight(),
+        modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
+            .then(if (platform() is Platform.Android.Mobile) Modifier else Modifier.fillMaxHeight()),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
@@ -479,8 +488,12 @@ private fun BottomPartOfAddANewLinkDialogBox(
     val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier.fillMaxSize().then(
+            if (platform() is Platform.Android.Mobile) Modifier else Modifier.verticalScroll(
+                rememberScrollState()
+            )
+        ),
+        verticalArrangement = if (platform() is Platform.Android.Mobile) Arrangement.Top else Arrangement.Center
     ) {
         if (currentFolder.isNull()) {
             Text(
@@ -488,7 +501,11 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 color = contentColorFor(backgroundColor = AlertDialogDefaults.containerColor),
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 18.sp,
-                modifier = Modifier.padding(start = 20.dp, top = 20.dp, end = 20.dp)
+                modifier = Modifier.padding(
+                    start = 20.dp,
+                    top = 20.dp,
+                    end = 20.dp
+                )
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
