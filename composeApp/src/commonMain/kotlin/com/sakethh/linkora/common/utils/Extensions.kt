@@ -148,3 +148,8 @@ fun String.isATwitterUrl(): Boolean {
         "http://x.com/"
     ) or this.trim().startsWith("https://x.com/")
 }
+
+suspend fun <T : Any> T.then(init: suspend () -> Unit): T {
+    init()
+    return this
+}

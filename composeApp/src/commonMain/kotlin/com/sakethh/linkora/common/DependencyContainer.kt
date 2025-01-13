@@ -6,6 +6,7 @@ import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.network.repository.NetworkRepoImpl
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.ExportDataRepoImpl
+import com.sakethh.linkora.data.ImportDataRepoImpl
 import com.sakethh.linkora.data.LocalizationRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
@@ -75,5 +76,9 @@ object DependencyContainer {
 
     val exportDataRepo = lazy {
         ExportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, panelsRepo.value)
+    }
+
+    val importDataRepo = lazy {
+        ImportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, panelsRepo.value)
     }
 }

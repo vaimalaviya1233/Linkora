@@ -9,27 +9,67 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.ifTrue
+import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.ExportDataRepo
+import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.pickAValidFileForImporting
 import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class DataSettingsScreenVM(
-    private val exportDataRepo: ExportDataRepo
+    private val exportDataRepo: ExportDataRepo, private val importDataRepo: ImportDataRepo
 ) : ViewModel() {
     val importExportProgressLogs = mutableStateListOf<String>()
 
     private var importExportJob: Job? = null
+
+    fun importDataFromAFile(
+        importFileType: ImportFileType, onStart: () -> Unit, onCompletion: () -> Unit
+    ) {
+        importExportJob?.cancel()
+        importExportJob = viewModelScope.launch {
+            val file = pickAValidFileForImporting(importFileType)
+            if (file.isNull()) return@launch
+            file as File
+            if (importFileType == ImportFileType.JSON) {
+                importDataRepo.importDataFromAJSONFile(file)
+            } else {
+                importDataRepo.importDataFromAHTMLFile(file)
+            }.onStart {
+                onStart()
+            }.collectLatest {
+                it.onLoading { importLogItem ->
+                    importExportProgressLogs.add(importLogItem)
+                }.onSuccess {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar("Successfully imported the data."))
+                }.pushSnackbarOnFailure()
+            }
+        }
+        importExportJob?.invokeOnCompletion { cause ->
+            onCompletion()
+            cause?.printStackTrace()
+            importExportProgressLogs.clear()
+        }
+    }
+
     fun exportDataToAFile(
-        platform: Platform, exportType: ExportType, onStart: () -> Unit, onCompletion: () -> Unit
+        platform: Platform,
+        exportFileType: ExportFileType,
+        onStart: () -> Unit,
+        onCompletion: () -> Unit
     ) {
         importExportJob?.cancel()
         importExportJob = viewModelScope.launch {
@@ -44,7 +84,7 @@ class DataSettingsScreenVM(
                     onStart()
                 }
             }
-            if (exportType == ExportType.JSON) {
+            if (exportFileType == ExportFileType.JSON) {
                 exportDataRepo.exportDataAsJSON()
             } else {
                 exportDataRepo.exportDataAsHTMl()
@@ -54,7 +94,9 @@ class DataSettingsScreenVM(
                 }.onSuccess {
                     try {
                         writeRawExportStringToFile(
-                            exportType = exportType, rawExportString = it.data, onCompletion = {
+                            exportFileType = exportFileType,
+                            rawExportString = it.data,
+                            onCompletion = {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
                             })
                     } catch (e: Exception) {

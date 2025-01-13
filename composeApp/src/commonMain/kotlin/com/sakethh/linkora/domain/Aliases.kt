@@ -7,3 +7,7 @@ typealias Message = String
 typealias ComposableContent = @Composable () -> Unit
 
 typealias RawExportString = String
+
+typealias ImportFileType = FileType
+
+typealias ExportFileType = FileType

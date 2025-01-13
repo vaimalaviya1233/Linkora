@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.RawExportString
-import com.sakethh.linkora.ui.screens.settings.section.data.ExportType
+import java.io.File
 
 expect val showFollowSystemThemeOption: Boolean
 expect val showDynamicThemingOption: Boolean
@@ -18,9 +20,11 @@ expect val localDatabase: LocalDatabase?
 expect val poppinsFontFamily: FontFamily
 
 expect suspend fun writeRawExportStringToFile(
-    exportType: ExportType,
+    exportFileType: ExportFileType,
     rawExportString: RawExportString,
     onCompletion: () -> Unit
 )
 
 expect suspend fun isStoragePermissionPermittedOnAndroid(): Boolean
+
+expect suspend fun pickAValidFileForImporting(importFileType: ImportFileType): File?

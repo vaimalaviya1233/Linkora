@@ -49,6 +49,8 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -74,23 +76,15 @@ fun DataSettingsScreen() {
     val dataSettingsScreenVM: DataSettingsScreenVM = viewModel(factory = genericViewModelFactory {
         DataSettingsScreenVM(
             exportDataRepo = DependencyContainer.exportDataRepo.value,
+            importDataRepo = DependencyContainer.importDataRepo.value
         )
     })
     val isProgressUIVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    val importModalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val isPermissionDialogBoxVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val isImportExceptionBoxVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
 
     val shouldDeleteEntireDialogBoxAppear = rememberSaveable { mutableStateOf(false) }
-    var importBasedOnJsonFormat = rememberSaveable {
-        false
-    }
+
     val dataOperationTitle = rememberSaveable {
         mutableStateOf("")
     }
@@ -133,7 +127,14 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = rememberSaveable { mutableStateOf(false) },
                         onSwitchStateChange = {
-
+                            dataSettingsScreenVM.importDataFromAFile(
+                                importFileType = ImportFileType.JSON,
+                                onStart = {
+                                    isProgressUIVisible.value = true
+                                },
+                                onCompletion = {
+                                    isProgressUIVisible.value = false
+                                })
                         },
                         icon = Icons.Default.DataObject,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -149,7 +150,14 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
-
+                            dataSettingsScreenVM.importDataFromAFile(
+                                importFileType = ImportFileType.HTML,
+                                onStart = {
+                                    isProgressUIVisible.value = true
+                                },
+                                onCompletion = {
+                                    isProgressUIVisible.value = false
+                                })
                         },
                         icon = Icons.Default.Html,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -178,7 +186,7 @@ fun DataSettingsScreen() {
                             dataOperationTitle.value = "Exporting Data to JSON..."
                             dataSettingsScreenVM.exportDataToAFile(
                                 platform = platform,
-                                exportType = ExportType.JSON,
+                                exportFileType = ExportFileType.JSON,
                                 onStart = {
                                     isProgressUIVisible.value = true
                                 },
@@ -203,7 +211,7 @@ fun DataSettingsScreen() {
                             dataOperationTitle.value = "Exporting Data to HTML..."
                             dataSettingsScreenVM.exportDataToAFile(
                                 platform = platform,
-                                exportType = ExportType.HTML,
+                                exportFileType = ExportFileType.HTML,
                                 onStart = {
                                     isProgressUIVisible.value = true
                                 },

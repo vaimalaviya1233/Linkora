@@ -6,11 +6,16 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.utils.ifNot
+import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.RawExportString
-import com.sakethh.linkora.ui.screens.settings.section.data.ExportType
+import com.sakethh.linkora.ui.utils.UIEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.awt.FileDialog
+import java.awt.Frame
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -31,7 +36,7 @@ actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsF
 actual val showDynamicThemingOption: Boolean = false
 
 actual suspend fun writeRawExportStringToFile(
-    exportType: ExportType, rawExportString: RawExportString, onCompletion: () -> Unit
+    exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: () -> Unit
 ) {
     val currentDir = System.getProperty("user.dir")
     val exportsFolder = File(currentDir, "Exports")
@@ -42,7 +47,7 @@ actual suspend fun writeRawExportStringToFile(
 
     val exportFileName = "LinkoraExport-${
         DateFormat.getDateTimeInstance().format(Date()).replace(":", "").replace(" ", "")
-    }.${if (exportType == ExportType.HTML) "html" else "json"}"
+    }.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
     val exportFilePath = Paths.get(exportsFolder.absolutePath, exportFileName)
 
@@ -53,3 +58,20 @@ actual suspend fun writeRawExportStringToFile(
 }
 
 actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean = false
+
+actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): File? {
+    val fileDialog =
+        FileDialog(Frame(), "Select a valid ${importFileType.name} File", FileDialog.LOAD)
+    fileDialog.isVisible = true
+    val chosenFile: File? = try {
+        File(fileDialog.directory, fileDialog.file)
+    } catch (e: Exception) {
+        null
+    }
+    return if (chosenFile.isNotNull() && chosenFile!!.extension == importFileType.name.lowercase()) {
+        chosenFile
+    } else if (chosenFile.isNotNull() && chosenFile!!.extension != importFileType.name.lowercase()) {
+        UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar("${chosenFile.extension} files are not supported for importing, pick valid ${importFileType.name} file."))
+        null
+    } else null
+}

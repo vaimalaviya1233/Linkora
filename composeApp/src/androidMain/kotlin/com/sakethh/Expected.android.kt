@@ -11,8 +11,9 @@ import androidx.core.content.ContextCompat
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.RawExportString
-import com.sakethh.linkora.ui.screens.settings.section.data.ExportType
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
@@ -31,7 +32,7 @@ actual val localDatabase: LocalDatabase? = LinkoraApp.getLocalDb()
 actual val poppinsFontFamily: FontFamily = poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 actual suspend fun writeRawExportStringToFile(
-    exportType: ExportType,
+    exportFileType: ExportFileType,
     rawExportString: RawExportString,
     onCompletion: () -> Unit
 ) {
@@ -55,7 +56,7 @@ actual suspend fun writeRawExportStringToFile(
 
     val exportFileName = "LinkoraExport-${
         DateFormat.getDateTimeInstance().format(Date()).replace(":", "").replace(" ", "")
-    }.${if (exportType == ExportType.HTML) "html" else "json"}"
+    }.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
     val file = File(defaultFolder, exportFileName)
     file.writeText(rawExportString)
@@ -77,4 +78,8 @@ actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean {
         true
     }
 
+}
+
+actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): File? {
+    return File("")
 }
