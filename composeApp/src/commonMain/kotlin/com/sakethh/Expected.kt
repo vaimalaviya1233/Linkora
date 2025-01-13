@@ -17,8 +17,10 @@ expect val localDatabase: LocalDatabase?
 
 expect val poppinsFontFamily: FontFamily
 
-expect fun writeRawExportStringToFile(
+expect suspend fun writeRawExportStringToFile(
     exportType: ExportType,
     rawExportString: RawExportString,
     onCompletion: () -> Unit
 )
+
+expect suspend fun isStoragePermissionPermittedOnAndroid(): Boolean

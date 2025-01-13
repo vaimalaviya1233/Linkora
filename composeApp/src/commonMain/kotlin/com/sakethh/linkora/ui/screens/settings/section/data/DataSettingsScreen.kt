@@ -57,6 +57,7 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectio
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
+import com.sakethh.platform
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,6 +99,7 @@ fun DataSettingsScreen() {
     }
     val serverInfoBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
+    val platform = platform()
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
         navController = navController
@@ -175,6 +177,7 @@ fun DataSettingsScreen() {
                         onSwitchStateChange = {
                             dataOperationTitle.value = "Exporting Data to JSON..."
                             dataSettingsScreenVM.exportDataToAFile(
+                                platform = platform,
                                 exportType = ExportType.JSON,
                                 onStart = {
                                     isProgressUIVisible.value = true
@@ -199,6 +202,7 @@ fun DataSettingsScreen() {
                         onSwitchStateChange = {
                             dataOperationTitle.value = "Exporting Data to HTML..."
                             dataSettingsScreenVM.exportDataToAFile(
+                                platform = platform,
                                 exportType = ExportType.HTML,
                                 onStart = {
                                     isProgressUIVisible.value = true

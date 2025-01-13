@@ -1270,6 +1270,16 @@ object Localization {
             override fun toString(): String {
                 return "exported_successfully"
             }
+        },
+        StoragePermissionIsRequired(defaultValue = "Storage permission is required to store or export the file. Please grant the permission to proceed.") {
+            override fun toString(): String {
+                return "storage_permission_is_required"
+            }
+        },
+        PermissionGranted(defaultValue = "Permission granted. Please retry the action to continue with your import/export.") {
+            override fun toString(): String {
+                return "permission_granted"
+            }
         }
     }
 }

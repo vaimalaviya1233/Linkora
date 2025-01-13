@@ -1,6 +1,7 @@
 package com.sakethh.linkora
 
 import android.app.Application
+import android.content.Context
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -17,14 +18,17 @@ class LinkoraApp : Application() {
 
     companion object {
         private var localDatabase: LocalDatabase? = null
-
+        private var applicationContext: Context? = null
         fun getLocalDb(): LocalDatabase? {
             return localDatabase
         }
+
+        fun getContext(): Context = applicationContext!!
     }
 
     override fun onCreate() {
         super.onCreate()
+        LinkoraApp.applicationContext = this.applicationContext
         DependencyContainer.dataStorePref = createDataStore {
             applicationContext.filesDir.resolve(LinkoraDataStoreName).absolutePath
         }

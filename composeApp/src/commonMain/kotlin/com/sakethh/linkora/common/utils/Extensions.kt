@@ -76,10 +76,18 @@ fun String.isAValidLink(): Boolean {
     }
 }
 
-fun Boolean.ifNot(init: () -> Unit) {
+fun Boolean.ifNot(init: () -> Unit): Boolean {
     if (!this) {
         init()
     }
+    return this
+}
+
+fun Boolean.ifTrue(init: () -> Unit): Boolean {
+    if (this) {
+        init()
+    }
+    return this
 }
 
 fun Localization.Key.getLocalizedString(): String {

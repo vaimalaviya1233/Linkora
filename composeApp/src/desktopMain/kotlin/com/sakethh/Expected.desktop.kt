@@ -9,6 +9,8 @@ import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.ui.screens.settings.section.data.ExportType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -28,7 +30,7 @@ actual val localDatabase: LocalDatabase? =
 actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = false
 
-actual fun writeRawExportStringToFile(
+actual suspend fun writeRawExportStringToFile(
     exportType: ExportType, rawExportString: RawExportString, onCompletion: () -> Unit
 ) {
     val currentDir = System.getProperty("user.dir")
@@ -44,6 +46,10 @@ actual fun writeRawExportStringToFile(
 
     val exportFilePath = Paths.get(exportsFolder.absolutePath, exportFileName)
 
-    Files.write(exportFilePath, rawExportString.toByteArray())
+    withContext(Dispatchers.IO) {
+        Files.write(exportFilePath, rawExportString.toByteArray())
+    }
     onCompletion()
 }
+
+actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean = false
