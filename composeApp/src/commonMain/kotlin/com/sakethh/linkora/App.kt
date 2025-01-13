@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,12 +23,15 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -36,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -195,7 +200,7 @@ fun App(
             DependencyContainer.localFoldersRepo.value, DependencyContainer.localLinksRepo.value
         )
     })
-    val navRouteList = rememberDeserializableObject {
+    val rootRouteList = rememberDeserializableObject {
         listOf(
             Navigation.Root.HomeScreen,
             Navigation.Root.SearchScreen,
@@ -204,7 +209,21 @@ fun App(
         )
     }
     val localNavController = LocalNavController.current
-    val currentRoute = localNavController.currentBackStackEntryAsState().value?.destination
+    val currentBackStackEntryState = localNavController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntryState.value?.destination
+    val standardBottomSheet =
+        rememberStandardBottomSheetState(skipHiddenState = false, initialValue = SheetValue.Hidden)
+    val scaffoldSheetState =
+        rememberBottomSheetScaffoldState(bottomSheetState = standardBottomSheet)
+    LaunchedEffect(currentBackStackEntryState.value) {
+        if (rootRouteList.any {
+                currentBackStackEntryState.value?.destination?.hasRoute(it::class) == true
+            }) {
+            scaffoldSheetState.bottomSheetState.expand()
+        } else {
+            scaffoldSheetState.bottomSheetState.hide()
+        }
+    }
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
         if (platform() == Platform.Desktop || platform() == Platform.Android.Tablet) {
             Row {
@@ -213,7 +232,7 @@ fun App(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        navRouteList.forEach { navRouteItem ->
+                        rootRouteList.forEach { navRouteItem ->
                             val isSelected =
                                 currentRoute?.hasRoute(navRouteItem::class) == true
                             NavigationRailItem(
@@ -265,101 +284,109 @@ fun App(
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 })
-            }, modifier = Modifier.fillMaxSize(), bottomBar = {
-                if (platform() == Platform.Android.Mobile) {
-                    NavigationBar {
-                        navRouteList.forEach { navRouteItem ->
-                            val isSelected =
-                                currentRoute?.hasRoute(navRouteItem::class) == true
-                            NavigationBarItem(selected = isSelected, onClick = {
-                                localNavController.navigate(navRouteItem)
-                            }, icon = {
-                                Icon(
-                                    imageVector = if (isSelected) {
-                                        when (navRouteItem) {
-                                            Navigation.Root.HomeScreen -> Icons.Filled.Home
-                                            Navigation.Root.SearchScreen -> Icons.Filled.Search
-                                            Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
-                                            Navigation.Root.SettingsScreen -> Icons.Filled.Settings
-                                            else -> return@NavigationBarItem
-                                        }
-                                    } else {
-                                        when (navRouteItem) {
-                                            Navigation.Root.HomeScreen -> Icons.Outlined.Home
-                                            Navigation.Root.SearchScreen -> Icons.Outlined.Search
-                                            Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
-                                            Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
-                                            else -> return@NavigationBarItem
-                                        }
-                                    }, contentDescription = null
-                                )
-                            }, label = {
-                                Text(
-                                    text = navRouteItem.toString(),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    maxLines = 1
-                                )
-                            })
+            }, modifier = Modifier.fillMaxSize()
+        ) {
+            BottomSheetScaffold(
+                sheetDragHandle = {},
+                sheetPeekHeight = 0.dp,
+                scaffoldState = scaffoldSheetState,
+                sheetSwipeEnabled = false,
+                sheetShape = RectangleShape,
+                sheetContent = {
+                    if (platform() == Platform.Android.Mobile) {
+                        NavigationBar {
+                            rootRouteList.forEach { navRouteItem ->
+                                val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
+                                NavigationBarItem(selected = isSelected, onClick = {
+                                    localNavController.navigate(navRouteItem)
+                                }, icon = {
+                                    Icon(
+                                        imageVector = if (isSelected) {
+                                            when (navRouteItem) {
+                                                Navigation.Root.HomeScreen -> Icons.Filled.Home
+                                                Navigation.Root.SearchScreen -> Icons.Filled.Search
+                                                Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
+                                                Navigation.Root.SettingsScreen -> Icons.Filled.Settings
+                                                else -> return@NavigationBarItem
+                                            }
+                                        } else {
+                                            when (navRouteItem) {
+                                                Navigation.Root.HomeScreen -> Icons.Outlined.Home
+                                                Navigation.Root.SearchScreen -> Icons.Outlined.Search
+                                                Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                                Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
+                                                else -> return@NavigationBarItem
+                                            }
+                                        }, contentDescription = null
+                                    )
+                                }, label = {
+                                    Text(
+                                        text = navRouteItem.toString(),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        maxLines = 1
+                                    )
+                                })
+                            }
                         }
                     }
-                }
-            }) {
-            NavHost(
-                navController = localNavController,
-                startDestination = Navigation.Settings.DataSettingsScreen
-            ) {
-                composable<Navigation.Root.HomeScreen> {
-                    HomeScreen()
-                }
-                composable<Navigation.Root.SearchScreen> {
-                    SearchScreen()
-                }
-                composable<Navigation.Root.CollectionsScreen> {
-                    CollectionsScreen(
-                        collectionsScreenVM = collectionsScreenVM,
-                        menuBtmSheetVM = menuBtmSheetVM,
-                        shouldShowNewFolderDialog = shouldShowNewFolderDialog,
-                        shouldShowAddLinkDialog = shouldShowAddLinkDialog
-                    )
-                }
-                composable<Navigation.Root.SettingsScreen> {
-                    SettingsScreen()
-                }
-                composable<Navigation.Settings.ThemeSettingsScreen> {
-                    ThemeSettingsScreen()
-                }
-                composable<Navigation.Settings.GeneralSettingsScreen> {
-                    GeneralSettingsScreen()
-                }
-                composable<Navigation.Settings.LayoutSettingsScreen> {
-                    LayoutSettingsScreen()
-                }
-                composable<Navigation.Settings.DataSettingsScreen> {
-                    DataSettingsScreen()
-                }
-                composable<Navigation.Settings.Data.ServerSetupScreen> {
-                    ServerSetupScreen()
-                }
-                composable<Navigation.Settings.LanguageSettingsScreen> {
-                    LanguageSettingsScreen()
-                }
-                composable<Navigation.Collection.CollectionDetailPane> {
-                    // CollectionDetailPane()
-                }
-                composable<Navigation.Home.PanelsManagerScreen> {
-                    PanelsManagerScreen()
-                }
-                composable<Navigation.Home.SpecificPanelManagerScreen> {
-                    SpecificPanelManagerScreen()
-                }
-                composable<Navigation.Settings.AboutSettingsScreen> {
-                    AboutSettingsScreen()
-                }
-                composable<Navigation.Settings.AcknowledgementSettingsScreen> {
-                    AcknowledgementSettingsScreen()
-                }
-                composable<Navigation.Settings.AdvancedSettingsScreen> {
-                    AdvancedSettingsScreen()
+                }) {
+                NavHost(
+                    navController = localNavController,
+                    startDestination = Navigation.Root.HomeScreen
+                ) {
+                    composable<Navigation.Root.HomeScreen> {
+                        HomeScreen()
+                    }
+                    composable<Navigation.Root.SearchScreen> {
+                        SearchScreen()
+                    }
+                    composable<Navigation.Root.CollectionsScreen> {
+                        CollectionsScreen(
+                            collectionsScreenVM = collectionsScreenVM,
+                            menuBtmSheetVM = menuBtmSheetVM,
+                            shouldShowNewFolderDialog = shouldShowNewFolderDialog,
+                            shouldShowAddLinkDialog = shouldShowAddLinkDialog
+                        )
+                    }
+                    composable<Navigation.Root.SettingsScreen> {
+                        SettingsScreen()
+                    }
+                    composable<Navigation.Settings.ThemeSettingsScreen> {
+                        ThemeSettingsScreen()
+                    }
+                    composable<Navigation.Settings.GeneralSettingsScreen> {
+                        GeneralSettingsScreen()
+                    }
+                    composable<Navigation.Settings.LayoutSettingsScreen> {
+                        LayoutSettingsScreen()
+                    }
+                    composable<Navigation.Settings.DataSettingsScreen> {
+                        DataSettingsScreen()
+                    }
+                    composable<Navigation.Settings.Data.ServerSetupScreen> {
+                        ServerSetupScreen()
+                    }
+                    composable<Navigation.Settings.LanguageSettingsScreen> {
+                        LanguageSettingsScreen()
+                    }
+                    composable<Navigation.Collection.CollectionDetailPane> {
+                        // CollectionDetailPane()
+                    }
+                    composable<Navigation.Home.PanelsManagerScreen> {
+                        PanelsManagerScreen()
+                    }
+                    composable<Navigation.Home.SpecificPanelManagerScreen> {
+                        SpecificPanelManagerScreen()
+                    }
+                    composable<Navigation.Settings.AboutSettingsScreen> {
+                        AboutSettingsScreen()
+                    }
+                    composable<Navigation.Settings.AcknowledgementSettingsScreen> {
+                        AcknowledgementSettingsScreen()
+                    }
+                    composable<Navigation.Settings.AdvancedSettingsScreen> {
+                        AdvancedSettingsScreen()
+                    }
                 }
             }
 
