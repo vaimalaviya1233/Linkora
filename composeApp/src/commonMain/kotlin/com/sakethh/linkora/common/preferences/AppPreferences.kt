@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.BUILD_FLAVOUR
 import com.sakethh.linkora.common.utils.Constants
@@ -216,7 +217,7 @@ object AppPreferences {
                 },
                 launch {
                     lastSelectedPanelID.longValue = (preferencesRepository.readPreferenceValue(
-                        preferenceKey = intPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name),
+                        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name),
                         
                     ) ?: -1).toLong()
                 },

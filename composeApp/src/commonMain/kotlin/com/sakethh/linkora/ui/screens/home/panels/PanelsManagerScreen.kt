@@ -66,7 +66,8 @@ fun PanelsManagerScreen() {
             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
             panelsRepo = DependencyContainer.panelsRepo.value,
             triggerCollectionOfPanels = true,
-            triggerCollectionOfPanelFolders = false
+            triggerCollectionOfPanelFolders = false,
+            preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })
     val panels = homeScreenVM.panels.collectAsStateWithLifecycle()

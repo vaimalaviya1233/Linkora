@@ -15,6 +15,7 @@ interface PanelsRepo {
     suspend fun getAllThePanelsAsAList(): List<Panel>
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
+    suspend fun getPanel(panelId: Long): Panel
 
     suspend fun addMultiplePanels(panels: List<Panel>)
     suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>)

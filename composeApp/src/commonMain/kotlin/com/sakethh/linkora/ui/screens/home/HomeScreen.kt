@@ -1,5 +1,6 @@
 package com.sakethh.linkora.ui.screens.home
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
@@ -59,11 +61,11 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +77,7 @@ fun HomeScreen() {
             panelsRepo = DependencyContainer.panelsRepo.value,
             localLinksRepo = DependencyContainer.localLinksRepo.value,
             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
+            preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })
     val shouldPanelsBtmSheetBeVisible = rememberSaveable {
@@ -83,15 +86,12 @@ fun HomeScreen() {
     val panelsBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val panels = homeScreenVM.panels.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
-    val selectedPanel = rememberDeserializableMutableObject {
-        mutableStateOf(homeScreenVM.defaultPanel())
-    }
     val panelFolders = homeScreenVM.panelFolders.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = {
         panelFolders.value.size
     })
     Scaffold(topBar = {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.animateContentSize().fillMaxWidth()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().padding(5.dp),
@@ -113,43 +113,50 @@ fun HomeScreen() {
                     SortingIconButton()
                 }
             }
-            Text(
-                text = Localization.Key.SelectedPanel.rememberLocalizedString(),
-                color = MaterialTheme.colorScheme.primary.copy(0.9f),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(start = 10.dp, bottom = 5.dp)
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable(onClick = {
-                    shouldPanelsBtmSheetBeVisible.value = true
-                    coroutineScope.launch {
-                        panelsBtmSheetState.show()
-                    }
-                }, indication = null, interactionSource = remember {
-                    MutableInteractionSource()
-                }).pulsateEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
-            ) {
-                Spacer(Modifier.width(5.dp))
-                FilledTonalIconButton(onClick = {
-                    shouldPanelsBtmSheetBeVisible.value = true
-                    coroutineScope.launch {
-                        panelsBtmSheetState.show()
-                    }
-                }, modifier = Modifier.size(22.dp)) {
-                    Icon(imageVector = Icons.Default.ArrowDownward, contentDescription = null)
-                }
-                Spacer(Modifier.width(10.dp))
+            if (homeScreenVM.selectedPanelData.value.isNotNull()) {
                 Text(
-                    text = selectedPanel.value.panelName,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = 20.sp,
-                    modifier = Modifier.fillMaxWidth(0.8f)
+                    text = Localization.Key.SelectedPanel.rememberLocalizedString(),
+                    color = MaterialTheme.colorScheme.primary.copy(0.9f),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(start = 10.dp, bottom = 5.dp)
                 )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClick = {
+                        shouldPanelsBtmSheetBeVisible.value = true
+                        coroutineScope.launch {
+                            panelsBtmSheetState.show()
+                        }
+                    }, indication = null, interactionSource = remember {
+                        MutableInteractionSource()
+                    }).pulsateEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
+                ) {
+                    Spacer(Modifier.width(5.dp))
+                    FilledTonalIconButton(onClick = {
+                        shouldPanelsBtmSheetBeVisible.value = true
+                        coroutineScope.launch {
+                            panelsBtmSheetState.show()
+                        }
+                    }, modifier = Modifier.size(22.dp)) {
+                        Icon(imageVector = Icons.Default.ArrowDownward, contentDescription = null)
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = homeScreenVM.selectedPanelData.value!!.panelName,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = 20.sp,
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    )
+                }
             }
         }
     }) { paddingValues ->
+        if (panelFolders.value.isEmpty()) {
+            LoadingScreen(paddingValues = PaddingValues(25.dp))
+            return@Scaffold
+        }
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             ScrollableTabRow(
                 modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage,
@@ -266,8 +273,8 @@ fun HomeScreen() {
                 }
                 items(panels.value) { panel ->
                     Row(modifier = Modifier.fillMaxWidth().clickable {
-                        selectedPanel.value = panel
-                        homeScreenVM.updatePanelFolders(selectedPanel.value.panelId)
+                        homeScreenVM.selectedPanelData.value = panel
+                        homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.panelId)
                         coroutineScope.launch {
                             panelsBtmSheetState.hide()
                         }.invokeOnCompletion {
@@ -275,9 +282,10 @@ fun HomeScreen() {
                         }
                     }.padding(5.dp), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
-                            selected = selectedPanel.value.panelId == panel.panelId, onClick = {
-                                selectedPanel.value = panel
-                                homeScreenVM.updatePanelFolders(selectedPanel.value.panelId)
+                            selected = homeScreenVM.selectedPanelData.value!!.panelId == panel.panelId,
+                            onClick = {
+                                homeScreenVM.selectedPanelData.value = panel
+                                homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.panelId)
                                 coroutineScope.launch {
                                     panelsBtmSheetState.hide()
                                 }.invokeOnCompletion {
@@ -287,8 +295,8 @@ fun HomeScreen() {
                         Spacer(Modifier.width(5.dp))
                         Text(
                             text = panel.panelName,
-                            style = if (selectedPanel.value.panelId == panel.panelId) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
-                            color = if (selectedPanel.value.panelId == panel.panelId) LocalContentColor.current else LocalContentColor.current.copy(
+                            style = if (homeScreenVM.selectedPanelData.value!!.panelId == panel.panelId) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
+                            color = if (homeScreenVM.selectedPanelData.value!!.panelId == panel.panelId) LocalContentColor.current else LocalContentColor.current.copy(
                                 0.85f
                             )
                         )
