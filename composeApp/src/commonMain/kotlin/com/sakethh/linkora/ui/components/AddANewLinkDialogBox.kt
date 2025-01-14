@@ -111,9 +111,7 @@ fun AddANewLinkDialogBox(
     val isDataExtractingForTheLink = rememberSaveable {
         mutableStateOf(false)
     }
-    val isDropDownMenuIconClicked = rememberSaveable {
-        mutableStateOf(false)
-    }
+
     val isAutoDetectTitleEnabled = rememberSaveable {
         mutableStateOf(AppPreferences.isAutoDetectTitleForLinksEnabled.value)
     }
@@ -125,11 +123,6 @@ fun AddANewLinkDialogBox(
     }
     val addTheFolderInRoot = rememberSaveable {
         mutableStateOf(false)
-    }
-    LaunchedEffect(isDataExtractingForTheLink.value) {
-        if (isDataExtractingForTheLink.value) {
-            isDropDownMenuIconClicked.value = false
-        }
     }
     val coroutineScope = rememberCoroutineScope()
     val isChildFoldersBottomSheetExpanded = mutableStateOf(false)
@@ -145,6 +138,14 @@ fun AddANewLinkDialogBox(
     }*/
     val lifecycleOwner = LocalLifecycleOwner.current
     if (shouldBeVisible.value) {
+        val isDropDownMenuIconClicked = rememberSaveable {
+            mutableStateOf(false)
+        }
+        LaunchedEffect(isDataExtractingForTheLink.value) {
+            if (isDataExtractingForTheLink.value) {
+                isDropDownMenuIconClicked.value = false
+            }
+        }
         val linkTextFieldValue = rememberSaveable {
             mutableStateOf("")
         }

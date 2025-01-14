@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -159,4 +164,23 @@ fun <T> T?.ifNotNull(init: (T) -> Unit): T? {
         init(this!!)
     }
     return this
+}
+
+@Composable
+fun NavHostController.inRootScreen(includeSettingsScreen: Boolean): Boolean? {
+    val rootRoutesList = rememberDeserializableObject {
+        listOf(
+            Navigation.Root.HomeScreen,
+            Navigation.Root.SearchScreen,
+            Navigation.Root.CollectionsScreen,
+            Navigation.Root.SettingsScreen,
+        )
+    }
+    return this.currentBackStackEntryAsState().value?.destination?.let { destination ->
+        rootRoutesList.filter {
+            includeSettingsScreen || it != Navigation.Root.SettingsScreen
+        }.any {
+            destination.hasRoute(it::class)
+        }
+    }
 }

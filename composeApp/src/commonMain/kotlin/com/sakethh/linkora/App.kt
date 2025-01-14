@@ -56,6 +56,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.ifNot
+import com.sakethh.linkora.common.utils.inRootScreen
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
@@ -222,6 +223,7 @@ fun App(
         )
     }
     val localNavController = LocalNavController.current
+    val inRootScreen = localNavController.inRootScreen(includeSettingsScreen = true)
     val currentBackStackEntryState = localNavController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntryState.value?.destination
     val standardBottomSheet =
@@ -500,9 +502,11 @@ fun App(
                             }
                         })
             }
+            // damn its 4:06 pm 14th jan ist and it feels like im almost gonna miss this kotlinconf opportunity holy sh can you believe this
             AddANewLinkDialogBox(
                 shouldBeVisible = shouldShowAddLinkDialog,
-                screenType = ScreenType.ROOT_SCREEN, currentFolder = null,
+                screenType = ScreenType.ROOT_SCREEN,
+                currentFolder = if ((inRootScreen == true && platform is Platform.Android.Mobile) || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) null else CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
                 collectionsScreenVM
             )
 
