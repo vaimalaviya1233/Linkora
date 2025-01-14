@@ -47,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -298,6 +299,7 @@ fun App(
                                     start = 15.dp, end = 15.dp, top = 15.dp
                                 ), selected = isSelected, onClick = {
                                     if (currentRoute?.hasRoute(navRouteItem::class) == false) {
+                                        CollectionsScreenVM.resetCollectionDetailPaneInfo()
                                         localNavController.navigate(navRouteItem)
                                     }
                                 }, icon = {
@@ -393,6 +395,7 @@ fun App(
                                 val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                                 NavigationBarItem(selected = isSelected, onClick = {
                                     isSelected.ifNot {
+                                        CollectionsScreenVM.resetCollectionDetailPaneInfo()
                                         localNavController.navigate(navRouteItem)
                                     }
                                 }, icon = {
@@ -531,6 +534,7 @@ fun App(
                     thisFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
                 )
             )
+            val localUriHandler = LocalUriHandler.current
             MenuBtmSheetUI(
                 menuBtmSheetParam = MenuBtmSheetParam(
                     btmModalSheetState = menuBtmModalSheetState,
@@ -546,11 +550,21 @@ fun App(
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.archiveAFolder(
                                 selectedFolderForMenuBtmSheet.value, onCompletion = {
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                    }
                                     collectionsScreenVM.triggerFoldersSorting()
                                 })
                         } else {
                             collectionsScreenVM.archiveALink(
                                 selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                    }
                                     collectionsScreenVM.triggerLinksSorting()
                                 })
                         }
@@ -561,17 +575,35 @@ fun App(
                         } else {
                             collectionsScreenVM.deleteTheNote(selectedLinkForMenuBtmSheet.value)
                         }
+                        coroutineScope.launch {
+                            menuBtmModalSheetState.hide()
+                        }.invokeOnCompletion {
+                            shouldMenuBtmModalSheetBeVisible.value = false
+                        }
                     },
                     onRefreshClick = {
                         collectionsScreenVM.refreshLinkMetadata(selectedLinkForMenuBtmSheet.value)
+                        coroutineScope.launch {
+                            menuBtmModalSheetState.hide()
+                        }.invokeOnCompletion {
+                            shouldMenuBtmModalSheetBeVisible.value = false
+                        }
                     },
-                    onForceLaunchInAnExternalBrowser = { },
+                    onForceLaunchInAnExternalBrowser = {
+                        localUriHandler.openUri(selectedLinkForMenuBtmSheet.value.url)
+                    },
                     showQuickActions = rememberSaveable { mutableStateOf(false) },
                     shouldTransferringOptionShouldBeVisible = true,
                     link = selectedLinkForMenuBtmSheet,
                     folder = selectedFolderForMenuBtmSheet,
                     onAddToImportantLinks = {
                         collectionsScreenVM.markALinkAsImp(selectedLinkForMenuBtmSheet.value)
+                        coroutineScope.launch {
+                            menuBtmModalSheetState.hide()
+                        }.invokeOnCompletion {
+                            shouldMenuBtmModalSheetBeVisible.value = false
+                        }
+                        Unit
                     },
                     shouldShowArchiveOption = {
                         menuBtmSheetVM.shouldShowArchiveOption(selectedLinkForMenuBtmSheet.value.url)
@@ -587,6 +619,11 @@ fun App(
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.deleteAFolder(
                                 selectedFolderForMenuBtmSheet.value, onCompletion = {
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                    }
                                     collectionsScreenVM.triggerFoldersSorting()
                                     onCompletion()
                                 })
@@ -594,6 +631,11 @@ fun App(
                             collectionsScreenVM.deleteALink(
                                 selectedLinkForMenuBtmSheet.value,
                                 onCompletion = {
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                    }
                                 collectionsScreenVM.triggerLinksSorting()
                                 onCompletion()
                             })
@@ -646,6 +688,11 @@ fun App(
                                 })
                         }
                         shouldRenameDialogBoxBeVisible.value = false
+                        coroutineScope.launch {
+                            menuBtmModalSheetState.hide()
+                        }.invokeOnCompletion {
+                            shouldMenuBtmModalSheetBeVisible.value = false
+                        }
                     },
                     existingTitle = if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) selectedFolderForMenuBtmSheet.value.name else selectedLinkForMenuBtmSheet.value.title,
                     existingNote = if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) selectedFolderForMenuBtmSheet.value.note else selectedLinkForMenuBtmSheet.value.note

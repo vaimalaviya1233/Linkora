@@ -3,11 +3,9 @@ package com.sakethh.linkora.ui.screens.search
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.FolderType
@@ -17,8 +15,6 @@ import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +25,7 @@ import kotlinx.coroutines.launch
 class SearchScreenVM(
     private val localFoldersRepo: LocalFoldersRepo,
     private val localLinksRepo: LocalLinksRepo,
-) : CollectionsScreenVM(localFoldersRepo, localLinksRepo, loadRootFoldersOnInit = false) {
+) : ViewModel() {
 
     private val _searchQuery = mutableStateOf("")
     val searchQuery = _searchQuery
@@ -145,16 +141,19 @@ class SearchScreenVM(
 
     }
 
+    private val _links = MutableStateFlow(emptyList<Link>())
+    val links = _links.asStateFlow()
     init {
-        updateCollectionDetailPaneInfoAndCollectData(
-            CollectionDetailPaneInfo(
-                Folder(
-                    name = Localization.Key.History.getLocalizedString(),
-                    note = "",
-                    parentFolderId = null,
-                    localId = Constants.HISTORY_ID
-                ), isAnyCollectionSelected = true
-            )
-        )
+        viewModelScope.launch {
+            snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }.collectLatest {
+                localLinksRepo.sortLinks(linkType = LinkType.HISTORY_LINK, it).collectLatest {
+                    it.onSuccess {
+                        _links.emit(it.data)
+                    }.pushSnackbarOnFailure()
+                }
+            }
+        }
     }
 }

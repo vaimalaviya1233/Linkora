@@ -29,6 +29,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
@@ -50,6 +53,8 @@ fun MenuBtmSheetUI(
             mutableStateOf(false)
         }
         val platform = platform()
+        val localUriHandler = LocalUriHandler.current
+        val localClipboard = LocalClipboardManager.current
         val commonContent: ComposableContent = {
             Column {
                 if (platform is Platform.Android.Mobile) {
@@ -207,7 +212,20 @@ fun MenuBtmSheetUI(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         NavigationBarItem(selected = true, onClick = {
-
+                            if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
+                                localClipboard.setText(
+                                    AnnotatedString(
+                                        text = menuBtmSheetParam.link?.value?.url ?: ""
+                                    )
+                                )
+                                coroutineScope.launch {
+                                    menuBtmSheetParam.btmModalSheetState.hide()
+                                }.invokeOnCompletion {
+                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
+                                }
+                            } else {
+                                menuBtmSheetParam.onArchive()
+                            }
                         }, icon = {
                             Icon(
                                 imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Default.ContentCopy else MenuBtmSheetVM.archiveOptionIcon.value,
@@ -223,7 +241,7 @@ fun MenuBtmSheetUI(
                             )
                         })
                         NavigationBarItem(selected = true, onClick = {
-
+                            menuBtmSheetParam.onRename()
                         }, icon = {
                             Icon(
                                 imageVector = Icons.Outlined.DriveFileRenameOutline,
@@ -236,7 +254,11 @@ fun MenuBtmSheetUI(
                             )
                         })
                         NavigationBarItem(selected = true, onClick = {
-
+                            if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
+                                menuBtmSheetParam.onRefreshClick()
+                            } else {
+                                menuBtmSheetParam.onDelete()
+                            }
                         }, icon = {
                             Icon(
                                 imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Outlined.Refresh else Icons.Default.FolderDelete,
