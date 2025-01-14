@@ -48,6 +48,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
@@ -299,7 +300,9 @@ fun App(
                             rootRouteList.forEach { navRouteItem ->
                                 val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                                 NavigationBarItem(selected = isSelected, onClick = {
-                                    localNavController.navigate(navRouteItem)
+                                    isSelected.ifNot {
+                                        localNavController.navigate(navRouteItem)
+                                    }
                                 }, icon = {
                                     Icon(
                                         imageVector = if (isSelected) {
