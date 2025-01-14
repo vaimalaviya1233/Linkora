@@ -86,6 +86,7 @@ sealed interface Navigation {
                 Localization.getLocalizedString(Localization.Key.Acknowledgments)
         }
 
+        @Serializable
         sealed interface Data : Settings {
             @Serializable
             data object ServerSetupScreen : Data {
@@ -108,6 +109,7 @@ sealed interface Navigation {
         data object SpecificPanelManagerScreen : Home
     }
 
+    @Serializable
     sealed interface Collection {
         @Serializable
         data object CollectionDetailPane : Collection {

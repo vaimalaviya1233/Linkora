@@ -58,6 +58,12 @@ open class CollectionsScreenVM(
         fun updateCollectionDetailPaneInfo(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
             _collectionDetailPaneInfo.value = collectionDetailPaneInfo
         }
+
+        fun resetCollectionDetailPaneInfo() {
+            _collectionDetailPaneInfo.value = CollectionDetailPaneInfo(
+                currentFolder = null, isAnyCollectionSelected = false
+            )
+        }
     }
 
     fun updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo: CollectionDetailPaneInfo) {

@@ -46,6 +46,7 @@ import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.createDataStore
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.DesktopTypography
 import com.sakethh.linkora.ui.theme.LightColors
@@ -75,7 +76,8 @@ fun main() {
             undecorated = true
         ) {
             CompositionLocalProvider(
-                LocalNavController provides navController
+                LocalNavController provides navController,
+                LocalPlatform provides Platform.Desktop
             ) {
                 LinkoraTheme(
                     typography = DesktopTypography,

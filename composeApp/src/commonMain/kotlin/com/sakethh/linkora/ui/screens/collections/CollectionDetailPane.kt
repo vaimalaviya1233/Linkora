@@ -78,7 +78,7 @@ fun CollectionDetailPane(
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
     val rootArchiveFolders = collectionsScreenVM.rootArchiveFolders.collectAsStateWithLifecycle()
-    val currentlyInFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder!!
+    val currentlyInFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
     val platform = platform()
     val navController = LocalNavController.current
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
@@ -87,12 +87,12 @@ fun CollectionDetailPane(
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
-                    if (platform is Platform.Android) {
+                    if (platform is Platform.Android.Mobile) {
                         navController.navigateUp()
                         return@IconButton
                     }
-                    if (currentlyInFolder.parentFolderId.isNotNull()) {
-                        currentlyInFolder.parentFolderId as Long
+                    if (currentlyInFolder?.parentFolderId.isNotNull()) {
+                        currentlyInFolder?.parentFolderId as Long
                         collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                             CollectionDetailPaneInfo(
                                 currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
@@ -112,7 +112,7 @@ fun CollectionDetailPane(
                 }
             }, title = {
                 Text(
-                    text = currentlyInFolder.name,
+                    text = currentlyInFolder?.name ?: "",
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp

@@ -1,7 +1,5 @@
 package com.sakethh.linkora.ui.screens.collections
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,9 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,12 +53,10 @@ import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.components.AddItemFABParam
-import com.sakethh.linkora.ui.components.AddItemFab
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -71,50 +65,17 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionsScreen(
-    collectionsScreenVM: CollectionsScreenVM, menuBtmSheetVM: MenuBtmSheetVM,
-    shouldShowNewFolderDialog: MutableState<Boolean>,
-    shouldShowAddLinkDialog: MutableState<Boolean>
+    collectionsScreenVM: CollectionsScreenVM
 ) {
     val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
-    val btmModalSheetStateForSavingLinks = rememberModalBottomSheetState()
-
-    val isMainFabRotated = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val rotationAnimation = remember {
-        Animatable(0f)
-    }
-    val shouldScreenTransparencyDecreasedBoxVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val shouldBtmSheetForNewLinkAdditionBeEnabled = rememberSaveable {
-        mutableStateOf(false)
-    }
     val navController = LocalNavController.current
-    val platform = platform()
+    val platform = LocalPlatform.current
     Scaffold(
-        floatingActionButton = {
-            AddItemFab(
-                AddItemFABParam(
-                    newLinkBottomModalSheetState = btmModalSheetStateForSavingLinks,
-                    shouldBtmSheetForNewLinkAdditionBeEnabled = shouldBtmSheetForNewLinkAdditionBeEnabled,
-                    shouldScreenTransparencyDecreasedBoxVisible = shouldScreenTransparencyDecreasedBoxVisible,
-                    shouldDialogForNewFolderAppear = shouldShowNewFolderDialog,
-                    shouldDialogForNewLinkAppear = shouldShowAddLinkDialog,
-                    isMainFabRotated = isMainFabRotated,
-                    rotationAnimation = rotationAnimation,
-                    inASpecificScreen = false
-                )
-            )
-        },
         floatingActionButtonPosition = FabPosition.End,
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         topBar = {
@@ -352,24 +313,6 @@ fun CollectionsScreen(
                     collectionsScreenVM = collectionsScreenVM,
                 )
             }
-        }
-        if (shouldScreenTransparencyDecreasedBoxVisible.value) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
-                        shouldScreenTransparencyDecreasedBoxVisible.value = false
-                        coroutineScope.launch {
-                            awaitAll(async {
-                                rotationAnimation.animateTo(
-                                    -360f, animationSpec = tween(300)
-                                )
-                            }, async { isMainFabRotated.value = false })
-                        }.invokeOnCompletion {
-                            coroutineScope.launch {
-                                rotationAnimation.snapTo(0f)
-                            }
-                        }
-                    })
         }
     }
 }

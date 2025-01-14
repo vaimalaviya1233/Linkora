@@ -25,9 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -58,9 +63,22 @@ fun AddItemFab(
     }
     val coroutineScope = rememberCoroutineScope()
     println(platform().toString())
+    val navController = LocalNavController.current
+    val rootRouteList = rememberDeserializableObject {
+        listOf(
+            Navigation.Root.HomeScreen,
+            Navigation.Root.SearchScreen,
+            Navigation.Root.CollectionsScreen,
+            Navigation.Root.SettingsScreen,
+        )
+    }
+    val currentBackStackEntryState = navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntryState.value?.destination
     androidx.compose.foundation.layout.Column(
         modifier = Modifier.padding(
-            bottom = if (!addItemFABParam.inASpecificScreen && platform() == Platform.Android.Mobile) 82.dp else 0.dp
+            bottom = if (!addItemFABParam.inASpecificScreen && platform() == Platform.Android.Mobile && rootRouteList.any {
+                    currentRoute?.hasRoute(it::class) == true
+                }) 82.dp else 0.dp
         )
     ) {
         androidx.compose.foundation.layout.Row(

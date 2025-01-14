@@ -1,5 +1,8 @@
 package com.sakethh.linkora
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,14 +52,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
+import com.sakethh.linkora.ui.components.AddItemFABParam
+import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.DeleteDialogBox
 import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
 import com.sakethh.linkora.ui.components.DeleteDialogBoxType
@@ -94,6 +102,7 @@ import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -217,13 +226,56 @@ fun App(
         rememberStandardBottomSheetState(skipHiddenState = false, initialValue = SheetValue.Hidden)
     val scaffoldSheetState =
         rememberBottomSheetScaffoldState(bottomSheetState = standardBottomSheet)
-    LaunchedEffect(currentBackStackEntryState.value) {
-        if (rootRouteList.any {
+    val btmModalSheetStateForSavingLinks = rememberModalBottomSheetState()
+
+    val isMainFabRotated = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val rotationAnimation = remember {
+        Animatable(0f)
+    }
+    val shouldScreenTransparencyDecreasedBoxVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val shouldBtmSheetForNewLinkAdditionBeEnabled = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    val showAddingLinkOrFoldersFAB = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val platform = LocalPlatform.current
+    LaunchedEffect(
+        key1 = currentBackStackEntryState.value,
+        key2 = CollectionsScreenVM.collectionDetailPaneInfo.value
+    ) {
+        launch {
+            if (rootRouteList.any {
+                    currentBackStackEntryState.value?.destination?.hasRoute(it::class) == true
+                }) {
+                scaffoldSheetState.bottomSheetState.expand()
+            } else {
+                scaffoldSheetState.bottomSheetState.hide()
+            }
+        }
+        launch {
+            if (platform is Platform.Android.Mobile && currentBackStackEntryState.value?.destination?.hasRoute(
+                    Navigation.Root.CollectionsScreen::class
+                ) == true
+            ) {
+                CollectionsScreenVM.resetCollectionDetailPaneInfo()
+            }
+            if (currentBackStackEntryState.value?.destination?.hasRoute(Navigation.Root.CollectionsScreen::class) == true && platform !is Platform.Android.Mobile && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
+                showAddingLinkOrFoldersFAB.value = false
+            }
+            showAddingLinkOrFoldersFAB.value = listOf(
+                Navigation.Root.HomeScreen,
+                Navigation.Root.SearchScreen,
+                Navigation.Root.CollectionsScreen,
+                Navigation.Collection.CollectionDetailPane
+            ).any {
                 currentBackStackEntryState.value?.destination?.hasRoute(it::class) == true
-            }) {
-            scaffoldSheetState.bottomSheetState.expand()
-        } else {
-            scaffoldSheetState.bottomSheetState.hide()
+            } && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ARCHIVE_ID
         }
     }
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
@@ -278,6 +330,22 @@ fun App(
             }
         }
         Scaffold(
+            floatingActionButton = {
+                if (showAddingLinkOrFoldersFAB.value) {
+                    AddItemFab(
+                        AddItemFABParam(
+                            newLinkBottomModalSheetState = btmModalSheetStateForSavingLinks,
+                            shouldBtmSheetForNewLinkAdditionBeEnabled = shouldBtmSheetForNewLinkAdditionBeEnabled,
+                            shouldScreenTransparencyDecreasedBoxVisible = shouldScreenTransparencyDecreasedBoxVisible,
+                            shouldDialogForNewFolderAppear = shouldShowNewFolderDialog,
+                            shouldDialogForNewLinkAppear = shouldShowAddLinkDialog,
+                            isMainFabRotated = isMainFabRotated,
+                            rotationAnimation = rotationAnimation,
+                            inASpecificScreen = false
+                        )
+                    )
+                }
+            },
             snackbarHost = {
                 SnackbarHost(snackbarHostState, snackbar = {
                     Snackbar(
@@ -346,10 +414,7 @@ fun App(
                     }
                     composable<Navigation.Root.CollectionsScreen> {
                         CollectionsScreen(
-                            collectionsScreenVM = collectionsScreenVM,
-                            menuBtmSheetVM = menuBtmSheetVM,
-                            shouldShowNewFolderDialog = shouldShowNewFolderDialog,
-                            shouldShowAddLinkDialog = shouldShowAddLinkDialog
+                            collectionsScreenVM = collectionsScreenVM
                         )
                     }
                     composable<Navigation.Root.SettingsScreen> {
@@ -394,10 +459,28 @@ fun App(
                 }
             }
 
+            if (shouldScreenTransparencyDecreasedBoxVisible.value) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
+                            shouldScreenTransparencyDecreasedBoxVisible.value = false
+                            coroutineScope.launch {
+                                kotlinx.coroutines.awaitAll(async {
+                                    rotationAnimation.animateTo(
+                                        -360f,
+                                        animationSpec = androidx.compose.animation.core.tween(300)
+                                    )
+                                }, async { isMainFabRotated.value = false })
+                            }.invokeOnCompletion {
+                                coroutineScope.launch {
+                                    rotationAnimation.snapTo(0f)
+                                }
+                            }
+                        })
+            }
             AddANewLinkDialogBox(
                 shouldBeVisible = shouldShowAddLinkDialog,
-                screenType = ScreenType.ROOT_SCREEN,
-                currentFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
+                screenType = ScreenType.ROOT_SCREEN, currentFolder = null,
                 collectionsScreenVM
             )
 

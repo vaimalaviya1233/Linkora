@@ -28,6 +28,7 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.ifTrue
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.theme.AndroidTypography
 import com.sakethh.linkora.ui.theme.DarkColors
@@ -38,6 +39,7 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.AndroidUIEvent.pushUIEvent
+import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
@@ -96,10 +98,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+            val localConfiguration = LocalConfiguration.current
             CompositionLocalProvider(
-                LocalNavController provides navController
+                LocalNavController provides navController,
+                LocalPlatform provides if (isTablet(localConfiguration)) Platform.Android.Tablet else Platform.Android.Mobile
             ) {
-                val localConfiguration = LocalConfiguration.current
                 val context = LocalContext.current
                 val darkColors = DarkColors.copy(
                     background = if (AppPreferences.shouldUseAmoledTheme.value) Color(0xFF000000) else DarkColors.background,
