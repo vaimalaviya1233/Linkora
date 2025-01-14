@@ -11,10 +11,6 @@ However, the original codebase was tightly coupled. It also lacked the flexibili
 features. As a result, I had to step back, rethink everything, and start from
 scratch.
 
-This is why this repository is based on KMP (Kotlin Multiplatform). Soon, this codebase will be
-moved to the main repository, and development will continue there. Until then, development will
-carry on in this repository.
-
 Now, due to this rewrite, Linkora is also built for large screens like Android tablets. Some of the
 core features, such as the UI for panels, Menu Bottom Sheet, Dialog Box for adding links,
 Import/Export Progress screens, and a few others, have been redesigned in the most UX-friendly way
@@ -40,6 +36,10 @@ can be found in its repository.
 
 The general public release of both the app and server will be available soon.
 
+**Soon, this codebase will be
+moved to the main repository, and development will continue there. Until then, development will
+carry on in this repository.**
+
 ---
 
 ## Features
@@ -55,7 +55,7 @@ The general public release of both the app and server will be available soon.
 - Auto-recognize link images and titles.
 - Add folders to your **_Panels_** for instant home screen access.
 - Localization supported via a central localization server, also written in Ktor. The server code
-  can be found here.
+  can be found ![here](https://github.com/LinkoraApp/LinkoraLocalizationServer).
 
 ## Screenshots
 
@@ -64,8 +64,7 @@ The general public release of both the app and server will be available soon.
 |                    |                    |
 |--------------------|--------------------|
 | ![](assets/t1.png) | ![](assets/t2.png) |
-| ![](assets/t3.png) | ![](assets/t4.png) |
-| ![](assets/t5.png) |                    |
+| ![](assets/t3.png) | ![](assets/t5.png) |
 
 ### Mobile Screenshots
 
@@ -94,6 +93,39 @@ The general public release of both the app and server will be available soon.
   helps detect titles and images.
 - **Coil**: For image loading.
 - **Architecture Components**: DataStore, Navigation, and ViewModel.
+
+# Run locally
+
+To build and run this project, you will need to have Android Studio installed on your device.
+
+## Android
+
+To build and run the app on an Android device, use the following commands based on your operating
+system:
+
+### Windows
+
+```
+./gradlew installDebug; & "<adb location>" shell am start -n com.sakethh.linkora/.MainActivity
+```
+
+### Linux
+
+```
+./gradlew installDebug && ~/Android/Sdk/platform-tools/adb shell am start -n com.sakethh.linkora/.MainActivity
+```
+
+### macOS
+
+```
+./gradlew installDebug && ~/Library/Android/sdk/platform-tools/adb shell am start -n com.sakethh.linkora/.MainActivity
+```
+
+## Desktop
+
+```
+./gradlew run
+```
 
 ## Join the Community
 
