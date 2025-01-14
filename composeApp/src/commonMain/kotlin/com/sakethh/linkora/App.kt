@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -332,6 +334,26 @@ fun App(
         Scaffold(
             floatingActionButton = {
                 if (showAddingLinkOrFoldersFAB.value) {
+                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
+                            Constants.SAVED_LINKS_ID,
+                            Constants.IMPORTANT_LINKS_ID,
+                            Constants.ALL_LINKS_ID
+                        )
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier.padding(
+                                bottom = if (platform() == Platform.Android.Mobile && rootRouteList.any {
+                                        currentRoute?.hasRoute(it::class) == true
+                                    }) 82.dp else 0.dp
+                            ), onClick = {
+                                shouldShowAddLinkDialog.value = true
+                            }) {
+                            Icon(
+                                imageVector = Icons.Default.AddLink, contentDescription = null
+                            )
+                        }
+                        return@Scaffold
+                    }
                     AddItemFab(
                         AddItemFABParam(
                             newLinkBottomModalSheetState = btmModalSheetStateForSavingLinks,
