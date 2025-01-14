@@ -31,15 +31,12 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -69,12 +66,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -85,7 +78,6 @@ import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.isAValidURL
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.LinkSaveConfig
@@ -106,7 +98,8 @@ import kotlinx.coroutines.launch
 fun AddANewLinkDialogBox(
     shouldBeVisible: MutableState<Boolean>,
     screenType: ScreenType, currentFolder: Folder?,
-    collectionsScreenVM: CollectionsScreenVM
+    collectionsScreenVM: CollectionsScreenVM,
+    url: String = ""
 ) {
     val isDataExtractingForTheLink = rememberSaveable {
         mutableStateOf(false)
@@ -146,8 +139,8 @@ fun AddANewLinkDialogBox(
                 isDropDownMenuIconClicked.value = false
             }
         }
-        val linkTextFieldValue = rememberSaveable {
-            mutableStateOf("")
+        val linkTextFieldValue = rememberSaveable() {
+            mutableStateOf(url)
         }
         LaunchedEffect(Unit) {
             isDataExtractingForTheLink.value = false
@@ -696,65 +689,6 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 16.sp
                 )
-            }
-            if (isAValidURL(linkTextFieldValue.value) && !AppPreferences.forceSaveWithoutFetchingAnyMetaData.value && !isForceSaveWithoutFetchingMetaDataEnabled.value) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(20.dp),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                )
-                Card(
-                    border = BorderStroke(
-                        1.dp, contentColorFor(MaterialTheme.colorScheme.surface)
-                    ),
-                    colors = CardDefaults.cardColors(containerColor = AlertDialogDefaults.containerColor),
-                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(
-                            top = 10.dp, bottom = 10.dp
-                        ), verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Info,
-                                contentDescription = null,
-                                modifier = Modifier.padding(
-                                    start = 10.dp, end = 10.dp
-                                )
-                            )
-                        }
-                        Text(
-                            text = if (linkTextFieldValue.value.trim()
-                                    .startsWith("https://x.com/") || linkTextFieldValue.value.trim()
-                                    .startsWith("http://x.com/") || linkTextFieldValue.value.trim()
-                                    .startsWith("https://twitter.com/") || linkTextFieldValue.value.trim()
-                                    .startsWith("http://twitter.com/")
-                            ) {
-                                buildAnnotatedString {
-                                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                        append("vxTwitter API")
-                                    }
-                                    append(" " + "LocalizedStrings.willBeUsedToRetrieveMetadata.value")
-                                }
-                            } else {
-                                buildAnnotatedString {
-                                    append("LocalizedStrings.userAgent.value" + " ")
-                                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                        append("AddANewLinkDialogBox.currentUserAgent.value")
-                                    }
-                                    append(" " + "LocalizedStrings.willBeUsedToRetrieveMetadata.value")
-                                }
-                            },
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(end = 10.dp))
-                    }
-                }
             }
         } else {
             Spacer(modifier = Modifier.height(30.dp))

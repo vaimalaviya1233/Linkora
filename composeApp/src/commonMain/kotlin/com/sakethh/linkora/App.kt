@@ -502,7 +502,6 @@ fun App(
                             }
                         })
             }
-            // damn its 4:06 pm 14th jan ist and it feels like im almost gonna miss this kotlinconf opportunity holy sh can you believe this
             AddANewLinkDialogBox(
                 shouldBeVisible = shouldShowAddLinkDialog,
                 screenType = ScreenType.ROOT_SCREEN,
