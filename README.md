@@ -11,10 +11,6 @@ However, the original codebase was tightly coupled. It also lacked the flexibili
 features. As a result, I had to step back, rethink everything, and start from
 scratch.
 
-This is why this repository is based on KMP (Kotlin Multiplatform). Soon, this codebase will be
-moved to the main repository, and development will continue there. Until then, development will
-carry on in this repository.
-
 Now, due to this rewrite, Linkora is also built for large screens like Android tablets. Some of the
 core features, such as the UI for panels, Menu Bottom Sheet, Dialog Box for adding links,
 Import/Export Progress screens, and a few others, have been redesigned in the most UX-friendly way
@@ -39,6 +35,10 @@ can be found in its repository.
 ---
 
 The general public release of both the app and server will be available soon.
+
+**Soon, this codebase will be
+moved to the main repository, and development will continue there. Until then, development will
+carry on in this repository.**
 
 ---
 
