@@ -1,10 +1,10 @@
 **Linkora** is the ultimate tool for organizing links on Android or on desktop. Whether you need to
 save a quick link or manage them in detailed folders, Linkora gets it done.
 
-This repository is part of the ![LinkoraApp](https://github.com/LinkoraApp) project. It has been
+This repository is part of the [LinkoraApp](https://github.com/LinkoraApp) project. It has been
 completely rewritten from
 scratch, based on the original Linkora App. The original app is available in
-the ![main repository](https://github.com/LinkoraApp/Linkora) of
+the [main repository](https://github.com/LinkoraApp/Linkora) of
 this project. It was Android-specific and was in development until the last three months.
 
 However, the original codebase was tightly coupled. It also lacked the flexibility to extend
@@ -17,7 +17,7 @@ Import/Export Progress screens, and a few others, have been redesigned in the mo
 possible.
 
 This rewrite also provided a new opportunity to build a data-syncing mechanism with
-the ![server](https://github.com/LinkoraApp/server). The
+the [server](https://github.com/LinkoraApp/server). The
 server can be self-hosted.
 
 ---
@@ -25,7 +25,7 @@ server can be self-hosted.
 This repository contains the code for the app itself, which targets both Android and desktop. The
 server, which is also part of this project, is based on Ktor. It can be self-hosted and is used for
 data syncing across any devices. The server code can be
-found ![here](https://github.com/LinkoraApp/server).
+found [here](https://github.com/LinkoraApp/server).
 
 Linkora and any other client based on Linkora are supported across devices using this server for
 syncing. However, each app comes with its own local database. So, excluding the sync functionality,
@@ -55,7 +55,7 @@ carry on in this repository.**
 - Auto-recognize link images and titles.
 - Add folders to your **_Panels_** for instant home screen access.
 - Localization supported via a central localization server, also written in Ktor. The server code
-  can be found ![here](https://github.com/LinkoraApp/LinkoraLocalizationServer).
+  can be found [here](https://github.com/LinkoraApp/LinkoraLocalizationServer).
 
 ## Screenshots
 
