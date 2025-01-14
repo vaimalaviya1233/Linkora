@@ -1,14 +1,46 @@
-![Linkora Header](https://github.com/user-attachments/assets/30302044-6c21-4179-88e0-ed0c513a4a59)
-**Linkora** is the ultimate tool for organizing links on Android. Whether you need to save a quick link or manage them in detailed folders, Linkora gets it done.
+**Linkora** is the ultimate tool for organizing links on Android or on desktop. Whether you need to
+save a quick link or manage them in detailed folders, Linkora gets it done.
 
-## Download
+This repository is part of the ![LinkoraApp](https://github.com/LinkoraApp) project. It has been
+completely rewritten from
+scratch, based on the original Linkora App. The original app is available in
+the ![main repository](https://github.com/LinkoraApp/Linkora) of
+this project. It was Android-specific and was in development until the last three months.
 
-[<img src="https://github.com/user-attachments/assets/a50513b3-dbf8-48c1-bff8-1f4215fefbb9"
-alt="Get it on GitHub"
-height="80">](https://github.com/sakethpathike/Linkora/releases) [<img src="https://f-droid.org/badge/get-it-on.png"
-alt="Get it on F-Droid"
-height="80">](https://f-droid.org/packages/com.sakethh.linkora)
+However, the original codebase was tightly coupled. It also lacked the flexibility to extend
+features. As a result, I had to step back, rethink everything, and start from
+scratch.
 
+This is why this repository is based on KMP (Kotlin Multiplatform). Soon, this codebase will be
+moved to the main repository, and development will continue there. Until then, development will
+carry on in this repository.
+
+Now, due to this rewrite, Linkora is also built for large screens like Android tablets. Some of the
+core features, such as the UI for panels, Menu Bottom Sheet, Dialog Box for adding links,
+Import/Export Progress screens, and a few others, have been redesigned in the most UX-friendly way
+possible.
+
+This rewrite also provided a new opportunity to build a data-syncing mechanism with
+the ![server](https://github.com/LinkoraApp/server). The
+server can be self-hosted.
+
+---
+
+This repository contains the code for the app itself, which targets both Android and desktop. The
+server, which is also part of this project, is based on Ktor. It can be self-hosted and is used for
+data syncing across any devices. The server code can be
+found ![here](https://github.com/LinkoraApp/server).
+
+Linkora and any other client based on Linkora are supported across devices using this server for
+syncing. However, each app comes with its own local database. So, excluding the sync functionality,
+everything will work just fine if you don’t want to host the server. Updates related to the server
+can be found in its repository.
+
+---
+
+The general public release of both the app and server will be available soon.
+
+---
 
 ## Features
 
@@ -17,79 +49,54 @@ height="80">](https://f-droid.org/packages/com.sakethh.linkora)
 - Highlight important links for quick access.
 - Archive old links to keep things tidy.
 - Customize link names to your preference.
-- Share directly from other apps.
+- Share directly from other apps (Android-specific feature).
 - Sort and search links and folders quickly.
-- Import and export data easily (this is being written and will be updated with the standard HTML-based schema).
+- Import and export data easily.
 - Auto-recognize link images and titles.
-- Add folders to your **_Shelf_** for instant home screen access.
-- Hindi language support, with remote string loading to update languages seamlessly. For details on contributing language strings, check [this guide](https://github.com/sakethpathike/LinkoraLocalizationServer/blob/master/README.md).
+- Add folders to your **_Panels_** for instant home screen access.
+- Localization supported via a central localization server, also written in Ktor. The server code
+  can be found here.
 
 ## Screenshots
 
-|                                                                                          |  |                                                                                          |  |
-|------------------------------------------------------------------------------------------|-----------------------|------------------------------------------------------------------------------------------|-----------------------|
-| ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpeg) | ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpeg) | ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/3.png)  | ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpeg) |
-| ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png)  | ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/6.jpeg) | ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/7.jpeg) | ![Linkora UI Screenshot](fastlane/metadata/android/en-US/images/phoneScreenshots/8.jpeg) |
+### Tablet/Desktop Screenshots
 
-|                            Sharing links from other apps                            |
-|:-----------------------------------------------------------------------------------:|
-| <video src="https://github.com/user-attachments/assets/b1614d54-2df6-46d0-865a-f6ba16854c6c"></video> |
+|                    |                    |
+|--------------------|--------------------|
+| ![](assets/t1.png) | ![](assets/t2.png) |
+| ![](assets/t3.png) | ![](assets/t4.png) |
+| ![](assets/t5.png) |                    |
+
+### Mobile Screenshots
+
+|                    |                    |                    |                    |
+|--------------------|--------------------|--------------------|--------------------|
+| ![](assets/m1.png) | ![](assets/m2.png) | ![](assets/m3.png) | ![](assets/m4.png) |
+| ![](assets/m5.png) | ![](assets/m6.png) | ![](assets/m7.png) | ![](assets/m8.png) |
+
+|                         Sharing links from other apps     (Android-specific)                          |
+|:-----------------------------------------------------------------------------------------------------:|
+| <video src="https://github.com/user-attachments/assets/65fdbdb9-83da-4d83-9dd9-2fa3e3504bc0"></video> |
 
 ## Tech Stack
 
 - **Kotlin**: Built entirely in Kotlin.
-- **Jetpack Compose**: Fully Compose-based UI.
-- **Material 3**: Modern Material design components.
-- **Room**: Efficient local storage.
+- **Jetpack Compose with KMP**: Fully Compose-based UI based on KMP.
+- **Material 3**: Modern Material Design components.
+- **Room**: Efficient local storage solution.
 - **Kotlin Coroutines**: Smooth background processing.
-- **Kotlin Flows**: For asynchronous data streams.
-- **Kotlin Channels**: Real-time UI updates.
-- **Kotlinx Serialization**: API response handling.
-- **WorkManager**: Reliable background tasks (e.g., refreshing link metadata).
-- **Coil**: Image loading.
-- **Dagger Hilt**: Dependency Injection.
-- **Architecture Components**: DataStore, Navigation, and ViewModel for structured development.
-
-## FAQ
-
-For frequently asked questions, refer to [FAQs](./wiki/FAQs.md).
+- **Kotlin Flows**: For handling asynchronous data streams.
+- **Kotlin Channels**: For real-time updates when communicating with different platforms from shared
+  code and in some other cases for UI events.
+- **Kotlinx Serialization**: For server and vxTwitter API response handling.
+- **jsoup**: Custom implementation for importing HTML was easier as jsoup was integrated to scrape
+  HTML metadata and import HTML-based files. jsoup is also used for remote website scraping, which
+  helps detect titles and images.
+- **Coil**: For image loading.
+- **Architecture Components**: DataStore, Navigation, and ViewModel.
 
 ## Join the Community
 
-[![Join us on Discord](https://discord.com/api/guilds/1214971383352664104/widget.png?style=banner2)](https://discord.gg/ZDBXNtv8MD)
+[![](https://discord.com/api/guilds/1214971383352664104/widget.png?style=banner2)](https://discord.gg/ZDBXNtv8MD)
 
-## Contribute
-
-Want to help improve Linkora? You can contribute by:
-
-- Reporting issues
-- Submitting pull requests
-- Translating into other languages
-
-For more on translating, check the [localization guide](https://github.com/sakethpathike/LinkoraLocalizationServer/blob/master/README.md).
-
-## License
-
-```
-MIT License
-
-Copyright (c) 2023 Saketh Pathike
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+Join the Discord for regular updates and discussions related to this project.
