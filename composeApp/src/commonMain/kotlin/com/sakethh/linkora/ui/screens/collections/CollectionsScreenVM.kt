@@ -342,10 +342,24 @@ open class CollectionsScreenVM(
 
     fun archiveALink(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            localLinksRepo.archiveALink(link.id).collectLatest {
-                it.onSuccess {
-                    Localization.Key.ArchivedTheLink.pushLocalizedSnackbar()
-                }.pushSnackbarOnFailure()
+            if (link.linkType == LinkType.ARCHIVE_LINK) {
+                // we can also revert to the same folder from where it was originally archived, but this should be fine
+                localLinksRepo.updateALink(
+                    link.copy(
+                        linkType = LinkType.SAVED_LINK, idOfLinkedFolder = null
+                    )
+                ).collectLatest {
+                    it.onSuccess {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.UnArchived.getLocalizedString()))
+                    }
+                    it.pushSnackbarOnFailure()
+                }
+            } else {
+                localLinksRepo.archiveALink(link.id).collectLatest {
+                    it.onSuccess {
+                        Localization.Key.ArchivedTheLink.pushLocalizedSnackbar()
+                    }.pushSnackbarOnFailure()
+                }
             }
         }.invokeOnCompletion {
             onCompletion()

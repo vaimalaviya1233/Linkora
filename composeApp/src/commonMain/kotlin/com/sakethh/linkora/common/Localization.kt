@@ -835,6 +835,11 @@ object Localization {
                 return "unarchive"
             }
         },
+        UnArchived(defaultValue = "Unarchived and saved to the default \"Saved Links\" collection.") {
+            override fun toString(): String {
+                return "unarchived"
+            }
+        },
         DeleteTheNote(defaultValue = "Delete The Note") {
             override fun toString(): String {
                 return "delete_the_note"

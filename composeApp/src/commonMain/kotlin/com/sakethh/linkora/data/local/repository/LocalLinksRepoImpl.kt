@@ -232,4 +232,10 @@ class LocalLinksRepoImpl(
     override suspend fun deleteAllLinks() {
         linksDao.deleteAllLinks()
     }
+
+    override suspend fun updateALink(link: Link): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            linksDao.updateALink(link)
+        }
+    }
 }

@@ -55,4 +55,7 @@ interface LocalLinksRepo {
     suspend fun getAllLinks(): List<Link>
 
     suspend fun deleteAllLinks()
+
+    suspend fun updateALink(link: Link): Flow<Result<Unit>>
+
 }
