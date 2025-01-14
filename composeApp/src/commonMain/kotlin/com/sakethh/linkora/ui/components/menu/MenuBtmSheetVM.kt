@@ -25,11 +25,15 @@ class MenuBtmSheetVM(private val localLinksRepo: LocalLinksRepo) : ViewModel() {
 
         val archiveOptionIcon = mutableStateOf(Icons.Outlined.Archive)
         val archiveOptionText = mutableStateOf("")
+
+        var isCurrentLinkMarkedAsImp = false
+        var isCurrentLinkInArchive = false
     }
 
     fun updateImpLinkInfo(linkUrl: String) = runBlocking {
         localLinksRepo.markedAsImportant(linkUrl).collectLatest {
             it.onSuccess {
+                isCurrentLinkMarkedAsImp = it.data
                 if (it.data) {
                     importantOptionIcon.value = Icons.Outlined.DeleteForever
                     importantOptionText.value =
@@ -48,6 +52,7 @@ class MenuBtmSheetVM(private val localLinksRepo: LocalLinksRepo) : ViewModel() {
         runBlocking {
             localLinksRepo.isInArchive(url).collectLatest {
                 it.onSuccess {
+                    isCurrentLinkInArchive = it.data
                     isArchived = it.data
                 }.pushSnackbarOnFailure()
             }

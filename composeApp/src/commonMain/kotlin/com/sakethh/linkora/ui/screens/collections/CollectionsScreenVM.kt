@@ -22,6 +22,7 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
@@ -337,6 +338,24 @@ open class CollectionsScreenVM(
             }
         }.invokeOnCompletion {
             onCompletion()
+        }
+    }
+
+    fun markALinkAsImp(link: Link) {
+        viewModelScope.launch {
+            if (MenuBtmSheetVM.isCurrentLinkMarkedAsImp) {
+                if (link.linkType == LinkType.IMPORTANT_LINK) {
+                    deleteALink(link, onCompletion = {})
+                } else {
+                    localLinksRepo.updateALink(link.copy(markedAsImportant = false)).collectLatest {
+                        it.pushSnackbarOnFailure()
+                    }
+                }
+            } else {
+                localLinksRepo.updateALink(link.copy(markedAsImportant = true)).collectLatest {
+                    it.pushSnackbarOnFailure()
+                }
+            }
         }
     }
 

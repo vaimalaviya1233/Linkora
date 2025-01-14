@@ -56,7 +56,9 @@ interface LinksDao {
     @Query(
         """
     SELECT * FROM links 
-    WHERE linkType = :linkType
+    WHERE 
+        (:linkType = '${LinkType.IMPORTANT_LINK}' AND (linkType = '${LinkType.IMPORTANT_LINK}' OR markedAsImportant = 1))
+        OR (:linkType != '${LinkType.IMPORTANT_LINK}' AND linkType = :linkType)
     ORDER BY 
         CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
         CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,

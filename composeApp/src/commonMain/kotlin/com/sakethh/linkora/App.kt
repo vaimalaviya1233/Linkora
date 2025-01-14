@@ -422,12 +422,6 @@ fun App(
             )
             MenuBtmSheetUI(
                 menuBtmSheetParam = MenuBtmSheetParam(
-                    onMove = {
-
-                    },
-                    onCopy = {
-
-                    },
                     btmModalSheetState = menuBtmModalSheetState,
                     shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
                     menuBtmSheetFor = menuBtmSheetFor.value,
@@ -457,14 +451,16 @@ fun App(
                             collectionsScreenVM.deleteTheNote(selectedLinkForMenuBtmSheet.value)
                         }
                     },
-                    onRefreshClick = {},
+                    onRefreshClick = {
+
+                    },
                     onForceLaunchInAnExternalBrowser = { },
                     showQuickActions = rememberSaveable { mutableStateOf(false) },
                     shouldTransferringOptionShouldBeVisible = true,
                     link = selectedLinkForMenuBtmSheet,
                     folder = selectedFolderForMenuBtmSheet,
                     onAddToImportantLinks = {
-
+                        collectionsScreenVM.markALinkAsImp(selectedLinkForMenuBtmSheet.value)
                     },
                     shouldShowArchiveOption = {
                         menuBtmSheetVM.shouldShowArchiveOption(selectedLinkForMenuBtmSheet.value.url)
