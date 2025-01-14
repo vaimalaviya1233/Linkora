@@ -30,7 +30,7 @@ class HomeScreenVM(
     private val panelsRepo: PanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     triggerCollectionOfPanels: Boolean = true,
-    triggerCollectionOfPanelFolders: Boolean = true
+    private val triggerCollectionOfPanelFolders: Boolean = true
 ) : CollectionsScreenVM(
     localFoldersRepo = localFoldersRepo,
     localLinksRepo = localLinksRepo,
@@ -59,10 +59,12 @@ class HomeScreenVM(
         ),
     )
 
-    private val defaultPanel = Panel(
-        panelName = Localization.Key.Default.getLocalizedString(),
-        panelId = Constants.DEFAULT_PANELS_ID
-    )
+    private fun defaultPanel(): Panel {
+        return Panel(
+            panelName = Localization.Key.Default.getLocalizedString(),
+            panelId = Constants.DEFAULT_PANELS_ID
+        )
+    }
 
     private var panelFoldersJob: Job? = null
 
@@ -97,10 +99,14 @@ class HomeScreenVM(
         if (triggerCollectionOfPanels) {
             viewModelScope.launch {
                 panelsRepo.getAllThePanels().collectLatest {
-                    _panels.emit(listOf(defaultPanel) + it)
+                    _panels.emit(listOf(defaultPanel()) + it)
                 }
             }
         }
+        refreshPanelsData()
+    }
+
+    fun refreshPanelsData() {
         viewModelScope.launch(Dispatchers.Main) {
             selectedPanelData.value = preferencesRepository.readPreferenceValue(
                 longPreferencesKey(
@@ -108,7 +114,7 @@ class HomeScreenVM(
                 )
             ).let {
                 if (it.isNull() || it!! == Constants.DEFAULT_PANELS_ID) {
-                    defaultPanel
+                    defaultPanel()
                 } else {
                     panelsRepo.getPanel(it)
                 }
@@ -126,7 +132,6 @@ class HomeScreenVM(
             }
         }
     }
-
     init {
         currentPhaseOfTheDay.value = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
             in 0..11 -> {

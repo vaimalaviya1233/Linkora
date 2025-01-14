@@ -36,6 +36,7 @@ import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,6 +52,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
+import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
@@ -61,6 +63,7 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -80,6 +83,9 @@ fun HomeScreen() {
             preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })
+    LaunchedEffect(Unit) {
+        homeScreenVM.refreshPanelsData()
+    }
     val shouldPanelsBtmSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
     }
@@ -153,11 +159,15 @@ fun HomeScreen() {
             }
         }
     }) { paddingValues ->
-        if (panelFolders.value.isEmpty()) {
+        if (panelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNull()) {
             LoadingScreen(paddingValues = PaddingValues(25.dp))
             return@Scaffold
         }
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            if (panelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNotNull()) {
+                DataEmptyScreen(text = "No folders in this panel. Add folders in this panel to get started.")
+                return@Scaffold
+            }
             ScrollableTabRow(
                 modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage,
                 divider = {}

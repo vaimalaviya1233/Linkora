@@ -45,7 +45,11 @@ fun IndividualMenuComponent(
 ) {
     Row(
         modifier = Modifier
-            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(0.1f) else Color.Transparent)
+            .background(
+                if (isSelected && platform() !is Platform.Android.Mobile) MaterialTheme.colorScheme.primary.copy(
+                    0.1f
+                ) else Color.Transparent
+            )
             .combinedClickable(
                 interactionSource = remember {
                     MutableInteractionSource()

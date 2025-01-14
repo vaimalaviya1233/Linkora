@@ -91,9 +91,11 @@ fun PanelsManagerScreen() {
             SpecificPanelManagerScreenVM(
                 foldersRepo = DependencyContainer.localFoldersRepo.value,
                 panelsRepo = DependencyContainer.panelsRepo.value,
-                initData = false
+                initData = false,
+                preferencesRepository = DependencyContainer.preferencesRepo.value
             )
         })
+    val platform = platform()
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
         BottomAppBar(
             modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
@@ -145,6 +147,9 @@ fun PanelsManagerScreen() {
                             SpecificPanelManagerScreenVM.updateSelectedPanelData(panel)
                             specificPanelManagerScreenVM.updateSpecificPanelManagerScreenData()
                             selectedPanelForDetailView.value = panel
+                            if (platform is Platform.Android.Mobile) {
+                                navController.navigate(Navigation.Home.SpecificPanelManagerScreen)
+                            }
                         },
                         elementName = panel.panelName,
                         elementImageVector = Icons.Default.ViewArray,

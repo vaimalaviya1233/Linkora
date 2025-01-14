@@ -1,8 +1,11 @@
 package com.sakethh.linkora.ui.screens.home.panels
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.panel.Panel
@@ -10,6 +13,7 @@ import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +22,7 @@ import kotlinx.coroutines.launch
 
 class SpecificPanelManagerScreenVM(
     private val foldersRepo: LocalFoldersRepo, private val panelsRepo: PanelsRepo,
+    private val preferencesRepository: PreferencesRepository,
     initData: Boolean = true
 ) : ViewModel() {
     private val _rootFolders = MutableStateFlow(emptyList<Folder>())
@@ -80,6 +85,13 @@ class SpecificPanelManagerScreenVM(
 
     fun deleteAPanel(panelId: Long) {
         viewModelScope.launch {
+            if (preferencesRepository.readPreferenceValue(longPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name)) == panelId) {
+                preferencesRepository.changePreferenceValue(
+                    preferenceKey = longPreferencesKey(
+                        AppPreferenceType.LAST_SELECTED_PANEL_ID.name
+                    ), newValue = Constants.DEFAULT_PANELS_ID
+                )
+            }
             panelsRepo.deleteAPanel(panelId)
         }
     }

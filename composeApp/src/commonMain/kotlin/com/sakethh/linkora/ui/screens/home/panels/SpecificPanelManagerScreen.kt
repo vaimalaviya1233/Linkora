@@ -54,7 +54,8 @@ fun SpecificPanelManagerScreen(
     specificPanelManagerScreenVM: SpecificPanelManagerScreenVM = viewModel(factory = genericViewModelFactory {
         SpecificPanelManagerScreenVM(
             foldersRepo = DependencyContainer.localFoldersRepo.value,
-            panelsRepo = DependencyContainer.panelsRepo.value
+            panelsRepo = DependencyContainer.panelsRepo.value,
+            preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })
 ) {
