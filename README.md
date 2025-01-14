@@ -55,7 +55,7 @@ The general public release of both the app and server will be available soon.
 - Auto-recognize link images and titles.
 - Add folders to your **_Panels_** for instant home screen access.
 - Localization supported via a central localization server, also written in Ktor. The server code
-  can be found here.
+  can be found ![here](https://github.com/LinkoraApp/LinkoraLocalizationServer).
 
 ## Screenshots
 
