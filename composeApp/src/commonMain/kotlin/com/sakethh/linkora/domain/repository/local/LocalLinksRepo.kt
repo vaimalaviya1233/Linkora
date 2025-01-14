@@ -58,4 +58,5 @@ interface LocalLinksRepo {
 
     suspend fun updateALink(link: Link): Flow<Result<Unit>>
 
+    suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>>
 }

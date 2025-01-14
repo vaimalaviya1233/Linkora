@@ -359,6 +359,16 @@ open class CollectionsScreenVM(
         }
     }
 
+    fun refreshLinkMetadata(link: Link) {
+        viewModelScope.launch {
+            localLinksRepo.refreshLinkMetadata(link).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.LinkRefreshedSuccessfully.getLocalizedString()))
+                }.pushSnackbarOnFailure()
+            }
+        }
+    }
+
     fun archiveALink(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
             if (link.linkType == LinkType.ARCHIVE_LINK) {

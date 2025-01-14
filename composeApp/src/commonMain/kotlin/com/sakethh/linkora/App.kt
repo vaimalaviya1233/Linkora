@@ -452,7 +452,7 @@ fun App(
                         }
                     },
                     onRefreshClick = {
-
+                        collectionsScreenVM.refreshLinkMetadata(selectedLinkForMenuBtmSheet.value)
                     },
                     onForceLaunchInAnExternalBrowser = { },
                     showQuickActions = rememberSaveable { mutableStateOf(false) },

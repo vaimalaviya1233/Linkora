@@ -1285,6 +1285,11 @@ object Localization {
             override fun toString(): String {
                 return "permission_granted"
             }
+        },
+        LinkRefreshedSuccessfully(defaultValue = "The link data has been successfully refreshed.") {
+            override fun toString(): String {
+                return "link_refreshed_successfully"
+            }
         }
     }
 }

@@ -238,4 +238,18 @@ class LocalLinksRepoImpl(
             linksDao.updateALink(link)
         }
     }
+
+    override suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            scrapeLinkData(
+                linkUrl = link.url, userAgent = link.userAgent ?: primaryUserAgent()
+            ).let { scrapedLinkInfo ->
+                linksDao.updateALink(
+                    link.copy(
+                        title = scrapedLinkInfo.title, imgURL = scrapedLinkInfo.imgUrl
+                    )
+                )
+            }
+        }
+    }
 }
