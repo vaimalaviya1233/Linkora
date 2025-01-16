@@ -9,6 +9,7 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.FolderType
+import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -141,6 +142,25 @@ class SearchScreenVM(
 
     }
 
+    fun addANewLinkToHistory(link: Link) {
+        viewModelScope.launch {
+            localLinksRepo.addANewLink(
+                link = Link(
+                    linkType = LinkType.HISTORY_LINK,
+                    title = link.title,
+                    url = link.url,
+                    imgURL = link.imgURL,
+                    note = link.note,
+                    userAgent = link.userAgent ?: AppPreferences.primaryJsoupUserAgent.value,
+                    idOfLinkedFolder = null
+                ), linkSaveConfig = LinkSaveConfig(
+                    forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
+                )
+            ).collectLatest {
+                it.pushSnackbarOnFailure()
+            }
+        }
+    }
     private val _links = MutableStateFlow(emptyList<Link>())
     val links = _links.asStateFlow()
     init {

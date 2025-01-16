@@ -43,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,6 +97,7 @@ fun HomeScreen() {
     val pagerState = rememberPagerState(pageCount = {
         panelFolders.value.size
     })
+    val localUriHandler = LocalUriHandler.current
     Scaffold(topBar = {
         Column(modifier = Modifier.animateContentSize().fillMaxWidth()) {
             Row(
@@ -256,6 +258,7 @@ fun HomeScreen() {
                                 forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                             ), onCompletion = {}, pushSnackbarOnSuccess = false
                         )
+                        localUriHandler.openUri(it.url)
                     },
                     isCurrentlyInDetailsView = {
                         false

@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
@@ -61,6 +63,7 @@ fun SearchScreen() {
     val searchQueryLinkResults = searchScreenVM.linkQueryResults.collectAsStateWithLifecycle()
     val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+    val localUriHandler = LocalUriHandler.current
     Column(modifier = Modifier.fillMaxSize()) {
         ProvideTextStyle(MaterialTheme.typography.titleSmall) {
             SearchBar(
@@ -152,7 +155,10 @@ fun SearchScreen() {
                                 )
                             },
                             onLinkClick = {
-
+                                localUriHandler.openUri(it.url)
+                                searchScreenVM.addANewLinkToHistory(
+                                    link = it.asHistoryLinkWithoutId()
+                                )
                             },
                             isCurrentlyInDetailsView = {
                                 false
@@ -193,7 +199,10 @@ fun SearchScreen() {
                 )
             },
             onLinkClick = {
-
+                localUriHandler.openUri(it.url)
+                searchScreenVM.addANewLinkToHistory(
+                    link = it.asHistoryLinkWithoutId()
+                )
             },
             isCurrentlyInDetailsView = {
                 false

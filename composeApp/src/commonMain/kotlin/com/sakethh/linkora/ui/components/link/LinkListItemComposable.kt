@@ -41,7 +41,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -55,6 +57,7 @@ fun LinkListItemComposable(
 ) {
     val localClipBoardManager = LocalClipboardManager.current
     val localURIHandler = LocalUriHandler.current
+    val platform = LocalPlatform.current
     Column(
         modifier = Modifier
             .background(
@@ -191,10 +194,12 @@ fun LinkListItemComposable(
                                 contentDescription = null
                             )
                         }
-                        IconButton(onClick = {
+                        if (platform is Platform.Android) {
+                            IconButton(onClick = {
 
-                        }) {
-                            Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
+                            }) {
+                                Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
+                            }
                         }
                         IconButton(onClick = {
                             linkUIComponentParam.onMoreIconClick()

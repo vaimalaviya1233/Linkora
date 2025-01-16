@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,6 +82,7 @@ fun CollectionDetailPane(
     val currentlyInFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
     val platform = platform()
     val navController = LocalNavController.current
+    val localUriHandler = LocalUriHandler.current
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
             TopAppBar(actions = {
@@ -175,6 +177,7 @@ fun CollectionDetailPane(
                                         onCompletion = {},
                                         pushSnackbarOnSuccess = false
                                     )
+                                    localUriHandler.openUri(it.url)
                                 },
                                 isCurrentlyInDetailsView = {
                                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
@@ -273,6 +276,7 @@ fun CollectionDetailPane(
                             forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                         ), onCompletion = {}, pushSnackbarOnSuccess = false
                     )
+                    localUriHandler.openUri(it.url)
                 },
                 isCurrentlyInDetailsView = {
                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
