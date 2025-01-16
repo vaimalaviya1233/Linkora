@@ -47,6 +47,7 @@ import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.onShare
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -196,7 +197,7 @@ fun LinkListItemComposable(
                         }
                         if (platform is Platform.Android) {
                             IconButton(onClick = {
-
+                                onShare(url = linkUIComponentParam.link.url)
                             }) {
                                 Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
                             }

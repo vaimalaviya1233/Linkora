@@ -4,19 +4,24 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.TextSnippet
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.FolderDelete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.FolderDelete
+import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +40,14 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
+import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.ui.domain.Layout
+import com.sakethh.onShare
 import com.sakethh.platform
 import kotlinx.coroutines.launch
 
@@ -268,6 +278,71 @@ fun MenuBtmSheetUI(
                             Text(
                                 text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Localization.Key.Refresh.rememberLocalizedString() else Localization.Key.Delete.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleSmall
+                            )
+                        })
+                    }
+                    if (platform is Platform.Android && AppPreferences.currentlySelectedLinkLayout.value in listOf(
+                            Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
+                        ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()
+                    ) {
+                        FilledTonalButton(
+                            onClick = {
+                                onShare(url = menuBtmSheetParam.link!!.value.url)
+                            },
+                            modifier = Modifier.fillMaxWidthWithPadding()
+                                .bottomNavPaddingAcrossPlatforms()
+                        ) {
+                            Icon(imageVector = Icons.Default.Share, contentDescription = null)
+                            Spacer(Modifier.width(5.dp))
+                            Text(
+                                text = Localization.Key.Share.rememberLocalizedString(),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
+                    }
+                } else if (platform == Platform.Android.Mobile && AppPreferences.currentlySelectedLinkLayout.value in listOf(
+                        Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
+                    ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 15.dp, end = 15.dp, top = 0.dp, bottom = 5.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        NavigationBarItem(selected = true, onClick = {
+                            localClipboard.setText(
+                                AnnotatedString(
+                                    text = menuBtmSheetParam.link?.value?.url ?: ""
+                                )
+                            )
+                            coroutineScope.launch {
+                                menuBtmSheetParam.btmModalSheetState.hide()
+                            }.invokeOnCompletion {
+                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
+                            }
+                        }, icon = {
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy, contentDescription = null
+                            )
+                        })
+                        NavigationBarItem(selected = true, onClick = {
+                            menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
+                        }, icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.OpenInBrowser,
+                                contentDescription = null
+                            )
+                        })
+                        NavigationBarItem(selected = true, onClick = {
+                            onShare(url = menuBtmSheetParam.link!!.value.url)
+                        }, icon = {
+                            Icon(
+                                imageVector = Icons.Default.Share, contentDescription = null
                             )
                         })
                     }

@@ -1,5 +1,6 @@
 package com.sakethh
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
@@ -118,4 +119,15 @@ actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): F
         }
     }
     return deferredFile.await()
+}
+
+actual fun onShare(url: String) {
+    val intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, url)
+        type = "text/plain"
+    }
+    val shareIntent = Intent.createChooser(intent, null)
+    shareIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    LinkoraApp.getContext().startActivity(shareIntent)
 }

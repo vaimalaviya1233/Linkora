@@ -1290,6 +1290,16 @@ object Localization {
             override fun toString(): String {
                 return "link_refreshed_successfully"
             }
+        },
+        Share(defaultValue = "Share") {
+            override fun toString(): String {
+                return "share"
+            }
+        },
+        ForceOpenInABrowser(defaultValue = "Open In A Browser") {
+            override fun toString(): String {
+                return "open_in_a_browser"
+            }
         }
     }
 }
