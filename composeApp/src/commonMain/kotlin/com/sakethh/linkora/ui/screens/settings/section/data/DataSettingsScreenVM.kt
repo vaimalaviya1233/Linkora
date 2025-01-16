@@ -124,12 +124,14 @@ class DataSettingsScreenVM(
         importExportJob?.cancel()
     }
 
-    fun deleteEntireDatabase() {
+    fun deleteEntireDatabase(onCompletion: () -> Unit) {
         viewModelScope.launch {
             linksRepo.deleteAllLinks()
             foldersRepo.deleteAllFolders()
             panelsRepo.deleteAllPanels()
             panelsRepo.deleteAllPanelFolders()
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 }

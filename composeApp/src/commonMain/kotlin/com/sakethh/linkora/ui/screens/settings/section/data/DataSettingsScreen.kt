@@ -45,6 +45,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.ImageLoader
+import coil3.compose.LocalPlatformContext
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -53,6 +55,9 @@ import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.components.DeleteDialogBox
+import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
+import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
@@ -97,6 +102,7 @@ fun DataSettingsScreen() {
     val serverInfoBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     val platform = platform()
+    val coilPlatformContext = LocalPlatformContext.current
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
         navController = navController
@@ -298,7 +304,6 @@ fun DataSettingsScreen() {
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
                             shouldDeleteEntireDialogBoxAppear.value = true
-                            dataSettingsScreenVM.deleteEntireDatabase()
                         },
                         icon = Icons.Default.DeleteForever,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -326,7 +331,10 @@ fun DataSettingsScreen() {
                             mutableStateOf(false)
                         },
                         onSwitchStateChange = {
-
+                            ImageLoader(coilPlatformContext).let {
+                                it.diskCache?.clear()
+                                it.memoryCache?.clear()
+                            }
                         },
                         shouldFilledIconBeUsed = rememberSaveable {
                             mutableStateOf(true)
@@ -463,16 +471,24 @@ fun DataSettingsScreen() {
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
-        ServerManagementBottomSheet(
-            serverManagementViewModel = serverManagementViewModel,
-            sheetState = serverInfoBtmSheetState,
-            isVisible = shouldServerInfoBtmSheetBeVisible,
-            navController = navController
-        )
     }
+    ServerManagementBottomSheet(
+        serverManagementViewModel = serverManagementViewModel,
+        sheetState = serverInfoBtmSheetState,
+        isVisible = shouldServerInfoBtmSheetBeVisible,
+        navController = navController
+    )
     ImportExportProgressScreen(
         isVisible = isProgressUIVisible,
         dataSettingsScreenVM = dataSettingsScreenVM,
         operationTitle = dataOperationTitle.value
     )
+    DeleteDialogBox(
+        deleteDialogBoxParam = DeleteDialogBoxParam(
+            shouldDialogBoxAppear = shouldDeleteEntireDialogBoxAppear,
+            deleteDialogBoxType = DeleteDialogBoxType.REMOVE_ENTIRE_DATA,
+            onDeleteClick = { onCompletion ->
+                dataSettingsScreenVM.deleteEntireDatabase(onCompletion)
+            }
+        ))
 }

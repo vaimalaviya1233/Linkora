@@ -119,5 +119,5 @@ private fun DeleteDialogBoxType.getTitle(areFoldersSelectable: Boolean): String 
     else if (this == DeleteDialogBoxType.SELECTED_DATA) Localization.getLocalizedString(
         Localization.Key.AreYouSureDeleteSelectedItems
     )
-    else Localization.getLocalizedString(Localization.Key.AreYouSureDeleteAllFoldersAndLinks)
+    else Localization.getLocalizedString(Localization.Key.AreYouSureDeleteEverything)
 }

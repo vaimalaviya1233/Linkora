@@ -930,9 +930,9 @@ object Localization {
                 return "are_you_sure_delete_selected_items"
             }
         },
-        AreYouSureDeleteAllFoldersAndLinks(defaultValue = "Are you sure you want to delete all folders and links?") {
+        AreYouSureDeleteEverything(defaultValue = "Are you sure you want to delete all folders, links, panels, and localized strings?") {
             override fun toString(): String {
-                return "are_you_sure_delete_all_folders_and_links"
+                return "are_you_sure_delete_everything"
             }
         },
         SavedNote(defaultValue = "Saved Note") {
