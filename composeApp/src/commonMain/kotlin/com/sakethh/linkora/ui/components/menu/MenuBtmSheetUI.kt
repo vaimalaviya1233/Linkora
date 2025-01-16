@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.FolderDelete
-import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -330,14 +329,14 @@ fun MenuBtmSheetUI(
                                 imageVector = Icons.Default.ContentCopy, contentDescription = null
                             )
                         })
-                        NavigationBarItem(selected = true, onClick = {
+                        /*NavigationBarItem(selected = true, onClick = {
                             menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
                         }, icon = {
                             Icon(
                                 imageVector = Icons.Outlined.OpenInBrowser,
                                 contentDescription = null
                             )
-                        })
+                        })*/
                         NavigationBarItem(selected = true, onClick = {
                             onShare(url = menuBtmSheetParam.link!!.value.url)
                         }, icon = {

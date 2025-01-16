@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ImageNotSupported
@@ -176,7 +175,7 @@ fun LinkListItemComposable(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = {
+                        /*IconButton(onClick = {
                             linkUIComponentParam.onForceOpenInExternalBrowserClicked()
                             localURIHandler.openUri(linkUIComponentParam.link.url)
                         }) {
@@ -184,7 +183,7 @@ fun LinkListItemComposable(
                                 imageVector = Icons.Outlined.OpenInBrowser,
                                 contentDescription = null
                             )
-                        }
+                        }*/
                         IconButton(onClick = {
                             localClipBoardManager.setText(
                                 AnnotatedString(linkUIComponentParam.link.url)
