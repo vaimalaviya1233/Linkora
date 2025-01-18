@@ -117,6 +117,24 @@ fun LayoutSettingsScreen() {
             ),
             LinkUIComponentParam(
                 link = Link(
+                    title = "Shadow of the Tomb Raider",
+                    imgURL = "https://images.ctfassets.net/x77ixfmkpoiv/4UnPNfdN8Yq2aZvOhIdBx9/1b641d296ebb37bfa3eca8873c25a321/SOTTR_Product_Image.jpg",
+                    url = "https://www.tombraider.com/products/games/shadow-of-the-tomb-raider",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    id = 0L,
+                    note = "",
+                    lastModified = "", idOfLinkedFolder = null
+                ),
+                onMoreIconClick = { -> },
+                onLinkClick = { -> },
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+            ),
+            LinkUIComponentParam(
+                link = Link(
                     title = "Nas | Spotify",
                     baseURL = "open.spotify.com",
                     imgURL = "https://i.scdn.co/image/ab6761610000e5eb153198caeef9e3bda92f9285",
