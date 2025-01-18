@@ -1315,6 +1315,16 @@ object Localization {
             override fun toString(): String {
                 return "no_of_links_refreshed"
             }
+        },
+        TopDecoratorSetting(defaultValue = "Use Linkora's Top Decorator") {
+            override fun toString(): String {
+                return "top_decorator_setting"
+            }
+        },
+        TopDecoratorSettingDesc(defaultValue = "When disabled, the default decorator will be used. Changes will apply on the next launch.") {
+            override fun toString(): String {
+                return "top_decorator_setting_desc"
+            }
         }
     }
 }

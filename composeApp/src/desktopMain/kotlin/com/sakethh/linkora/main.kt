@@ -74,7 +74,7 @@ fun main() {
             state = windowState,
             onCloseRequest = ::exitApplication,
             title = Localization.Key.Linkora.getLocalizedString(),
-            undecorated = true
+            undecorated = AppPreferences.useLinkoraTopDecoratorOnDesktop.value
         ) {
             CompositionLocalProvider(
                 LocalNavController provides navController,
@@ -89,8 +89,10 @@ fun main() {
                     }
                 ) {
                     Scaffold(topBar = {
-                        WindowDraggableArea {
-                            TopDecorator(windowState)
+                        if (AppPreferences.useLinkoraTopDecoratorOnDesktop.value) {
+                            WindowDraggableArea {
+                                TopDecorator(windowState)
+                            }
                         }
                     },
                         modifier = Modifier.border(
@@ -110,7 +112,7 @@ fun main() {
 private fun ApplicationScope.TopDecorator(windowState: WindowState) {
     val coroutineScope = rememberCoroutineScope()
     Column {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+        Box(Modifier.fillMaxWidth().padding(2.dp), contentAlignment = Alignment.CenterEnd) {
             Row(
                 verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(
                     Alignment.CenterStart

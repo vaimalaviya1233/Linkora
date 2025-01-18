@@ -24,10 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
@@ -56,7 +59,13 @@ fun SettingComponent(
             IconButton(
                 colors = if (settingComponentParam.shouldFilledIconBeUsed.value) IconButtonDefaults.filledTonalIconButtonColors() else IconButtonDefaults.iconButtonColors(),
                 onClick = { settingComponentParam.onSwitchStateChange(!settingComponentParam.isSwitchEnabled.value) }) {
-                Icon(imageVector = settingComponentParam.icon, contentDescription = null)
+                Icon(
+                    imageVector = settingComponentParam.icon,
+                    contentDescription = null,
+                    modifier = if (settingComponentParam.title == Localization.Key.TopDecoratorSetting.getLocalizedString()) Modifier.rotate(
+                        180f
+                    ) else Modifier
+                )
             }
             Spacer(modifier = Modifier.width(10.dp))
         }
