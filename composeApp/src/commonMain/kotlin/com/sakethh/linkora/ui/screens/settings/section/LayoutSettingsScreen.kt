@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -63,6 +64,7 @@ fun LayoutSettingsScreen() {
         viewModel(factory = genericViewModelFactory {
             SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
         })
+    val localUriHandler = LocalUriHandler.current
     val sampleList = remember {
         listOf(
             LinkUIComponentParam(
@@ -79,7 +81,9 @@ fun LayoutSettingsScreen() {
                     idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
-                onLinkClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
+                },
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
@@ -109,7 +113,9 @@ fun LayoutSettingsScreen() {
                     lastModified = "", idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
-                onLinkClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://store.epicgames.com/en-US/p/a-plague-tale-requiem")
+                },
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
@@ -127,7 +133,9 @@ fun LayoutSettingsScreen() {
                     lastModified = "", idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
-                onLinkClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.tombraider.com/products/games/shadow-of-the-tomb-raider")
+                },
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
@@ -148,7 +156,10 @@ fun LayoutSettingsScreen() {
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
+                },
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -165,7 +176,10 @@ fun LayoutSettingsScreen() {
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/")
+                },
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -182,7 +196,10 @@ fun LayoutSettingsScreen() {
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x")
+                },
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -199,7 +216,10 @@ fun LayoutSettingsScreen() {
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://twitter.com/CatWorkers/status/1819121250226127061")
+                },
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -217,7 +237,10 @@ fun LayoutSettingsScreen() {
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/@TheMrMobile")
+                },
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -235,9 +258,14 @@ fun LayoutSettingsScreen() {
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> }, onLinkClick = { -> },
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/@PhilippLackner")
+                },
             )
-        )
+        ).sortedBy {
+            it.link.title
+        }
     }
 
     val nonListViewPref = remember {
@@ -341,31 +369,7 @@ fun LayoutSettingsScreen() {
                 }
                 items(sampleList) {
                     LinkListItemComposable(
-                        linkUIComponentParam = LinkUIComponentParam(
-                        link = Link(
-                            linkType = LinkType.SAVED_LINK,
-                            id = 0L,
-                            title = it.link.title,
-                            url = it.link.url,
-                            baseURL = it.link.baseURL,
-                            imgURL = it.link.imgURL,
-                            note = it.link.note,
-                            lastModified = "",
-
-
-                            idOfLinkedFolder = null,
-                            userAgent = it.link.userAgent
-                        ),
-                        isSelectionModeEnabled = remember {
-                            mutableStateOf(false)
-                        },
-                        onMoreIconClick = { -> },
-                        onLinkClick = { -> },
-                        onForceOpenInExternalBrowserClicked = { -> },
-                        isItemSelected = remember {
-                            mutableStateOf(false)
-                        },
-                        onLongClick = { -> }),
+                        linkUIComponentParam = it,
                         forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
                     )
                 }
@@ -503,31 +507,7 @@ fun LayoutSettingsScreen() {
                 }
                 items(sampleList) {
                     GridViewLinkUIComponent(
-                        linkUIComponentParam = LinkUIComponentParam(
-                            link = Link(
-                                linkType = LinkType.SAVED_LINK,
-                                id = 0L,
-                                title = it.link.title,
-                                url = it.link.url,
-                                baseURL = it.link.baseURL,
-                                imgURL = it.link.imgURL,
-                                note = it.link.note,
-                                lastModified = "",
-
-
-                                idOfLinkedFolder = null,
-                                userAgent = it.link.userAgent
-                            ),
-                            isSelectionModeEnabled = remember {
-                                mutableStateOf(false)
-                            },
-                            onMoreIconClick = { -> },
-                            onLinkClick = { -> },
-                            onForceOpenInExternalBrowserClicked = { -> },
-                            isItemSelected = remember {
-                                mutableStateOf(false)
-                            },
-                            onLongClick = { -> }),
+                        linkUIComponentParam = it,
                         forStaggeredView = true
                     )
                 }
