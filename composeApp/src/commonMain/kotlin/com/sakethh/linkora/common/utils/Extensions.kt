@@ -144,7 +144,7 @@ fun <T> Flow<Result<T>>.catchAsExceptionAndEmitFailure(): Flow<Result<T>> {
 }
 
 fun String.replaceFirstPlaceHolderWith(string: String): String {
-    return this.replace(LinkoraPlaceHolder.First.value, "\"${string}\"")
+    return this.replace(LinkoraPlaceHolder.First.value, string.inDoubleQuotes())
 }
 
 fun String.isATwitterUrl(): Boolean {
@@ -184,3 +184,5 @@ fun NavHostController.inRootScreen(includeSettingsScreen: Boolean): Boolean? {
         }
     }
 }
+
+fun String.inDoubleQuotes(): String = "\"$this\""

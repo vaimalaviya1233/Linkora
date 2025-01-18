@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.settings.section.data
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.isStoragePermissionPermittedOnAndroid
@@ -23,6 +24,7 @@ import com.sakethh.linkora.domain.repository.local.PanelsRepo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.onRefreshAllLinks
 import com.sakethh.pickAValidFileForImporting
 import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Dispatchers
@@ -133,5 +135,28 @@ class DataSettingsScreenVM(
         }.invokeOnCompletion {
             onCompletion()
         }
+    }
+
+    companion object {
+        val refreshLinksState = mutableStateOf(
+            RefreshLinksState(
+                isInRefreshingState = false, currentIteration = 0
+            )
+        )
+
+        val totalLinksForRefresh = mutableStateOf(0)
+
+        var linksRefreshJob: Job? = null
+    }
+
+    fun refreshAllLinks() {
+        onRefreshAllLinks(localLinksRepo = linksRepo)
+    }
+
+    fun cancelRefreshingAllLinks() {
+        linksRefreshJob?.cancel()
+        refreshLinksState.value = RefreshLinksState(
+            isInRefreshingState = false, currentIteration = 0
+        )
     }
 }

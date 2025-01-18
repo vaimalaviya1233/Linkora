@@ -16,6 +16,7 @@ import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.RawExportString
+import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
@@ -130,4 +131,8 @@ actual fun onShare(url: String) {
     val shareIntent = Intent.createChooser(intent, null)
     shareIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
     LinkoraApp.getContext().startActivity(shareIntent)
+}
+
+actual fun onRefreshAllLinks(localLinksRepo: LocalLinksRepo) {
+
 }

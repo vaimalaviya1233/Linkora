@@ -59,6 +59,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.inDoubleQuotes
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
@@ -363,7 +364,10 @@ fun LanguageSettingsScreen() {
     LoadingDialog(
         shouldDialogBoxAppear = languageSettingsScreenVM.languageSettingsState.value.fetchingLanguageInfo || languageSettingsScreenVM.languageSettingsState.value.fetchingStrings,
         text = if (languageSettingsScreenVM.languageSettingsState.value.fetchingLanguageInfo) Localization.Key.FetchingAvailableLanguages.rememberLocalizedString() else Localization.Key.DownloadingStrings.rememberLocalizedString()
-            .replace(LinkoraPlaceHolder.First.value, "\"${selectedLanguage.value.languageName}\"")
+            .replace(
+                LinkoraPlaceHolder.First.value,
+                selectedLanguage.value.languageName.inDoubleQuotes()
+            )
     )
 }
 

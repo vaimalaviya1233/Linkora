@@ -41,6 +41,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.inDoubleQuotes
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.createDataStore
@@ -126,7 +127,8 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
                                     Localization.Key.LinkoraIsConnectedToAServer.getLocalizedString()
                                         .replace(
                                             LinkoraPlaceHolder.First.value,
-                                            "\"${AppPreferences.serverSyncType.value.asUIString()}\""
+                                            AppPreferences.serverSyncType.value.asUIString()
+                                                .inDoubleQuotes()
                                         )
                                 )
                             )

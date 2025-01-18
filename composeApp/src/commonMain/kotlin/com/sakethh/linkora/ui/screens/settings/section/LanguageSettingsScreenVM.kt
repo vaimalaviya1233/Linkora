@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.inDoubleQuotes
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.domain.onFailure
@@ -101,7 +102,7 @@ class LanguageSettingsScreenVM(
                             UIEvent.Type.ShowSnackbar(
                                 Localization.Key.DeletedTheStringsPack.getLocalizedString().replace(
                                     LinkoraPlaceHolder.First.value,
-                                    "\"${language.languageName}\""
+                                    language.languageName.inDoubleQuotes()
                                 )
                             )
                         )
@@ -125,7 +126,7 @@ class LanguageSettingsScreenVM(
                                     message = Localization.Key.DownloadedLanguageStrings.getLocalizedString()
                                         .replace(
                                             LinkoraPlaceHolder.First.value,
-                                            "\"${language.languageName}\""
+                                            language.languageName.inDoubleQuotes()
                                         )
                                 )
                             )

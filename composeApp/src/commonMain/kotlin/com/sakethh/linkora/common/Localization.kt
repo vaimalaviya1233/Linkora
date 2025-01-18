@@ -620,7 +620,7 @@ object Localization {
                 return "clear_image_cache_desc"
             }
         },
-        RefreshAllLinksTitlesAndImages(defaultValue = "Refresh All Links\\' Titles and Images") {
+        RefreshAllLinksTitlesAndImages(defaultValue = "Refresh Titles and Images of all links") {
             override fun toString(): String {
                 return "refresh_all_links_titles_and_images"
             }
@@ -635,7 +635,12 @@ object Localization {
                 return "refreshing_links"
             }
         },
-        RefreshingLinksDesc(defaultValue = "Closing Linkora won\\'t interrupt link refreshing, but newly added links might not be processed.") {
+        RefreshingLinksAndroidDesc(defaultValue = "Closing Linkora won\'t interrupt link refreshing, but newly added links might not be processed.") {
+            override fun toString(): String {
+                return "refreshing_links_Desc"
+            }
+        },
+        RefreshingLinksDesktopDesc(defaultValue = "Closing Linkora will cancel link refreshing.") {
             override fun toString(): String {
                 return "refreshing_links_Desc"
             }
@@ -1299,6 +1304,16 @@ object Localization {
         ForceOpenInABrowser(defaultValue = "Open In A Browser") {
             override fun toString(): String {
                 return "open_in_a_browser"
+            }
+        },
+        WorkManagerDesc(defaultValue = "Work Manager is scheduling the link refresh. It will continue shortly.") {
+            override fun toString(): String {
+                return "work_manager_desc"
+            }
+        },
+        NoOfLinksRefreshed(defaultValue = "${LinkoraPlaceHolder.First.value} of ${LinkoraPlaceHolder.Second.value} links refreshed.") {
+            override fun toString(): String {
+                return "no_of_links_refreshed"
             }
         }
     }
