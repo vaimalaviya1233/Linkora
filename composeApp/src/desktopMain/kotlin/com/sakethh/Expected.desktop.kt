@@ -93,12 +93,17 @@ actual fun onRefreshAllLinks(localLinksRepo: LocalLinksRepo) {
                 DataSettingsScreenVM.refreshLinksState.value.copy(
                     isInRefreshingState = true, currentIteration = 0
                 )
-            allLinks.forEachIndexed { index, link ->
-                localLinksRepo.refreshLinkMetadata(link).collectLatest {
-                    it.onSuccess {
-                        DataSettingsScreenVM.refreshLinksState.value =
-                            DataSettingsScreenVM.refreshLinksState.value.copy(currentIteration = index + 1)
-                    }.pushSnackbarOnFailure()
+
+            allLinks.forEach { link ->
+                launch {
+                    localLinksRepo.refreshLinkMetadata(link).collectLatest {
+                        it.onSuccess {
+                            DataSettingsScreenVM.refreshLinksState.value =
+                                DataSettingsScreenVM.refreshLinksState.value.let { currentLinkRefreshState ->
+                                    currentLinkRefreshState.copy(currentIteration = currentLinkRefreshState.currentIteration + 1)
+                                }
+                        }.pushSnackbarOnFailure()
+                    }
                 }
             }
         }
