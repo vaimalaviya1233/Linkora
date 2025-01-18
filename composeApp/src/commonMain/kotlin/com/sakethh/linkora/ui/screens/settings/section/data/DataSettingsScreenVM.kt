@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.cancelRefreshingLinks
+import com.sakethh.isAnyRefreshingScheduled
 import com.sakethh.isStoragePermissionPermittedOnAndroid
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
@@ -21,6 +23,7 @@ import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
@@ -38,11 +41,21 @@ import java.io.File
 class DataSettingsScreenVM(
     private val exportDataRepo: ExportDataRepo, private val importDataRepo: ImportDataRepo,
     private val linksRepo: LocalLinksRepo, private val foldersRepo: LocalFoldersRepo,
-    private val panelsRepo: PanelsRepo
+    private val panelsRepo: PanelsRepo, private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
     val importExportProgressLogs = mutableStateListOf<String>()
 
     private var importExportJob: Job? = null
+
+    val isAnyRefreshingScheduledOnAndroid = mutableStateOf(false)
+
+    init {
+        viewModelScope.launch {
+            isAnyRefreshingScheduled().collectLatest {
+                isAnyRefreshingScheduledOnAndroid.value = it == true
+            }
+        }
+    }
 
     fun importDataFromAFile(
         importFileType: ImportFileType, onStart: () -> Unit, onCompletion: () -> Unit
@@ -143,20 +156,19 @@ class DataSettingsScreenVM(
                 isInRefreshingState = false, currentIteration = 0
             )
         )
-
         val totalLinksForRefresh = mutableStateOf(0)
-
-        var linksRefreshJob: Job? = null
     }
 
     fun refreshAllLinks() {
-        onRefreshAllLinks(localLinksRepo = linksRepo)
+        viewModelScope.launch {
+            onRefreshAllLinks(
+                localLinksRepo = linksRepo,
+                preferencesRepository = preferencesRepository
+            )
+        }
     }
 
     fun cancelRefreshingAllLinks() {
-        linksRefreshJob?.cancel()
-        refreshLinksState.value = RefreshLinksState(
-            isInRefreshingState = false, currentIteration = 0
-        )
+        cancelRefreshingLinks()
     }
 }

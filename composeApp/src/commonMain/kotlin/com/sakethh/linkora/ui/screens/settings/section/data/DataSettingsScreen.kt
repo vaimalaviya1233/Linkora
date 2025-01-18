@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,6 +64,7 @@ import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.DeleteDialogBox
 import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
 import com.sakethh.linkora.ui.components.DeleteDialogBoxType
+import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
@@ -90,6 +92,7 @@ fun DataSettingsScreen() {
             linksRepo = DependencyContainer.localLinksRepo.value,
             foldersRepo = DependencyContainer.localFoldersRepo.value,
             panelsRepo = DependencyContainer.panelsRepo.value,
+            preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })
     val isProgressUIVisible = rememberSaveable {
@@ -351,13 +354,14 @@ fun DataSettingsScreen() {
                     Modifier.padding(
                         start = 15.dp,
                         end = 15.dp,
-                        bottom = if (DataSettingsScreenVM.refreshLinksState.value.isInRefreshingState) 0.dp else 30.dp
+                        bottom = if (DataSettingsScreenVM.refreshLinksState.value.isInRefreshingState || dataSettingsScreenVM.isAnyRefreshingScheduledOnAndroid.value) 0.dp else 30.dp
                     ), color = DividerDefaults.color.copy(0.5f)
                 )
                 Box(
                     modifier = Modifier.fillMaxWidth().wrapContentHeight().animateContentSize()
                 ) {
                     if (DataSettingsScreenVM.refreshLinksState.value.isInRefreshingState.not()) {
+                        if (platform is Platform.Android && dataSettingsScreenVM.isAnyRefreshingScheduledOnAndroid.value) return@Box
                         SettingComponent(
                             SettingComponentParam(
                                 title = Localization.rememberLocalizedString(Localization.Key.RefreshAllLinksTitlesAndImages),
@@ -385,6 +389,12 @@ fun DataSettingsScreen() {
                 Box(
                     modifier = Modifier.fillMaxWidth().wrapContentHeight().animateContentSize()
                 ) {
+                    if (dataSettingsScreenVM.isAnyRefreshingScheduledOnAndroid.value) {
+                        InfoCard(
+                            info = Localization.Key.WorkManagerDesc.rememberLocalizedString(),
+                            paddingValues = PaddingValues(start = 20.dp, end = 20.dp)
+                        )
+                    }
                     if (DataSettingsScreenVM.refreshLinksState.value.isInRefreshingState) {
                         Column(
                             modifier = Modifier.fillMaxWidth().wrapContentHeight()
@@ -421,12 +431,8 @@ fun DataSettingsScreen() {
                                     }
                                 }
                             }
-                            if (DataSettingsScreenVM.refreshLinksState.value.currentIteration == 0 && DataSettingsScreenVM.totalLinksForRefresh.value == 0) {
-                                Spacer(modifier = Modifier.height(15.dp))
-                            }
                             Text(
-                                text = if (DataSettingsScreenVM.refreshLinksState.value.currentIteration == 0 && DataSettingsScreenVM.totalLinksForRefresh.value == 0) Localization.Key.WorkManagerDesc.rememberLocalizedString()
-                                else Localization.Key.NoOfLinksRefreshed.rememberLocalizedString()
+                                text = Localization.Key.NoOfLinksRefreshed.rememberLocalizedString()
                                     .replace(
                                         LinkoraPlaceHolder.First.value,
                                         DataSettingsScreenVM.refreshLinksState.value.currentIteration.toString()

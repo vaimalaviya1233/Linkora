@@ -1306,7 +1306,7 @@ object Localization {
                 return "open_in_a_browser"
             }
         },
-        WorkManagerDesc(defaultValue = "Work Manager is scheduling the link refresh. It will continue shortly.") {
+        WorkManagerDesc(defaultValue = "Work Manager is scheduling the links refreshing task. It will continue shortly.\nYou can close the app; this task will continue in the background.") {
             override fun toString(): String {
                 return "work_manager_desc"
             }

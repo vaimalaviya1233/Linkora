@@ -64,7 +64,8 @@ object AppPreferences {
     val serverSecurityToken = mutableStateOf("")
     val serverSyncType = mutableStateOf(SyncType.TwoWay)
     val useLinkoraTopDecoratorOnDesktop = mutableStateOf(true)
-
+    val refreshLinksWorkerTag =
+        mutableStateOf("52ae3f4a-d37f-4fdb-a6b6-4397b99ef1bd")
     fun isServerConfigured(): Boolean {
         return serverBaseUrl.value.isNotBlank()
     }
@@ -289,6 +290,11 @@ object AppPreferences {
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.DESKTOP_TOP_DECORATOR.name)
                         ) ?: useLinkoraTopDecoratorOnDesktop.value
+                },
+                launch {
+                    refreshLinksWorkerTag.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENT_WORK_MANAGER_WORK_UUID.name)
+                    ) ?: refreshLinksWorkerTag.value
                 }
             ).joinAll()
         }

@@ -5,21 +5,19 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.Platform
+import com.sakethh.linkora.RefreshAllLinksService
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isNotNull
-import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.RawExportString
-import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreenVM
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.utils.UIEvent
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
 import java.awt.FileDialog
 import java.awt.Frame
@@ -85,33 +83,17 @@ actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): F
 
 actual fun onShare(url: String) = Unit
 
-actual fun onRefreshAllLinks(localLinksRepo: LocalLinksRepo) {
-    DataSettingsScreenVM.linksRefreshJob = CoroutineScope(Dispatchers.IO).launch {
-        localLinksRepo.getAllLinks().let { allLinks ->
-            DataSettingsScreenVM.totalLinksForRefresh.value = allLinks.size
-            DataSettingsScreenVM.refreshLinksState.value =
-                DataSettingsScreenVM.refreshLinksState.value.copy(
-                    isInRefreshingState = true, currentIteration = 0
-                )
+actual suspend fun onRefreshAllLinks(
+    localLinksRepo: LocalLinksRepo,
+    preferencesRepository: PreferencesRepository
+) {
+    RefreshAllLinksService.invoke(localLinksRepo)
+}
 
-            allLinks.forEach { link ->
-                launch {
-                    localLinksRepo.refreshLinkMetadata(link).collectLatest {
-                        it.onSuccess {
-                            DataSettingsScreenVM.refreshLinksState.value =
-                                DataSettingsScreenVM.refreshLinksState.value.let { currentLinkRefreshState ->
-                                    currentLinkRefreshState.copy(currentIteration = currentLinkRefreshState.currentIteration + 1)
-                                }
-                        }.pushSnackbarOnFailure()
-                    }
-                }
-            }
-        }
-    }
-    DataSettingsScreenVM.linksRefreshJob?.invokeOnCompletion {
-        DataSettingsScreenVM.refreshLinksState.value =
-            DataSettingsScreenVM.refreshLinksState.value.copy(
-                isInRefreshingState = false, currentIteration = 0
-            )
-    }
+actual fun cancelRefreshingLinks() {
+    RefreshAllLinksService.cancel()
+}
+
+actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
+    return emptyFlow()
 }

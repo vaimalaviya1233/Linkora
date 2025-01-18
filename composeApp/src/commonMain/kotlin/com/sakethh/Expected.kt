@@ -8,6 +8,8 @@ import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 expect val showFollowSystemThemeOption: Boolean
@@ -32,4 +34,12 @@ expect suspend fun pickAValidFileForImporting(importFileType: ImportFileType): F
 
 expect fun onShare(url: String)
 
-expect fun onRefreshAllLinks(localLinksRepo: LocalLinksRepo)
+expect suspend fun onRefreshAllLinks(
+    localLinksRepo: LocalLinksRepo,
+    preferencesRepository: PreferencesRepository
+)
+
+expect suspend fun isAnyRefreshingScheduled(): Flow<Boolean?>
+
+expect fun cancelRefreshingLinks()
+
