@@ -97,3 +97,6 @@ actual fun cancelRefreshingLinks() {
 actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
     return emptyFlow()
 }
+
+@Composable
+actual fun PlatformSpecificBackHandler(init: () -> Unit) = Unit

@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Environment
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
@@ -188,4 +189,9 @@ actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
                 }
             }
     }
+}
+
+@Composable
+actual fun PlatformSpecificBackHandler(init: () -> Unit) {
+    BackHandler(onBack = init)
 }

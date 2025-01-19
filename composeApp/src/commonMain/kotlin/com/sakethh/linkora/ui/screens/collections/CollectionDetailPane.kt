@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
@@ -89,10 +90,6 @@ fun CollectionDetailPane(
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
-                    if (platform is Platform.Android.Mobile) {
-                        navController.navigateUp()
-                        return@IconButton
-                    }
                     if (currentlyInFolder?.parentFolderId.isNotNull()) {
                         currentlyInFolder?.parentFolderId as Long
                         collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
@@ -102,6 +99,10 @@ fun CollectionDetailPane(
                             )
                         )
                     } else {
+                        if (platform is Platform.Android.Mobile) {
+                            navController.navigateUp()
+                            return@IconButton
+                        }
                         collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                             CollectionDetailPaneInfo(
                                 currentFolder = null,
@@ -282,7 +283,27 @@ fun CollectionDetailPane(
                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
                 })
         }
-
-
+    }
+    PlatformSpecificBackHandler {
+        if (currentlyInFolder?.parentFolderId.isNotNull()) {
+            currentlyInFolder?.parentFolderId as Long
+            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                CollectionDetailPaneInfo(
+                    currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
+                    isAnyCollectionSelected = true
+                )
+            )
+        } else {
+            if (platform is Platform.Android.Mobile) {
+                navController.navigateUp()
+                return@PlatformSpecificBackHandler
+            }
+            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                CollectionDetailPaneInfo(
+                    currentFolder = null,
+                    isAnyCollectionSelected = false
+                )
+            )
+        }
     }
 }
