@@ -431,7 +431,7 @@ fun App(
                 }) {
                 NavHost(
                     navController = localNavController,
-                    startDestination = Navigation.Settings.DataSettingsScreen
+                    startDestination = Navigation.Root.HomeScreen
                 ) {
                     composable<Navigation.Root.HomeScreen> {
                         HomeScreen()

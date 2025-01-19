@@ -87,7 +87,6 @@ import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
@@ -665,7 +664,6 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
                             else -> LinkType.FOLDER_LINK
                         }
-                    linkoraLog(linkType)
                     collectionsScreenVM.addANewLink(
                         link = Link(
                             linkType = linkType,

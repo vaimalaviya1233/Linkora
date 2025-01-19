@@ -62,7 +62,6 @@ fun AddItemFab(
         )
     }
     val coroutineScope = rememberCoroutineScope()
-    println(platform().toString())
     val navController = LocalNavController.current
     val rootRouteList = rememberDeserializableObject {
         listOf(

@@ -26,7 +26,6 @@ import com.sakethh.linkora.domain.repository.local.PanelsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.onRefreshAllLinks
 import com.sakethh.pickAValidFileForImporting
 import com.sakethh.writeRawExportStringToFile
@@ -65,7 +64,6 @@ class DataSettingsScreenVM(
             val file = pickAValidFileForImporting(importFileType)
             if (file.isNull()) return@launch
             file as File
-            linkoraLog(file.readText())
             if (importFileType == ImportFileType.JSON) {
                 importDataRepo.importDataFromAJSONFile(file)
             } else {

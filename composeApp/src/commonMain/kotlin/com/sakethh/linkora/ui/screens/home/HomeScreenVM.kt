@@ -15,7 +15,6 @@ import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PanelsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
-import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,10 +77,6 @@ class HomeScreenVM(
                     AppPreferenceType.LAST_SELECTED_PANEL_ID.name
                 ), newValue = panelId
             )
-            preferencesRepository.readPreferenceValue(longPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name))
-                .let {
-                    linkoraLog(it)
-                }
 
             if (panelId == Constants.DEFAULT_PANELS_ID) {
                 _panelFolders.emit(defaultPanelFolders)

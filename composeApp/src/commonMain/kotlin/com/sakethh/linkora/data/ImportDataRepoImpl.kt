@@ -12,7 +12,6 @@ import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PanelsRepo
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.LinkoraExports
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
@@ -138,7 +137,6 @@ class ImportDataRepoImpl(
 
                         send(Result.Loading(message = "Found folder: Name = $folderName, Parent Folder ID = $parentFolder"))
 
-                        linkoraLog("is folder archived : ${foldersNameStackForRetrievingDataFromHTML.isNotEmpty() && foldersNameStackForRetrievingDataFromHTML.peek() == LinkoraExports.ARCHIVED_FOLDERS__LINKORA_EXPORT.name}")
                         if (!LinkoraExports.entries.map { it.name }.contains(folderName)) {
                             send(Result.Loading(message = "Folder does not exist, inserting new folder: $folderName"))
                             localFoldersRepo.insertANewFolder(
