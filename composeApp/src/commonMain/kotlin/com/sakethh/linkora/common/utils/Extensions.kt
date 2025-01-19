@@ -14,6 +14,7 @@ import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -186,3 +187,15 @@ fun NavHostController.inRootScreen(includeSettingsScreen: Boolean): Boolean? {
 }
 
 fun String.inDoubleQuotes(): String = "\"$this\""
+
+fun Link.excludeLocalId(): Link = Link(
+    linkType = this.linkType,
+    title = this.title,
+    url = this.url,
+    imgURL = this.imgURL,
+    note = this.note,
+    idOfLinkedFolder = this.idOfLinkedFolder,
+    lastModified = this.lastModified,
+    userAgent = this.userAgent,
+    markedAsImportant = this.markedAsImportant
+)

@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PanelsDao {
+    @Query("SELECT MAX(panelId) FROM panel")
+    suspend fun getLatestPanelID(): Long
+
     @Insert
     suspend fun addaNewPanel(panel: Panel)
 

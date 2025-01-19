@@ -28,6 +28,9 @@ class PanelsRepoImpl(private val panelsDao: PanelsDao) : PanelsRepo {
         panelsDao.deleteAFolderFromAllPanels(folderID)
     }
 
+    override suspend fun getLatestPanelID(): Long {
+        return panelsDao.getLatestPanelID()
+    }
     override suspend fun deleteAFolderFromAPanel(panelId: Long, folderID: Long) {
         panelsDao.deleteAFolderFromAPanel(panelId, folderID)
     }

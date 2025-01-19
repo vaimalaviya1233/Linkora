@@ -22,4 +22,5 @@ interface PanelsRepo {
 
     suspend fun deleteAllPanels()
     suspend fun deleteAllPanelFolders()
+    suspend fun getLatestPanelID(): Long
 }

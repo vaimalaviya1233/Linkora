@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data
 
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.common.utils.excludeLocalId
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.domain.LinkType
@@ -8,6 +9,8 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.JSONExport
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.panel.PanelFolder
+import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -16,6 +19,7 @@ import com.sakethh.linkora.utils.LinkoraExports
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
@@ -32,27 +36,75 @@ class ImportDataRepoImpl(
         return flow {
             emit(Result.Loading(message = "Starting data import from JSON file: ${file.name}"))
 
+            emit(Result.Loading(message = "Reading and deserializing JSON file: ${file.name}"))
             val deserializedData = file.readText().run {
-                emit(Result.Loading(message = "Reading and deserializing JSON file: ${file.name}"))
                 Json.decodeFromString<JSONExport>(this)
             }
+
             emit(Result.Loading(message = "Deserialization completed: Links=${deserializedData.links.size}, Folders=${deserializedData.folders.size}, Panels=${deserializedData.panels.panels.size}, PanelFolders=${deserializedData.panels.panelFolders.size}"))
 
-            emit(Result.Loading(message = "Adding links"))
-            localLinksRepo.addMultipleLinks(deserializedData.links)
-            emit(Result.Loading(message = "Links added successfully: ${deserializedData.links.size} links"))
+            emit(Result.Loading(message = "Filtering non-folder linked links."))
+            val nonFolderLinkedLinks = deserializedData.links.filter {
+                it.linkType != LinkType.FOLDER_LINK
+            }.map {
+                it.excludeLocalId()
+            }
 
-            emit(Result.Loading(message = "Adding folders"))
-            localFoldersRepo.insertMultipleNewFolders(deserializedData.folders)
-            emit(Result.Loading(message = "Folders added successfully: ${deserializedData.folders.size} folders"))
+            emit(Result.Loading(message = "Adding non-folder linked links to local repository."))
+            localLinksRepo.addMultipleLinks(nonFolderLinkedLinks)
 
-            emit(Result.Loading(message = "Adding panels"))
-            panelsRepo.addMultiplePanels(deserializedData.panels.panels)
-            emit(Result.Loading(message = "Panels added successfully: ${deserializedData.panels.panels.size} panels"))
+            var latestFolderId = localFoldersRepo.getLatestFoldersTableID()
+            emit(Result.Loading(message = "Retrieved latest folder ID: $latestFolderId"))
+            val updatedPanelFolders = mutableListOf<PanelFolder>()
 
-            emit(Result.Loading(message = "Adding panel folders"))
-            panelsRepo.addMultiplePanelFolders(deserializedData.panels.panelFolders)
-            emit(Result.Loading(message = "Panel folders added successfully: ${deserializedData.panels.panelFolders.size} panel folders"))
+            deserializedData.folders.forEach { currentFolder ->
+                ++latestFolderId
+                emit(Result.Loading(message = "Assigned new ID=$latestFolderId to folder: ${currentFolder.name}"))
+
+                emit(Result.Loading(message = "Updating links for folder: ${currentFolder.name} with new ID=$latestFolderId"))
+                val updatedLinks = deserializedData.links.filter {
+                    it.idOfLinkedFolder == currentFolder.localId && it.linkType == LinkType.FOLDER_LINK
+                }.map {
+                    it.excludeLocalId().copy(idOfLinkedFolder = latestFolderId)
+                }
+
+                emit(Result.Loading(message = "Inserting folder: ${currentFolder.name} with new ID=$latestFolderId"))
+                localFoldersRepo.insertANewFolder(
+                    currentFolder.copy(localId = latestFolderId),
+                    ignoreFolderAlreadyExistsException = true
+                ).collectLatest { it ->
+                    it.onFailure {
+                        throw Throwable(it)
+                    }
+                }
+
+                emit(Result.Loading(message = "Adding folder links for: ${currentFolder.name}"))
+                localLinksRepo.addMultipleLinks(updatedLinks)
+
+                emit(Result.Loading(message = "Updating panel folders for folder: ${currentFolder.name}"))
+                updatedPanelFolders.addAll(deserializedData.panels.panelFolders.filter {
+                    it.folderId == currentFolder.localId
+                }.map { it.copy(folderId = latestFolderId) })
+            }
+
+            var latestPanelId = panelsRepo.getLatestPanelID()
+            emit(Result.Loading(message = "Retrieved latest panel ID: $latestPanelId"))
+
+            deserializedData.panels.panels.forEach { currentPanel ->
+                ++latestPanelId
+                emit(Result.Loading(message = "Assigned new ID=$latestPanelId to panel: ${currentPanel.panelName}"))
+
+                emit(Result.Loading(message = "Inserting panel: ${currentPanel.panelName} with new ID=$latestPanelId"))
+                val updatedPanelData = currentPanel.copy(panelId = latestPanelId)
+                panelsRepo.addaNewPanel(updatedPanelData)
+
+                emit(Result.Loading(message = "Adding panel folder associations for panel: ${currentPanel.panelName}"))
+                panelsRepo.addMultiplePanelFolders(updatedPanelFolders.filter {
+                    it.connectedPanelId == currentPanel.panelId
+                }.map {
+                    it.copy(connectedPanelId = latestPanelId, id = 0)
+                })
+            }
             emit(Result.Success(Unit))
         }.catchAsThrowableAndEmitFailure()
     }

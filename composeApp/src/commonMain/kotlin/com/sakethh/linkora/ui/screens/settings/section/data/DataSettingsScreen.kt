@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
+import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
@@ -504,4 +505,11 @@ fun DataSettingsScreen() {
                 dataSettingsScreenVM.deleteEntireDatabase(onCompletion)
             }
         ))
+    PlatformSpecificBackHandler {
+        if (isProgressUIVisible.value) {
+            return@PlatformSpecificBackHandler
+        } else {
+            navController.navigateUp()
+        }
+    }
 }
