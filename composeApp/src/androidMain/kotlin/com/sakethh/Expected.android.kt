@@ -106,7 +106,9 @@ actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean {
 
 }
 
-actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): File? {
+actual suspend fun pickAValidFileForImporting(
+    importFileType: ImportFileType, onStart: () -> Unit
+): File? {
     AndroidUIEvent.pushUIEvent(
         AndroidUIEvent.Type.ImportAFile(
             fileType = if (importFileType == ImportFileType.JSON) "application/json" else "text/html"
@@ -120,6 +122,7 @@ actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): F
                     if (it.uri.isNull()) {
                         throw NullPointerException()
                     }
+                    onStart()
                     val file = createTempFile()
                     LinkoraApp.getContext().contentResolver.openInputStream(it.uri!!).use { input ->
                         file.outputStream().use { output ->
@@ -127,10 +130,10 @@ actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): F
                         }
                     }
                     deferredFile.complete(file)
-                    this.cancel()
                 } catch (e: Exception) {
                     e.printStackTrace()
                     deferredFile.complete(null)
+                } finally {
                     this.cancel()
                 }
             }

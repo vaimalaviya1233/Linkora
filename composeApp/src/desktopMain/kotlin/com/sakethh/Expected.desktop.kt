@@ -64,7 +64,9 @@ actual suspend fun writeRawExportStringToFile(
 
 actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean = false
 
-actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): File? {
+actual suspend fun pickAValidFileForImporting(
+    importFileType: ImportFileType, onStart: () -> Unit
+): File? {
     val fileDialog =
         FileDialog(Frame(), "Select a valid ${importFileType.name} File", FileDialog.LOAD)
     fileDialog.isVisible = true
@@ -74,6 +76,7 @@ actual suspend fun pickAValidFileForImporting(importFileType: ImportFileType): F
         null
     }
     return if (chosenFile.isNotNull() && chosenFile!!.extension == importFileType.name.lowercase()) {
+        onStart()
         chosenFile
     } else if (chosenFile.isNotNull() && chosenFile!!.extension != importFileType.name.lowercase()) {
         UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar("${chosenFile.extension} files are not supported for importing, pick valid ${importFileType.name} file."))

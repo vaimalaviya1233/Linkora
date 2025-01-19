@@ -30,7 +30,10 @@ expect suspend fun writeRawExportStringToFile(
 
 expect suspend fun isStoragePermissionPermittedOnAndroid(): Boolean
 
-expect suspend fun pickAValidFileForImporting(importFileType: ImportFileType): File?
+expect suspend fun pickAValidFileForImporting(
+    importFileType: ImportFileType,
+    onStart: () -> Unit
+): File?
 
 expect fun onShare(url: String)
 

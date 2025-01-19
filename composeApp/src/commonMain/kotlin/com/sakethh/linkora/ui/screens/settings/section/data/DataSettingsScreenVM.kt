@@ -32,7 +32,6 @@ import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -60,16 +59,17 @@ class DataSettingsScreenVM(
         importFileType: ImportFileType, onStart: () -> Unit, onCompletion: () -> Unit
     ) {
         importExportJob?.cancel()
-        importExportJob = viewModelScope.launch {
-            val file = pickAValidFileForImporting(importFileType)
+        importExportJob = viewModelScope.launch(Dispatchers.Default) {
+            val file = pickAValidFileForImporting(importFileType, onStart = {
+                onStart()
+                importExportProgressLogs.add("Reading file...")
+            })
             if (file.isNull()) return@launch
             file as File
             if (importFileType == ImportFileType.JSON) {
                 importDataRepo.importDataFromAJSONFile(file)
             } else {
                 importDataRepo.importDataFromAHTMLFile(file)
-            }.onStart {
-                onStart()
             }.collectLatest {
                 it.onLoading { importLogItem ->
                     importExportProgressLogs.add(importLogItem)

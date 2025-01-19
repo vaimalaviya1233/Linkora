@@ -113,6 +113,7 @@ class ImportDataRepoImpl(
         return channelFlow<Result<Unit>> {
             send(Result.Loading(message = "Starting to import data from HTML file: ${file.name}"))
             retrieveDataFromHTML(Jsoup.parse(file.readText()).body().select("dl").first())
+            send(Result.Success(Unit))
         }.catchAsThrowableAndEmitFailure()
     }
 

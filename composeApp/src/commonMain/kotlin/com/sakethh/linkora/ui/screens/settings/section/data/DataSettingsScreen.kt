@@ -145,6 +145,8 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = rememberSaveable { mutableStateOf(false) },
                         onSwitchStateChange = {
+                            dataOperationTitle.value =
+                                Localization.getLocalizedString(Localization.Key.ImportUsingJsonFile)
                             dataSettingsScreenVM.importDataFromAFile(
                                 importFileType = ImportFileType.JSON,
                                 onStart = {
@@ -168,6 +170,8 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
+                            dataOperationTitle.value =
+                                Localization.getLocalizedString(Localization.Key.ImportDataFromHtmlFile)
                             dataSettingsScreenVM.importDataFromAFile(
                                 importFileType = ImportFileType.HTML,
                                 onStart = {
