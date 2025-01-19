@@ -192,6 +192,4 @@ actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
 }
 
 @Composable
-actual fun PlatformSpecificBackHandler(init: () -> Unit) {
-    BackHandler(onBack = init)
-}
+actual fun PlatformSpecificBackHandler(init: () -> Unit) = BackHandler(onBack = init)
