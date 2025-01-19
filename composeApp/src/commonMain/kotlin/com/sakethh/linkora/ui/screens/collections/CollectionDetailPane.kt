@@ -90,6 +90,10 @@ fun CollectionDetailPane(
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
+                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedWithFolderId) {
+                        navController.navigateUp()
+                        return@IconButton
+                    }
                     if (currentlyInFolder?.parentFolderId.isNotNull()) {
                         currentlyInFolder?.parentFolderId as Long
                         collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
@@ -285,6 +289,10 @@ fun CollectionDetailPane(
         }
     }
     PlatformSpecificBackHandler {
+        if (CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedWithFolderId) {
+            navController.navigateUp()
+            return@PlatformSpecificBackHandler
+        }
         if (currentlyInFolder?.parentFolderId.isNotNull()) {
             currentlyInFolder?.parentFolderId as Long
             collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
