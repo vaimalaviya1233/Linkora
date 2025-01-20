@@ -61,7 +61,14 @@ class LocalFoldersRepoImpl(
     ): Flow<Result<Message>> {
         val newLocalId = foldersDao.getLastIDOfFoldersTable() + 1
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.createFolder(folder.asFolderDTO())
+            if (folder.parentFolderId != null) {
+                val remoteParentFolderId = getRemoteOfThisLocalFolder(folder.parentFolderId)
+                remoteFoldersRepo.createFolder(
+                    folder.asFolderDTO().copy(parentFolderId = remoteParentFolderId)
+                )
+            } else {
+                remoteFoldersRepo.createFolder(folder.asFolderDTO())
+            }
         }, remoteOperationOnSuccess = {
             foldersDao.updateAFolderData(
                 foldersDao.getThisFolderData(newLocalId).copy(remoteId = it.id)
