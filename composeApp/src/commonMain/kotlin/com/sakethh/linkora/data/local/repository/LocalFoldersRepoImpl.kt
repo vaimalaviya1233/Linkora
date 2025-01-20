@@ -15,6 +15,7 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -62,7 +63,7 @@ class LocalFoldersRepoImpl(
         val newLocalId = foldersDao.getLastIDOfFoldersTable() + 1
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
             if (folder.parentFolderId != null) {
-                val remoteParentFolderId = getRemoteOfThisLocalFolder(folder.parentFolderId)
+                val remoteParentFolderId = getRemoteIdOfThisLocalFolder(folder.parentFolderId)
                 remoteFoldersRepo.createFolder(
                     folder.asFolderDTO().copy(parentFolderId = remoteParentFolderId)
                 )
@@ -252,7 +253,7 @@ class LocalFoldersRepoImpl(
         ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            val remoteId = getRemoteOfThisLocalFolder(folderID)
+            val remoteId = getRemoteIdOfThisLocalFolder(folderID)
             if (remoteId.isNotNull()) {
                 remoteFoldersRepo.updateFolderName(remoteId!!, newFolderName)
             } else {
@@ -268,12 +269,12 @@ class LocalFoldersRepoImpl(
         })
     }
 
-    private suspend fun getRemoteOfThisLocalFolder(localFolderId: Long): Long? {
+    private suspend fun getRemoteIdOfThisLocalFolder(localFolderId: Long): Long? {
         return foldersDao.getThisFolderData(localFolderId).remoteId
     }
     override suspend fun markFolderAsArchive(folderID: Long): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            val remoteId = getRemoteOfThisLocalFolder(folderID)
+            val remoteId = getRemoteIdOfThisLocalFolder(folderID)
             if (remoteId.isNotNull()) {
                 remoteFoldersRepo.markAsArchive(remoteId!!)
             } else {
@@ -292,7 +293,7 @@ class LocalFoldersRepoImpl(
 
     override suspend fun markFolderAsRegularFolder(folderID: Long): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            val remoteFolderId = getRemoteOfThisLocalFolder(folderID)
+            val remoteFolderId = getRemoteIdOfThisLocalFolder(folderID)
             if (remoteFolderId.isNotNull()) {
                 remoteFoldersRepo.markAsRegularFolder(remoteFolderId!!)
             } else {
@@ -305,7 +306,7 @@ class LocalFoldersRepoImpl(
 
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            val remoteID = getRemoteOfThisLocalFolder(folderID)
+            val remoteID = getRemoteIdOfThisLocalFolder(folderID)
             if (remoteID.isNotNull()) {
                 remoteFoldersRepo.updateFolderNote(remoteID!!, newNote)
             } else {
@@ -324,7 +325,7 @@ class LocalFoldersRepoImpl(
 
     override suspend fun deleteAFolderNote(folderID: Long): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            val remoteId = getRemoteOfThisLocalFolder(folderID)
+            val remoteId = getRemoteIdOfThisLocalFolder(folderID)
             if (remoteId.isNotNull()) {
                 remoteFoldersRepo.deleteFolderNote(remoteId!!)
             } else {
@@ -336,8 +337,16 @@ class LocalFoldersRepoImpl(
     }
 
     override suspend fun deleteAFolder(folderID: Long): Flow<Result<Unit>> {
-        return executeWithResultFlow(performRemoteOperation = false, remoteOperation = {
-            remoteFoldersRepo.deleteFolder(folderID)
+        // we need to hold the id because the local folder gets deleted first, so if we try to search after that, there will be nothing to search
+        val remoteFolderId = getRemoteIdOfThisLocalFolder(folderID)
+        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
+            if (remoteFolderId.isNotNull()) {
+                remoteFoldersRepo.deleteFolder(remoteFolderId!!)
+            } else {
+                emptyFlow()
+            }
+        }, remoteOperationOnSuccess = {
+            linkoraLog(it)
         }, localOperation = {
             deleteLocalDataRelatedToTheFolder(folderID)
             localLinksRepo.deleteLinksOfFolder(folderID)
