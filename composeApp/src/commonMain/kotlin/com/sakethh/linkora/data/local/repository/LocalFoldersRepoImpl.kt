@@ -4,6 +4,7 @@ import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.asFolderDTO
 import com.sakethh.linkora.domain.linkoraPlaceHolders
 import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.Folder
@@ -31,6 +32,7 @@ class LocalFoldersRepoImpl(
     private fun <LocalType, RemoteType> executeWithResultFlow(
         performRemoteOperation: Boolean,
         remoteOperation: suspend () -> Flow<Result<RemoteType>> = { emptyFlow() },
+        remoteOperationOnSuccess: suspend (RemoteType) -> Unit = {},
         localOperation: suspend () -> LocalType
     ): Flow<Result<LocalType>> {
         return flow {
@@ -43,6 +45,9 @@ class LocalFoldersRepoImpl(
                             success.isRemoteExecutionSuccessful = false
                             success.remoteFailureMessage = failureMessage
                         }
+                        remoteResult.onSuccess {
+                            remoteOperationOnSuccess(it.data)
+                        }
                     }
                 }
                 emit(success)
@@ -53,8 +58,13 @@ class LocalFoldersRepoImpl(
     override suspend fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Message>> {
+        val newLocalId = foldersDao.getLastIDOfFoldersTable() + 1
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.createFolder(folder)
+            remoteFoldersRepo.createFolder(folder.asFolderDTO())
+        }, remoteOperationOnSuccess = {
+            foldersDao.updateAFolderData(
+                foldersDao.getThisFolderData(newLocalId).copy(remoteId = it.id)
+            )
         }, localOperation = {
             if (folder.name.isEmpty() || linkoraPlaceHolders().contains(folder.name)) {
                 throw Folder.InvalidName(if (folder.name.isEmpty()) "Folder name cannot be blank." else "\"${folder.name}\" is reserved.")
@@ -82,7 +92,7 @@ class LocalFoldersRepoImpl(
                     }
                 }
             }
-            val newId = foldersDao.insertANewFolder(folder)
+            val newId = foldersDao.insertANewFolder(folder.copy(localId = newLocalId))
             "Folder created successfully with id = $newId"
         })
     }
@@ -219,10 +229,8 @@ class LocalFoldersRepoImpl(
         return foldersDao.sortFolders(parentFolderId, sortOption)
     }
 
-    override suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): Flow<Result<List<Folder>>> {
-        return executeWithResultFlow<List<Folder>, Unit>(performRemoteOperation = false) {
-            foldersDao.getChildFoldersOfThisParentIDAsAList(parentFolderID)
-        }
+    override suspend fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<Result<List<Folder>>> {
+        return foldersDao.getChildFoldersOfThisParentIDAsFlow(parentFolderID).mapToResultFlow()
     }
 
     override suspend fun getSizeOfChildFoldersOfThisParentID(parentFolderID: Long?): Flow<Result<Int>> {

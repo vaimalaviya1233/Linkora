@@ -40,7 +40,8 @@ object DependencyContainer {
         RemoteFoldersRepoImpl(
             Network.client,
             baseUrl = { AppPreferences.serverBaseUrl.value },
-            authToken = { AppPreferences.serverSecurityToken.value }
+            authToken = { AppPreferences.serverSecurityToken.value },
+            foldersDao = localDatabase?.foldersDao!!
         )
     }
 

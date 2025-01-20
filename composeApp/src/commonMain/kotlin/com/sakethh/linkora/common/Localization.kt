@@ -325,6 +325,11 @@ object Localization {
                 return "save"
             }
         },
+        SaveInThisFolder(defaultValue = "Save in this folder") {
+            override fun toString(): String {
+                return "save_in_this_folder"
+            }
+        },
         Cancel(defaultValue = "Cancel") {
             override fun toString(): String {
                 return "cancel"
@@ -1276,7 +1281,7 @@ object Localization {
                 return "import_export_screen_top_app_bar_desc"
             }
         },
-        ExportedSuccessfully(defaultValue = "ExportedSuccessfully") {
+        ExportedSuccessfully(defaultValue = "Exported Successfully") {
             override fun toString(): String {
                 return "exported_successfully"
             }
@@ -1324,6 +1329,11 @@ object Localization {
         TopDecoratorSettingDesc(defaultValue = "When disabled, the default decorator will be used. Changes will apply on the next launch.") {
             override fun toString(): String {
                 return "top_decorator_setting_desc"
+            }
+        },
+        ThisFolderHasNoSubfolders(defaultValue = "This folder does not contain any subfolders.") {
+            override fun toString(): String {
+                return "this_folder_has_no_subfolders"
             }
         }
     }

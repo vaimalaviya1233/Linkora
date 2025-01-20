@@ -1,13 +1,15 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
+import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.ChangeParentFolderDTO
+import com.sakethh.linkora.domain.dto.FolderDTO
+import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.UpdateFolderNoteDTO
-import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -24,7 +26,8 @@ import kotlinx.coroutines.flow.flow
 class RemoteFoldersRepoImpl(
     private val httpClient: HttpClient,
     private val baseUrl: () -> String,
-    private val authToken: () -> String
+    private val authToken: () -> String,
+    private val foldersDao: FoldersDao
 ) : RemoteFoldersRepo {
 
     private suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Result<IncomingBody> {
@@ -52,10 +55,10 @@ class RemoteFoldersRepoImpl(
         }.catchAsExceptionAndEmitFailure()
     }
 
-    override suspend fun createFolder(folder: Folder): Flow<Result<Message>> {
-        return postFlow<Folder, Message>(
+    override suspend fun createFolder(folderDTO: FolderDTO): Flow<Result<NewItemResponseDTO>> {
+        return postFlow<FolderDTO, NewItemResponseDTO>(
             endPoint = RemoteRoute.Folder.CREATE_FOLDER.name,
-            body = folder,
+            body = folderDTO,
         )
     }
 

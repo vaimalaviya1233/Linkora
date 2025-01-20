@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.dto.FolderDTO
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import kotlinx.coroutines.flow.Flow
@@ -57,3 +59,10 @@ fun FolderType.asLocalizedString(): String {
         FolderType.ARCHIVE_FOLDER -> Localization.Key.ArchiveFolder.rememberLocalizedString()
     }
 }
+
+fun Folder.asFolderDTO(): FolderDTO = FolderDTO(
+    name = this.name,
+    note = this.note,
+    parentFolderId = this.parentFolderId,
+    isArchived = this.isArchived
+)
