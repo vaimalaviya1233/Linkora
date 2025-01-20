@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
@@ -204,9 +205,7 @@ class LocalFoldersRepoImpl(
     override suspend fun changeTheParentIdOfASpecificFolder(
         sourceFolderId: Long, targetParentId: Long?
     ): Flow<Result<Unit>> {
-        return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.changeParentFolder(sourceFolderId, targetParentId)
-        }) {
+        return executeWithResultFlow<Unit, Unit>(performRemoteOperation = false) {
             foldersDao.changeTheParentIdOfASpecificFolder(
                 sourceFolderId, targetParentId
             )
@@ -246,7 +245,12 @@ class LocalFoldersRepoImpl(
         ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.updateFolderName(folderID, newFolderName)
+            val remoteId = getRemoteOfThisLocalFolder(folderID)
+            if (remoteId.isNotNull()) {
+                remoteFoldersRepo.updateFolderName(remoteId!!, newFolderName)
+            } else {
+                emptyFlow()
+            }
         }, localOperation = {
             if (newFolderName.isEmpty() || linkoraPlaceHolders()
                     .contains(newFolderName) || existingFolderName == newFolderName
@@ -257,9 +261,17 @@ class LocalFoldersRepoImpl(
         })
     }
 
+    private suspend fun getRemoteOfThisLocalFolder(localFolderId: Long): Long? {
+        return foldersDao.getThisFolderData(localFolderId).remoteId
+    }
     override suspend fun markFolderAsArchive(folderID: Long): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.markAsArchive(folderID)
+            val remoteId = getRemoteOfThisLocalFolder(folderID)
+            if (remoteId.isNotNull()) {
+                remoteFoldersRepo.markAsArchive(remoteId!!)
+            } else {
+                emptyFlow()
+            }
         }) {
             foldersDao.markFolderAsArchive(folderID)
         }
@@ -273,7 +285,12 @@ class LocalFoldersRepoImpl(
 
     override suspend fun markFolderAsRegularFolder(folderID: Long): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.markAsRegularFolder(folderID)
+            val remoteFolderId = getRemoteOfThisLocalFolder(folderID)
+            if (remoteFolderId.isNotNull()) {
+                remoteFoldersRepo.markAsRegularFolder(remoteFolderId!!)
+            } else {
+                emptyFlow()
+            }
         }) {
             foldersDao.markFolderAsRegularFolder(folderID)
         }
@@ -281,7 +298,12 @@ class LocalFoldersRepoImpl(
 
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.updateFolderNote(folderID, newNote)
+            val remoteID = getRemoteOfThisLocalFolder(folderID)
+            if (remoteID.isNotNull()) {
+                remoteFoldersRepo.updateFolderNote(remoteID!!, newNote)
+            } else {
+                emptyFlow()
+            }
         }) {
             foldersDao.renameAFolderNote(folderID, newNote)
         }
@@ -295,7 +317,12 @@ class LocalFoldersRepoImpl(
 
     override suspend fun deleteAFolderNote(folderID: Long): Flow<Result<Unit>> {
         return executeWithResultFlow(performRemoteOperation = true, remoteOperation = {
-            remoteFoldersRepo.deleteFolderNote(folderID)
+            val remoteId = getRemoteOfThisLocalFolder(folderID)
+            if (remoteId.isNotNull()) {
+                remoteFoldersRepo.deleteFolderNote(remoteId!!)
+            } else {
+                emptyFlow()
+            }
         }) {
             foldersDao.deleteAFolderNote(folderID)
         }
