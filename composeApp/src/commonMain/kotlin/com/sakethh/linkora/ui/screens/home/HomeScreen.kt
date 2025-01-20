@@ -63,9 +63,12 @@ import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
+import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.LoadingScreen
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
@@ -240,8 +243,19 @@ fun HomeScreen() {
                             )
                         )
                     },
-                    onFolderClick = {
-
+                    onFolderClick = { folder ->
+                        val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                            currentFolder = folder,
+                            isAnyCollectionSelected = true,
+                            searchNavigated = SearchNavigated(
+                                navigatedFromSearchScreen = true,
+                                navigatedWithFolderId = folder.localId
+                            )
+                        )
+                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                            collectionDetailPaneInfo
+                        )
+                        navController.navigate(Navigation.Collection.CollectionDetailPane)
                     },
                     linkMoreIconClick = {
                         coroutineScope.pushUIEvent(
