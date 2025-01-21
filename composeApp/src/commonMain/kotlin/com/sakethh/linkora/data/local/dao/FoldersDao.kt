@@ -158,4 +158,7 @@ interface FoldersDao {
 
     @Query("DELETE FROM folders")
     suspend fun deleteAllFolders()
+
+    @Query("SELECT remoteId FROM folders WHERE localId = :localId LIMIT 1")
+    suspend fun getRemoteIdOfAFolder(localId: Long): Long?
 }

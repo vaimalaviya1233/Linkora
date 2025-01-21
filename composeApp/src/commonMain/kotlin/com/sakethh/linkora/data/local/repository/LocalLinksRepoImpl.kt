@@ -1,12 +1,14 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.baseUrl
+import com.sakethh.linkora.common.utils.defaultFolderIds
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isATwitterUrl
 import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
 import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.common.utils.wrappedResultFlow
+import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
@@ -32,7 +34,8 @@ class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
     private val primaryUserAgent: () -> String,
     private val httpClient: HttpClient,
-    private val remoteLinksRepo: RemoteLinksRepo
+    private val remoteLinksRepo: RemoteLinksRepo,
+    private val foldersDao: FoldersDao
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig
@@ -41,7 +44,16 @@ class LocalLinksRepoImpl(
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true,
             remoteOperation = {
-                remoteLinksRepo.addANewLink(linksDao.getLink(newLinkId).asAddLinkDTO())
+                if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
+                    val remoteIdOfLinkedFolder =
+                        foldersDao.getRemoteIdOfAFolder(link.idOfLinkedFolder)
+                    remoteLinksRepo.addANewLink(
+                        linksDao.getLink(newLinkId).copy(idOfLinkedFolder = remoteIdOfLinkedFolder)
+                            .asAddLinkDTO()
+                    )
+                } else {
+                    remoteLinksRepo.addANewLink(linksDao.getLink(newLinkId).copy().asAddLinkDTO())
+                }
             },
             remoteOperationOnSuccess = {
                 linksDao.updateALink(

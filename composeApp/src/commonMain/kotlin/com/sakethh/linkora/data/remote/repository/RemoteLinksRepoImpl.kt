@@ -7,6 +7,8 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.AddLinkDTO
 import com.sakethh.linkora.domain.dto.LinkDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.UpdateNoteOfALinkDTO
+import com.sakethh.linkora.domain.dto.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +46,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.UPDATE_LINK_TITLE.name,
-            body = remoteLinkId
+            body = UpdateTitleOfTheLinkDTO(linkId = remoteLinkId, newTitleOfTheLink = newTitle)
         )
     }
 
@@ -56,7 +58,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.UPDATE_LINK_NOTE.name,
-            body = remoteLinkId
+            body = UpdateNoteOfALinkDTO(remoteLinkId, newNote)
         )
     }
 

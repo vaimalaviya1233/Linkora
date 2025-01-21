@@ -61,7 +61,8 @@ object DependencyContainer {
                 AppPreferences.primaryJsoupUserAgent.value
             },
             httpClient = Network.client,
-            remoteLinksRepo = remoteLinksRepo.value
+            remoteLinksRepo = remoteLinksRepo.value,
+            foldersDao = localDatabase?.foldersDao!!
         )
     }
 

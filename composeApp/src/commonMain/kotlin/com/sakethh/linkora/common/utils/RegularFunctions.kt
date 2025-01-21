@@ -93,3 +93,12 @@ fun <LocalType, RemoteType> performLocalOperationWithRemoteSyncFlow(
         }
     }.catchAsThrowableAndEmitFailure()
 }
+
+fun defaultFolderIds(): List<Long> = listOf(
+    Constants.SAVED_LINKS_ID,
+    Constants.IMPORTANT_LINKS_ID,
+    Constants.ARCHIVE_ID,
+    Constants.ALL_LINKS_ID,
+    Constants.HISTORY_ID,
+    Constants.DEFAULT_PANELS_ID
+)
