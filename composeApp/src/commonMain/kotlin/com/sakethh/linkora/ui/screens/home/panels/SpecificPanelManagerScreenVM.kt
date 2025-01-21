@@ -4,9 +4,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
@@ -14,6 +17,8 @@ import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,13 +78,24 @@ class SpecificPanelManagerScreenVM(
 
     fun addANewFolderInAPanel(panelFolder: PanelFolder) {
         viewModelScope.launch {
-            localPanelsRepo.addANewFolderInAPanel(panelFolder)
+            localPanelsRepo.addANewFolderInAPanel(panelFolder).collectLatest {
+                it.pushSnackbarOnFailure()
+            }
         }
     }
 
     fun addANewAPanel(panel: Panel) {
         viewModelScope.launch {
-            localPanelsRepo.addaNewPanel(panel)
+            localPanelsRepo.addaNewPanel(panel).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            message = Localization.Key.PanelCreatedSuccessfully.getLocalizedString()
+                                .replaceFirstPlaceHolderWith(panel.panelName)
+                        )
+                    )
+                }.pushSnackbarOnFailure()
+            }
         }
     }
 
@@ -92,13 +108,26 @@ class SpecificPanelManagerScreenVM(
                     ), newValue = Constants.DEFAULT_PANELS_ID
                 )
             }
-            localPanelsRepo.deleteAPanel(panelId)
+            localPanelsRepo.deleteAPanel(panelId).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.DeletedPanelSuccessfully.getLocalizedString()))
+                }.pushSnackbarOnFailure()
+            }
         }
     }
 
     fun renameAPanel(panelId: Long, newName: String) {
         viewModelScope.launch {
-            localPanelsRepo.updateAPanelName(newName, panelId)
+            localPanelsRepo.updateAPanelName(newName, panelId).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            message = Localization.Key.UpdatedThePanelNameSuccessfully.getLocalizedString()
+                                .replaceFirstPlaceHolderWith(newName)
+                        )
+                    )
+                }.pushSnackbarOnFailure()
+            }
         }
     }
 
@@ -107,7 +136,9 @@ class SpecificPanelManagerScreenVM(
         folderId: Long
     ) {
         viewModelScope.launch {
-            localPanelsRepo.deleteAFolderFromAPanel(panelId, folderId)
+            localPanelsRepo.deleteAFolderFromAPanel(panelId, folderId).collectLatest {
+                it.pushSnackbarOnFailure()
+            }
         }
     }
 }

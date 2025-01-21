@@ -1340,6 +1340,21 @@ object Localization {
             override fun toString(): String {
                 return "this_folder_has_no_subfolders"
             }
+        },
+        PanelCreatedSuccessfully(defaultValue = "Panel created successfully with the name: ${LinkoraPlaceHolder.First.value}") {
+            override fun toString(): String {
+                return "panel_created_successfully"
+            }
+        },
+        DeletedPanelSuccessfully(defaultValue = "Panel deleted successfully.") {
+            override fun toString(): String {
+                return "deleted_panel_successfully"
+            }
+        },
+        UpdatedThePanelNameSuccessfully(defaultValue = "Panel name updated to: ${LinkoraPlaceHolder.First.value}.") {
+            override fun toString(): String {
+                return "updated_the_panel_name_successfully"
+            }
         }
     }
 }

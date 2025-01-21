@@ -1,27 +1,37 @@
 package com.sakethh.linkora.data.local.repository
 
+import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.PanelsDao
+import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import kotlinx.coroutines.flow.Flow
 
 class LocalPanelsRepoImpl(private val panelsDao: PanelsDao) : LocalPanelsRepo {
-    override suspend fun addaNewPanel(panel: Panel) {
-        panelsDao.addaNewPanel(panel)
+    override suspend fun addaNewPanel(panel: Panel): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            panelsDao.addaNewPanel(panel)
+        }
     }
 
-    override suspend fun deleteAPanel(id: Long) {
-        panelsDao.deleteAPanel(id)
-        panelsDao.deleteConnectedFoldersOfPanel(id)
+    override suspend fun deleteAPanel(id: Long): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            panelsDao.deleteAPanel(id)
+            panelsDao.deleteConnectedFoldersOfPanel(id)
+        }
     }
 
-    override suspend fun updateAPanelName(newName: String, panelId: Long) {
-        panelsDao.updateAPanelName(newName, panelId)
+    override suspend fun updateAPanelName(newName: String, panelId: Long): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            panelsDao.updateAPanelName(newName, panelId)
+        }
     }
 
-    override suspend fun addANewFolderInAPanel(panelFolder: PanelFolder) {
-        panelsDao.addANewFolderInAPanel(panelFolder)
+    override suspend fun addANewFolderInAPanel(panelFolder: PanelFolder): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            panelsDao.addANewFolderInAPanel(panelFolder)
+        }
     }
 
     override suspend fun deleteAFolderFromAllPanels(folderID: Long) {
@@ -31,8 +41,12 @@ class LocalPanelsRepoImpl(private val panelsDao: PanelsDao) : LocalPanelsRepo {
     override suspend fun getLatestPanelID(): Long {
         return panelsDao.getLatestPanelID()
     }
-    override suspend fun deleteAFolderFromAPanel(panelId: Long, folderID: Long) {
-        panelsDao.deleteAFolderFromAPanel(panelId, folderID)
+    override suspend fun deleteAFolderFromAPanel(
+        panelId: Long, folderID: Long
+    ): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            panelsDao.deleteAFolderFromAPanel(panelId, folderID)
+        }
     }
 
     override fun getAllThePanels(): Flow<List<Panel>> {
