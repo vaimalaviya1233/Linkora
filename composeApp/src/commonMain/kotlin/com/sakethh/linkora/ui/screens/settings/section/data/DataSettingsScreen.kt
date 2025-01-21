@@ -92,7 +92,7 @@ fun DataSettingsScreen() {
             importDataRepo = DependencyContainer.importDataRepo.value,
             linksRepo = DependencyContainer.localLinksRepo.value,
             foldersRepo = DependencyContainer.localFoldersRepo.value,
-            localPanelsRepo = DependencyContainer.panelsRepo.value,
+            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
             preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })

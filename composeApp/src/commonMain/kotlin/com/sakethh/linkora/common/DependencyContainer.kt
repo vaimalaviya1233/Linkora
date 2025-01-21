@@ -15,6 +15,7 @@ import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.GitHubReleasesRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteLinksRepoImpl
+import com.sakethh.linkora.data.remote.repository.RemotePanelsRepoImpl
 import com.sakethh.localDatabase
 
 object DependencyContainer {
@@ -49,8 +50,7 @@ object DependencyContainer {
         LocalFoldersRepoImpl(
             foldersDao = localDatabase?.foldersDao!!,
             remoteFoldersRepo = remoteFoldersRepo.value,
-            localLinksRepo = localLinksRepo.value,
-            localPanelsRepo = panelsRepo.value
+            localLinksRepo = localLinksRepo.value, localPanelsRepo = localPanelsRepo.value
         )
     }
 
@@ -78,15 +78,27 @@ object DependencyContainer {
         GitHubReleasesRepoImpl(Network.client)
     }
 
-    val panelsRepo = lazy {
-        LocalPanelsRepoImpl(panelsDao = localDatabase?.panelsDao!!)
+    val remotePanelsRepo = lazy {
+        RemotePanelsRepoImpl(Network.client, baseUrl = {
+            AppPreferences.serverBaseUrl.value
+        }, authToken = {
+            AppPreferences.serverSecurityToken.value
+        })
+    }
+
+    val localPanelsRepo = lazy {
+        LocalPanelsRepoImpl(
+            panelsDao = localDatabase?.panelsDao!!,
+            remotePanelsRepo = remotePanelsRepo.value,
+            foldersDao = localDatabase?.foldersDao!!
+        )
     }
 
     val exportDataRepo = lazy {
-        ExportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, panelsRepo.value)
+        ExportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, localPanelsRepo.value)
     }
 
     val importDataRepo = lazy {
-        ImportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, panelsRepo.value)
+        ImportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, localPanelsRepo.value)
     }
 }

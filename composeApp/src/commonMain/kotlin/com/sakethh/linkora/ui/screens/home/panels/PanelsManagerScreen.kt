@@ -64,7 +64,7 @@ fun PanelsManagerScreen() {
         HomeScreenVM(
             localLinksRepo = DependencyContainer.localLinksRepo.value,
             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-            localPanelsRepo = DependencyContainer.panelsRepo.value,
+            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
             triggerCollectionOfPanels = true,
             triggerCollectionOfPanelFolders = false,
             preferencesRepository = DependencyContainer.preferencesRepo.value
@@ -90,7 +90,7 @@ fun PanelsManagerScreen() {
         viewModel(factory = genericViewModelFactory {
             SpecificPanelManagerScreenVM(
                 foldersRepo = DependencyContainer.localFoldersRepo.value,
-                localPanelsRepo = DependencyContainer.panelsRepo.value,
+                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
                 initData = false,
                 preferencesRepository = DependencyContainer.preferencesRepo.value
             )
