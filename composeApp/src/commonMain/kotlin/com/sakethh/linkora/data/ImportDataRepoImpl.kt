@@ -95,14 +95,14 @@ class ImportDataRepoImpl(
                 emit(Result.Loading(message = "Assigned new ID=$latestPanelId to panel: ${currentPanel.panelName}"))
 
                 emit(Result.Loading(message = "Inserting panel: ${currentPanel.panelName} with new ID=$latestPanelId"))
-                val updatedPanelData = currentPanel.copy(panelId = latestPanelId)
+                val updatedPanelData = currentPanel.copy(localId = latestPanelId)
                 panelsRepo.addaNewPanel(updatedPanelData)
 
                 emit(Result.Loading(message = "Adding panel folder associations for panel: ${currentPanel.panelName}"))
                 panelsRepo.addMultiplePanelFolders(updatedPanelFolders.filter {
-                    it.connectedPanelId == currentPanel.panelId
+                    it.connectedPanelId == currentPanel.localId
                 }.map {
-                    it.copy(connectedPanelId = latestPanelId, id = 0)
+                    it.copy(connectedPanelId = latestPanelId, localId = 0)
                 })
             }
             emit(Result.Success(Unit))

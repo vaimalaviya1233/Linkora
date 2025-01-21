@@ -131,7 +131,7 @@ fun SpecificPanelManagerScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().pulsateEffect().clickable(onClick = {
                             specificPanelManagerScreenVM.removeAFolderFromAPanel(
-                                panelId = SpecificPanelManagerScreenVM.selectedPanelData.value.panelId,
+                                panelId = SpecificPanelManagerScreenVM.selectedPanelData.value.localId,
                                 folderId = folderItem.folderId
                             )
                         }, indication = null, interactionSource = remember {
@@ -167,7 +167,7 @@ fun SpecificPanelManagerScreen(
                                 PanelFolder(
                                     folderId = filteredRootFolder.localId,
                                     folderName = filteredRootFolder.name,
-                                    connectedPanelId = SpecificPanelManagerScreenVM.selectedPanelData.value.panelId,
+                                    connectedPanelId = SpecificPanelManagerScreenVM.selectedPanelData.value.localId,
                                     panelPosition = 0
                                 )
                             )

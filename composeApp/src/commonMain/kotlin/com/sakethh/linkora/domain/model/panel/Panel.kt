@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Entity("panel")
 data class Panel(
-    @PrimaryKey(autoGenerate = true) val panelId: Long = 0,
-    val panelName: String
+    @PrimaryKey(autoGenerate = true) val localId: Long = 0,
+    val panelName: String,
+    val remoteId: Long? = null
 )

@@ -72,10 +72,10 @@ fun PanelsManagerScreen() {
     })
     val panels = homeScreenVM.panels.collectAsStateWithLifecycle()
     val selectedPanelForDetailView = rememberDeserializableMutableObject {
-        mutableStateOf(Panel(panelId = -1, panelName = ""))
+        mutableStateOf(Panel(localId = -1, panelName = ""))
     }
     val selectedPanelForDialogBoxes = rememberDeserializableMutableObject {
-        mutableStateOf(Panel(panelId = -1, panelName = ""))
+        mutableStateOf(Panel(localId = -1, panelName = ""))
     }
     val isAddANewPanelDialogBoxVisible = rememberSaveable {
         mutableStateOf(false)
@@ -154,7 +154,7 @@ fun PanelsManagerScreen() {
                         elementName = panel.panelName,
                         elementImageVector = Icons.Default.ViewArray,
                         inPanelsScreen = true,
-                        isSelected = selectedPanelForDetailView.value.panelId == panel.panelId,
+                        isSelected = selectedPanelForDetailView.value.localId == panel.localId,
                         onDeleteClick = {
                             selectedPanelForDialogBoxes.value = panel
                             isDeleteAPanelDialogBoxVisible.value = true
@@ -170,7 +170,7 @@ fun PanelsManagerScreen() {
                 }
             }
             VerticalDivider()
-            if (selectedPanelForDetailView.value.panelId <= 0) {
+            if (selectedPanelForDetailView.value.localId <= 0) {
                 Box(
                     modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
@@ -198,8 +198,8 @@ fun PanelsManagerScreen() {
     DeleteAShelfPanelDialogBox(
         deleteAShelfDialogBoxParam = DeleteAShelfDialogBoxParam(
             isDialogBoxVisible = isDeleteAPanelDialogBoxVisible, onDeleteClick = {
-                specificPanelManagerScreenVM.deleteAPanel(selectedPanelForDialogBoxes.value.panelId)
-                selectedPanelForDetailView.value = Panel(panelId = -45, panelName = "")
+                specificPanelManagerScreenVM.deleteAPanel(selectedPanelForDialogBoxes.value.localId)
+                selectedPanelForDetailView.value = Panel(localId = -45, panelName = "")
                 isDeleteAPanelDialogBoxVisible.value = false
             }, panelName = selectedPanelForDialogBoxes.value.panelName
         )
@@ -208,11 +208,11 @@ fun PanelsManagerScreen() {
     RenameAShelfPanelDialogBox(
         isDialogBoxVisible = isRenameAPanelDialogBoxVisible, onRenameClick = { newPanelName ->
             specificPanelManagerScreenVM.renameAPanel(
-                selectedPanelForDialogBoxes.value.panelId, newPanelName
+                selectedPanelForDialogBoxes.value.localId, newPanelName
             )
             SpecificPanelManagerScreenVM.updateSelectedPanelData(
                 Panel(
-                    selectedPanelForDialogBoxes.value.panelId, newPanelName
+                    selectedPanelForDialogBoxes.value.localId, newPanelName
                 )
             )
             isRenameAPanelDialogBoxVisible.value = false

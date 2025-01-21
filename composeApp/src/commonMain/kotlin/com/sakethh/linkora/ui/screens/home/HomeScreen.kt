@@ -301,7 +301,7 @@ fun HomeScreen() {
                 items(panels.value) { panel ->
                     Row(modifier = Modifier.fillMaxWidth().clickable {
                         homeScreenVM.selectedPanelData.value = panel
-                        homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.panelId)
+                        homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.localId)
                         coroutineScope.launch {
                             panelsBtmSheetState.hide()
                         }.invokeOnCompletion {
@@ -309,10 +309,10 @@ fun HomeScreen() {
                         }
                     }.padding(5.dp), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
-                            selected = homeScreenVM.selectedPanelData.value!!.panelId == panel.panelId,
+                            selected = homeScreenVM.selectedPanelData.value!!.localId == panel.localId,
                             onClick = {
                                 homeScreenVM.selectedPanelData.value = panel
-                                homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.panelId)
+                                homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.localId)
                                 coroutineScope.launch {
                                     panelsBtmSheetState.hide()
                                 }.invokeOnCompletion {
@@ -322,8 +322,8 @@ fun HomeScreen() {
                         Spacer(Modifier.width(5.dp))
                         Text(
                             text = panel.panelName,
-                            style = if (homeScreenVM.selectedPanelData.value!!.panelId == panel.panelId) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
-                            color = if (homeScreenVM.selectedPanelData.value!!.panelId == panel.panelId) LocalContentColor.current else LocalContentColor.current.copy(
+                            style = if (homeScreenVM.selectedPanelData.value!!.localId == panel.localId) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
+                            color = if (homeScreenVM.selectedPanelData.value!!.localId == panel.localId) LocalContentColor.current else LocalContentColor.current.copy(
                                 0.85f
                             )
                         )

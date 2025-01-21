@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PanelsDao {
-    @Query("SELECT MAX(panelId) FROM panel")
+    @Query("SELECT MAX(localId) FROM panel")
     suspend fun getLatestPanelID(): Long
 
     @Insert
@@ -21,10 +21,10 @@ interface PanelsDao {
     @Insert
     suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>)
 
-    @Query("DELETE FROM panel WHERE panelId = :id")
+    @Query("DELETE FROM panel WHERE localId = :id")
     suspend fun deleteAPanel(id: Long)
 
-    @Query("UPDATE panel SET panelName = :newName WHERE panelId = :panelId")
+    @Query("UPDATE panel SET panelName = :newName WHERE localId = :panelId")
     suspend fun updateAPanelName(newName: String, panelId: Long)
 
     @Query("DELETE FROM panel_folder WHERE connectedPanelId = :panelId")
@@ -57,6 +57,6 @@ interface PanelsDao {
     @Query("DELETE FROM panel_folder")
     suspend fun deleteAllPanelFolders()
 
-    @Query("SELECT * FROM panel WHERE panelId=:panelId LIMIT 1") // there will always be only 1 panel with the given ID, but added `LIMIT 1` because why not.
+    @Query("SELECT * FROM panel WHERE localId=:panelId LIMIT 1") // there will always be only 1 panel with the given ID, but added `LIMIT 1` because why not.
     suspend fun getPanel(panelId: Long): Panel
 }

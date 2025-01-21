@@ -32,7 +32,7 @@ class SpecificPanelManagerScreenVM(
     val specificPanelFolders = _specificPanelFolders.asStateFlow()
 
     companion object {
-        private val _selectedPanelData = mutableStateOf(Panel(panelId = 0L, panelName = ""))
+        private val _selectedPanelData = mutableStateOf(Panel(localId = 0L, panelName = ""))
         val selectedPanelData = _selectedPanelData
 
         fun updateSelectedPanelData(panel: Panel) {
@@ -57,7 +57,7 @@ class SpecificPanelManagerScreenVM(
                 result.onSuccess { success ->
                     val rootFilteredFolders = success.data.filterNot { it.isArchived }
 
-                    panelsRepo.getAllTheFoldersFromAPanel(_selectedPanelData.value.panelId)
+                    panelsRepo.getAllTheFoldersFromAPanel(_selectedPanelData.value.localId)
                         .collectLatest { panelFolders ->
                             val filteredRootFolders = rootFilteredFolders.filterNot { rootFolder ->
                                 panelFolders.any { it.folderName == rootFolder.name }

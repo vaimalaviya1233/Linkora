@@ -61,7 +61,7 @@ class HomeScreenVM(
     private fun defaultPanel(): Panel {
         return Panel(
             panelName = Localization.Key.Default.getLocalizedString(),
-            panelId = Constants.DEFAULT_PANELS_ID
+            localId = Constants.DEFAULT_PANELS_ID
         )
     }
 

@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Entity(tableName = "panel_folder")
 data class PanelFolder(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) val localId: Long = 0,
+    val remoteId: Long? = null,
     val folderId: Long,
     val panelPosition: Long,
     val folderName: String,
