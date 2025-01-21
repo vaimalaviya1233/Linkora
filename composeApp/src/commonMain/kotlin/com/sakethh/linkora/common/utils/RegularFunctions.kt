@@ -4,6 +4,12 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
+import io.ktor.client.HttpClient
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -37,3 +43,23 @@ fun defaultImpLinksFolder(): Folder = Folder(
     remoteId = null,
     isArchived = false
 )
+
+inline fun <reified OutgoingBody, reified IncomingBody> postFlow(
+    httpClient: HttpClient,
+    crossinline baseUrl: () -> String,
+    crossinline authToken: () -> String,
+    endPoint: String,
+    body: OutgoingBody,
+    contentType: ContentType = ContentType.Application.Json
+): Flow<Result<IncomingBody>> {
+    return flow {
+        emit(Result.Loading())
+        httpClient.post(baseUrl() + endPoint) {
+            bearerAuth(authToken())
+            contentType(contentType)
+            setBody(body)
+        }.handleResponseBody<IncomingBody>().run {
+            emit(this)
+        }
+    }.catchAsExceptionAndEmitFailure()
+}

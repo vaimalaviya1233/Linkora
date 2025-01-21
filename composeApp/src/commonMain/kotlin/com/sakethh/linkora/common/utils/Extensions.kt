@@ -20,6 +20,9 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
+import io.ktor.client.call.body
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -199,3 +202,11 @@ fun Link.excludeLocalId(): Link = Link(
     userAgent = this.userAgent,
     markedAsImportant = this.markedAsImportant
 )
+
+suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Result<IncomingBody> {
+    return if (this.status.isSuccess().not()) {
+        Result.Failure(this.status.value.toString() + " " + this.status.description)
+    } else {
+        Result.Success(this.body<IncomingBody>())
+    }
+}
