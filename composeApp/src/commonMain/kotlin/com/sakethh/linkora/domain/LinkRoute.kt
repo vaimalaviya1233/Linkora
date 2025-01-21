@@ -1,4 +1,4 @@
-package com.sakethh.linkora.domain.routes
+package com.sakethh.linkora.domain
 
 enum class LinkRoute {
     UPDATE_LINK_TITLE,
@@ -8,5 +8,7 @@ enum class LinkRoute {
     UPDATE_LINKED_FOLDER_ID,
     UPDATE_USER_AGENT,
     GET_LINKS_FROM_A_FOLDER,
-    GET_LINKS
+    GET_LINKS,
+    ARCHIVE_LINK,
+    UNARCHIVE_LINK,
 }
