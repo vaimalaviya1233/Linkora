@@ -1,7 +1,10 @@
 package com.sakethh.linkora
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -37,6 +40,23 @@ class LinkoraApp : Application() {
         Localization.loadLocalizedStrings(
             AppPreferences.preferredAppLanguageCode.value
         )
+        createNotificationChannel()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationChannel =
+                NotificationChannel(
+                    "1",
+                    "Links Refreshing",
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+            notificationChannel.description =
+                "Used for notifying about links refreshing status."
+            val notificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(notificationChannel)
+        }
     }
 
     private fun buildLocalDatabase(): LocalDatabase {

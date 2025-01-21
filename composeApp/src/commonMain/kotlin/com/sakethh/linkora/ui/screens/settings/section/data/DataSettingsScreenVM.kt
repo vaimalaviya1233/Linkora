@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.cancelRefreshingLinks
 import com.sakethh.isAnyRefreshingScheduled
-import com.sakethh.isStoragePermissionPermittedOnAndroid
+import com.sakethh.isStorageAccessPermittedOnAndroid
 import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.getLocalizedString
@@ -27,6 +27,7 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.onRefreshAllLinks
+import com.sakethh.permittedToShowNotification
 import com.sakethh.pickAValidFileForImporting
 import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Dispatchers
@@ -95,7 +96,7 @@ class DataSettingsScreenVM(
         importExportJob = viewModelScope.launch {
             withContext(Dispatchers.Main) {
                 if (platform is Platform.Android) {
-                    isStoragePermissionPermittedOnAndroid().ifTrue {
+                    isStorageAccessPermittedOnAndroid().ifTrue {
                         onStart()
                     }.ifNot {
                         importExportJob?.cancel()
@@ -159,10 +160,15 @@ class DataSettingsScreenVM(
 
     fun refreshAllLinks() {
         viewModelScope.launch {
-            onRefreshAllLinks(
-                localLinksRepo = linksRepo,
-                preferencesRepository = preferencesRepository
-            )
+            launch {
+                permittedToShowNotification()
+            }
+            launch {
+                onRefreshAllLinks(
+                    localLinksRepo = linksRepo,
+                    preferencesRepository = preferencesRepository
+                )
+            }
         }
     }
 

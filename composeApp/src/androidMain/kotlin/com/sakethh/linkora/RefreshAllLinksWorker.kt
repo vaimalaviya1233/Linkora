@@ -27,6 +27,8 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
         }
     }
 
+    private val refreshAllLinksNotificationService = RefreshAllLinksNotificationService(appContext)
+
     override suspend fun doWork(): Result {
         return try {
             DependencyContainer.localLinksRepo.value.getAllLinks().let { allLinks ->
@@ -59,6 +61,7 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
                                     preferenceKey = longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name),
                                     newValue = index.toLong()
                                 )
+                                refreshAllLinksNotificationService.showNotification()
                             }
                         }
                 }

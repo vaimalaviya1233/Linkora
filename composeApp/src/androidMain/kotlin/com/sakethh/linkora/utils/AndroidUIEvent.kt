@@ -22,7 +22,9 @@ object AndroidUIEvent {
 
     sealed interface Type {
         data object ShowRuntimePermissionForStorage : Type
-        data class PermissionGrantedForAndBelowQ(val isGranted: Boolean) : Type
+        data object ShowRuntimePermissionForNotifications : Type
+        data class StoragePermissionGrantedForAndBelowQ(val isGranted: Boolean) : Type
+        data class NotificationPermissionState(val isGranted: Boolean) : Type
         data class UriOfTheFileForImporting(val uri: Uri?) : Type
         data class ImportAFile(val fileType: String) : Type
     }

@@ -14,7 +14,9 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +31,7 @@ import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.ifTrue
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
+import com.sakethh.linkora.ui.components.NotificationPermissionDialogBox
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.theme.AndroidTypography
 import com.sakethh.linkora.ui.theme.DarkColors
@@ -57,15 +60,27 @@ class MainActivity : ComponentActivity() {
                 )
             }
             val coroutineScope = rememberCoroutineScope()
-            val runtimePermission = rememberLauncherForActivityResult(
+            val storageRuntimePermission = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission(),
                 onResult = { permissionGranted ->
                     coroutineScope.pushUIEvent(
-                        AndroidUIEvent.Type.PermissionGrantedForAndBelowQ(
+                        AndroidUIEvent.Type.StoragePermissionGrantedForAndBelowQ(
                             isGranted = permissionGranted
                         )
                     )
                 })
+            val notificationRuntimePermission = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission(),
+                onResult = { permissionGranted ->
+                    coroutineScope.pushUIEvent(
+                        AndroidUIEvent.Type.NotificationPermissionState(
+                            isGranted = permissionGranted
+                        )
+                    )
+                })
+            val isNotificationPermissionDialogVisible = rememberSaveable {
+                mutableStateOf(false)
+            }
             val activityResultLauncher =
                 rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                     coroutineScope.pushUIEvent(
@@ -79,10 +94,10 @@ class MainActivity : ComponentActivity() {
                     when (it) {
                         is AndroidUIEvent.Type.ShowRuntimePermissionForStorage -> {
                             pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
-                            runtimePermission.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            storageRuntimePermission.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         }
 
-                        is AndroidUIEvent.Type.PermissionGrantedForAndBelowQ -> {
+                        is AndroidUIEvent.Type.StoragePermissionGrantedForAndBelowQ -> {
                             it.isGranted.ifNot {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
                             }.ifTrue {
@@ -94,6 +109,17 @@ class MainActivity : ComponentActivity() {
                             activityResultLauncher.launch(it.fileType)
                         }
 
+                        is AndroidUIEvent.Type.ShowRuntimePermissionForNotifications -> {
+                            if (Build.VERSION.SDK_INT > 32) {
+                                isNotificationPermissionDialogVisible.value = true
+                            }
+                        }
+
+                        is AndroidUIEvent.Type.NotificationPermissionState -> {
+                            it.isGranted.ifNot {
+                                pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.NotificationPermissionIsRequired.getLocalizedString()))
+                            }
+                        }
                         else -> {}
                     }
                 }
@@ -165,6 +191,10 @@ class MainActivity : ComponentActivity() {
                             systemUIController.setNavigationBarColor(colors.surface)
                         }
                     }
+                    NotificationPermissionDialogBox(
+                        isVisible = isNotificationPermissionDialogVisible,
+                        notificationRuntimePermission = notificationRuntimePermission
+                    )
                 }
             }
         }

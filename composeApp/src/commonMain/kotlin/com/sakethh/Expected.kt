@@ -28,7 +28,7 @@ expect suspend fun writeRawExportStringToFile(
     onCompletion: () -> Unit
 )
 
-expect suspend fun isStoragePermissionPermittedOnAndroid(): Boolean
+expect suspend fun isStorageAccessPermittedOnAndroid(): Boolean
 
 expect suspend fun pickAValidFileForImporting(
     importFileType: ImportFileType,
@@ -48,3 +48,5 @@ expect fun cancelRefreshingLinks()
 
 @Composable
 expect fun PlatformSpecificBackHandler(init: () -> Unit)
+
+expect suspend fun permittedToShowNotification(): Boolean

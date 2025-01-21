@@ -1,5 +1,6 @@
 package com.sakethh
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -89,21 +90,16 @@ actual suspend fun writeRawExportStringToFile(
     onCompletion()
 }
 
-actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean {
-    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-        if (ContextCompat.checkSelfPermission(
-                LinkoraApp.getContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            true
-        } else {
-            AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForStorage)
-            false
-        }
-    } else {
+actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean {
+    return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(
+            LinkoraApp.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
         true
+    } else {
+        AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForStorage)
+        false
     }
-
 }
 
 actual suspend fun pickAValidFileForImporting(
@@ -196,3 +192,15 @@ actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
 
 @Composable
 actual fun PlatformSpecificBackHandler(init: () -> Unit) = BackHandler(onBack = init)
+
+actual suspend fun permittedToShowNotification(): Boolean {
+    return if (Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
+            LinkoraApp.getContext(), Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
+        true
+    } else {
+        AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForNotifications)
+        false
+    }
+}

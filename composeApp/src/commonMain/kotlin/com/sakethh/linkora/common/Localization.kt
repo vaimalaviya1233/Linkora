@@ -1291,6 +1291,11 @@ object Localization {
                 return "storage_permission_is_required"
             }
         },
+        NotificationPermissionIsRequired(defaultValue = "Enable notification permission to view the progress of link refreshes.") {
+            override fun toString(): String {
+                return "notification_permission_is_required"
+            }
+        },
         PermissionGranted(defaultValue = "Permission granted. Please retry the action to continue with your import/export.") {
             override fun toString(): String {
                 return "permission_granted"

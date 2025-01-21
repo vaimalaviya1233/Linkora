@@ -62,7 +62,7 @@ actual suspend fun writeRawExportStringToFile(
     onCompletion()
 }
 
-actual suspend fun isStoragePermissionPermittedOnAndroid(): Boolean = false
+actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean = false
 
 actual suspend fun pickAValidFileForImporting(
     importFileType: ImportFileType, onStart: () -> Unit
@@ -103,3 +103,6 @@ actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
 
 @Composable
 actual fun PlatformSpecificBackHandler(init: () -> Unit) = Unit
+
+
+actual suspend fun permittedToShowNotification(): Boolean = false
