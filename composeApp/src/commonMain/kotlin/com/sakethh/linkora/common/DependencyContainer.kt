@@ -14,6 +14,7 @@ import com.sakethh.linkora.data.local.repository.PanelsRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.GitHubReleasesRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
+import com.sakethh.linkora.data.remote.repository.RemoteLinksRepoImpl
 import com.sakethh.localDatabase
 
 object DependencyContainer {
@@ -59,8 +60,17 @@ object DependencyContainer {
             primaryUserAgent = {
                 AppPreferences.primaryJsoupUserAgent.value
             },
-            httpClient = Network.client
+            httpClient = Network.client,
+            remoteLinksRepo = remoteLinksRepo.value
         )
+    }
+
+    val remoteLinksRepo = lazy {
+        RemoteLinksRepoImpl(httpClient = Network.client, baseUrl = {
+            AppPreferences.serverBaseUrl.value
+        }, authToken = {
+            AppPreferences.serverSecurityToken.value
+        })
     }
 
     val gitHubReleasesRepo = lazy {

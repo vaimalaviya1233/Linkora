@@ -6,7 +6,7 @@ import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.asFolderDTO
+import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.linkoraPlaceHolders
 import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.Folder
@@ -38,10 +38,10 @@ class LocalFoldersRepoImpl(
             if (folder.parentFolderId != null) {
                 val remoteParentFolderId = getRemoteIdOfThisLocalFolder(folder.parentFolderId)
                 remoteFoldersRepo.createFolder(
-                    folder.asFolderDTO().copy(parentFolderId = remoteParentFolderId)
+                    folder.asAddFolderDTO().copy(parentFolderId = remoteParentFolderId)
                 )
             } else {
-                remoteFoldersRepo.createFolder(folder.asFolderDTO())
+                remoteFoldersRepo.createFolder(folder.asAddFolderDTO())
             }
         }, remoteOperationOnSuccess = {
             foldersDao.updateAFolderData(

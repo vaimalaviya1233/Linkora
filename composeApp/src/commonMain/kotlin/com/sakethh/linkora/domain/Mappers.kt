@@ -5,6 +5,8 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.dto.AddFolderDTO
+import com.sakethh.linkora.domain.dto.AddLinkDTO
+import com.sakethh.linkora.domain.dto.LinkDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
@@ -60,9 +62,38 @@ fun FolderType.asLocalizedString(): String {
     }
 }
 
-fun Folder.asFolderDTO(): AddFolderDTO = AddFolderDTO(
+fun Folder.asAddFolderDTO(): AddFolderDTO = AddFolderDTO(
     name = this.name,
     note = this.note,
     parentFolderId = this.parentFolderId,
     isArchived = this.isArchived
+)
+
+fun Link.asAddLinkDTO(): AddLinkDTO = AddLinkDTO(
+    linkType = this.linkType,
+    title = this.title,
+    url = this.url,
+    baseURL = this.baseURL,
+    imgURL = this.imgURL,
+    note = this.note,
+    lastModified = this.lastModified,
+    idOfLinkedFolder = this.idOfLinkedFolder,
+    userAgent = this.userAgent,
+    markedAsImportant = this.markedAsImportant,
+    mediaType = this.mediaType
+)
+
+fun Link.asLinkDTO(id: Long): LinkDTO = LinkDTO(
+    linkType = this.linkType,
+    title = this.title,
+    url = this.url,
+    baseURL = this.baseURL,
+    imgURL = this.imgURL,
+    note = this.note,
+    lastModified = this.lastModified,
+    idOfLinkedFolder = this.idOfLinkedFolder,
+    userAgent = this.userAgent,
+    markedAsImportant = this.markedAsImportant,
+    mediaType = this.mediaType,
+    id = id
 )

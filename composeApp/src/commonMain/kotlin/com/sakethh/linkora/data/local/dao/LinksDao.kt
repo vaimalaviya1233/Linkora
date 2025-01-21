@@ -115,4 +115,10 @@ interface LinksDao {
 
     @Query("SELECT remoteId FROM links WHERE localId = :localId LIMIT 1")
     suspend fun getRemoteIdOfLocalLink(localId: Long): Long?
+
+    @Query("SELECT MAX(localId) FROM links")
+    suspend fun getLatestId(): Long
+
+    @Query("SELECT * FROM links WHERE localId = :localId LIMIT 1")
+    suspend fun getLink(localId: Long): Link
 }

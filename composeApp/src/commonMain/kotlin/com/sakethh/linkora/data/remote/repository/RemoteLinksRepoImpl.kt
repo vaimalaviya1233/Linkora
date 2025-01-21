@@ -5,6 +5,7 @@ import com.sakethh.linkora.domain.LinkRoute
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.AddLinkDTO
+import com.sakethh.linkora.domain.dto.LinkDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import io.ktor.client.HttpClient
@@ -96,6 +97,16 @@ class RemoteLinksRepoImpl(
             authToken = authToken,
             endPoint = LinkRoute.UNMARK_AS_IMP.name,
             body = remoteLinkId
+        )
+    }
+
+    override suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<Message>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = LinkRoute.UPDATE_LINK.name,
+            body = linkDTO
         )
     }
 }

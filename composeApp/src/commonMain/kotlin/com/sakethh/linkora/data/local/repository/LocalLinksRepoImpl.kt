@@ -1,7 +1,6 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.baseUrl
-import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isATwitterUrl
 import com.sakethh.linkora.common.utils.isAValidLink
@@ -12,6 +11,8 @@ import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.asAddLinkDTO
+import com.sakethh.linkora.domain.asLinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
 import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
@@ -24,7 +25,6 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 
@@ -37,15 +37,23 @@ class LocalLinksRepoImpl(
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig
     ): Flow<Result<Unit>> {
-        return flow {
-            emit(Result.Loading())
+        val newLinkId = linksDao.getLatestId() + 1
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true,
+            remoteOperation = {
+                remoteLinksRepo.addANewLink(linksDao.getLink(newLinkId).asAddLinkDTO())
+            },
+            remoteOperationOnSuccess = {
+                linksDao.updateALink(
+                    linksDao.getLink(newLinkId).copy(remoteId = it.id)
+                )
+            }) {
             if (linkSaveConfig.forceSaveWithoutRetrievingData) {
                 link.url.isAValidLink().ifNot {
                     throw Link.Invalid()
                 }
-                linksDao.addANewLink(link)
-                emit(Result.Success(Unit))
-                return@flow
+                linksDao.addANewLink(link.copy(localId = newLinkId))
+                return@performLocalOperationWithRemoteSyncFlow
             }
             if (link.url.isATwitterUrl()) {
                 retrieveFromVxTwitterApi(link.url)
@@ -57,12 +65,12 @@ class LocalLinksRepoImpl(
                 linksDao.addANewLink(
                     link.copy(
                         title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
-                        imgURL = scrapedLinkInfo.imgUrl
+                        imgURL = scrapedLinkInfo.imgUrl,
+                        localId = newLinkId
                     )
                 )
             }
-            emit(Result.Success(Unit))
-        }.catchAsThrowableAndEmitFailure()
+        }
     }
 
     override suspend fun addMultipleLinks(links: List<Link>) {
@@ -283,13 +291,31 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun updateALink(link: Link): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val remoteId = getRemoteIdOfLink(link.localId)
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true, remoteOperation = {
+                if (remoteId != null) {
+                    remoteLinksRepo.updateLink(link.asLinkDTO(id = remoteId))
+                } else {
+                    emptyFlow()
+                }
+            }) {
             linksDao.updateALink(link)
         }
     }
 
     override suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val remoteId = getRemoteIdOfLink(link.localId)
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true, remoteOperation = {
+                if (remoteId != null) {
+                    remoteLinksRepo.updateLink(
+                        linksDao.getLink(link.localId).asLinkDTO(id = remoteId)
+                    )
+                } else {
+                    emptyFlow()
+                }
+            }) {
             scrapeLinkData(
                 linkUrl = link.url, userAgent = link.userAgent ?: primaryUserAgent()
             ).let { scrapedLinkInfo ->

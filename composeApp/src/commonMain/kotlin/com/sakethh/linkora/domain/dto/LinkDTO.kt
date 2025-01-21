@@ -5,7 +5,8 @@ import com.sakethh.linkora.domain.MediaType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AddLinkDTO(
+data class LinkDTO(
+    val id: Long,
     val linkType: LinkType,
     val title: String,
     val url: String,
