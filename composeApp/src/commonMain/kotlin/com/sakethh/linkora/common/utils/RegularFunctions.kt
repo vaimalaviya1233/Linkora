@@ -1,9 +1,12 @@
 package com.sakethh.linkora.common.utils
 
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.onFailure
+import com.sakethh.linkora.domain.onSuccess
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
@@ -11,6 +14,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 
 fun <T> wrappedResultFlow(init: suspend () -> T): Flow<Result<T>> {
@@ -62,4 +66,30 @@ inline fun <reified OutgoingBody, reified IncomingBody> postFlow(
             emit(this)
         }
     }.catchAsExceptionAndEmitFailure()
+}
+
+fun <LocalType, RemoteType> performLocalOperationWithRemoteSyncFlow(
+    performRemoteOperation: Boolean,
+    remoteOperation: suspend () -> Flow<Result<RemoteType>> = { emptyFlow() },
+    remoteOperationOnSuccess: suspend (RemoteType) -> Unit = {},
+    localOperation: suspend () -> LocalType
+): Flow<Result<LocalType>> {
+    return flow {
+        emit(Result.Loading())
+        val localResult = localOperation()
+        Result.Success(localResult).let { success ->
+            if (performRemoteOperation && AppPreferences.canPushToServer()) {
+                remoteOperation().collect { remoteResult ->
+                    remoteResult.onFailure { failureMessage ->
+                        success.isRemoteExecutionSuccessful = false
+                        success.remoteFailureMessage = failureMessage
+                    }
+                    remoteResult.onSuccess {
+                        remoteOperationOnSuccess(it.data)
+                    }
+                }
+            }
+            emit(success)
+        }
+    }.catchAsThrowableAndEmitFailure()
 }

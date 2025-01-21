@@ -41,7 +41,6 @@ object DependencyContainer {
             Network.client,
             baseUrl = { AppPreferences.serverBaseUrl.value },
             authToken = { AppPreferences.serverSecurityToken.value },
-            foldersDao = localDatabase?.foldersDao!!
         )
     }
 
@@ -49,9 +48,6 @@ object DependencyContainer {
         LocalFoldersRepoImpl(
             foldersDao = localDatabase?.foldersDao!!,
             remoteFoldersRepo = remoteFoldersRepo.value,
-            canPushToServer = {
-                AppPreferences.canPushToServer()
-            },
             localLinksRepo = localLinksRepo.value,
             panelsRepo = panelsRepo.value
         )
