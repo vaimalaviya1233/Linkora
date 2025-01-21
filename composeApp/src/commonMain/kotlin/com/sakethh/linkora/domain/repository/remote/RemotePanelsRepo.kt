@@ -16,4 +16,5 @@ interface RemotePanelsRepo {
     suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Flow<Result<Message>>
     suspend fun deleteAFolderFromAllPanels(folderID: Long): Flow<Result<Message>>
     suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Flow<Result<Message>>
+    suspend fun deleteAllFoldersFromAPanel(panelId: Long): Flow<Result<Message>>
 }

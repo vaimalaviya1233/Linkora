@@ -77,4 +77,14 @@ class RemotePanelsRepoImpl(
             body = deleteAPanelFromAFolderDTO
         )
     }
+
+    override suspend fun deleteAllFoldersFromAPanel(panelId: Long): Flow<Result<Message>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.Panel.DELETE_ALL_FOLDERS_FROM_A_PANEL.name,
+            body = panelId
+        )
+    }
 }

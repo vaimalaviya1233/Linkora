@@ -3,6 +3,7 @@ package com.sakethh.linkora.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import kotlinx.coroutines.flow.Flow
@@ -12,8 +13,20 @@ interface PanelsDao {
     @Query("SELECT MAX(localId) FROM panel")
     suspend fun getLatestPanelID(): Long
 
+    @Query("SELECT MAX(localId) FROM panel_folder")
+    suspend fun getLatestPanelFolderID(): Long
+
     @Insert
     suspend fun addaNewPanel(panel: Panel)
+
+    @Update
+    suspend fun updateAPanel(panel: Panel)
+
+    @Update
+    suspend fun updateAPanelFolder(panelFolder: PanelFolder)
+
+    @Query("SELECT remoteId FROM panel WHERE localId = :localId")
+    suspend fun getRemoteIdOfPanel(localId: Long): Long?
 
     @Insert
     suspend fun addMultiplePanels(panels: List<Panel>)
@@ -59,4 +72,7 @@ interface PanelsDao {
 
     @Query("SELECT * FROM panel WHERE localId=:panelId LIMIT 1") // there will always be only 1 panel with the given ID, but added `LIMIT 1` because why not.
     suspend fun getPanel(panelId: Long): Panel
+
+    @Query("SELECT * FROM panel_folder WHERE localId=:localPanelFolderId LIMIT 1")
+    suspend fun getPanelFolder(localPanelFolderId: Long): PanelFolder
 }

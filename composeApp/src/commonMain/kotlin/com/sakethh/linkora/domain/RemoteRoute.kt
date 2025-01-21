@@ -20,6 +20,7 @@ sealed interface RemoteRoute {
         DELETE_A_PANEL,
         UPDATE_A_PANEL_NAME,
         DELETE_A_FOLDER_FROM_ALL_PANELS,
-        DELETE_A_FOLDER_FROM_A_PANEL
+        DELETE_A_FOLDER_FROM_A_PANEL,
+        DELETE_ALL_FOLDERS_FROM_A_PANEL
     }
 }
