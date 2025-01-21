@@ -81,7 +81,7 @@ fun HomeScreen() {
     val navController = LocalNavController.current
     val homeScreenVM: HomeScreenVM = viewModel(factory = genericViewModelFactory {
         HomeScreenVM(
-            panelsRepo = DependencyContainer.panelsRepo.value,
+            localPanelsRepo = DependencyContainer.panelsRepo.value,
             localLinksRepo = DependencyContainer.localLinksRepo.value,
             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
             preferencesRepository = DependencyContainer.preferencesRepo.value

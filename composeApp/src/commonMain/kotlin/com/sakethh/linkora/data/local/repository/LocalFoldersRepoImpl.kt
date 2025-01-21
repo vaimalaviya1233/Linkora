@@ -13,7 +13,7 @@ import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +26,7 @@ class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val localLinksRepo: LocalLinksRepo,
-    private val panelsRepo: PanelsRepo
+    private val localPanelsRepo: LocalPanelsRepo
 ) : LocalFoldersRepo {
 
     override suspend fun insertANewFolder(
@@ -334,9 +334,9 @@ class LocalFoldersRepoImpl(
     }
 
     private suspend fun deleteLocalDataRelatedToTheFolder(folderID: Long) {
-        panelsRepo.deleteAFolderFromAllPanels(folderID)
+        localPanelsRepo.deleteAFolderFromAllPanels(folderID)
         foldersDao.getChildFoldersOfThisParentIDAsAList(folderID).forEach {
-            panelsRepo.deleteAFolderFromAllPanels(it.localId)
+            localPanelsRepo.deleteAFolderFromAllPanels(it.localId)
             foldersDao.deleteAFolder(it.localId)
             localLinksRepo.deleteLinksOfFolder(it.localId)
             deleteLocalDataRelatedToTheFolder(it.localId)

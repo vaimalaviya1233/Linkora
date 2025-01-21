@@ -14,7 +14,7 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.utils.LinkoraExports
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +30,7 @@ import java.util.Stack
 class ImportDataRepoImpl(
     private val localLinksRepo: LocalLinksRepo,
     private val localFoldersRepo: LocalFoldersRepo,
-    private val panelsRepo: PanelsRepo
+    private val localPanelsRepo: LocalPanelsRepo
 ) : ImportDataRepo {
     override suspend fun importDataFromAJSONFile(file: File): Flow<Result<Unit>> {
         return flow {
@@ -87,7 +87,7 @@ class ImportDataRepoImpl(
                 }.map { it.copy(folderId = latestFolderId) })
             }
 
-            var latestPanelId = panelsRepo.getLatestPanelID()
+            var latestPanelId = localPanelsRepo.getLatestPanelID()
             emit(Result.Loading(message = "Retrieved latest panel ID: $latestPanelId"))
 
             deserializedData.panels.panels.forEach { currentPanel ->
@@ -96,10 +96,10 @@ class ImportDataRepoImpl(
 
                 emit(Result.Loading(message = "Inserting panel: ${currentPanel.panelName} with new ID=$latestPanelId"))
                 val updatedPanelData = currentPanel.copy(localId = latestPanelId)
-                panelsRepo.addaNewPanel(updatedPanelData)
+                localPanelsRepo.addaNewPanel(updatedPanelData)
 
                 emit(Result.Loading(message = "Adding panel folder associations for panel: ${currentPanel.panelName}"))
-                panelsRepo.addMultiplePanelFolders(updatedPanelFolders.filter {
+                localPanelsRepo.addMultiplePanelFolders(updatedPanelFolders.filter {
                     it.connectedPanelId == currentPanel.localId
                 }.map {
                     it.copy(connectedPanelId = latestPanelId, localId = 0)

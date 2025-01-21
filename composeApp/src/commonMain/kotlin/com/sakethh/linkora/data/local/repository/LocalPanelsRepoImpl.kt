@@ -3,10 +3,10 @@ package com.sakethh.linkora.data.local.repository
 import com.sakethh.linkora.data.local.dao.PanelsDao
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
-import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import kotlinx.coroutines.flow.Flow
 
-class PanelsRepoImpl(private val panelsDao: PanelsDao) : PanelsRepo {
+class LocalPanelsRepoImpl(private val panelsDao: PanelsDao) : LocalPanelsRepo {
     override suspend fun addaNewPanel(panel: Panel) {
         panelsDao.addaNewPanel(panel)
     }

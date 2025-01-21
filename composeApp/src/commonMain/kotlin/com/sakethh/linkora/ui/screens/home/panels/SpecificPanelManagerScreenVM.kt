@@ -12,7 +12,7 @@ import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
-import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class SpecificPanelManagerScreenVM(
-    private val foldersRepo: LocalFoldersRepo, private val panelsRepo: PanelsRepo,
+    private val foldersRepo: LocalFoldersRepo, private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     initData: Boolean = true
 ) : ViewModel() {
@@ -57,7 +57,7 @@ class SpecificPanelManagerScreenVM(
                 result.onSuccess { success ->
                     val rootFilteredFolders = success.data.filterNot { it.isArchived }
 
-                    panelsRepo.getAllTheFoldersFromAPanel(_selectedPanelData.value.localId)
+                    localPanelsRepo.getAllTheFoldersFromAPanel(_selectedPanelData.value.localId)
                         .collectLatest { panelFolders ->
                             val filteredRootFolders = rootFilteredFolders.filterNot { rootFolder ->
                                 panelFolders.any { it.folderName == rootFolder.name }
@@ -73,13 +73,13 @@ class SpecificPanelManagerScreenVM(
 
     fun addANewFolderInAPanel(panelFolder: PanelFolder) {
         viewModelScope.launch {
-            panelsRepo.addANewFolderInAPanel(panelFolder)
+            localPanelsRepo.addANewFolderInAPanel(panelFolder)
         }
     }
 
     fun addANewAPanel(panel: Panel) {
         viewModelScope.launch {
-            panelsRepo.addaNewPanel(panel)
+            localPanelsRepo.addaNewPanel(panel)
         }
     }
 
@@ -92,13 +92,13 @@ class SpecificPanelManagerScreenVM(
                     ), newValue = Constants.DEFAULT_PANELS_ID
                 )
             }
-            panelsRepo.deleteAPanel(panelId)
+            localPanelsRepo.deleteAPanel(panelId)
         }
     }
 
     fun renameAPanel(panelId: Long, newName: String) {
         viewModelScope.launch {
-            panelsRepo.updateAPanelName(newName, panelId)
+            localPanelsRepo.updateAPanelName(newName, panelId)
         }
     }
 
@@ -107,7 +107,7 @@ class SpecificPanelManagerScreenVM(
         folderId: Long
     ) {
         viewModelScope.launch {
-            panelsRepo.deleteAFolderFromAPanel(panelId, folderId)
+            localPanelsRepo.deleteAFolderFromAPanel(panelId, folderId)
         }
     }
 }

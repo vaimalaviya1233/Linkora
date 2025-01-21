@@ -12,7 +12,7 @@ import com.sakethh.linkora.domain.model.PanelForJSONExport
 import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.utils.LinkoraExports
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.SendChannel
@@ -26,7 +26,7 @@ import kotlinx.serialization.json.Json
 class ExportDataRepoImpl(
     private val localLinksRepo: LocalLinksRepo,
     private val localFoldersRepo: LocalFoldersRepo,
-    private val panelsRepo: PanelsRepo
+    private val localPanelsRepo: LocalPanelsRepo
 ) : ExportDataRepo {
     override suspend fun exportDataAsJSON(): Flow<Result<RawExportString>> {
         return flow {
@@ -39,10 +39,10 @@ class ExportDataRepoImpl(
                     localFoldersRepo.getAllFoldersAsList()
                 }
                 val deferredPanels = async {
-                    panelsRepo.getAllThePanelsAsAList()
+                    localPanelsRepo.getAllThePanelsAsAList()
                 }
                 val deferredPanelFolders = async {
-                    panelsRepo.getAllThePanelFoldersAsAList()
+                    localPanelsRepo.getAllThePanelFoldersAsAList()
                 }
 
                 emit(Result.Loading(message = Localization.Key.CollectingLinksForExport.getLocalizedString()))

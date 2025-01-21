@@ -12,7 +12,7 @@ import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.domain.repository.local.PanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,7 @@ import java.util.Calendar
 class HomeScreenVM(
     val localFoldersRepo: LocalFoldersRepo,
     val localLinksRepo: LocalLinksRepo,
-    private val panelsRepo: PanelsRepo,
+    private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     triggerCollectionOfPanels: Boolean = true,
     private val triggerCollectionOfPanelFolders: Boolean = true
@@ -83,7 +83,7 @@ class HomeScreenVM(
                 return@launch
             }
 
-            panelsRepo.getAllTheFoldersFromAPanel(panelId).collectLatest {
+            localPanelsRepo.getAllTheFoldersFromAPanel(panelId).collectLatest {
                 _panelFolders.emit(it)
             }
         }
@@ -93,7 +93,7 @@ class HomeScreenVM(
     init {
         if (triggerCollectionOfPanels) {
             viewModelScope.launch {
-                panelsRepo.getAllThePanels().collectLatest {
+                localPanelsRepo.getAllThePanels().collectLatest {
                     _panels.emit(listOf(defaultPanel()) + it)
                 }
             }
@@ -111,7 +111,7 @@ class HomeScreenVM(
                 if (it.isNull() || it!! == Constants.DEFAULT_PANELS_ID) {
                     defaultPanel()
                 } else {
-                    panelsRepo.getPanel(it)
+                    localPanelsRepo.getPanel(it)
                 }
             }
         }

@@ -10,7 +10,7 @@ import com.sakethh.linkora.data.ImportDataRepoImpl
 import com.sakethh.linkora.data.LocalizationRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
-import com.sakethh.linkora.data.local.repository.PanelsRepoImpl
+import com.sakethh.linkora.data.local.repository.LocalPanelsRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.GitHubReleasesRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
@@ -50,7 +50,7 @@ object DependencyContainer {
             foldersDao = localDatabase?.foldersDao!!,
             remoteFoldersRepo = remoteFoldersRepo.value,
             localLinksRepo = localLinksRepo.value,
-            panelsRepo = panelsRepo.value
+            localPanelsRepo = panelsRepo.value
         )
     }
 
@@ -79,7 +79,7 @@ object DependencyContainer {
     }
 
     val panelsRepo = lazy {
-        PanelsRepoImpl(panelsDao = localDatabase?.panelsDao!!)
+        LocalPanelsRepoImpl(panelsDao = localDatabase?.panelsDao!!)
     }
 
     val exportDataRepo = lazy {
