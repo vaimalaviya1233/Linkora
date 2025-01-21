@@ -4,8 +4,8 @@ import com.sakethh.linkora.common.utils.postFlow
 import com.sakethh.linkora.domain.LinkRoute
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.dto.AddLinkDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
@@ -15,13 +15,13 @@ class RemoteLinksRepoImpl(
     private val baseUrl: () -> String,
     private val authToken: () -> String
 ) : RemoteLinksRepo {
-    override suspend fun addANewLink(link: Link): Flow<Result<NewItemResponseDTO>> {
-        return postFlow<Link, NewItemResponseDTO>(
+    override suspend fun addANewLink(addLinkDTO: AddLinkDTO): Flow<Result<NewItemResponseDTO>> {
+        return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.CREATE_A_NEW_LINK.name,
-            body = link
+            body = addLinkDTO
         )
     }
 
@@ -75,6 +75,26 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.UNARCHIVE_LINK.name,
+            body = remoteLinkId
+        )
+    }
+
+    override suspend fun markALinkAsImp(remoteLinkId: Long): Flow<Result<Message>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = LinkRoute.MARK_AS_IMP.name,
+            body = remoteLinkId
+        )
+    }
+
+    override suspend fun markALinkAsNonImp(remoteLinkId: Long): Flow<Result<Message>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = LinkRoute.UNMARK_AS_IMP.name,
             body = remoteLinkId
         )
     }

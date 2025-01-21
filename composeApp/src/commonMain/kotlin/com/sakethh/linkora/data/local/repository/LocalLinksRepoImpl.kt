@@ -6,6 +6,7 @@ import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isATwitterUrl
 import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
+import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
@@ -16,11 +17,13 @@ import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -28,7 +31,8 @@ import org.jsoup.Jsoup
 class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
     private val primaryUserAgent: () -> String,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
+    private val remoteLinksRepo: RemoteLinksRepo
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig
@@ -176,31 +180,76 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val remoteId = getRemoteIdOfLink(linkId)
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true,
+            remoteOperation = {
+                if (remoteId != null) {
+                    remoteLinksRepo.renameALinkNote(remoteId, newNote = "")
+                } else {
+                    emptyFlow()
+                }
+            }) {
             linksDao.deleteALinkNote(linkId)
         }
     }
 
     override suspend fun deleteALink(linkId: Long): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val remoteId = getRemoteIdOfLink(linkId)
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true,
+            remoteOperation = {
+                if (remoteId != null) {
+                    remoteLinksRepo.deleteALink(remoteId)
+                } else {
+                    emptyFlow()
+                }
+            }) {
             linksDao.deleteALink(linkId)
         }
     }
 
     override suspend fun archiveALink(linkId: Long): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val remoteId = getRemoteIdOfLink(linkId)
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true,
+            remoteOperation = {
+                if (remoteId != null) {
+                    remoteLinksRepo.archiveALink(remoteId)
+                } else {
+                    emptyFlow()
+                }
+            }) {
             linksDao.archiveALink(linkId)
         }
     }
 
     override suspend fun updateLinkNote(linkId: Long, newNote: String): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val remoteId = getRemoteIdOfLink(linkId)
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true,
+            remoteOperation = {
+                if (remoteId != null) {
+                    remoteLinksRepo.renameALinkNote(remoteId, newNote)
+                } else {
+                    emptyFlow()
+                }
+            }) {
             linksDao.updateLinkNote(linkId, newNote)
         }
     }
 
     override suspend fun updateLinkTitle(linkId: Long, newTitle: String): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val remoteId = getRemoteIdOfLink(linkId)
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true,
+            remoteOperation = {
+                if (remoteId != null) {
+                    remoteLinksRepo.renameALinkTitle(remoteId, newTitle)
+                } else {
+                    emptyFlow()
+                }
+            }) {
             linksDao.updateLinkTitle(linkId, newTitle)
         }
     }
@@ -251,5 +300,9 @@ class LocalLinksRepoImpl(
                 )
             }
         }
+    }
+
+    private suspend fun getRemoteIdOfLink(localLinkId: Long): Long? {
+        return linksDao.getRemoteIdOfLocalLink(localLinkId)
     }
 }

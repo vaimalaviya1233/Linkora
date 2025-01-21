@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.domain.dto.FolderDTO
+import com.sakethh.linkora.domain.dto.AddFolderDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
@@ -60,7 +60,7 @@ fun FolderType.asLocalizedString(): String {
     }
 }
 
-fun Folder.asFolderDTO(): FolderDTO = FolderDTO(
+fun Folder.asFolderDTO(): AddFolderDTO = AddFolderDTO(
     name = this.name,
     note = this.note,
     parentFolderId = this.parentFolderId,

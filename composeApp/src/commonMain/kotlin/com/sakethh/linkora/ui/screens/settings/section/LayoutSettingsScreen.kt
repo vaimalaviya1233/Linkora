@@ -75,7 +75,7 @@ fun LayoutSettingsScreen() {
                     url = "https://www.rockstargames.com/reddeadredemption2",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "",
                     idOfLinkedFolder = null
@@ -108,7 +108,7 @@ fun LayoutSettingsScreen() {
                     url = "https://store.epicgames.com/en-US/p/a-plague-tale-requiem",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "", idOfLinkedFolder = null
                 ),
@@ -128,7 +128,7 @@ fun LayoutSettingsScreen() {
                     url = "https://www.tombraider.com/products/games/shadow-of-the-tomb-raider",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "", idOfLinkedFolder = null
                 ),
@@ -149,7 +149,7 @@ fun LayoutSettingsScreen() {
                     url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "", idOfLinkedFolder = null
                 ),
@@ -169,7 +169,7 @@ fun LayoutSettingsScreen() {
                     url = "https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "", idOfLinkedFolder = null
                 ),
@@ -189,7 +189,7 @@ fun LayoutSettingsScreen() {
                     url = "https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "", idOfLinkedFolder = null
                 ),
@@ -209,7 +209,7 @@ fun LayoutSettingsScreen() {
                     url = "https://twitter.com/CatWorkers/status/1819121250226127061",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "", idOfLinkedFolder = null
                 ),
@@ -229,7 +229,7 @@ fun LayoutSettingsScreen() {
                     url = "https://www.youtube.com/@TheMrMobile",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "",
                     idOfLinkedFolder = null
@@ -250,7 +250,7 @@ fun LayoutSettingsScreen() {
                     url = "https://www.youtube.com/@PhilippLackner",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
-                    id = 0L,
+                    localId = 0L,
                     note = "",
                     lastModified = "",
                     idOfLinkedFolder = null

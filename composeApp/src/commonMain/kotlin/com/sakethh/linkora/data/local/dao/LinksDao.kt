@@ -20,19 +20,19 @@ interface LinksDao {
     @Query("DELETE FROM links WHERE idOfLinkedFolder = :folderId")
     suspend fun deleteLinksOfFolder(folderId: Long)
 
-    @Query("UPDATE links SET note = '' WHERE id=:linkId")
+    @Query("UPDATE links SET note = '' WHERE localId=:linkId")
     suspend fun deleteALinkNote(linkId: Long)
 
-    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE id=:linkId")
+    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE localId=:linkId")
     suspend fun archiveALink(linkId: Long)
 
-    @Query("DELETE FROM links WHERE id = :linkId")
+    @Query("DELETE FROM links WHERE localId = :linkId")
     suspend fun deleteALink(linkId: Long)
 
-    @Query("UPDATE links SET note = :newNote WHERE id=:linkId")
+    @Query("UPDATE links SET note = :newNote WHERE localId=:linkId")
     suspend fun updateLinkNote(linkId: Long, newNote: String)
 
-    @Query("UPDATE links SET title = :newTitle WHERE id=:linkId")
+    @Query("UPDATE links SET title = :newTitle WHERE localId=:linkId")
     suspend fun updateLinkTitle(linkId: Long, newTitle: String)
 
     @Query("SELECT linkType = '${LinkType.IMPORTANT_LINK}' OR markedAsImportant FROM links WHERE url=:url")
@@ -48,8 +48,8 @@ interface LinksDao {
                 "    ORDER BY \n" +
                 "        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,\n" +
                 "        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC"
+                "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,\n" +
+                "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC"
     )
     fun search(query: String, sortOption: String): Flow<List<Link>>
 
@@ -62,8 +62,8 @@ interface LinksDao {
     ORDER BY 
         CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
         CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
-        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,
-        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
     """
     )
     fun sortLinks(
@@ -76,8 +76,8 @@ interface LinksDao {
     ORDER BY 
         CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
         CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
-        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,
-        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
     """
     )
     fun sortAllLinks(
@@ -92,8 +92,8 @@ interface LinksDao {
     ORDER BY 
         CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
         CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
-        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN id END DESC,
-        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN id END ASC
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
     """
     )
     fun sortLinks(
@@ -112,4 +112,7 @@ interface LinksDao {
 
     @Update
     suspend fun updateALink(link: Link)
+
+    @Query("SELECT remoteId FROM links WHERE localId = :localId LIMIT 1")
+    suspend fun getRemoteIdOfLocalLink(localId: Long): Long?
 }

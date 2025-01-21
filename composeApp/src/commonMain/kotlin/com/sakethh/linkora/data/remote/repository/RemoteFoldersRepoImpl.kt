@@ -4,8 +4,8 @@ import com.sakethh.linkora.common.utils.postFlow
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.dto.AddFolderDTO
 import com.sakethh.linkora.domain.dto.ChangeParentFolderDTO
-import com.sakethh.linkora.domain.dto.FolderDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.UpdateFolderNoteDTO
@@ -19,13 +19,13 @@ class RemoteFoldersRepoImpl(
     private val authToken: () -> String
 ) : RemoteFoldersRepo {
 
-    override suspend fun createFolder(folderDTO: FolderDTO): Flow<Result<NewItemResponseDTO>> {
-        return postFlow<FolderDTO, NewItemResponseDTO>(
+    override suspend fun createFolder(addFolderDTO: AddFolderDTO): Flow<Result<NewItemResponseDTO>> {
+        return postFlow<AddFolderDTO, NewItemResponseDTO>(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.CREATE_FOLDER.name,
-            body = folderDTO,
+            body = addFolderDTO,
         )
     }
 

@@ -15,7 +15,8 @@ import kotlinx.serialization.Serializable
 data class Link(
     val linkType: LinkType,
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    val localId: Long = 0,
+    val remoteId: Long? = null,
     val title: String,
     val url: String,
     val baseURL: String = if (url.isATwitterUrl()) "twitter.com" else url.baseUrl(throwOnException = false),

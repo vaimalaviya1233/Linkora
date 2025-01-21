@@ -277,7 +277,7 @@ open class CollectionsScreenVM(
 
     fun deleteALink(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            localLinksRepo.deleteALink(link.id).collectLatest {
+            localLinksRepo.deleteALink(link.localId).collectLatest {
                 it.onSuccess {
                     Localization.Key.DeletedTheLink.pushLocalizedSnackbar()
                 }.pushSnackbarOnFailure()
@@ -305,7 +305,7 @@ open class CollectionsScreenVM(
 
     fun deleteTheNote(link: Link) {
         viewModelScope.launch {
-            localLinksRepo.deleteALinkNote(link.id).collectLatest {
+            localLinksRepo.deleteALinkNote(link.localId).collectLatest {
                 it.onSuccess {
                     Localization.Key.DeletedTheNoteOfALink.pushLocalizedSnackbar()
                 }.pushSnackbarOnFailure()
@@ -388,7 +388,7 @@ open class CollectionsScreenVM(
                     it.pushSnackbarOnFailure()
                 }
             } else {
-                localLinksRepo.archiveALink(link.id).collectLatest {
+                localLinksRepo.archiveALink(link.localId).collectLatest {
                     it.onSuccess {
                         Localization.Key.ArchivedTheLink.pushLocalizedSnackbar()
                     }.pushSnackbarOnFailure()

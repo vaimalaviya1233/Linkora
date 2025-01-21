@@ -136,7 +136,7 @@ fun App(
         mutableStateOf(
             Link(
                 linkType = LinkType.SAVED_LINK,
-                id = 0L,
+                localId = 0L,
                 title = "",
                 url = "",
                 baseURL = "",
@@ -652,7 +652,7 @@ fun App(
                                 onCompletion = {})
                         } else {
                             collectionsScreenVM.updateLinkNote(
-                                selectedLinkForMenuBtmSheet.value.id,
+                                selectedLinkForMenuBtmSheet.value.localId,
                                 newNote = it,
                                 onCompletion = {})
                         }
@@ -676,12 +676,12 @@ fun App(
                                 })
                         } else {
                             collectionsScreenVM.updateLinkNote(
-                                linkId = selectedLinkForMenuBtmSheet.value.id,
+                                linkId = selectedLinkForMenuBtmSheet.value.localId,
                                 newNote = note,
                                 pushSnackbarOnSuccess = false,
                                 onCompletion = {})
                             collectionsScreenVM.updateLinkTitle(
-                                linkId = selectedLinkForMenuBtmSheet.value.id,
+                                linkId = selectedLinkForMenuBtmSheet.value.localId,
                                 newTitle = title,
                                 onCompletion = {
                                     collectionsScreenVM.triggerLinksSorting()

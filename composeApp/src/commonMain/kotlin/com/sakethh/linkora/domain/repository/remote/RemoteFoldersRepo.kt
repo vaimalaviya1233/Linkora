@@ -2,7 +2,7 @@ package com.sakethh.linkora.domain.repository.remote
 
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.dto.FolderDTO
+import com.sakethh.linkora.domain.dto.AddFolderDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import kotlinx.coroutines.flow.Flow
 
@@ -10,7 +10,7 @@ interface RemoteFoldersRepo {
 
     // these function names are the same as the ones on the server-side, just to make lookup easier
 
-    suspend fun createFolder(folderDTO: FolderDTO): Flow<Result<NewItemResponseDTO>>
+    suspend fun createFolder(addFolderDTO: AddFolderDTO): Flow<Result<NewItemResponseDTO>>
     suspend fun deleteFolder(folderId: Long): Flow<Result<Message>>
     suspend fun markAsArchive(folderId: Long): Flow<Result<Message>>
     suspend fun markAsRegularFolder(folderId: Long): Flow<Result<Message>>
