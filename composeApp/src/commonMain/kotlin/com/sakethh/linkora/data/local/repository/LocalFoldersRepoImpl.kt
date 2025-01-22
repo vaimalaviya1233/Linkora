@@ -230,6 +230,7 @@ class LocalFoldersRepoImpl(
             val remoteId = getRemoteIdOfThisLocalFolder(folderID)
             if (remoteId.isNotNull()) {
                 remoteFoldersRepo.updateFolderName(remoteId!!, newFolderName)
+                // folder name in panel_folders gets updated on server-side when the actual folder name changes, so no need to push externally
             } else {
                 emptyFlow()
             }
@@ -240,6 +241,7 @@ class LocalFoldersRepoImpl(
                 throw Folder.InvalidName(if (newFolderName.isEmpty()) "Folder name cannot be blank." else if (existingFolderName == newFolderName) "Nothing has changed to update." else "\"${newFolderName}\" is reserved.")
             }
             foldersDao.renameAFolderName(folderID, newFolderName)
+                localPanelsRepo.updateAFolderName(folderID, newFolderName)
         })
     }
 

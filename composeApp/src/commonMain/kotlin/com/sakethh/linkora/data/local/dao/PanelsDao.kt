@@ -28,6 +28,9 @@ interface PanelsDao {
     @Query("SELECT remoteId FROM panel WHERE localId = :localId")
     suspend fun getRemoteIdOfPanel(localId: Long): Long?
 
+    @Query("UPDATE panel_folder SET folderName = :newName WHERE folderId = :id")
+    suspend fun updateAFolderName(id: Long, newName: String)
+
     @Insert
     suspend fun addMultiplePanels(panels: List<Panel>)
 

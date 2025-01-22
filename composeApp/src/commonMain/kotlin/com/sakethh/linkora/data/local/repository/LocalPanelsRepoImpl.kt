@@ -141,6 +141,10 @@ class LocalPanelsRepoImpl(
     override suspend fun getPanel(panelId: Long): Panel {
         return panelsDao.getPanel(panelId)
     }
+
+    override suspend fun updateAFolderName(folderID: Long, newName: String) {
+        return panelsDao.updateAFolderName(folderID, newName)
+    }
     override suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>) {
         panelsDao.addMultiplePanelFolders(panelFolders)
     }
