@@ -116,6 +116,9 @@ import kotlinx.coroutines.launch
 fun App(
     modifier: Modifier = Modifier
 ) {
+    viewModel<AppVM>(factory = genericViewModelFactory {
+        AppVM(localFoldersRepo = DependencyContainer.localFoldersRepo.value)
+    })
     val snackbarHostState = remember {
         SnackbarHostState()
     }

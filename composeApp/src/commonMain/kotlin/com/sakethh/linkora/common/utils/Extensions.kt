@@ -11,6 +11,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.Result
@@ -210,3 +211,7 @@ suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Res
         Result.Success(this.body<IncomingBody>())
     }
 }
+
+fun String.asWebSocketUrl(): String = "ws://" + this.substringAfter("://")
+
+fun String.isSameAsCurrentClientID(): Boolean = this == AppPreferences.correlationId

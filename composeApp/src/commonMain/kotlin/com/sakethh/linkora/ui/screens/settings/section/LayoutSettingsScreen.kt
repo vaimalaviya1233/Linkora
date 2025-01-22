@@ -91,6 +91,28 @@ fun LayoutSettingsScreen() {
             ),
             LinkUIComponentParam(
                 link = Link(
+                    title = "Land of Hope – We fight against superstition and help children accused of being witches",
+                    baseURL = "landofhope.global",
+                    imgURL = "https://landofhope.global/wp-content/uploads/2022/08/Love-510x605.jpg",
+                    url = "https://landofhope.global/en/",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    lastModified = "",
+                    idOfLinkedFolder = null
+                ),
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://landofhope.global/en/")
+                },
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+            ),
+            LinkUIComponentParam(
+                link = Link(
                     title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
                     baseURL = "store.epicgames.com",
                     imgURL = listOf(

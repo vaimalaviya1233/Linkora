@@ -30,13 +30,14 @@ class LocalFoldersRepoImpl(
 ) : LocalFoldersRepo {
 
     override suspend fun insertANewFolder(
-        folder: Folder, ignoreFolderAlreadyExistsException: Boolean
+        folder: Folder, ignoreFolderAlreadyExistsException: Boolean,
+        viaChannel: Boolean
     ): Flow<Result<Message>> {
         val newLocalId = foldersDao.getLastIDOfFoldersTable() + 1
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
+            performRemoteOperation = viaChannel.not(), remoteOperation = {
             if (folder.parentFolderId != null) {
-                val remoteParentFolderId = getRemoteIdOfThisLocalFolder(folder.parentFolderId)
+                val remoteParentFolderId = getRemoteIdOfAFolder(folder.parentFolderId)
                 remoteFoldersRepo.createFolder(
                     folder.asAddFolderDTO().copy(parentFolderId = remoteParentFolderId)
                 )
@@ -227,7 +228,7 @@ class LocalFoldersRepoImpl(
     ): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true, remoteOperation = {
-            val remoteId = getRemoteIdOfThisLocalFolder(folderID)
+                val remoteId = getRemoteIdOfAFolder(folderID)
             if (remoteId.isNotNull()) {
                 remoteFoldersRepo.updateFolderName(remoteId!!, newFolderName)
                 // folder name in panel_folders gets updated on server-side when the actual folder name changes, so no need to push externally
@@ -245,13 +246,21 @@ class LocalFoldersRepoImpl(
         })
     }
 
-    private suspend fun getRemoteIdOfThisLocalFolder(localFolderId: Long): Long? {
-        return foldersDao.getThisFolderData(localFolderId).remoteId
+    override suspend fun getRemoteIdOfAFolder(localId: Long): Long? {
+        return foldersDao.getThisFolderData(localId).remoteId
     }
-    override suspend fun markFolderAsArchive(folderID: Long): Flow<Result<Unit>> {
+
+    override suspend fun getLocalIdOfAFolder(remoteId: Long): Long? {
+        return foldersDao.getLocalIdOfAFolder(remoteId)
+    }
+
+    override suspend fun markFolderAsArchive(
+        folderID: Long,
+        viaChannel: Boolean
+    ): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
-            val remoteId = getRemoteIdOfThisLocalFolder(folderID)
+            performRemoteOperation = viaChannel.not(), remoteOperation = {
+                val remoteId = getRemoteIdOfAFolder(folderID)
             if (remoteId.isNotNull()) {
                 remoteFoldersRepo.markAsArchive(remoteId!!)
             } else {
@@ -268,10 +277,13 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override suspend fun markFolderAsRegularFolder(folderID: Long): Flow<Result<Unit>> {
+    override suspend fun markFolderAsRegularFolder(
+        folderID: Long,
+        viaChannel: Boolean
+    ): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
-            val remoteFolderId = getRemoteIdOfThisLocalFolder(folderID)
+            performRemoteOperation = viaChannel.not(), remoteOperation = {
+                val remoteFolderId = getRemoteIdOfAFolder(folderID)
             if (remoteFolderId.isNotNull()) {
                 remoteFoldersRepo.markAsRegularFolder(remoteFolderId!!)
             } else {
@@ -285,7 +297,7 @@ class LocalFoldersRepoImpl(
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true, remoteOperation = {
-            val remoteID = getRemoteIdOfThisLocalFolder(folderID)
+                val remoteID = getRemoteIdOfAFolder(folderID)
             if (remoteID.isNotNull()) {
                 remoteFoldersRepo.updateFolderNote(remoteID!!, newNote)
             } else {
@@ -302,10 +314,13 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override suspend fun deleteAFolderNote(folderID: Long): Flow<Result<Unit>> {
+    override suspend fun deleteAFolderNote(
+        folderID: Long,
+        viaChannel: Boolean
+    ): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
-            val remoteId = getRemoteIdOfThisLocalFolder(folderID)
+            performRemoteOperation = viaChannel.not(), remoteOperation = {
+                val remoteId = getRemoteIdOfAFolder(folderID)
             if (remoteId.isNotNull()) {
                 remoteFoldersRepo.deleteFolderNote(remoteId!!)
             } else {
@@ -316,11 +331,14 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override suspend fun deleteAFolder(folderID: Long): Flow<Result<Unit>> {
+    override suspend fun deleteAFolder(
+        folderID: Long,
+        viaChannel: Boolean
+    ): Flow<Result<Unit>> {
         // we need to hold the id because the local folder gets deleted first, so if we try to search after that, there will be nothing to search
-        val remoteFolderId = getRemoteIdOfThisLocalFolder(folderID)
+        val remoteFolderId = getRemoteIdOfAFolder(folderID)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
+            performRemoteOperation = viaChannel.not(), remoteOperation = {
             if (remoteFolderId.isNotNull()) {
                 remoteFoldersRepo.deleteFolder(remoteFolderId!!)
             } else {

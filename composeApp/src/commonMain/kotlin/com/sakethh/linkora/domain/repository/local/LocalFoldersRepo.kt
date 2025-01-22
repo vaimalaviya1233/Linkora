@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 interface LocalFoldersRepo {
     suspend fun insertANewFolder(
         folder: Folder,
-        ignoreFolderAlreadyExistsException: Boolean
+        ignoreFolderAlreadyExistsException: Boolean,
+        viaChannel: Boolean = false
     ): Flow<Result<Message>>
 
     suspend fun duplicateAFolder(actualFolderId: Long, parentFolderID: Long?): Flow<Result<Long>>
@@ -72,19 +73,31 @@ interface LocalFoldersRepo {
     suspend fun renameAFolderName(folderID: Long, existingFolderName:String, newFolderName: String,ignoreFolderAlreadyExistsException:Boolean): Flow<Result<Unit>>
 
 
-    suspend fun markFolderAsArchive(folderID: Long): Flow<Result<Unit>>
+    suspend fun markFolderAsArchive(
+        folderID: Long,
+        viaChannel: Boolean = false
+    ): Flow<Result<Unit>>
 
     suspend fun markMultipleFoldersAsArchive(folderIDs: Array<Long>): Flow<Result<Unit>>
 
-    suspend fun markFolderAsRegularFolder(folderID: Long): Flow<Result<Unit>>
+    suspend fun markFolderAsRegularFolder(
+        folderID: Long,
+        viaChannel: Boolean = false
+    ): Flow<Result<Unit>>
 
     suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>>
 
     suspend fun updateAFolderData(folder: Folder): Flow<Result<Unit>>
 
-    suspend fun deleteAFolderNote(folderID: Long): Flow<Result<Unit>>
+    suspend fun deleteAFolderNote(
+        folderID: Long,
+        viaChannel: Boolean = false
+    ): Flow<Result<Unit>>
 
-    suspend fun deleteAFolder(folderID: Long): Flow<Result<Unit>>
+    suspend fun deleteAFolder(
+        folderID: Long,
+        viaChannel: Boolean = false
+    ): Flow<Result<Unit>>
 
     suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long): Flow<Result<Unit>>
 
@@ -93,4 +106,7 @@ interface LocalFoldersRepo {
     fun search(query: String, sortOption: String): Flow<Result<List<Folder>>>
 
     suspend fun deleteAllFolders()
+
+    suspend fun getRemoteIdOfAFolder(localId: Long): Long?
+    suspend fun getLocalIdOfAFolder(remoteId: Long): Long?
 }

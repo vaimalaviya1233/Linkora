@@ -161,4 +161,7 @@ interface FoldersDao {
 
     @Query("SELECT remoteId FROM folders WHERE localId = :localId LIMIT 1")
     suspend fun getRemoteIdOfAFolder(localId: Long): Long?
+
+    @Query("SELECT localId FROM folders WHERE remoteId = :remoteId")
+    suspend fun getLocalIdOfAFolder(remoteId: Long): Long?
 }

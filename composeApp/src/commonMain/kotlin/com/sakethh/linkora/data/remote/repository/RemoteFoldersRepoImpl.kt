@@ -44,7 +44,7 @@ class RemoteFoldersRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Folder.MARK_AS_ARCHIVE.name,
+            endPoint = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
             body = IDBasedDTO(folderId)
         )
     }

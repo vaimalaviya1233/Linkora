@@ -6,7 +6,7 @@ sealed interface RemoteRoute {
         DELETE_FOLDER,
         GET_CHILD_FOLDERS,
         GET_ROOT_FOLDERS,
-        MARK_AS_ARCHIVE,
+        MARK_FOLDER_AS_ARCHIVE,
         MARK_AS_REGULAR_FOLDER,
         CHANGE_PARENT_FOLDER,
         UPDATE_FOLDER_NAME,
