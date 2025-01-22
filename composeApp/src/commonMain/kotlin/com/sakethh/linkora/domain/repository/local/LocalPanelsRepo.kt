@@ -16,7 +16,7 @@ interface LocalPanelsRepo {
 
     suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder,
-        viaSocket: Boolean
+        viaSocket: Boolean = false
     ): Flow<Result<Unit>>
     suspend fun deleteAFolderFromAllPanels(folderID: Long)
     suspend fun deleteAFolderFromAPanel(
