@@ -1,11 +1,13 @@
-package com.sakethh.linkora.domain.dto
+package com.sakethh.linkora.domain.dto.server.link
 
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AddLinkDTO(
+data class LinkDTO(
+    val id: Long,
     val linkType: LinkType,
     val title: String,
     val url: String,
@@ -16,5 +18,6 @@ data class AddLinkDTO(
     val idOfLinkedFolder: Long?,
     val userAgent: String?,
     val markedAsImportant: Boolean,
-    val mediaType: MediaType
+    val mediaType: MediaType,
+    val correlationId: String = AppPreferences.correlationId
 )

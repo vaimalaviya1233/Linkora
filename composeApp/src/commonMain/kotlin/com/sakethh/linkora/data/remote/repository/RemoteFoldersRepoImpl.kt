@@ -4,11 +4,12 @@ import com.sakethh.linkora.common.utils.postFlow
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.dto.AddFolderDTO
-import com.sakethh.linkora.domain.dto.ChangeParentFolderDTO
-import com.sakethh.linkora.domain.dto.NewItemResponseDTO
-import com.sakethh.linkora.domain.dto.UpdateFolderNameDTO
-import com.sakethh.linkora.domain.dto.UpdateFolderNoteDTO
+import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
+import com.sakethh.linkora.domain.dto.server.folder.ChangeParentFolderDTO
+import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
+import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +35,7 @@ class RemoteFoldersRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER.name,
-            body = folderId,
+            body = IDBasedDTO(folderId),
         )
     }
 
@@ -44,7 +45,7 @@ class RemoteFoldersRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.MARK_AS_ARCHIVE.name,
-            body = folderId.toString()
+            body = IDBasedDTO(folderId)
         )
     }
 
@@ -53,7 +54,7 @@ class RemoteFoldersRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
-            body = folderId,
+            body = IDBasedDTO(folderId),
         )
     }
 
@@ -93,7 +94,7 @@ class RemoteFoldersRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
-            body = folderId,
+            body = IDBasedDTO(folderId),
         )
     }
 }

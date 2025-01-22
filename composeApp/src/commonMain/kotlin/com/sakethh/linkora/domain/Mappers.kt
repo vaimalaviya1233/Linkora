@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.domain.dto.AddFolderDTO
-import com.sakethh.linkora.domain.dto.AddLinkDTO
-import com.sakethh.linkora.domain.dto.LinkDTO
+import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
+import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
+import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType

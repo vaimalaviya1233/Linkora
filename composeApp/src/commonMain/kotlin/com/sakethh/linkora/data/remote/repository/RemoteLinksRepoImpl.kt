@@ -4,11 +4,12 @@ import com.sakethh.linkora.common.utils.postFlow
 import com.sakethh.linkora.domain.LinkRoute
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.dto.AddLinkDTO
-import com.sakethh.linkora.domain.dto.LinkDTO
-import com.sakethh.linkora.domain.dto.NewItemResponseDTO
-import com.sakethh.linkora.domain.dto.UpdateNoteOfALinkDTO
-import com.sakethh.linkora.domain.dto.UpdateTitleOfTheLinkDTO
+import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
+import com.sakethh.linkora.domain.dto.server.link.LinkDTO
+import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
+import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +35,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.DELETE_A_LINK.name,
-            body = remoteLinkId
+            body = IDBasedDTO(remoteLinkId)
         )
     }
 
@@ -68,7 +69,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.ARCHIVE_LINK.name,
-            body = remoteLinkId
+            body = IDBasedDTO(remoteLinkId)
         )
     }
 
@@ -78,7 +79,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.UNARCHIVE_LINK.name,
-            body = remoteLinkId
+            body = IDBasedDTO(remoteLinkId)
         )
     }
 
@@ -88,7 +89,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.MARK_AS_IMP.name,
-            body = remoteLinkId
+            body = IDBasedDTO(remoteLinkId)
         )
     }
 
@@ -98,7 +99,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = LinkRoute.UNMARK_AS_IMP.name,
-            body = remoteLinkId
+            body = IDBasedDTO(remoteLinkId)
         )
     }
 

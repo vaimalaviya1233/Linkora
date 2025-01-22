@@ -4,11 +4,12 @@ import com.sakethh.linkora.common.utils.postFlow
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.dto.NewItemResponseDTO
-import com.sakethh.linkora.domain.dto.panel.AddANewPanelDTO
-import com.sakethh.linkora.domain.dto.panel.AddANewPanelFolderDTO
-import com.sakethh.linkora.domain.dto.panel.DeleteAPanelFromAFolderDTO
-import com.sakethh.linkora.domain.dto.panel.UpdatePanelNameDTO
+import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
+import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +45,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_PANEL.name,
-            body = id
+            body = IDBasedDTO(id)
         )
     }
 
@@ -64,7 +65,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
-            body = folderID
+            body = IDBasedDTO(folderID)
         )
     }
 
@@ -84,7 +85,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_ALL_FOLDERS_FROM_A_PANEL.name,
-            body = panelId
+            body = IDBasedDTO(panelId)
         )
     }
 }

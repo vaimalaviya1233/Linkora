@@ -19,6 +19,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+import java.util.UUID
 
 object AppPreferences {
     val shouldUseForceDarkTheme = mutableStateOf(true)
@@ -66,6 +67,7 @@ object AppPreferences {
     val useLinkoraTopDecoratorOnDesktop = mutableStateOf(true)
     val refreshLinksWorkerTag =
         mutableStateOf("52ae3f4a-d37f-4fdb-a6b6-4397b99ef1bd")
+    val correlationId = UUID.randomUUID().toString()
     fun isServerConfigured(): Boolean {
         return serverBaseUrl.value.isNotBlank()
     }

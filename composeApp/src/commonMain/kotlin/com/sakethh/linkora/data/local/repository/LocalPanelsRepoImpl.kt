@@ -4,10 +4,10 @@ import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.PanelsDao
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.dto.panel.AddANewPanelDTO
-import com.sakethh.linkora.domain.dto.panel.AddANewPanelFolderDTO
-import com.sakethh.linkora.domain.dto.panel.DeleteAPanelFromAFolderDTO
-import com.sakethh.linkora.domain.dto.panel.UpdatePanelNameDTO
+import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
+import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo

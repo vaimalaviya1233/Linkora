@@ -2,9 +2,9 @@ package com.sakethh.linkora.domain.repository.remote
 
 import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.dto.AddLinkDTO
-import com.sakethh.linkora.domain.dto.LinkDTO
-import com.sakethh.linkora.domain.dto.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
+import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteLinksRepo {

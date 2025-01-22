@@ -1,0 +1,11 @@
+package com.sakethh.linkora.domain.dto.server.panel
+
+import com.sakethh.linkora.common.preferences.AppPreferences
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class DeleteAPanelFromAFolderDTO(
+    val panelId: Long,
+    val folderID: Long,
+    val correlationId: String = AppPreferences.correlationId
+)
