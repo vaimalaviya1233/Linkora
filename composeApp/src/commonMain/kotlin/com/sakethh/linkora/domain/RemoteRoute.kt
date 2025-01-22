@@ -1,7 +1,7 @@
 package com.sakethh.linkora.domain
 
 sealed interface RemoteRoute {
-    enum class Folder {
+    enum class Folder : RemoteRoute {
         CREATE_FOLDER,
         DELETE_FOLDER,
         GET_CHILD_FOLDERS,
@@ -14,7 +14,7 @@ sealed interface RemoteRoute {
         DELETE_FOLDER_NOTE
     }
 
-    enum class Panel {
+    enum class Panel : RemoteRoute {
         ADD_A_NEW_PANEL,
         ADD_A_NEW_FOLDER_IN_A_PANEL,
         DELETE_A_PANEL,
@@ -22,5 +22,12 @@ sealed interface RemoteRoute {
         DELETE_A_FOLDER_FROM_ALL_PANELS,
         DELETE_A_FOLDER_FROM_A_PANEL,
         DELETE_ALL_FOLDERS_FROM_A_PANEL
+    }
+
+    enum class Link : RemoteRoute {
+        UPDATE_LINK_TITLE, UPDATE_LINK_NOTE,
+        CREATE_A_NEW_LINK, DELETE_A_LINK, UPDATE_LINKED_FOLDER_ID,
+        UPDATE_USER_AGENT, GET_LINKS_FROM_A_FOLDER, GET_LINKS, ARCHIVE_LINK,
+        UNARCHIVE_LINK, MARK_AS_IMP, UNMARK_AS_IMP, UPDATE_LINK
     }
 }

@@ -1,8 +1,8 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.postFlow
-import com.sakethh.linkora.domain.LinkRoute
 import com.sakethh.linkora.domain.Message
+import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
@@ -24,7 +24,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.CREATE_A_NEW_LINK.name,
+            endPoint = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
             body = addLinkDTO
         )
     }
@@ -34,7 +34,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.DELETE_A_LINK.name,
+            endPoint = RemoteRoute.Link.DELETE_A_LINK.name,
             body = IDBasedDTO(remoteLinkId)
         )
     }
@@ -46,7 +46,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.UPDATE_LINK_TITLE.name,
+            endPoint = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
             body = UpdateTitleOfTheLinkDTO(linkId = remoteLinkId, newTitleOfTheLink = newTitle)
         )
     }
@@ -58,7 +58,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.UPDATE_LINK_NOTE.name,
+            endPoint = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
             body = UpdateNoteOfALinkDTO(remoteLinkId, newNote)
         )
     }
@@ -68,7 +68,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.ARCHIVE_LINK.name,
+            endPoint = RemoteRoute.Link.ARCHIVE_LINK.name,
             body = IDBasedDTO(remoteLinkId)
         )
     }
@@ -78,7 +78,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.UNARCHIVE_LINK.name,
+            endPoint = RemoteRoute.Link.UNARCHIVE_LINK.name,
             body = IDBasedDTO(remoteLinkId)
         )
     }
@@ -88,7 +88,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.MARK_AS_IMP.name,
+            endPoint = RemoteRoute.Link.MARK_AS_IMP.name,
             body = IDBasedDTO(remoteLinkId)
         )
     }
@@ -98,7 +98,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.UNMARK_AS_IMP.name,
+            endPoint = RemoteRoute.Link.UNMARK_AS_IMP.name,
             body = IDBasedDTO(remoteLinkId)
         )
     }
@@ -108,7 +108,7 @@ class RemoteLinksRepoImpl(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = LinkRoute.UPDATE_LINK.name,
+            endPoint = RemoteRoute.Link.UPDATE_LINK.name,
             body = linkDTO
         )
     }
