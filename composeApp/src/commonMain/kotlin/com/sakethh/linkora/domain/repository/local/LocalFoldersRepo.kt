@@ -10,7 +10,7 @@ interface LocalFoldersRepo {
     suspend fun insertANewFolder(
         folder: Folder,
         ignoreFolderAlreadyExistsException: Boolean,
-        viaChannel: Boolean = false
+        viaSocket: Boolean = false
     ): Flow<Result<Message>>
 
     suspend fun duplicateAFolder(actualFolderId: Long, parentFolderID: Long?): Flow<Result<Long>>
@@ -75,14 +75,14 @@ interface LocalFoldersRepo {
 
     suspend fun markFolderAsArchive(
         folderID: Long,
-        viaChannel: Boolean = false
+        viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun markMultipleFoldersAsArchive(folderIDs: Array<Long>): Flow<Result<Unit>>
 
     suspend fun markFolderAsRegularFolder(
         folderID: Long,
-        viaChannel: Boolean = false
+        viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>>
@@ -91,12 +91,12 @@ interface LocalFoldersRepo {
 
     suspend fun deleteAFolderNote(
         folderID: Long,
-        viaChannel: Boolean = false
+        viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun deleteAFolder(
         folderID: Long,
-        viaChannel: Boolean = false
+        viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long): Flow<Result<Unit>>

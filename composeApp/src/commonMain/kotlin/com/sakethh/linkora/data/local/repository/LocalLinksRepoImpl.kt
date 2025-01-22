@@ -38,11 +38,11 @@ class LocalLinksRepoImpl(
     private val foldersDao: FoldersDao
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
-        link: Link, linkSaveConfig: LinkSaveConfig
+        link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val newLinkId = linksDao.getLatestId() + 1
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
                     val remoteIdOfLinkedFolder =
@@ -214,10 +214,10 @@ class LocalLinksRepoImpl(
         }
     }
 
-    override suspend fun deleteALink(linkId: Long): Flow<Result<Unit>> {
+    override suspend fun deleteALink(linkId: Long, viaSocket: Boolean): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.deleteALink(remoteId)
@@ -229,10 +229,10 @@ class LocalLinksRepoImpl(
         }
     }
 
-    override suspend fun archiveALink(linkId: Long): Flow<Result<Unit>> {
+    override suspend fun archiveALink(linkId: Long, viaSocket: Boolean): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.archiveALink(remoteId)
@@ -244,10 +244,13 @@ class LocalLinksRepoImpl(
         }
     }
 
-    override suspend fun updateLinkNote(linkId: Long, newNote: String): Flow<Result<Unit>> {
+    override suspend fun updateLinkNote(
+        linkId: Long, newNote: String,
+        viaSocket: Boolean
+    ): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.renameALinkNote(remoteId, newNote)
@@ -259,10 +262,13 @@ class LocalLinksRepoImpl(
         }
     }
 
-    override suspend fun updateLinkTitle(linkId: Long, newTitle: String): Flow<Result<Unit>> {
+    override suspend fun updateLinkTitle(
+        linkId: Long, newTitle: String,
+        viaSocket: Boolean
+    ): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.renameALinkTitle(remoteId, newTitle)
@@ -302,10 +308,10 @@ class LocalLinksRepoImpl(
         linksDao.deleteAllLinks()
     }
 
-    override suspend fun updateALink(link: Link): Flow<Result<Unit>> {
+    override suspend fun updateALink(link: Link, viaSocket: Boolean): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(link.localId)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
+            performRemoteOperation = viaSocket.not(), remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.updateLink(link.asLinkDTO(id = remoteId))
                 } else {
@@ -342,5 +348,13 @@ class LocalLinksRepoImpl(
 
     private suspend fun getRemoteIdOfLink(localLinkId: Long): Long? {
         return linksDao.getRemoteIdOfLocalLink(localLinkId)
+    }
+
+    override suspend fun getLocalLinkId(remoteID: Long): Long? {
+        return linksDao.getLocalIdOfALink(remoteID)
+    }
+
+    override suspend fun getALink(localLinkId: Long): Link {
+        return linksDao.getLink(localLinkId)
     }
 }

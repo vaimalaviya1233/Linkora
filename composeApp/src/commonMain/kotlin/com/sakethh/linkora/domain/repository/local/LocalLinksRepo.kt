@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 interface LocalLinksRepo {
     suspend fun addANewLink(
         link: Link,
-        linkSaveConfig: LinkSaveConfig
+        linkSaveConfig: LinkSaveConfig,
+        viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun addMultipleLinks(links: List<Link>)
@@ -36,13 +37,19 @@ interface LocalLinksRepo {
 
     suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>>
 
-    suspend fun deleteALink(linkId: Long): Flow<Result<Unit>>
+    suspend fun deleteALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
 
-    suspend fun archiveALink(linkId: Long): Flow<Result<Unit>>
+    suspend fun archiveALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
 
-    suspend fun updateLinkNote(linkId: Long, newNote: String): Flow<Result<Unit>>
+    suspend fun updateLinkNote(
+        linkId: Long, newNote: String,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
 
-    suspend fun updateLinkTitle(linkId: Long, newTitle: String): Flow<Result<Unit>>
+    suspend fun updateLinkTitle(
+        linkId: Long, newTitle: String,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
 
     suspend fun markedAsImportant(linkUrl: String): Flow<Result<Boolean>>
 
@@ -56,7 +63,11 @@ interface LocalLinksRepo {
 
     suspend fun deleteAllLinks()
 
-    suspend fun updateALink(link: Link): Flow<Result<Unit>>
+    suspend fun updateALink(link: Link, viaSocket: Boolean = false): Flow<Result<Unit>>
 
     suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>>
+
+    suspend fun getLocalLinkId(remoteID: Long): Long?
+
+    suspend fun getALink(localLinkId: Long): Link
 }
