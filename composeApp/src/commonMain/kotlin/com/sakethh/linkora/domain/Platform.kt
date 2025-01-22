@@ -1,4 +1,4 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.domain
 
 sealed interface Platform {
     sealed interface Android : Platform {

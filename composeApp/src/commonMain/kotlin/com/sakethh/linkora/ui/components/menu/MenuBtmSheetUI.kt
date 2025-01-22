@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
@@ -45,6 +44,7 @@ import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.onShare
 import com.sakethh.platform

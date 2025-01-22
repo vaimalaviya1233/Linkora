@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.cancelRefreshingLinks
 import com.sakethh.isAnyRefreshingScheduled
 import com.sakethh.isStorageAccessPermittedOnAndroid
-import com.sakethh.linkora.Platform
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
@@ -16,6 +15,7 @@ import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.ExportDataRepo
