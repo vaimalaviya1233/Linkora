@@ -40,7 +40,7 @@ class LocalPanelsRepoImpl(
             performRemoteOperation = true, remoteOperation = {
                 if (remotePanelId != null) {
                     remotePanelsRepo.deleteAPanel(remotePanelId)
-                    remotePanelsRepo.deleteAllFoldersFromAPanel(remotePanelId)
+                    // server already handles this internally, so no need to push it externally: remotePanelsRepo.deleteAllFoldersFromAPanel(remotePanelId)
                 } else {
                     emptyFlow()
                 }
@@ -69,14 +69,21 @@ class LocalPanelsRepoImpl(
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true,
             remoteOperation = {
-                remotePanelsRepo.addANewFolderInAPanel(
-                    AddANewPanelFolderDTO(
-                        folderId = panelFolder.folderId,
-                        panelPosition = panelFolder.panelPosition,
-                        folderName = panelFolder.folderName,
-                        connectedPanelId = panelFolder.connectedPanelId
+                val remoteIdOfFolder = foldersDao.getRemoteIdOfAFolder(panelFolder.folderId)
+                val remoteIdOfConnectedPanel =
+                    panelsDao.getRemoteIdOfPanel(panelFolder.connectedPanelId)
+                if (remoteIdOfFolder != null && remoteIdOfConnectedPanel != null) {
+                    remotePanelsRepo.addANewFolderInAPanel(
+                        AddANewPanelFolderDTO(
+                            folderId = remoteIdOfFolder,
+                            panelPosition = panelFolder.panelPosition,
+                            folderName = panelFolder.folderName,
+                            connectedPanelId = remoteIdOfConnectedPanel
+                        )
                     )
-                )
+                } else {
+                    emptyFlow()
+                }
             },
             remoteOperationOnSuccess = {
                 panelsDao.updateAPanelFolder(
