@@ -323,7 +323,9 @@ class AppVM(
                                             url = linkDTO.url,
                                             imgURL = linkDTO.imgURL,
                                             note = linkDTO.note,
-                                            idOfLinkedFolder = linkDTO.idOfLinkedFolder,
+                                            idOfLinkedFolder = if (linkDTO.idOfLinkedFolder != null) localFoldersRepo.getLocalIdOfAFolder(
+                                                linkDTO.idOfLinkedFolder
+                                            ) else null,
                                             lastModified = linkDTO.lastModified,
                                             userAgent = linkDTO.userAgent,
                                             markedAsImportant = linkDTO.markedAsImportant,
@@ -347,7 +349,9 @@ class AppVM(
                                         url = linkDTO.url,
                                         imgURL = linkDTO.imgURL,
                                         note = linkDTO.note,
-                                        idOfLinkedFolder = linkDTO.idOfLinkedFolder,
+                                        idOfLinkedFolder = if (linkDTO.idOfLinkedFolder != null) localFoldersRepo.getLocalIdOfAFolder(
+                                            linkDTO.idOfLinkedFolder
+                                        ) else null,
                                         remoteId = linkDTO.id,
                                         lastModified = linkDTO.lastModified,
                                         userAgent = linkDTO.userAgent,
