@@ -84,7 +84,9 @@ class AppVM(
                                     folder = Folder(
                                         name = folderDto.name,
                                         note = folderDto.note,
-                                        parentFolderId = folderDto.parentFolderId,
+                                        parentFolderId = if (folderDto.parentFolderId != null) localFoldersRepo.getLocalIdOfAFolder(
+                                            folderDto.parentFolderId
+                                        ) else null,
                                         remoteId = folderDto.id,
                                         isArchived = folderDto.isArchived
                                     ), ignoreFolderAlreadyExistsException = true, viaSocket = true
