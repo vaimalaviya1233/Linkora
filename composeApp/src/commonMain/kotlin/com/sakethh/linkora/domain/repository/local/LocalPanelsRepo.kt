@@ -6,17 +6,29 @@ import com.sakethh.linkora.domain.model.panel.PanelFolder
 import kotlinx.coroutines.flow.Flow
 
 interface LocalPanelsRepo {
-    suspend fun addaNewPanel(panel: Panel): Flow<Result<Unit>>
-    suspend fun deleteAPanel(id: Long): Flow<Result<Unit>>
-    suspend fun updateAPanelName(newName: String, panelId: Long): Flow<Result<Unit>>
-    suspend fun addANewFolderInAPanel(panelFolder: PanelFolder): Flow<Result<Unit>>
+    suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean = false): Flow<Result<Unit>>
+    suspend fun deleteAPanel(id: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
+    suspend fun updateAPanelName(
+        newName: String,
+        panelId: Long,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
+
+    suspend fun addANewFolderInAPanel(
+        panelFolder: PanelFolder,
+        viaSocket: Boolean
+    ): Flow<Result<Unit>>
     suspend fun deleteAFolderFromAllPanels(folderID: Long)
-    suspend fun deleteAFolderFromAPanel(panelId: Long, folderID: Long): Flow<Result<Unit>>
+    suspend fun deleteAFolderFromAPanel(
+        panelId: Long, folderID: Long,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
     fun getAllThePanels(): Flow<List<Panel>>
     suspend fun getAllThePanelsAsAList(): List<Panel>
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
     suspend fun getPanel(panelId: Long): Panel
+    suspend fun getLocalPanelId(remoteId: Long): Long?
     suspend fun updateAFolderName(folderID: Long, newName: String)
     suspend fun addMultiplePanels(panels: List<Panel>)
     suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>)

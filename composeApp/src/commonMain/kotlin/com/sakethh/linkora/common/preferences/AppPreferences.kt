@@ -78,6 +78,12 @@ object AppPreferences {
         }
     }
 
+    fun canReadFromServer(): Boolean {
+        return listOf(SyncType.TwoWay, SyncType.ServerToClient).any {
+            isServerConfigured() && serverSyncType.value == it
+        }
+    }
+
     fun readAll(preferencesRepository: PreferencesRepository) = runBlocking {
         supervisorScope {
             listOf(

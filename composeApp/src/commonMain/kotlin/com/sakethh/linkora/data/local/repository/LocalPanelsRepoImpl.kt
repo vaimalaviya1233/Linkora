@@ -20,10 +20,10 @@ class LocalPanelsRepoImpl(
     private val remotePanelsRepo: RemotePanelsRepo,
     private val foldersDao: FoldersDao
 ) : LocalPanelsRepo {
-    override suspend fun addaNewPanel(panel: Panel): Flow<Result<Unit>> {
+    override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Unit>> {
         val newPanelId = panelsDao.getLatestPanelID() + 1
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 remotePanelsRepo.addANewPanel(AddANewPanelDTO(panel.panelName))
             },
@@ -34,10 +34,10 @@ class LocalPanelsRepoImpl(
         }
     }
 
-    override suspend fun deleteAPanel(id: Long): Flow<Result<Unit>> {
+    override suspend fun deleteAPanel(id: Long, viaSocket: Boolean): Flow<Result<Unit>> {
         val remotePanelId = panelsDao.getRemoteIdOfPanel(id)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
+            performRemoteOperation = viaSocket.not(), remoteOperation = {
                 if (remotePanelId != null) {
                     remotePanelsRepo.deleteAPanel(remotePanelId)
                     // server already handles this internally, so no need to push it externally: remotePanelsRepo.deleteAllFoldersFromAPanel(remotePanelId)
@@ -50,10 +50,14 @@ class LocalPanelsRepoImpl(
         }
     }
 
-    override suspend fun updateAPanelName(newName: String, panelId: Long): Flow<Result<Unit>> {
+    override suspend fun updateAPanelName(
+        newName: String,
+        panelId: Long,
+        viaSocket: Boolean
+    ): Flow<Result<Unit>> {
         val remotePanelId = panelsDao.getRemoteIdOfPanel(panelId)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
+            performRemoteOperation = viaSocket.not(), remoteOperation = {
                 if (remotePanelId != null) {
                     remotePanelsRepo.updateAPanelName(UpdatePanelNameDTO(newName, remotePanelId))
                 } else {
@@ -64,10 +68,13 @@ class LocalPanelsRepoImpl(
         }
     }
 
-    override suspend fun addANewFolderInAPanel(panelFolder: PanelFolder): Flow<Result<Unit>> {
+    override suspend fun addANewFolderInAPanel(
+        panelFolder: PanelFolder,
+        viaSocket: Boolean
+    ): Flow<Result<Unit>> {
         val newPanelFolderId = panelsDao.getLatestPanelFolderID() + 1
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 val remoteIdOfFolder = foldersDao.getRemoteIdOfAFolder(panelFolder.folderId)
                 val remoteIdOfConnectedPanel =
@@ -102,12 +109,13 @@ class LocalPanelsRepoImpl(
         return panelsDao.getLatestPanelID()
     }
     override suspend fun deleteAFolderFromAPanel(
-        panelId: Long, folderID: Long
+        panelId: Long, folderID: Long,
+        viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val remotePanelId = panelsDao.getRemoteIdOfPanel(panelId)
         val remoteFolderId = foldersDao.getRemoteIdOfAFolder(folderID)
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
+            performRemoteOperation = viaSocket.not(), remoteOperation = {
                 if (remotePanelId != null && remoteFolderId != null) {
                     remotePanelsRepo.deleteAFolderFromAPanel(
                         DeleteAPanelFromAFolderDTO(
@@ -142,6 +150,9 @@ class LocalPanelsRepoImpl(
         return panelsDao.getPanel(panelId)
     }
 
+    override suspend fun getLocalPanelId(remoteId: Long): Long? {
+        return panelsDao.getLocalPanelId(remoteId)
+    }
     override suspend fun updateAFolderName(folderID: Long, newName: String) {
         return panelsDao.updateAFolderName(folderID, newName)
     }

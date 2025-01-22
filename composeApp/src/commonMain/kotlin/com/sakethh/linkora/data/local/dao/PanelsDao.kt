@@ -76,6 +76,9 @@ interface PanelsDao {
     @Query("SELECT * FROM panel WHERE localId=:panelId LIMIT 1") // there will always be only 1 panel with the given ID, but added `LIMIT 1` because why not.
     suspend fun getPanel(panelId: Long): Panel
 
+    @Query("SELECT localId FROM panel WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getLocalPanelId(remoteId: Long): Long?
+
     @Query("SELECT * FROM panel_folder WHERE localId=:localPanelFolderId LIMIT 1")
     suspend fun getPanelFolder(localPanelFolderId: Long): PanelFolder
 }

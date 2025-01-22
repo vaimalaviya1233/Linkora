@@ -17,12 +17,19 @@ import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
+import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.PanelDTO
+import com.sakethh.linkora.domain.dto.server.panel.PanelFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.panel.Panel
+import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -34,7 +41,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 
 class AppVM(
-    private val localFoldersRepo: LocalFoldersRepo, private val localLinksRepo: LocalLinksRepo
+    private val localFoldersRepo: LocalFoldersRepo,
+    private val localLinksRepo: LocalLinksRepo,
+    private val localPanelsRepo: LocalPanelsRepo
 ) : ViewModel() {
     init {
         readSocketEvents(wsBaseUrl = AppPreferences.serverBaseUrl.value.asWebSocketUrl())
@@ -47,7 +56,7 @@ class AppVM(
     }
 
     private fun readSocketEvents(wsBaseUrl: String) {
-        if (AppPreferences.canPushToServer().not()) return
+        if (AppPreferences.canReadFromServer().not()) return
 
         socketEventJob = viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
             throwable.printStackTrace()
@@ -361,6 +370,112 @@ class AppVM(
                                     linkSaveConfig = forceSaveWithoutRetrieving(),
                                     viaSocket = true
                                 ).collectLatest { }
+                            }
+
+
+                            // panels:
+
+                            RemoteRoute.Panel.ADD_A_NEW_PANEL.name -> {
+                                val panelDTO =
+                                    Json.decodeFromJsonElement<PanelDTO>(deserializedWebSocketEvent.payload)
+
+                                if (panelDTO.correlationId.isSameAsCurrentClientID()) return@collectLatest
+
+                                localPanelsRepo.addaNewPanel(
+                                    Panel(
+                                        panelName = panelDTO.panelName, remoteId = panelDTO.panelId
+                                    ), viaSocket = true
+                                ).collectLatest { }
+                            }
+
+                            RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
+                                val panelFolderDTO = Json.decodeFromJsonElement<PanelFolderDTO>(
+                                    deserializedWebSocketEvent.payload
+                                )
+
+                                if (panelFolderDTO.correlationId.isSameAsCurrentClientID()) return@collectLatest
+
+                                val localFolderId =
+                                    localFoldersRepo.getLocalIdOfAFolder(panelFolderDTO.folderId)
+                                val localPanelsId =
+                                    localPanelsRepo.getLocalPanelId(panelFolderDTO.connectedPanelId)
+                                if (localPanelsId != null && localFolderId != null) {
+                                    localPanelsRepo.addANewFolderInAPanel(
+                                        PanelFolder(
+                                            folderId = localFolderId,
+                                            panelPosition = panelFolderDTO.panelPosition,
+                                            folderName = panelFolderDTO.folderName,
+                                            connectedPanelId = localPanelsId,
+                                            remoteId = panelFolderDTO.id
+                                        ), viaSocket = true
+                                    ).collectLatest { }
+                                }
+                            }
+
+                            RemoteRoute.Panel.DELETE_A_PANEL.name -> {
+                                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                                    deserializedWebSocketEvent.payload
+                                )
+
+                                if (idBasedDTO.correlationId.isSameAsCurrentClientID()) return@collectLatest
+
+                                val localPanelId = localPanelsRepo.getLocalPanelId(idBasedDTO.id)
+                                if (localPanelId != null) {
+                                    localPanelsRepo.deleteAPanel(localPanelId, viaSocket = true)
+                                        .collectLatest { }
+                                }
+                            }
+
+                            RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name -> {
+                                val updatePanelNameDTO =
+                                    Json.decodeFromJsonElement<UpdatePanelNameDTO>(
+                                        deserializedWebSocketEvent.payload
+                                    )
+
+                                if (updatePanelNameDTO.correlationId.isSameAsCurrentClientID()) return@collectLatest
+
+                                val localPanelId =
+                                    localPanelsRepo.getLocalPanelId(updatePanelNameDTO.panelId)
+                                if (localPanelId != null) {
+                                    localPanelsRepo.updateAPanelName(
+                                        newName = updatePanelNameDTO.newName,
+                                        panelId = localPanelId,
+                                        viaSocket = true
+                                    ).collectLatest { }
+                                }
+                            }
+
+                            RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name -> {
+                                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                                    deserializedWebSocketEvent.payload
+                                )
+
+                                if (idBasedDTO.correlationId.isSameAsCurrentClientID()) return@collectLatest
+
+                                val localFolderId =
+                                    localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
+                                if (localFolderId != null) {
+                                    localPanelsRepo.deleteAFolderFromAllPanels(localFolderId)
+                                }
+                            }
+
+                            RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
+                                val deleteAPanelFromAFolderDTO =
+                                    Json.decodeFromJsonElement<DeleteAPanelFromAFolderDTO>(
+                                        deserializedWebSocketEvent.payload
+                                    )
+
+                                if (deleteAPanelFromAFolderDTO.correlationId.isSameAsCurrentClientID()) return@collectLatest
+
+                                val localFolderId =
+                                    localFoldersRepo.getLocalIdOfAFolder(deleteAPanelFromAFolderDTO.folderID)
+                                val localPanelId =
+                                    localPanelsRepo.getLocalPanelId(deleteAPanelFromAFolderDTO.panelId)
+                                if (localFolderId != null && localPanelId != null) {
+                                    localPanelsRepo.deleteAFolderFromAPanel(
+                                        localPanelId, localFolderId, viaSocket = true
+                                    ).collectLatest { }
+                                }
                             }
                         }
 

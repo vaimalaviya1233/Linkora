@@ -119,7 +119,8 @@ fun App(
     viewModel<AppVM>(factory = genericViewModelFactory {
         AppVM(
             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-            localLinksRepo = DependencyContainer.localLinksRepo.value
+            localLinksRepo = DependencyContainer.localLinksRepo.value,
+            localPanelsRepo = DependencyContainer.localPanelsRepo.value
         )
     })
     val snackbarHostState = remember {
