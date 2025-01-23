@@ -49,10 +49,12 @@ class AppVM(
         readSocketEvents(wsBaseUrl = AppPreferences.serverBaseUrl.value.asWebSocketUrl())
     }
 
-    private var socketEventJob: Job? = null
+    companion object {
+        private var socketEventJob: Job? = null
 
-    fun shutdownSocketConnection() {
-        socketEventJob?.cancel()
+        fun shutdownSocketConnection() {
+            socketEventJob?.cancel()
+        }
     }
 
     private fun readSocketEvents(wsBaseUrl: String) {

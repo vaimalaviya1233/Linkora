@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.AppVM
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -120,6 +121,9 @@ class ServerManagementViewModel(
                 ), newValue = ""
             )
             AppPreferences.serverSyncType.value = SyncType.TwoWay
+
+            AppVM.shutdownSocketConnection()
+
             pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.DeletedTheServerConnectionSuccessfully)))
         }.invokeOnCompletion {
             onDeleted()
