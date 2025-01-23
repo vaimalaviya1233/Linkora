@@ -6,7 +6,7 @@ import com.sakethh.linkora.common.network.Network.client
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.asWebSocketUrl
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
-import com.sakethh.linkora.common.utils.isSameAsCurrentClientID
+import com.sakethh.linkora.common.utils.isSameAsCurrentClient
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
@@ -77,7 +77,7 @@ class AppVM(
                                 val folderDto = Json.decodeFromJsonElement<FolderDTO>(
                                     deserializedWebSocketEvent.payload
                                 )
-                                if (folderDto.correlation.isSameAsCurrentClientID()) {
+                                if (folderDto.correlation.isSameAsCurrentClient()) {
                                     return@collectLatest
                                 }
                                 localFoldersRepo.insertANewFolder(
@@ -97,7 +97,7 @@ class AppVM(
                                 val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
                                     deserializedWebSocketEvent.payload
                                 )
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val folderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                                 if (folderId != null) {
@@ -110,7 +110,7 @@ class AppVM(
                                 val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
                                     deserializedWebSocketEvent.payload
                                 )
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val folderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                                 if (folderId != null) {
@@ -124,7 +124,7 @@ class AppVM(
                                 val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
                                     deserializedWebSocketEvent.payload
                                 )
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val folderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                                 if (folderId != null) {
@@ -139,7 +139,7 @@ class AppVM(
                                     Json.decodeFromJsonElement<UpdateFolderNameDTO>(
                                         deserializedWebSocketEvent.payload
                                     )
-                                if (updateFolderNameDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (updateFolderNameDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localFolderId =
                                     localFoldersRepo.getLocalIdOfAFolder(updateFolderNameDTO.folderId)
@@ -163,7 +163,7 @@ class AppVM(
                                     Json.decodeFromJsonElement<UpdateFolderNoteDTO>(
                                         deserializedWebSocketEvent.payload
                                     )
-                                if (updateFolderNoteDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (updateFolderNoteDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localFolderId =
                                     localFoldersRepo.getLocalIdOfAFolder(updateFolderNoteDTO.folderId)
@@ -186,7 +186,7 @@ class AppVM(
                                 val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
                                     deserializedWebSocketEvent.payload
                                 )
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localFolderId =
                                     localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
@@ -211,7 +211,7 @@ class AppVM(
                                         deserializedWebSocketEvent.payload
                                     )
 
-                                if (updateTitleOfTheLinkDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (updateTitleOfTheLinkDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId =
                                     localLinksRepo.getLocalLinkId(updateTitleOfTheLinkDTO.linkId)
@@ -230,7 +230,7 @@ class AppVM(
                                         deserializedWebSocketEvent.payload
                                     )
 
-                                if (updateNoteOfALinkDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (updateNoteOfALinkDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId =
                                     localLinksRepo.getLocalLinkId(updateNoteOfALinkDTO.linkId)
@@ -246,7 +246,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                                 if (localLinkId != null) {
@@ -260,7 +260,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                                 if (localLinkId != null) {
@@ -274,7 +274,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                                 if (localLinkId != null) {
@@ -290,7 +290,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                                 if (localLinkId != null) {
@@ -306,7 +306,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                                 if (localLinkId != null) {
@@ -322,7 +322,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (linkDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (linkDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localLinkId = localLinksRepo.getLocalLinkId(linkDTO.id)
                                 if (localLinkId != null) {
@@ -351,7 +351,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (linkDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (linkDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 localLinksRepo.addANewLink(
                                     link = Link(
@@ -381,7 +381,7 @@ class AppVM(
                                 val panelDTO =
                                     Json.decodeFromJsonElement<PanelDTO>(deserializedWebSocketEvent.payload)
 
-                                if (panelDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (panelDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 localPanelsRepo.addaNewPanel(
                                     Panel(
@@ -395,7 +395,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (panelFolderDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (panelFolderDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localFolderId =
                                     localFoldersRepo.getLocalIdOfAFolder(panelFolderDTO.folderId)
@@ -419,7 +419,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localPanelId = localPanelsRepo.getLocalPanelId(idBasedDTO.id)
                                 if (localPanelId != null) {
@@ -434,7 +434,7 @@ class AppVM(
                                         deserializedWebSocketEvent.payload
                                     )
 
-                                if (updatePanelNameDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (updatePanelNameDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localPanelId =
                                     localPanelsRepo.getLocalPanelId(updatePanelNameDTO.panelId)
@@ -452,7 +452,7 @@ class AppVM(
                                     deserializedWebSocketEvent.payload
                                 )
 
-                                if (idBasedDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (idBasedDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localFolderId =
                                     localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
@@ -467,7 +467,7 @@ class AppVM(
                                         deserializedWebSocketEvent.payload
                                     )
 
-                                if (deleteAPanelFromAFolderDTO.correlation.isSameAsCurrentClientID()) return@collectLatest
+                                if (deleteAPanelFromAFolderDTO.correlation.isSameAsCurrentClient()) return@collectLatest
 
                                 val localFolderId =
                                     localFoldersRepo.getLocalIdOfAFolder(deleteAPanelFromAFolderDTO.folderID)
