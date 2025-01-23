@@ -29,4 +29,10 @@ sealed interface RemoteRoute {
         UPDATE_USER_AGENT, GET_LINKS_FROM_A_FOLDER, GET_LINKS, ARCHIVE_LINK,
         UNARCHIVE_LINK, MARK_AS_IMP, UNMARK_AS_IMP, UPDATE_LINK
     }
+
+    enum class AppRoute {
+        TEST_BEARER,
+        GET_UPDATES_SINCE,
+        TOMBSTONES
+    }
 }

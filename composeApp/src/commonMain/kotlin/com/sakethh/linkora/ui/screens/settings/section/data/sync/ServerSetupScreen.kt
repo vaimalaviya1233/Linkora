@@ -37,6 +37,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
+import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.InfoCard
@@ -99,10 +100,10 @@ fun ServerSetupScreen(
                     modifier = Modifier.fillMaxWidthWithPadding(),
                     value = serverUrl.value,
                     onValueChange = {
-                        serverUrl.value = if (it.endsWith("/testBearer")) {
+                        serverUrl.value = if (it.endsWith("/${RemoteRoute.AppRoute.TEST_BEARER}")) {
                             it
                         } else {
-                            it.replace("/", "").plus("/testBearer")
+                            it.replace("/", "").plus("/${RemoteRoute.AppRoute.TEST_BEARER}")
                         }
                     },
                     label = {
@@ -217,7 +218,7 @@ fun ServerSetupScreen(
                     onClick = {
                         serverManagementViewModel.saveServerConnection(
                             serverConnection = ServerConnection(
-                                serverUrl = serverUrl.value.substringBefore("testBearer"),
+                                serverUrl = serverUrl.value.substringBefore(RemoteRoute.AppRoute.TEST_BEARER.name),
                                 authToken = securityToken.value,
                                 syncType = selectedSyncType.value
                             )

@@ -16,6 +16,7 @@ import com.sakethh.linkora.data.remote.repository.GitHubReleasesRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteLinksRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemotePanelsRepoImpl
+import com.sakethh.linkora.data.remote.repository.RemoteSyncRepoImpl
 import com.sakethh.localDatabase
 
 object DependencyContainer {
@@ -46,6 +47,18 @@ object DependencyContainer {
         )
     }
 
+    val remoteSyncRepo = lazy {
+        RemoteSyncRepoImpl(
+            localFoldersRepo = localFoldersRepo.value,
+            localLinksRepo = localLinksRepo.value,
+            localPanelsRepo = localPanelsRepo.value,
+            authToken = {
+                AppPreferences.serverSecurityToken.value
+            }, baseUrl = {
+                AppPreferences.serverBaseUrl.value
+            }
+        )
+    }
     val localFoldersRepo = lazy {
         LocalFoldersRepoImpl(
             foldersDao = localDatabase?.foldersDao!!,
