@@ -1,6 +1,7 @@
 package com.sakethh.linkora.domain.dto.server.folder
 
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.domain.dto.server.Correlation
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,5 +10,5 @@ data class AddFolderDTO(
     val note: String,
     val parentFolderId: Long?,
     val isArchived: Boolean,
-    val correlationId: String = AppPreferences.correlationId
+    val correlation: Correlation = AppPreferences.correlation
 )

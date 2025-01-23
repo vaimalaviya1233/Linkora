@@ -15,6 +15,7 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -214,4 +215,4 @@ suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Res
 
 fun String.asWebSocketUrl(): String = "ws://" + this.substringAfter("://")
 
-fun String.isSameAsCurrentClientID(): Boolean = this == AppPreferences.correlationId
+fun Correlation.isSameAsCurrentClientID(): Boolean = this == AppPreferences.correlation

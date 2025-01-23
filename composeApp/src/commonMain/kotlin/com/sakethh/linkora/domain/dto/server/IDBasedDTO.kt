@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class IDBasedDTO(
     val id: Long,
-    val correlationId: String = AppPreferences.correlationId
+    val correlation: Correlation = AppPreferences.correlation
 )
