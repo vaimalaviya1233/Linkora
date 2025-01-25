@@ -4,8 +4,10 @@ import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.utils.asWebSocketUrl
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isSameAsCurrentClient
+import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -42,6 +44,7 @@ import io.ktor.websocket.Frame
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -63,8 +66,8 @@ class RemoteSyncRepoImpl(
         this.isLenient = true
         this.prettyPrint = true
     }
-    override suspend fun readSocketEvents() {
-        try {
+    override suspend fun readSocketEvents(): Flow<Result<Unit>> {
+        return wrappedResultFlow {
             Network.client.webSocket(baseUrl().asWebSocketUrl() + "events") {
                 this.incoming.consumeAsFlow().collectLatest {
                     if (it is Frame.Text) {
@@ -74,13 +77,11 @@ class RemoteSyncRepoImpl(
                     }
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
     private lateinit var deserializedUpdatableFolders: List<FolderDTO>
-    override suspend fun applyUpdatesFromRemote(timeStampAfter: Long) {
+    override suspend fun applyUpdatesFromRemote(timeStampAfter: Long): Flow<Result<Unit>> {
 
 
         /**
@@ -96,14 +97,13 @@ class RemoteSyncRepoImpl(
         )
 
 
-        try {
+        return wrappedResultFlow {
             Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
                 parameter("timestamp", timeStampAfter)
             }.body<AllTablesDTO>().let { remoteResponse ->
                 coroutineScope {
-                    try {
                         awaitAll(async {
                             remoteResponse.links.forEach { remoteLinkDTO ->
                                 val localId = localLinksRepo.getLocalLinkId(remoteLinkDTO.id)
@@ -167,13 +167,8 @@ class RemoteSyncRepoImpl(
                                 )
                             }
                         })
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -228,8 +223,8 @@ class RemoteSyncRepoImpl(
         }
     }
 
-    override suspend fun updateDataBasedOnRemoteTombstones(timeStampAfter: Long) {
-        try {
+    override suspend fun updateDataBasedOnRemoteTombstones(timeStampAfter: Long): Flow<Result<Unit>> {
+        return wrappedResultFlow {
             Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
@@ -243,8 +238,6 @@ class RemoteSyncRepoImpl(
                 linkoraLog("deleting based on ${it.operation} : ${it.payload}")
                 updateLocalDBAccordingToEvent(it)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 

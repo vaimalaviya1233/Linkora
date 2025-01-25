@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.pushSnackbar
+import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class AppVM(
@@ -17,10 +19,14 @@ class AppVM(
 
         viewModelScope.launch {
             launch {
-                remoteSyncRepo.updateDataBasedOnRemoteTombstones(0)
+                remoteSyncRepo.updateDataBasedOnRemoteTombstones(0).collectLatest {
+                    it.pushSnackbarOnFailure()
+                }
             }
             launch {
-                remoteSyncRepo.applyUpdatesFromRemote(0)
+                remoteSyncRepo.applyUpdatesFromRemote(0).collectLatest {
+                    it.pushSnackbarOnFailure()
+                }
             }
         }
     }
@@ -40,7 +46,9 @@ class AppVM(
             throwable.printStackTrace()
             throwable.pushSnackbar(viewModelScope)
         }) {
-            remoteSyncRepo.readSocketEvents()
+            remoteSyncRepo.readSocketEvents().collectLatest {
+                it.pushSnackbarOnFailure()
+            }
         }
     }
 }

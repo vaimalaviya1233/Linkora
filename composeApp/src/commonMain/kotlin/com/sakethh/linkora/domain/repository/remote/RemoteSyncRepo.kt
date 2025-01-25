@@ -1,7 +1,10 @@
 package com.sakethh.linkora.domain.repository.remote
 
+import com.sakethh.linkora.domain.Result
+import kotlinx.coroutines.flow.Flow
+
 interface RemoteSyncRepo {
-    suspend fun readSocketEvents()
-    suspend fun updateDataBasedOnRemoteTombstones(timeStampAfter: Long)
-    suspend fun applyUpdatesFromRemote(timeStampAfter: Long)
+    suspend fun readSocketEvents(): Flow<Result<Unit>>
+    suspend fun updateDataBasedOnRemoteTombstones(timeStampAfter: Long): Flow<Result<Unit>>
+    suspend fun applyUpdatesFromRemote(timeStampAfter: Long): Flow<Result<Unit>>
 }
