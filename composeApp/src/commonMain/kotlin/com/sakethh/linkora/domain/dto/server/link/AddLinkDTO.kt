@@ -19,5 +19,5 @@ data class AddLinkDTO(
     val userAgent: String?,
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
-    val correlation: Correlation = AppPreferences.correlation
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

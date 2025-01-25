@@ -16,7 +16,12 @@ class AppVM(
         readSocketEvents()
 
         viewModelScope.launch {
-            remoteSyncRepo.updateDataBasedOnRemoteTombstones(0)
+            launch {
+                remoteSyncRepo.updateDataBasedOnRemoteTombstones(0)
+            }
+            launch {
+                remoteSyncRepo.updateDataBasedOnUpdates(0)
+            }
         }
     }
 

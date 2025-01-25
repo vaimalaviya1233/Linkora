@@ -6,6 +6,8 @@ import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isSameAsCurrentClient
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.dto.server.AllTablesDTO
+import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.TombstoneDTO
 import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
@@ -37,10 +39,16 @@ import io.ktor.client.request.parameter
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.websocket.Frame
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import java.util.UUID
 
 class RemoteSyncRepoImpl(
     private val localFoldersRepo: LocalFoldersRepo,
@@ -49,13 +57,19 @@ class RemoteSyncRepoImpl(
     private val authToken: () -> String,
     private val baseUrl: () -> String
 ) : RemoteSyncRepo {
+    private val json = Json {
+        this.ignoreUnknownKeys = true
+        this.encodeDefaults = true
+        this.isLenient = true
+        this.prettyPrint = true
+    }
     override suspend fun readSocketEvents() {
         try {
             Network.client.webSocket(baseUrl().asWebSocketUrl() + "events") {
                 this.incoming.consumeAsFlow().collectLatest {
                     if (it is Frame.Text) {
                         val deserializedWebSocketEvent =
-                            Json.decodeFromString<WebSocketEvent>((it.data).decodeToString())
+                            json.decodeFromString<WebSocketEvent>((it.data).decodeToString())
                         updateLocalDBAccordingToEvent(deserializedWebSocketEvent)
                     }
                 }
@@ -65,9 +79,158 @@ class RemoteSyncRepoImpl(
         }
     }
 
+    private lateinit var deserializedUpdatableFolders: List<FolderDTO>
+    override suspend fun updateDataBasedOnUpdates(timeStampAfter: Long) {
+
+
+        /**
+        `updateLocalDBAccordingToEvent` is supposed to handle "events" from the socket.
+
+        i didn't feel like writing it all from scratch for this function (`updateDataBasedOnUpdates`)
+        so i just mocked it like, "oh, that’s not me, must be some other client 🤓☝️" and force update respectively.
+
+        and that's why `randomCorrelation` exists.
+         **/
+        val randomCorrelation = Correlation(
+            id = UUID.randomUUID().toString(), clientName = "🤨📸"
+        )
+
+
+        try {
+            Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
+                bearerAuth(authToken())
+                contentType(ContentType.Application.Json)
+                parameter("timestamp", timeStampAfter)
+            }.body<AllTablesDTO>().let { remoteResponse ->
+                coroutineScope {
+                    try {
+                        awaitAll(async {
+                            remoteResponse.links.forEach { remoteLinkDTO ->
+                                val localId = localLinksRepo.getLocalLinkId(remoteLinkDTO.id)
+                                if (localId == null) {
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+                                            payload = json.encodeToJsonElement(
+                                                remoteLinkDTO.copy(correlation = randomCorrelation)
+                                            )
+                                        )
+                                    )
+                                } else {
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Link.UPDATE_LINK.name,
+                                            payload = json.encodeToJsonElement(
+                                                remoteLinkDTO.copy(correlation = randomCorrelation)
+                                            )
+                                        )
+                                    )
+                                }
+                            }
+                        }, async {
+                            remoteResponse.panels.forEach { remotePanelDTO ->
+                                val localId =
+                                    localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
+                                if (localId == null) {
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
+                                            payload = json.encodeToJsonElement(
+                                                remotePanelDTO.copy(correlation = randomCorrelation)
+                                            )
+                                        )
+                                    )
+                                } else {
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
+                                            payload = json.encodeToJsonElement(
+                                                UpdatePanelNameDTO(
+                                                    newName = remotePanelDTO.panelName,
+                                                    panelId = remotePanelDTO.panelId,
+                                                    correlation = randomCorrelation
+                                                )
+                                            )
+                                        )
+                                    )
+                                }
+                            }
+                            remoteResponse.panelFolders.forEach { remotePanelFolder ->
+                                // a panel_folder can only be added with this endpoint response because if it got deleted, it will be caught in the tombstones response, not here
+                                updateLocalDBAccordingToEvent(
+                                    WebSocketEvent(
+                                        operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                                        payload = json.encodeToJsonElement(
+                                            remotePanelFolder.copy(correlation = randomCorrelation)
+                                        )
+                                    )
+                                )
+                            }
+                        })
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun insertFolder(
+        folderDTO: FolderDTO, processedFolder: MutableList<Long> = mutableListOf()
+    ) {
+        if (processedFolder.contains(folderDTO.id)) return
+        processedFolder.add(folderDTO.id)
+        val localId = localFoldersRepo.getLocalIdOfAFolder(folderDTO.id)
+        val parentFolderId: Long? = if (folderDTO.parentFolderId == null) {
+            null
+        } else {
+            localFoldersRepo.getLocalIdOfAFolder(folderDTO.parentFolderId).let {
+                var requiredParentId = it
+                if (requiredParentId == null) {/*
+                if the folder that's supposed to be the parent ain't in the local DB
+                we gotta insert that first and then handle the rest
+                */
+                    val parentFolder = deserializedUpdatableFolders.firstOrNull {
+                        it.id == folderDTO.parentFolderId
+                    }
+                    if (parentFolder != null) {
+                        insertFolder(parentFolder, processedFolder)
+                        requiredParentId =
+                            localFoldersRepo.getLocalIdOfAFolder(folderDTO.parentFolderId)
+                    }
+                }
+                requiredParentId
+            }
+        }
+        if (localId != null) {
+            localFoldersRepo.updateAFolderData(
+                Folder(
+                    name = folderDTO.name,
+                    note = folderDTO.note,
+                    parentFolderId = parentFolderId,
+                    localId = localId,
+                    remoteId = folderDTO.id,
+                    isArchived = folderDTO.isArchived
+                )
+            ).collect()
+        } else {
+            localFoldersRepo.insertANewFolder(
+                folder = Folder(
+                    name = folderDTO.name,
+                    note = folderDTO.note,
+                    parentFolderId = parentFolderId,
+                    remoteId = folderDTO.id,
+                    isArchived = folderDTO.isArchived
+                ), ignoreFolderAlreadyExistsException = true
+            ).collect()
+        }
+    }
+
     override suspend fun updateDataBasedOnRemoteTombstones(timeStampAfter: Long) {
         try {
-            Network.client.get(baseUrl() + RemoteRoute.AppRoute.TOMBSTONES.name) {
+            Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
                 parameter("timestamp", timeStampAfter)
@@ -92,7 +255,7 @@ class RemoteSyncRepoImpl(
             // folders:
 
             RemoteRoute.Folder.CREATE_FOLDER.name -> {
-                val folderDto = Json.decodeFromJsonElement<FolderDTO>(
+                val folderDto = json.decodeFromJsonElement<FolderDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (folderDto.correlation.isSameAsCurrentClient()) {
@@ -108,23 +271,23 @@ class RemoteSyncRepoImpl(
                         remoteId = folderDto.id,
                         isArchived = folderDto.isArchived
                     ), ignoreFolderAlreadyExistsException = true, viaSocket = true
-                ).collectLatest {}
+                ).collect()
             }
 
             RemoteRoute.Folder.DELETE_FOLDER.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (idBasedDTO.correlation.isSameAsCurrentClient()) return
 
                 val folderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                 if (folderId != null) {
-                    localFoldersRepo.deleteAFolder(folderId, viaSocket = true).collectLatest {}
+                    localFoldersRepo.deleteAFolder(folderId, viaSocket = true).collect()
                 }
             }
 
             RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (idBasedDTO.correlation.isSameAsCurrentClient()) return
@@ -133,12 +296,12 @@ class RemoteSyncRepoImpl(
                 if (folderId != null) {
                     localFoldersRepo.markFolderAsArchive(
                         folderId, viaSocket = true
-                    ).collectLatest {}
+                    ).collect()
                 }
             }
 
             RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (idBasedDTO.correlation.isSameAsCurrentClient()) return
@@ -147,12 +310,12 @@ class RemoteSyncRepoImpl(
                 if (folderId != null) {
                     localFoldersRepo.markFolderAsRegularFolder(
                         folderId, viaSocket = true
-                    ).collectLatest {}
+                    ).collect()
                 }
             }
 
             RemoteRoute.Folder.UPDATE_FOLDER_NAME.name -> {
-                val updateFolderNameDTO = Json.decodeFromJsonElement<UpdateFolderNameDTO>(
+                val updateFolderNameDTO = json.decodeFromJsonElement<UpdateFolderNameDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (updateFolderNameDTO.correlation.isSameAsCurrentClient()) return
@@ -167,14 +330,14 @@ class RemoteSyncRepoImpl(
                                     localId = localFolderId,
                                     name = updateFolderNameDTO.newFolderName
                                 )
-                            ).collectLatest {}
+                            ).collect()
                         }
                     }
                 }
             }
 
             RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name -> {
-                val updateFolderNoteDTO = Json.decodeFromJsonElement<UpdateFolderNoteDTO>(
+                val updateFolderNoteDTO = json.decodeFromJsonElement<UpdateFolderNoteDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (updateFolderNoteDTO.correlation.isSameAsCurrentClient()) return
@@ -188,14 +351,14 @@ class RemoteSyncRepoImpl(
                                 it.data.copy(
                                     localId = localFolderId, note = updateFolderNoteDTO.newNote
                                 )
-                            ).collectLatest {}
+                            ).collect()
                         }
                     }
                 }
             }
 
             RemoteRoute.Folder.DELETE_FOLDER_NOTE.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (idBasedDTO.correlation.isSameAsCurrentClient()) return
@@ -206,7 +369,7 @@ class RemoteSyncRepoImpl(
                         it.onSuccess {
                             localFoldersRepo.deleteAFolderNote(
                                 localFolderId, viaSocket = true
-                            ).collectLatest {}
+                            ).collect()
                         }
                     }
                 }
@@ -216,7 +379,7 @@ class RemoteSyncRepoImpl(
             // links:
 
             RemoteRoute.Link.UPDATE_LINK_TITLE.name -> {
-                val updateTitleOfTheLinkDTO = Json.decodeFromJsonElement<UpdateTitleOfTheLinkDTO>(
+                val updateTitleOfTheLinkDTO = json.decodeFromJsonElement<UpdateTitleOfTheLinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -226,12 +389,12 @@ class RemoteSyncRepoImpl(
                 if (localLinkId != null) {
                     localLinksRepo.updateLinkTitle(
                         localLinkId, updateTitleOfTheLinkDTO.newTitleOfTheLink, viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Link.UPDATE_LINK_NOTE.name -> {
-                val updateNoteOfALinkDTO = Json.decodeFromJsonElement<UpdateNoteOfALinkDTO>(
+                val updateNoteOfALinkDTO = json.decodeFromJsonElement<UpdateNoteOfALinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -241,12 +404,12 @@ class RemoteSyncRepoImpl(
                 if (localLinkId != null) {
                     localLinksRepo.updateLinkNote(
                         localLinkId, updateNoteOfALinkDTO.newNote, viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Link.DELETE_A_LINK.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -254,12 +417,12 @@ class RemoteSyncRepoImpl(
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
-                    localLinksRepo.deleteALink(localLinkId, viaSocket = true).collectLatest { }
+                    localLinksRepo.deleteALink(localLinkId, viaSocket = true).collect()
                 }
             }
 
             RemoteRoute.Link.ARCHIVE_LINK.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -267,12 +430,12 @@ class RemoteSyncRepoImpl(
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
-                    localLinksRepo.archiveALink(localLinkId, viaSocket = true).collectLatest { }
+                    localLinksRepo.archiveALink(localLinkId, viaSocket = true).collect()
                 }
             }
 
             RemoteRoute.Link.UNARCHIVE_LINK.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -283,12 +446,12 @@ class RemoteSyncRepoImpl(
                     val link = localLinksRepo.getALink(localLinkId)
                     localLinksRepo.updateALink(
                         link.copy(linkType = LinkType.SAVED_LINK), viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Link.MARK_AS_IMP.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -299,12 +462,12 @@ class RemoteSyncRepoImpl(
                     val link = localLinksRepo.getALink(localLinkId)
                     localLinksRepo.updateALink(
                         link.copy(markedAsImportant = true), viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Link.UNMARK_AS_IMP.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -315,12 +478,12 @@ class RemoteSyncRepoImpl(
                     val link = localLinksRepo.getALink(localLinkId)
                     localLinksRepo.updateALink(
                         link.copy(markedAsImportant = false), viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Link.UPDATE_LINK.name -> {
-                val linkDTO = Json.decodeFromJsonElement<LinkDTO>(
+                val linkDTO = json.decodeFromJsonElement<LinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -339,17 +502,16 @@ class RemoteSyncRepoImpl(
                             idOfLinkedFolder = if (linkDTO.idOfLinkedFolder != null) localFoldersRepo.getLocalIdOfAFolder(
                                 linkDTO.idOfLinkedFolder
                             ) else null,
-                            lastModified = linkDTO.lastModified,
                             userAgent = linkDTO.userAgent,
                             markedAsImportant = linkDTO.markedAsImportant,
                             mediaType = linkDTO.mediaType
                         ), viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Link.CREATE_A_NEW_LINK.name -> {
-                val linkDTO = Json.decodeFromJsonElement<LinkDTO>(
+                val linkDTO = json.decodeFromJsonElement<LinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -366,12 +528,11 @@ class RemoteSyncRepoImpl(
                             linkDTO.idOfLinkedFolder
                         ) else null,
                         remoteId = linkDTO.id,
-                        lastModified = linkDTO.lastModified,
                         userAgent = linkDTO.userAgent,
                         markedAsImportant = linkDTO.markedAsImportant,
                         mediaType = linkDTO.mediaType
                     ), linkSaveConfig = forceSaveWithoutRetrieving(), viaSocket = true
-                ).collectLatest { }
+                ).collect()
             }
 
 
@@ -379,7 +540,7 @@ class RemoteSyncRepoImpl(
 
             RemoteRoute.Panel.ADD_A_NEW_PANEL.name -> {
                 val panelDTO =
-                    Json.decodeFromJsonElement<PanelDTO>(deserializedWebSocketEvent.payload)
+                    json.decodeFromJsonElement<PanelDTO>(deserializedWebSocketEvent.payload)
 
                 if (panelDTO.correlation.isSameAsCurrentClient()) return
 
@@ -387,11 +548,11 @@ class RemoteSyncRepoImpl(
                     Panel(
                         panelName = panelDTO.panelName, remoteId = panelDTO.panelId
                     ), viaSocket = true
-                ).collectLatest { }
+                ).collect()
             }
 
             RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
-                val panelFolderDTO = Json.decodeFromJsonElement<PanelFolderDTO>(
+                val panelFolderDTO = json.decodeFromJsonElement<PanelFolderDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -408,12 +569,12 @@ class RemoteSyncRepoImpl(
                             connectedPanelId = localPanelsId,
                             remoteId = panelFolderDTO.id
                         ), viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Panel.DELETE_A_PANEL.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -421,12 +582,12 @@ class RemoteSyncRepoImpl(
 
                 val localPanelId = localPanelsRepo.getLocalPanelId(idBasedDTO.id)
                 if (localPanelId != null) {
-                    localPanelsRepo.deleteAPanel(localPanelId, viaSocket = true).collectLatest { }
+                    localPanelsRepo.deleteAPanel(localPanelId, viaSocket = true).collect()
                 }
             }
 
             RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name -> {
-                val updatePanelNameDTO = Json.decodeFromJsonElement<UpdatePanelNameDTO>(
+                val updatePanelNameDTO = json.decodeFromJsonElement<UpdatePanelNameDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -438,12 +599,12 @@ class RemoteSyncRepoImpl(
                         newName = updatePanelNameDTO.newName,
                         panelId = localPanelId,
                         viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
 
             RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name -> {
-                val idBasedDTO = Json.decodeFromJsonElement<IDBasedDTO>(
+                val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
 
@@ -457,7 +618,7 @@ class RemoteSyncRepoImpl(
 
             RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
                 val deleteAPanelFromAFolderDTO =
-                    Json.decodeFromJsonElement<DeleteAPanelFromAFolderDTO>(
+                    json.decodeFromJsonElement<DeleteAPanelFromAFolderDTO>(
                         deserializedWebSocketEvent.payload
                     )
 
@@ -470,7 +631,7 @@ class RemoteSyncRepoImpl(
                 if (localFolderId != null && localPanelId != null) {
                     localPanelsRepo.deleteAFolderFromAPanel(
                         localPanelId, localFolderId, viaSocket = true
-                    ).collectLatest { }
+                    ).collect()
                 }
             }
         }

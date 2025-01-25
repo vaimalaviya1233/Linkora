@@ -8,5 +8,5 @@ import kotlinx.serialization.Serializable
 data class ChangeParentFolderDTO(
     val folderId: Long,
     val newParentFolderId: Long?,
-    val correlation: Correlation = AppPreferences.correlation
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

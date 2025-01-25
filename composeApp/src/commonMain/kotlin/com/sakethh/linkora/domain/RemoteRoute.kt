@@ -30,9 +30,9 @@ sealed interface RemoteRoute {
         UNARCHIVE_LINK, MARK_AS_IMP, UNMARK_AS_IMP, UPDATE_LINK
     }
 
-    enum class AppRoute {
+    enum class SyncInLocalRoute {
         TEST_BEARER,
-        GET_UPDATES_SINCE,
-        TOMBSTONES
+        GET_UPDATES,
+        GET_TOMBSTONES
     }
 }

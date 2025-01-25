@@ -10,5 +10,5 @@ data class AddANewPanelFolderDTO(
     val panelPosition: Long,
     val folderName: String,
     val connectedPanelId: Long,
-    val correlation: Correlation = AppPreferences.correlation
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

@@ -10,5 +10,5 @@ data class AddFolderDTO(
     val note: String,
     val parentFolderId: Long?,
     val isArchived: Boolean,
-    val correlation: Correlation = AppPreferences.correlation
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

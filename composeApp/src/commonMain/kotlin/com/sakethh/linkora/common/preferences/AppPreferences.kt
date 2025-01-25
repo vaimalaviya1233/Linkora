@@ -20,6 +20,8 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.UUID
 
 object AppPreferences {
@@ -176,9 +178,13 @@ object AppPreferences {
     )
 
 
-    val correlation = Correlation(
+    private var correlation = Correlation(
         id = UUID.randomUUID().toString(), clientName = "${adjectives.random()} ${nouns.random()}"
     )
+
+    fun getCorrelation(): Correlation {
+        return correlation
+    }
 
     fun isServerConfigured(): Boolean {
         return serverBaseUrl.value.isNotBlank()
@@ -415,6 +421,20 @@ object AppPreferences {
                     refreshLinksWorkerTag.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENT_WORK_MANAGER_WORK_UUID.name)
                     ) ?: refreshLinksWorkerTag.value
+                },
+                launch {
+                    preferencesRepository.readPreferenceValue(
+                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_CORRELATION.name)
+                    ).let {
+                        if (it != null) {
+                            correlation = Json.decodeFromString<Correlation>(it)
+                        } else {
+                            preferencesRepository.changePreferenceValue(
+                                preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_CORRELATION.name),
+                                newValue = Json.encodeToString(correlation)
+                            )
+                        }
+                    }
                 }
             ).joinAll()
         }

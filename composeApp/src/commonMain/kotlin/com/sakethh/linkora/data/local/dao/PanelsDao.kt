@@ -79,6 +79,9 @@ interface PanelsDao {
     @Query("SELECT localId FROM panel WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getLocalPanelId(remoteId: Long): Long?
 
+    @Query("SELECT localId FROM panel_folder WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getLocalPanelFolderId(remoteId: Long): Long?
+
     @Query("SELECT * FROM panel_folder WHERE localId=:localPanelFolderId LIMIT 1")
     suspend fun getPanelFolder(localPanelFolderId: Long): PanelFolder
 }

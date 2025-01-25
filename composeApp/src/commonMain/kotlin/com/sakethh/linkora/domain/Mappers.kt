@@ -90,7 +90,6 @@ fun Link.asLinkDTO(id: Long): LinkDTO = LinkDTO(
     baseURL = this.baseURL,
     imgURL = this.imgURL,
     note = this.note,
-    lastModified = this.lastModified,
     idOfLinkedFolder = this.idOfLinkedFolder,
     userAgent = this.userAgent,
     markedAsImportant = this.markedAsImportant,

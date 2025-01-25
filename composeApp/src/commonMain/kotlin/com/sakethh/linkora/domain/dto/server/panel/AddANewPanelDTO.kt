@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AddANewPanelDTO(
     val panelName: String,
-    val correlation: Correlation = AppPreferences.correlation
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

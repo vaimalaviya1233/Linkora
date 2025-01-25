@@ -100,10 +100,12 @@ fun ServerSetupScreen(
                     modifier = Modifier.fillMaxWidthWithPadding(),
                     value = serverUrl.value,
                     onValueChange = {
-                        serverUrl.value = if (it.endsWith("/${RemoteRoute.AppRoute.TEST_BEARER}")) {
+                        serverUrl.value =
+                            if (it.endsWith("/${RemoteRoute.SyncInLocalRoute.TEST_BEARER}")) {
                             it
                         } else {
-                            it.replace("/", "").plus("/${RemoteRoute.AppRoute.TEST_BEARER}")
+                                it.replace("/", "")
+                                    .plus("/${RemoteRoute.SyncInLocalRoute.TEST_BEARER}")
                         }
                     },
                     label = {
@@ -218,7 +220,7 @@ fun ServerSetupScreen(
                     onClick = {
                         serverManagementViewModel.saveServerConnection(
                             serverConnection = ServerConnection(
-                                serverUrl = serverUrl.value.substringBefore(RemoteRoute.AppRoute.TEST_BEARER.name),
+                                serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
                                 authToken = securityToken.value,
                                 syncType = selectedSyncType.value
                             )

@@ -15,10 +15,9 @@ data class LinkDTO(
     val baseURL: String,
     val imgURL: String,
     val note: String,
-    val lastModified: String,
     val idOfLinkedFolder: Long?,
     val userAgent: String?,
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
-    val correlation: Correlation = AppPreferences.correlation
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

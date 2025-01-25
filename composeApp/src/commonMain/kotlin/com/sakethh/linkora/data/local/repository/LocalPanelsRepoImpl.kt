@@ -153,6 +153,10 @@ class LocalPanelsRepoImpl(
     override suspend fun getLocalPanelId(remoteId: Long): Long? {
         return panelsDao.getLocalPanelId(remoteId)
     }
+
+    override suspend fun getLocalPanelFolderId(remoteId: Long): Long? {
+        return panelsDao.getLocalPanelFolderId(remoteId)
+    }
     override suspend fun updateAFolderName(folderID: Long, newName: String) {
         return panelsDao.updateAFolderName(folderID, newName)
     }

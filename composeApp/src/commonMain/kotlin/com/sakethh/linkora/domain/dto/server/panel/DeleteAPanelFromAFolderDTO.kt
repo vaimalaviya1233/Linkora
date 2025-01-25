@@ -8,5 +8,5 @@ import kotlinx.serialization.Serializable
 data class DeleteAPanelFromAFolderDTO(
     val panelId: Long,
     val folderID: Long,
-    val correlation: Correlation = AppPreferences.correlation
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )
