@@ -20,7 +20,7 @@ class AppVM(
                 remoteSyncRepo.updateDataBasedOnRemoteTombstones(0)
             }
             launch {
-                remoteSyncRepo.updateDataBasedOnUpdates(0)
+                remoteSyncRepo.applyUpdatesFromRemote(0)
             }
         }
     }

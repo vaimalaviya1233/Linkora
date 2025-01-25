@@ -80,13 +80,13 @@ class RemoteSyncRepoImpl(
     }
 
     private lateinit var deserializedUpdatableFolders: List<FolderDTO>
-    override suspend fun updateDataBasedOnUpdates(timeStampAfter: Long) {
+    override suspend fun applyUpdatesFromRemote(timeStampAfter: Long) {
 
 
         /**
         `updateLocalDBAccordingToEvent` is supposed to handle "events" from the socket.
 
-        i didn't feel like writing it all from scratch for this function (`updateDataBasedOnUpdates`)
+        i didn't feel like writing it all from scratch for this function (`applyUpdatesFromRemote`)
         so i just mocked it like, "oh, that’s not me, must be some other client 🤓☝️" and force update respectively.
 
         and that's why `randomCorrelation` exists.
