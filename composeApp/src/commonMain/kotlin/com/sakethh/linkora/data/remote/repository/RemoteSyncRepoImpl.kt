@@ -40,7 +40,6 @@ import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
-import com.sakethh.linkora.ui.utils.linkoraLog
 import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.bearerAuth
@@ -56,7 +55,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -249,7 +247,6 @@ class RemoteSyncRepoImpl(
         }
     }
 
-    private lateinit var deserializedUpdatableFolders: List<FolderDTO>
     override suspend fun applyUpdatesFromRemote(timeStampAfter: Long): Flow<Result<Unit>> {
 
 
@@ -272,8 +269,9 @@ class RemoteSyncRepoImpl(
                 contentType(ContentType.Application.Json)
                 parameter("timestamp", timeStampAfter)
             }.body<AllTablesDTO>().let { remoteResponse ->
-                linkoraLog(json.encodeToString(remoteResponse.folders))
-                return@let
+                remoteResponse.folders.forEach {
+                    applyFolderUpdates(it)
+                }
                 coroutineScope {
                         awaitAll(async {
                             remoteResponse.links.forEach { remoteLinkDTO ->
@@ -343,40 +341,22 @@ class RemoteSyncRepoImpl(
         }
     }
 
-    private suspend fun insertFolder(
-        folderDTO: FolderDTO, processedFolder: MutableList<Long> = mutableListOf()
+    /**
+    parent folders (if any) get inserted first, so there's no need to search and insert parent folders first. also, the server returns from oldest to newest, so we get the advantage of knowing that root folders/parent folders are always inserted first.
+     * */
+    private suspend fun applyFolderUpdates(
+        folderDTO: FolderDTO
     ) {
-        if (processedFolder.contains(folderDTO.id)) return
-        processedFolder.add(folderDTO.id)
-        val localId = localFoldersRepo.getLocalIdOfAFolder(folderDTO.id)
-        val parentFolderId: Long? = if (folderDTO.parentFolderId == null) {
-            null
-        } else {
-            localFoldersRepo.getLocalIdOfAFolder(folderDTO.parentFolderId).let {
-                var requiredParentId = it
-                if (requiredParentId == null) {/*
-                if the folder that's supposed to be the parent ain't in the local DB
-                we gotta insert that first and then handle the rest
-                */
-                    val parentFolder = deserializedUpdatableFolders.firstOrNull {
-                        it.id == folderDTO.parentFolderId
-                    }
-                    if (parentFolder != null) {
-                        insertFolder(parentFolder, processedFolder)
-                        requiredParentId =
-                            localFoldersRepo.getLocalIdOfAFolder(folderDTO.parentFolderId)
-                    }
-                }
-                requiredParentId
-            }
-        }
-        if (localId != null) {
+        val localIdOfCurrentFolder = localFoldersRepo.getLocalIdOfAFolder(folderDTO.id)
+        if (localIdOfCurrentFolder != null) {
             localFoldersRepo.updateAFolderData(
                 Folder(
                     name = folderDTO.name,
                     note = folderDTO.note,
-                    parentFolderId = parentFolderId,
-                    localId = localId,
+                    parentFolderId = if (folderDTO.parentFolderId != null) localFoldersRepo.getLocalIdOfAFolder(
+                        folderDTO.parentFolderId
+                    ) else null,
+                    localId = localIdOfCurrentFolder,
                     remoteId = folderDTO.id,
                     isArchived = folderDTO.isArchived
                 )
@@ -386,10 +366,12 @@ class RemoteSyncRepoImpl(
                 folder = Folder(
                     name = folderDTO.name,
                     note = folderDTO.note,
-                    parentFolderId = parentFolderId,
+                    parentFolderId = if (folderDTO.parentFolderId != null) localFoldersRepo.getLocalIdOfAFolder(
+                        folderDTO.parentFolderId
+                    ) else null,
                     remoteId = folderDTO.id,
                     isArchived = folderDTO.isArchived
-                ), ignoreFolderAlreadyExistsException = true
+                ), ignoreFolderAlreadyExistsException = true, viaSocket = true
             ).collect()
         }
     }

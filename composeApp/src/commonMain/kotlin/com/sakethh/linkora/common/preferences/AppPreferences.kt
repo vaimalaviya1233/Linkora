@@ -22,7 +22,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.time.Instant
 import java.util.UUID
 
 object AppPreferences {
@@ -183,7 +182,7 @@ object AppPreferences {
         id = UUID.randomUUID().toString(), clientName = "${adjectives.random()} ${nouns.random()}"
     )
 
-    private var lastSyncedWithServer = Instant.now().epochSecond
+    private var lastSyncedWithServer: Long = 0
 
     fun lastSyncedLocally(): Long {
         return lastSyncedWithServer
