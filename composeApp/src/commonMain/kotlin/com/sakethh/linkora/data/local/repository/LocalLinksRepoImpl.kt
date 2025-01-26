@@ -60,12 +60,12 @@ class LocalLinksRepoImpl(
                             Json.encodeToString(
                                 linksDao.getLink(newLinkId)
                                     .copy(idOfLinkedFolder = remoteIdOfLinkedFolder).asAddLinkDTO()
-                                    .copy(localId = link.localId)
+                                    .copy(pendingQueueSyncLocalId = link.localId)
                             )
                         } else {
                             Json.encodeToString(
                                 linksDao.getLink(newLinkId).copy().asAddLinkDTO()
-                                    .copy(localId = link.localId)
+                                    .copy(pendingQueueSyncLocalId = link.localId)
                             )
                         }
                     )

@@ -50,3 +50,5 @@ expect fun cancelRefreshingLinks()
 expect fun PlatformSpecificBackHandler(init: () -> Unit)
 
 expect suspend fun permittedToShowNotification(): Boolean
+
+expect fun platformSpecificLogging(string: String)

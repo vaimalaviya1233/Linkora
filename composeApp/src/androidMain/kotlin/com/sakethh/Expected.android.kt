@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Environment
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
@@ -203,4 +204,8 @@ actual suspend fun permittedToShowNotification(): Boolean {
         AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForNotifications)
         false
     }
+}
+
+actual fun platformSpecificLogging(string: String) {
+    Log.d("Linkora Log", string)
 }

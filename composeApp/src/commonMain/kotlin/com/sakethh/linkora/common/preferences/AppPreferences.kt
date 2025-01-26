@@ -22,6 +22,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
 import java.util.UUID
 
 object AppPreferences {
@@ -181,6 +182,12 @@ object AppPreferences {
     private var correlation = Correlation(
         id = UUID.randomUUID().toString(), clientName = "${adjectives.random()} ${nouns.random()}"
     )
+
+    private var lastSyncedWithServer = Instant.now().epochSecond
+
+    fun lastSyncedLocally(): Long {
+        return lastSyncedWithServer
+    }
 
     fun getCorrelation(): Correlation {
         return correlation
@@ -435,6 +442,11 @@ object AppPreferences {
                             )
                         }
                     }
+                },
+                launch {
+                    lastSyncedWithServer = preferencesRepository.readPreferenceValue(
+                        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name)
+                    ) ?: lastSyncedWithServer
                 }
             ).joinAll()
         }

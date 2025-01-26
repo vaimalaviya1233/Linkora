@@ -7,6 +7,5 @@ import kotlinx.serialization.Serializable
 data class IDBasedDTO(
     val id: Long,
     val correlation: Correlation = AppPreferences.getCorrelation(),
-    @Serializable(with = LocalIdSerializer::class)
     val pendingQueueSyncLocalId: Long = 0
 )

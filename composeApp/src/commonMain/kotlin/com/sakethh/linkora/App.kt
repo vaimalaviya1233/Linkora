@@ -117,7 +117,10 @@ fun App(
     modifier: Modifier = Modifier
 ) {
     viewModel<AppVM>(factory = genericViewModelFactory {
-        AppVM(DependencyContainer.remoteSyncRepo.value)
+        AppVM(
+            remoteSyncRepo = DependencyContainer.remoteSyncRepo.value,
+            preferencesRepository = DependencyContainer.preferencesRepo.value
+        )
     })
     val snackbarHostState = remember {
         SnackbarHostState()

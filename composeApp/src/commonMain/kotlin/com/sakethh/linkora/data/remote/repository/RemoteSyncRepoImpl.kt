@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -271,6 +272,8 @@ class RemoteSyncRepoImpl(
                 contentType(ContentType.Application.Json)
                 parameter("timestamp", timeStampAfter)
             }.body<AllTablesDTO>().let { remoteResponse ->
+                linkoraLog(json.encodeToString(remoteResponse.folders))
+                return@let
                 coroutineScope {
                         awaitAll(async {
                             remoteResponse.links.forEach { remoteLinkDTO ->
@@ -403,7 +406,6 @@ class RemoteSyncRepoImpl(
                     payload = it.payload
                 )
             }.forEach {
-                linkoraLog("deleting based on ${it.operation} : ${it.payload}")
                 updateLocalDBAccordingToEvent(it)
             }
         }

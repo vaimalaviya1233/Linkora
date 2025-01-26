@@ -106,3 +106,7 @@ actual fun PlatformSpecificBackHandler(init: () -> Unit) = Unit
 
 
 actual suspend fun permittedToShowNotification(): Boolean = false
+
+actual fun platformSpecificLogging(string: String) {
+    println("Linkora Log : $string")
+}
