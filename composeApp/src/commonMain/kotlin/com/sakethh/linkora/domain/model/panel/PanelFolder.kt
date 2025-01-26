@@ -12,5 +12,5 @@ data class PanelFolder(
     val folderId: Long,
     val panelPosition: Long,
     val folderName: String,
-    val connectedPanelId: Long
+    val connectedPanelId: Long,
 )

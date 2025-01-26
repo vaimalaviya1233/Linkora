@@ -19,13 +19,24 @@ class AppVM(
 
         viewModelScope.launch {
             launch {
-                remoteSyncRepo.updateDataBasedOnRemoteTombstones(0).collectLatest {
-                    it.pushSnackbarOnFailure()
+                if (AppPreferences.canReadFromServer()) {
+                    remoteSyncRepo.applyUpdatesBasedOnRemoteTombstones(0).collectLatest {
+                        it.pushSnackbarOnFailure()
+                    }
                 }
             }
             launch {
-                remoteSyncRepo.applyUpdatesFromRemote(0).collectLatest {
-                    it.pushSnackbarOnFailure()
+                if (AppPreferences.canReadFromServer()) {
+                    remoteSyncRepo.applyUpdatesFromRemote(0).collectLatest {
+                        it.pushSnackbarOnFailure()
+                    }
+                }
+            }
+            launch {
+                if (AppPreferences.canPushToServer()) {
+                    remoteSyncRepo.pushPendingSyncQueueToServer().collectLatest {
+                        it.pushSnackbarOnFailure()
+                    }
                 }
             }
         }

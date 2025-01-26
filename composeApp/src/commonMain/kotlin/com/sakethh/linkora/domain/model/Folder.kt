@@ -13,7 +13,7 @@ data class Folder(
     @PrimaryKey(autoGenerate = true)
     val localId: Long = 0,
     val remoteId: Long? = null,
-    val isArchived: Boolean = false
+    val isArchived: Boolean = false,
 ) {
     class FolderAlreadyExists(message: String) : Throwable(message)
     class InvalidName(message: String) : Throwable(message)

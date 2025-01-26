@@ -200,7 +200,6 @@ fun Link.excludeLocalId(): Link = Link(
     imgURL = this.imgURL,
     note = this.note,
     idOfLinkedFolder = this.idOfLinkedFolder,
-    lastModified = this.lastModified,
     userAgent = this.userAgent,
     markedAsImportant = this.markedAsImportant
 )

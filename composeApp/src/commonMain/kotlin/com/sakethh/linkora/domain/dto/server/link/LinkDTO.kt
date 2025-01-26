@@ -4,6 +4,7 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.dto.server.Correlation
+import com.sakethh.linkora.domain.dto.server.LocalIdSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -19,5 +20,7 @@ data class LinkDTO(
     val userAgent: String?,
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
-    val correlation: Correlation = AppPreferences.getCorrelation()
+    val correlation: Correlation = AppPreferences.getCorrelation(),
+    @Serializable(with = LocalIdSerializer::class)
+    val pendingQueueSyncLocalId: Long = 0
 )

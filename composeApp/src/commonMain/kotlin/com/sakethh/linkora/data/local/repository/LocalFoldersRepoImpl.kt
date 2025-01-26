@@ -5,28 +5,37 @@ import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.domain.Message
+import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
+import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
+import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.linkoraPlaceHolders
 import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
-import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val localLinksRepo: LocalLinksRepo,
-    private val localPanelsRepo: LocalPanelsRepo
+    private val localPanelsRepo: LocalPanelsRepo,
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo
 ) : LocalFoldersRepo {
 
     override suspend fun insertANewFolder(
@@ -48,7 +57,25 @@ class LocalFoldersRepoImpl(
             foldersDao.updateAFolderData(
                 foldersDao.getThisFolderData(newLocalId).copy(remoteId = it.id)
             )
-        }, localOperation = {
+            }, onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Folder.CREATE_FOLDER.name,
+                        payload = Json.encodeToString(
+                            if (folder.parentFolderId != null) {
+                                val remoteParentFolderId =
+                                    getRemoteIdOfAFolder(folder.parentFolderId)
+                                folder.asAddFolderDTO().copy(
+                                    parentFolderId = remoteParentFolderId,
+                                    pendingQueueSyncLocalId = newLocalId
+                                )
+                            } else {
+                                folder.asAddFolderDTO()
+                            }
+                        )
+                    )
+                )
+            }, localOperation = {
             if (folder.name.isEmpty() || linkoraPlaceHolders().contains(folder.name)) {
                 throw Folder.InvalidName(if (folder.name.isEmpty()) "Folder name cannot be blank." else "\"${folder.name}\" is reserved.")
             }
@@ -243,7 +270,21 @@ class LocalFoldersRepoImpl(
             }
             foldersDao.renameAFolderName(folderID, newFolderName)
                 localPanelsRepo.updateAFolderName(folderID, newFolderName)
-        })
+            }, onRemoteOperationFailure = {
+                val remoteId = getRemoteIdOfAFolder(folderID)
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
+                            payload = Json.encodeToString(
+                                UpdateFolderNameDTO(
+                                    remoteId, newFolderName, pendingQueueSyncLocalId = folderID
+                                )
+                            )
+                        )
+                    )
+                }
+            })
     }
 
     override suspend fun getRemoteIdOfAFolder(localId: Long): Long? {
@@ -266,7 +307,22 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
-        }) {
+            }, onRemoteOperationFailure = {
+                val remoteId = getRemoteIdOfAFolder(folderID)
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
+                            payload = Json.encodeToString(
+                                IDBasedDTO(
+                                    remoteId,
+                                    pendingQueueSyncLocalId = folderID
+                                )
+                            )
+                        )
+                    )
+                }
+            }) {
             foldersDao.markFolderAsArchive(folderID)
         }
     }
@@ -289,7 +345,22 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
-        }) {
+            }, onRemoteOperationFailure = {
+                val remoteFolderId = getRemoteIdOfAFolder(folderID)
+                if (remoteFolderId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
+                            payload = Json.encodeToString(
+                                value = IDBasedDTO(
+                                    remoteFolderId,
+                                    pendingQueueSyncLocalId = folderID
+                                )
+                            )
+                        )
+                    )
+                }
+            }) {
             foldersDao.markFolderAsRegularFolder(folderID)
         }
     }
@@ -303,7 +374,23 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
-        }) {
+            }, onRemoteOperationFailure = {
+                val remoteID = getRemoteIdOfAFolder(folderID)
+                if (remoteID != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name,
+                            payload = Json.encodeToString(
+                                UpdateFolderNoteDTO(
+                                    remoteID,
+                                    newNote,
+                                    pendingQueueSyncLocalId = folderID
+                                )
+                            )
+                        )
+                    )
+                }
+            }) {
             foldersDao.renameAFolderNote(folderID, newNote)
         }
     }
@@ -326,7 +413,22 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
-        }) {
+            }, onRemoteOperationFailure = {
+                val remoteId = getRemoteIdOfAFolder(folderID)
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
+                            payload = Json.encodeToString(
+                                value = IDBasedDTO(
+                                    remoteId,
+                                    pendingQueueSyncLocalId = folderID
+                                )
+                            )
+                        )
+                    )
+                }
+            }) {
             foldersDao.deleteAFolderNote(folderID)
         }
     }
@@ -344,11 +446,23 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
-        }, remoteOperationOnSuccess = {
-            linkoraLog(it)
-        }, localOperation = {
+            }, onRemoteOperationFailure = {
+                if (remoteFolderId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Folder.DELETE_FOLDER.name,
+                            payload = Json.encodeToString(
+                                value = IDBasedDTO(
+                                    remoteFolderId,
+                                    pendingQueueSyncLocalId = folderID
+                                )
+                            )
+                        )
+                    )
+                }
+            }, localOperation = {
             deleteLocalDataRelatedToTheFolder(folderID)
-            localLinksRepo.deleteLinksOfFolder(folderID)
+                localLinksRepo.deleteLinksOfFolder(folderID).collect()
             foldersDao.deleteAFolder(folderID)
         })
     }
@@ -358,7 +472,7 @@ class LocalFoldersRepoImpl(
         foldersDao.getChildFoldersOfThisParentIDAsAList(folderID).forEach {
             localPanelsRepo.deleteAFolderFromAllPanels(it.localId)
             foldersDao.deleteAFolder(it.localId)
-            localLinksRepo.deleteLinksOfFolder(it.localId)
+            localLinksRepo.deleteLinksOfFolder(it.localId).collect()
             deleteLocalDataRelatedToTheFolder(it.localId)
         }
     }

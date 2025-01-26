@@ -12,12 +12,16 @@ import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.TombstoneDTO
+import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
+import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
+import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
+import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelFolderDTO
@@ -31,6 +35,10 @@ import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
+import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
+import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
+import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.utils.linkoraLog
 import io.ktor.client.call.body
@@ -58,7 +66,11 @@ class RemoteSyncRepoImpl(
     private val localLinksRepo: LocalLinksRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val authToken: () -> String,
-    private val baseUrl: () -> String
+    private val baseUrl: () -> String,
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo,
+    private val remoteFoldersRepo: RemoteFoldersRepo,
+    private val remoteLinksRepo: RemoteLinksRepo,
+    private val remotePanelsRepo: RemotePanelsRepo
 ) : RemoteSyncRepo {
     private val json = Json {
         this.ignoreUnknownKeys = true
@@ -74,6 +86,162 @@ class RemoteSyncRepoImpl(
                         val deserializedWebSocketEvent =
                             json.decodeFromString<WebSocketEvent>((it.data).decodeToString())
                         updateLocalDBAccordingToEvent(deserializedWebSocketEvent)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun <T> Flow<Result<T>>.collectAndRemoveQueueItemOnSuccess(queueId: Long) {
+        this.collectLatest {
+            it.onSuccess {
+                pendingSyncQueueRepo.removeFromQueue(queueId)
+            }
+        }
+    }
+
+    override suspend fun pushPendingSyncQueueToServer(): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            pendingSyncQueueRepo.getAllItemsFromQueue().forEach { queueItem ->
+                when (queueItem.operation) {
+                    RemoteRoute.Folder.CREATE_FOLDER.name -> {
+                        val addFolderDTO = Json.decodeFromString<AddFolderDTO>(queueItem.payload)
+                        remoteFoldersRepo.createFolder(addFolderDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Folder.DELETE_FOLDER.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remoteFoldersRepo.deleteFolder(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remoteFoldersRepo.markAsArchive(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remoteFoldersRepo.markAsRegularFolder(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Folder.UPDATE_FOLDER_NAME.name -> {
+                        val updateFolderNameDTO =
+                            Json.decodeFromString<UpdateFolderNameDTO>(queueItem.payload)
+                        remoteFoldersRepo.updateFolderName(
+                            updateFolderNameDTO.folderId,
+                            updateFolderNameDTO.newFolderName
+                        ).collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name -> {
+                        val updateFolderNoteDTO =
+                            Json.decodeFromString<UpdateFolderNoteDTO>(queueItem.payload)
+                        remoteFoldersRepo.updateFolderNote(
+                            updateFolderNoteDTO.folderId,
+                            updateFolderNoteDTO.newNote
+                        ).collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Folder.DELETE_FOLDER_NOTE.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remoteFoldersRepo.deleteFolderNote(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Link.UPDATE_LINK_TITLE.name -> {
+                        val linkDTO =
+                            Json.decodeFromString<LinkDTO>(queueItem.payload)
+                        remoteLinksRepo.updateLink(linkDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Link.UPDATE_LINK_NOTE.name -> {
+                        val linkDTO =
+                            Json.decodeFromString<LinkDTO>(queueItem.payload)
+                        remoteLinksRepo.updateLink(linkDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Link.DELETE_A_LINK.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remoteLinksRepo.deleteALink(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Link.ARCHIVE_LINK.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remoteLinksRepo.archiveALink(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Link.UNARCHIVE_LINK.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remoteLinksRepo.unArchiveALink(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Link.MARK_AS_IMP.name -> {
+                        TODO()
+                    }
+
+                    RemoteRoute.Link.UNMARK_AS_IMP.name -> {
+                        TODO()
+                    }
+
+                    RemoteRoute.Link.UPDATE_LINK.name -> {
+                        val linkDTO = Json.decodeFromString<LinkDTO>(queueItem.payload)
+                        remoteLinksRepo.updateLink(linkDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Link.CREATE_A_NEW_LINK.name -> {
+                        val addLinkDTO = Json.decodeFromString<AddLinkDTO>(queueItem.payload)
+                        remoteLinksRepo.addANewLink(addLinkDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Panel.ADD_A_NEW_PANEL.name -> {
+                        val addANewPanelDTO =
+                            Json.decodeFromString<AddANewPanelDTO>(queueItem.payload)
+                        remotePanelsRepo.addANewPanel(addANewPanelDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
+                        val addANewPanelFolderDTO =
+                            Json.decodeFromString<AddANewPanelFolderDTO>(queueItem.payload)
+                        remotePanelsRepo.addANewFolderInAPanel(addANewPanelFolderDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Panel.DELETE_A_PANEL.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remotePanelsRepo.deleteAPanel(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name -> {
+                        val updatePanelNameDTO =
+                            Json.decodeFromString<UpdatePanelNameDTO>(queueItem.payload)
+                        remotePanelsRepo.updateAPanelName(updatePanelNameDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name -> {
+                        val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
+                        remotePanelsRepo.deleteAFolderFromAllPanels(idBasedDTO.id)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                    }
+
+                    RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
+                        val deleteAPanelFromAFolderDTO =
+                            Json.decodeFromString<DeleteAPanelFromAFolderDTO>(queueItem.payload)
+                        remotePanelsRepo.deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO)
+                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
                     }
                 }
             }
@@ -223,7 +391,7 @@ class RemoteSyncRepoImpl(
         }
     }
 
-    override suspend fun updateDataBasedOnRemoteTombstones(timeStampAfter: Long): Flow<Result<Unit>> {
+    override suspend fun applyUpdatesBasedOnRemoteTombstones(timeStampAfter: Long): Flow<Result<Unit>> {
         return wrappedResultFlow {
             Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
                 bearerAuth(authToken())

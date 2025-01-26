@@ -12,14 +12,19 @@ import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.asLinkDTO
+import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
 import com.sakethh.linkora.domain.mapToResultFlow
+import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -28,6 +33,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
 
 class LocalLinksRepoImpl(
@@ -35,14 +42,35 @@ class LocalLinksRepoImpl(
     private val primaryUserAgent: () -> String,
     private val httpClient: HttpClient,
     private val remoteLinksRepo: RemoteLinksRepo,
-    private val foldersDao: FoldersDao
+    private val foldersDao: FoldersDao,
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val newLinkId = linksDao.getLatestId() + 1
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(),
+            performRemoteOperation = viaSocket.not(), onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+                        payload = if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
+                            val remoteIdOfLinkedFolder =
+                                foldersDao.getRemoteIdOfAFolder(link.idOfLinkedFolder)
+                            Json.encodeToString(
+                                linksDao.getLink(newLinkId)
+                                    .copy(idOfLinkedFolder = remoteIdOfLinkedFolder).asAddLinkDTO()
+                                    .copy(localId = link.localId)
+                            )
+                        } else {
+                            Json.encodeToString(
+                                linksDao.getLink(newLinkId).copy().asAddLinkDTO()
+                                    .copy(localId = link.localId)
+                            )
+                        }
+                    )
+                )
+            },
             remoteOperation = {
                 if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
                     val remoteIdOfLinkedFolder =
@@ -209,6 +237,19 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, onRemoteOperationFailure = {
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
+                            payload = Json.encodeToString(
+                                UpdateNoteOfALinkDTO(
+                                    remoteId, newNote = "", pendingQueueSyncLocalId = linkId
+                                )
+                            )
+                        )
+                    )
+                }
             }) {
             linksDao.deleteALinkNote(linkId)
         }
@@ -224,6 +265,20 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, onRemoteOperationFailure = {
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.DELETE_A_LINK.name,
+                            payload = Json.encodeToString(
+                                IDBasedDTO(
+                                    remoteId,
+                                    pendingQueueSyncLocalId = linkId
+                                )
+                            )
+                        )
+                    )
+                }
             }) {
             linksDao.deleteALink(linkId)
         }
@@ -238,6 +293,20 @@ class LocalLinksRepoImpl(
                     remoteLinksRepo.archiveALink(remoteId)
                 } else {
                     emptyFlow()
+                }
+            }, onRemoteOperationFailure = {
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.ARCHIVE_LINK.name,
+                            payload = Json.encodeToString(
+                                IDBasedDTO(
+                                    remoteId,
+                                    pendingQueueSyncLocalId = linkId
+                                )
+                            )
+                        )
+                    )
                 }
             }) {
             linksDao.archiveALink(linkId)
@@ -257,6 +326,16 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, onRemoteOperationFailure = {
+                if (remoteId != null) {
+                    val linkDTO = linksDao.getLink(linkId).copy(note = newNote).asLinkDTO(remoteId)
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
+                            payload = Json.encodeToString(linkDTO.copy(pendingQueueSyncLocalId = linkId))
+                        )
+                    )
+                }
             }) {
             linksDao.updateLinkNote(linkId, newNote)
         }
@@ -274,6 +353,17 @@ class LocalLinksRepoImpl(
                     remoteLinksRepo.renameALinkTitle(remoteId, newTitle)
                 } else {
                     emptyFlow()
+                }
+            }, onRemoteOperationFailure = {
+                if (remoteId != null) {
+                    val linkDTO =
+                        linksDao.getLink(linkId).copy(title = newTitle).asLinkDTO(remoteId)
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
+                            payload = Json.encodeToString(linkDTO.copy(pendingQueueSyncLocalId = linkId))
+                        )
+                    )
                 }
             }) {
             linksDao.updateLinkTitle(linkId, newTitle)
@@ -317,6 +407,18 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, onRemoteOperationFailure = {
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.UPDATE_LINK.name,
+                            payload = Json.encodeToString(
+                                link.asLinkDTO(id = remoteId)
+                                    .copy(pendingQueueSyncLocalId = link.localId)
+                            )
+                        )
+                    )
+                }
             }) {
             linksDao.updateALink(link)
         }
@@ -332,6 +434,18 @@ class LocalLinksRepoImpl(
                     )
                 } else {
                     emptyFlow()
+                }
+            }, onRemoteOperationFailure = {
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.UPDATE_LINK.name,
+                            payload = Json.encodeToString(
+                                linksDao.getLink(link.localId).asLinkDTO(id = remoteId)
+                                    .copy(pendingQueueSyncLocalId = link.localId)
+                            )
+                        )
+                    )
                 }
             }) {
             scrapeLinkData(

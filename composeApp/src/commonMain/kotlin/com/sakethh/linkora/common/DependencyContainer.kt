@@ -11,6 +11,7 @@ import com.sakethh.linkora.data.LocalizationRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalPanelsRepoImpl
+import com.sakethh.linkora.data.local.repository.PendingSyncQueueRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.GitHubReleasesRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
@@ -54,16 +55,25 @@ object DependencyContainer {
             localPanelsRepo = localPanelsRepo.value,
             authToken = {
                 AppPreferences.serverSecurityToken.value
-            }, baseUrl = {
+            },
+            baseUrl = {
                 AppPreferences.serverBaseUrl.value
-            }
+            },
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
+            remoteFoldersRepo = remoteFoldersRepo.value,
+            remoteLinksRepo = remoteLinksRepo.value,
+            remotePanelsRepo = remotePanelsRepo.value,
         )
+    }
+    val pendingSyncQueueRepo = lazy {
+        PendingSyncQueueRepoImpl(localDatabase?.pendingSyncQueueDao!!)
     }
     val localFoldersRepo = lazy {
         LocalFoldersRepoImpl(
             foldersDao = localDatabase?.foldersDao!!,
             remoteFoldersRepo = remoteFoldersRepo.value,
-            localLinksRepo = localLinksRepo.value, localPanelsRepo = localPanelsRepo.value
+            localLinksRepo = localLinksRepo.value, localPanelsRepo = localPanelsRepo.value,
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value
         )
     }
 
@@ -75,7 +85,8 @@ object DependencyContainer {
             },
             httpClient = Network.client,
             remoteLinksRepo = remoteLinksRepo.value,
-            foldersDao = localDatabase?.foldersDao!!
+            foldersDao = localDatabase?.foldersDao!!,
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value
         )
     }
 
@@ -103,7 +114,8 @@ object DependencyContainer {
         LocalPanelsRepoImpl(
             panelsDao = localDatabase?.panelsDao!!,
             remotePanelsRepo = remotePanelsRepo.value,
-            foldersDao = localDatabase?.foldersDao!!
+            foldersDao = localDatabase?.foldersDao!!,
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value
         )
     }
 

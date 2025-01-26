@@ -22,7 +22,6 @@ data class Link(
     val baseURL: String = if (url.isATwitterUrl()) "twitter.com" else url.baseUrl(throwOnException = false),
     val imgURL: String,
     val note: String,
-    val lastModified: String = "",
     val idOfLinkedFolder: Long?,
     val userAgent: String? = AppPreferences.primaryJsoupUserAgent.value,
     val markedAsImportant: Boolean = linkType == LinkType.IMPORTANT_LINK,

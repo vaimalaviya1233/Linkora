@@ -146,7 +146,6 @@ fun App(
                 baseURL = "",
                 imgURL = "",
                 note = "",
-                lastModified = "",
                 idOfLinkedFolder = null,
                 userAgent = null
             )

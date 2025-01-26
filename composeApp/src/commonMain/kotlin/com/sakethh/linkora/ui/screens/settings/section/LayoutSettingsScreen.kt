@@ -77,7 +77,6 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "",
                     idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
@@ -99,7 +98,6 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "",
                     idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
@@ -132,7 +130,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "", idOfLinkedFolder = null
+                    idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
@@ -152,7 +150,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "", idOfLinkedFolder = null
+                    idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
@@ -173,7 +171,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "", idOfLinkedFolder = null
+                    idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
@@ -193,7 +191,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "", idOfLinkedFolder = null
+                    idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
@@ -213,7 +211,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "", idOfLinkedFolder = null
+                    idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
@@ -233,7 +231,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "", idOfLinkedFolder = null
+                    idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
@@ -253,7 +251,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "",
+
                     idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
@@ -274,7 +272,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-                    lastModified = "",
+
                     idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },

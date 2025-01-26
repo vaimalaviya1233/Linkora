@@ -72,6 +72,7 @@ fun <LocalType, RemoteType> performLocalOperationWithRemoteSyncFlow(
     performRemoteOperation: Boolean,
     remoteOperation: suspend () -> Flow<Result<RemoteType>> = { emptyFlow() },
     remoteOperationOnSuccess: suspend (RemoteType) -> Unit = {},
+    onRemoteOperationFailure: suspend () -> Unit = {},
     localOperation: suspend () -> LocalType
 ): Flow<Result<LocalType>> {
     return flow {
@@ -83,6 +84,7 @@ fun <LocalType, RemoteType> performLocalOperationWithRemoteSyncFlow(
                     remoteResult.onFailure { failureMessage ->
                         success.isRemoteExecutionSuccessful = false
                         success.remoteFailureMessage = failureMessage
+                        onRemoteOperationFailure()
                     }
                     remoteResult.onSuccess {
                         remoteOperationOnSuccess(it.data)
