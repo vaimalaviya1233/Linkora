@@ -13,15 +13,17 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 
-fun <T> wrappedResultFlow(init: suspend () -> T): Flow<Result<T>> {
-    return flow {
-        emit(Result.Loading())
-        init().let {
-            emit(Result.Success(it))
+fun <T> wrappedResultFlow(init: suspend (SendChannel<Result<T>>) -> T): Flow<Result<T>> {
+    return channelFlow {
+        send(Result.Loading())
+        init(this.channel).let {
+            send(Result.Success(it))
         }
     }.catchAsExceptionAndEmitFailure()
 }

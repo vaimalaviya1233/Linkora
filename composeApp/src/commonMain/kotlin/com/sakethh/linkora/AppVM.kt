@@ -3,13 +3,22 @@ package com.sakethh.linkora
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.onFailure
+import com.sakethh.linkora.domain.onSuccess
+import com.sakethh.linkora.domain.repository.NetworkRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.joinAll
@@ -18,13 +27,27 @@ import java.time.Instant
 
 class AppVM(
     private val remoteSyncRepo: RemoteSyncRepo,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val networkRepo: NetworkRepo
 ) : ViewModel() {
     init {
-        readSocketEvents()
+        readSocketEvents(viewModelScope, remoteSyncRepo)
 
         viewModelScope.launch {
-
+            launch {
+                if (AppPreferences.isServerConfigured()) {
+                    networkRepo.testServerConnection(
+                        serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,
+                        token = AppPreferences.serverSecurityToken.value
+                    ).collectLatest {
+                        it.onSuccess {
+                            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.SuccessfullyConnectedToTheServer.getLocalizedString()))
+                        }.onFailure {
+                            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ConnectionToServerFailed.getLocalizedString()))
+                        }
+                    }
+                }
+            }
             launch {
                 if (AppPreferences.canPushToServer()) {
                     remoteSyncRepo.pushPendingSyncQueueToServer().collectLatest {
@@ -62,17 +85,18 @@ class AppVM(
         fun shutdownSocketConnection() {
             socketEventJob?.cancel()
         }
-    }
 
-    private fun readSocketEvents() {
-        if (AppPreferences.canReadFromServer().not()) return
+        fun readSocketEvents(coroutineScope: CoroutineScope, remoteSyncRepo: RemoteSyncRepo) {
+            if (AppPreferences.canReadFromServer().not()) return
 
-        socketEventJob = viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
-            throwable.printStackTrace()
-            throwable.pushSnackbar(viewModelScope)
-        }) {
-            remoteSyncRepo.readSocketEvents().collectLatest {
-                it.pushSnackbarOnFailure()
+            socketEventJob?.cancel()
+            socketEventJob = coroutineScope.launch(CoroutineExceptionHandler { _, throwable ->
+                throwable.printStackTrace()
+                throwable.pushSnackbar(coroutineScope)
+            }) {
+                remoteSyncRepo.readSocketEvents().collectLatest {
+                    it.pushSnackbarOnFailure()
+                }
             }
         }
     }

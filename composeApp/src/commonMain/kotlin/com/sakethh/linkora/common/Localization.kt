@@ -1365,6 +1365,16 @@ object Localization {
             override fun toString(): String {
                 return "importing_data_from_the_sever_desc"
             }
+        },
+        SuccessfullyConnectedToTheServer(defaultValue = "Server connection established successfully.") {
+            override fun toString(): String {
+                return "successfully_connected_to_the_server"
+            }
+        },
+        ConnectionToServerFailed(defaultValue = "Could not connect to the server. Ensure the server is reachable.") {
+            override fun toString(): String {
+                return "connection_to_server_failed"
+            }
         }
     }
 }

@@ -144,6 +144,7 @@ class ServerManagementViewModel(
                                 )
                             )
                         )
+                        AppVM.readSocketEvents(viewModelScope, remoteSyncRepo)
                     }.pushSnackbarOnFailure()
                 }
             }
