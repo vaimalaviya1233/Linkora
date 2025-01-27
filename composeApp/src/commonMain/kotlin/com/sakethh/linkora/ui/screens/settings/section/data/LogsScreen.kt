@@ -33,10 +33,12 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 
 @Composable
-fun ImportExportProgressScreen(
+fun LogsScreen(
     isVisible: MutableState<Boolean>,
-    dataSettingsScreenVM: DataSettingsScreenVM,
-    operationTitle: String
+    operationTitle: String,
+    operationDesc: String,
+    logs: List<String>,
+    onCancel: () -> Unit
 ) {
     val logsListState = rememberLazyListState()
     if (isVisible.value) {
@@ -52,7 +54,7 @@ fun ImportExportProgressScreen(
                 )
                 Spacer(Modifier.height(5.dp))
                 Text(
-                    text = Localization.Key.ImportExportScreenTopAppBarDesc.rememberLocalizedString(),
+                    text = operationDesc,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     style = MaterialTheme.typography.titleSmall,
@@ -64,7 +66,7 @@ fun ImportExportProgressScreen(
         }, bottomBar = {
             BottomAppBar(modifier = Modifier.fillMaxWidth()) {
                 FilledTonalButton(modifier = Modifier.fillMaxWidth().padding(15.dp), onClick = {
-                    dataSettingsScreenVM.cancelImportExportJob()
+                    onCancel()
                 }) {
                     Text(
                         text = Localization.Key.Cancel.rememberLocalizedString(),
@@ -86,7 +88,7 @@ fun ImportExportProgressScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = logsListState
                 ) {
-                    items(dataSettingsScreenVM.importExportProgressLogs) {
+                    items(logs) {
                         Text(text = it, style = MaterialTheme.typography.titleSmall)
                         Spacer(modifier = Modifier.height(10.dp))
                     }

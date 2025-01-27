@@ -22,7 +22,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.UUID
 
 object AppPreferences {
     val shouldUseForceDarkTheme = mutableStateOf(true)
@@ -71,121 +70,16 @@ object AppPreferences {
     val refreshLinksWorkerTag =
         mutableStateOf("52ae3f4a-d37f-4fdb-a6b6-4397b99ef1bd")
 
-    private val adjectives = listOf(
-        "Agile",
-        "Bold",
-        "Brave",
-        "Bright",
-        "Calm",
-        "Cheerful",
-        "Clever",
-        "Cool",
-        "Creative",
-        "Curious",
-        "Daring",
-        "Dynamic",
-        "Eager",
-        "Elegant",
-        "Energetic",
-        "Fierce",
-        "Friendly",
-        "Gentle",
-        "Glorious",
-        "Happy",
-        "Helpful",
-        "Heroic",
-        "Honest",
-        "Inventive",
-        "Kind",
-        "Lively",
-        "Loyal",
-        "Majestic",
-        "Mighty",
-        "Noble",
-        "Peaceful",
-        "Quick",
-        "Quiet",
-        "Radiant",
-        "Resourceful",
-        "Sharp",
-        "Smart",
-        "Strong",
-        "Swift",
-        "Thoughtful",
-        "Unique",
-        "Vivid",
-        "Warm",
-        "Wise",
-        "Witty",
-        "Zany",
-        "Zesty",
-        "Fearless",
-        "Generous",
-        "Vibrant"
-    )
-
-    private val nouns = listOf(
-        "Bear",
-        "Wolf",
-        "Fox",
-        "Lion",
-        "Tiger",
-        "Eagle",
-        "Hawk",
-        "Falcon",
-        "Panther",
-        "Leopard",
-        "Dragon",
-        "Phoenix",
-        "Unicorn",
-        "Griffin",
-        "Jaguar",
-        "Cheetah",
-        "Otter",
-        "Dolphin",
-        "Shark",
-        "Whale",
-        "Panda",
-        "Koala",
-        "Owl",
-        "Hedgehog",
-        "Rabbit",
-        "Sparrow",
-        "Robin",
-        "Stag",
-        "Bison",
-        "Buffalo",
-        "Horse",
-        "Zebra",
-        "Cobra",
-        "Viper",
-        "Python",
-        "Lynx",
-        "Wolverine",
-        "Raven",
-        "Pelican",
-        "Seagull",
-        "Moose",
-        "Elk",
-        "PolarBear",
-        "Seal",
-        "Penguin",
-        "Crane",
-        "Flamingo",
-        "Bee",
-        "Butterfly",
-        "Swan"
-    )
-
-
-    private var correlation = Correlation(
-        id = UUID.randomUUID().toString(), clientName = "${adjectives.random()} ${nouns.random()}"
-    )
+    private var correlation = Correlation.generateRandomCorrelation()
 
     private var lastSyncedWithServer: Long = 0
 
     fun lastSyncedLocally(): Long {
         return lastSyncedWithServer
+    }
+
+    fun updateLastSyncedLocally(value: Long) {
+        lastSyncedWithServer = value
     }
 
     fun getCorrelation(): Correlation {

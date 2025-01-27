@@ -1,6 +1,8 @@
 package com.sakethh.linkora.ui.screens.settings.section.data.sync
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,20 +10,26 @@ import com.sakethh.linkora.AppVM
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.NetworkRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 class ServerManagementViewModel(
-    private val networkRepo: NetworkRepo, private val preferencesRepository: PreferencesRepository
+    private val networkRepo: NetworkRepo,
+    private val preferencesRepository: PreferencesRepository,
+    private val remoteSyncRepo: RemoteSyncRepo
 ) : ViewModel() {
     val serverSetupState = mutableStateOf(
         ServerSetupState(
@@ -67,14 +75,32 @@ class ServerManagementViewModel(
         }
     }
 
-    fun saveServerConnection(
-        serverConnection: ServerConnection, onSaved: () -> Unit = {
-            viewModelScope.launch {
-                pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.SuccessfullySavedConnectionDetails)))
-            }
-        }
-    ) {
+    val dataImportLogs = mutableStateListOf<String>()
+    private var saveServerConnectionAndImportDataJob: Job? = null
+
+    fun cancelServerConnectionAndImporting() {
+        saveServerConnectionAndImportDataJob?.cancel()
         viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(
+                    AppPreferenceType.SERVER_URL.name
+                ), newValue = ""
+            )
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = stringPreferencesKey(
+                    AppPreferenceType.SERVER_AUTH_TOKEN.name
+                ), newValue = ""
+            )
+            AppPreferences.serverBaseUrl.value = ""
+            AppPreferences.serverSecurityToken.value = ""
+        }
+    }
+
+    fun saveServerConnectionAndImport(
+        serverConnection: ServerConnection, onImportStart: () -> Unit, onCompletion: () -> Unit
+    ) {
+        saveServerConnectionAndImportDataJob?.cancel()
+        saveServerConnectionAndImportDataJob = viewModelScope.launch {
             preferencesRepository.changePreferenceValue(
                 preferenceKey = stringPreferencesKey(
                     AppPreferenceType.SERVER_URL.name
@@ -94,9 +120,37 @@ class ServerManagementViewModel(
                 ), newValue = serverConnection.syncType.name
             )
             AppPreferences.serverSyncType.value = serverConnection.syncType
-
-        }.invokeOnCompletion {
-            onSaved()
+            if (AppPreferences.canReadFromServer()) {
+                onImportStart()
+                remoteSyncRepo.applyUpdatesFromRemote(0).collectLatest {
+                    it.onLoading {
+                        dataImportLogs.add(it)
+                    }.onSuccess {
+                        preferencesRepository.changePreferenceValue(
+                            preferenceKey = longPreferencesKey(
+                                AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name
+                            ), newValue = Instant.now().epochSecond
+                        )
+                        AppPreferences.updateLastSyncedLocally(
+                            preferencesRepository.readPreferenceValue(
+                                longPreferencesKey(AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name)
+                            ) ?: 0
+                        )
+                        onCompletion()
+                        pushUIEvent(
+                            UIEvent.Type.ShowSnackbar(
+                                Localization.getLocalizedString(
+                                    Localization.Key.SuccessfullySavedConnectionDetails
+                                )
+                            )
+                        )
+                    }.pushSnackbarOnFailure()
+                }
+            }
+        }
+        saveServerConnectionAndImportDataJob?.invokeOnCompletion {
+            onCompletion()
+            dataImportLogs.clear()
         }
     }
 

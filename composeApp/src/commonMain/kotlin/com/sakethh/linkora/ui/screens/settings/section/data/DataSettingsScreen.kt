@@ -83,7 +83,8 @@ fun DataSettingsScreen() {
         viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
             ServerManagementViewModel(
                 DependencyContainer.networkRepo.value,
-                DependencyContainer.preferencesRepo.value
+                DependencyContainer.preferencesRepo.value,
+                DependencyContainer.remoteSyncRepo.value
             )
         })
     val dataSettingsScreenVM: DataSettingsScreenVM = viewModel(factory = genericViewModelFactory {
@@ -496,10 +497,12 @@ fun DataSettingsScreen() {
         isVisible = shouldServerInfoBtmSheetBeVisible,
         navController = navController
     )
-    ImportExportProgressScreen(
-        isVisible = isProgressUIVisible,
-        dataSettingsScreenVM = dataSettingsScreenVM,
-        operationTitle = dataOperationTitle.value
+    LogsScreen(
+        isVisible = isProgressUIVisible, onCancel = {
+            dataSettingsScreenVM.cancelImportExportJob()
+        }, logs = dataSettingsScreenVM.importExportProgressLogs,
+        operationTitle = dataOperationTitle.value,
+        operationDesc = Localization.Key.ImportExportScreenTopAppBarDesc.rememberLocalizedString()
     )
     DeleteDialogBox(
         deleteDialogBoxParam = DeleteDialogBoxParam(

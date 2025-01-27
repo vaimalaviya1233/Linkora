@@ -2,6 +2,7 @@ package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.utils.asWebSocketUrl
+import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isSameAsCurrentClient
 import com.sakethh.linkora.common.utils.wrappedResultFlow
@@ -52,6 +53,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -263,20 +265,28 @@ class RemoteSyncRepoImpl(
         )
 
 
-        return wrappedResultFlow {
+        return channelFlow {
+            send(Result.Loading("Fetching updates from server..."))
             Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
                 parameter("timestamp", timeStampAfter)
             }.body<AllTablesDTO>().let { remoteResponse ->
+                send(Result.Loading("Received updates from server. Processing folders..."))
+
                 remoteResponse.folders.forEach {
+                    send(Result.Loading("Processing folder with id: ${it.id}"))
                     applyFolderUpdates(it)
                 }
+
                 coroutineScope {
-                        awaitAll(async {
+                    awaitAll(async {
+                        send(Result.Loading("Processing links..."))
                             remoteResponse.links.forEach { remoteLinkDTO ->
+                                send(Result.Loading("Processing link with id: ${remoteLinkDTO.id}"))
                                 val localId = localLinksRepo.getLocalLinkId(remoteLinkDTO.id)
                                 if (localId == null) {
+                                    send(Result.Loading("Creating new link with id: ${remoteLinkDTO.id}"))
                                     updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
                                             operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
@@ -286,6 +296,7 @@ class RemoteSyncRepoImpl(
                                         )
                                     )
                                 } else {
+                                    send(Result.Loading("Updating existing link with id: ${remoteLinkDTO.id}"))
                                     updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
                                             operation = RemoteRoute.Link.UPDATE_LINK.name,
@@ -296,11 +307,14 @@ class RemoteSyncRepoImpl(
                                     )
                                 }
                             }
-                        }, async {
+                    }, async {
+                        send(Result.Loading("Processing panels..."))
                             remoteResponse.panels.forEach { remotePanelDTO ->
+                                send(Result.Loading("Processing panel with id: ${remotePanelDTO.panelId}"))
                                 val localId =
                                     localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
                                 if (localId == null) {
+                                    send(Result.Loading("Creating new panel with id: ${remotePanelDTO.panelId}"))
                                     updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
                                             operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
@@ -310,6 +324,7 @@ class RemoteSyncRepoImpl(
                                         )
                                     )
                                 } else {
+                                    send(Result.Loading("Updating existing panel name for id: ${remotePanelDTO.panelId}"))
                                     updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
                                             operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
@@ -324,7 +339,10 @@ class RemoteSyncRepoImpl(
                                     )
                                 }
                             }
+
+                        send(Result.Loading("Processing panel folders..."))
                             remoteResponse.panelFolders.forEach { remotePanelFolder ->
+                                send(Result.Loading("Adding folder to panel with id: ${remotePanelFolder.id}"))
                                 // a panel_folder can only be added with this endpoint response because if it got deleted, it will be caught in the tombstones response, not here
                                 updateLocalDBAccordingToEvent(
                                     WebSocketEvent(
@@ -335,10 +353,11 @@ class RemoteSyncRepoImpl(
                                     )
                                 )
                             }
-                        })
+                    })
                 }
             }
-        }
+            send(Result.Success(Unit))
+        }.catchAsThrowableAndEmitFailure()
     }
 
     /**

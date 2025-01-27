@@ -37,6 +37,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.ui.LocalNavController
@@ -44,6 +45,7 @@ import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.screens.settings.section.data.LogsScreen
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
@@ -58,7 +60,8 @@ fun ServerSetupScreen(
         viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
             ServerManagementViewModel(
                 DependencyContainer.networkRepo.value,
-                DependencyContainer.preferencesRepo.value
+                DependencyContainer.preferencesRepo.value,
+                DependencyContainer.remoteSyncRepo.value
             )
         })
     val serverUrl = rememberSaveable {
@@ -69,6 +72,9 @@ fun ServerSetupScreen(
     }
     val selectedSyncType = rememberMutableEnum(SyncType::class.java) {
         mutableStateOf(AppPreferences.serverSyncType.value)
+    }
+    val showImportLogsFromServer = rememberSaveable {
+        mutableStateOf(false)
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.Data.ServerSetupScreen.toString(),
@@ -129,8 +135,8 @@ fun ServerSetupScreen(
                     textStyle = TextStyle(fontFamily = poppinsFontFamily),
                     modifier = Modifier.fillMaxWidthWithPadding(),
                     value = securityToken.value,
-                    onValueChange = {
-                        securityToken.value = it
+                    onValueChange = { newValue ->
+                        securityToken.value = newValue
                     },
                     label = {
                         Text(
@@ -218,12 +224,17 @@ fun ServerSetupScreen(
             item {
                 Button(
                     onClick = {
-                        serverManagementViewModel.saveServerConnection(
+                        serverManagementViewModel.saveServerConnectionAndImport(
                             serverConnection = ServerConnection(
                                 serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
                                 authToken = securityToken.value,
                                 syncType = selectedSyncType.value
-                            )
+                            ), onImportStart = {
+                                showImportLogsFromServer.value = true
+                            }, onCompletion = {
+                                showImportLogsFromServer.value = false
+                                navController.navigateUp()
+                            }
                         )
                     }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
                 ) {
@@ -238,4 +249,12 @@ fun ServerSetupScreen(
             }
         }
     }
+    LogsScreen(
+        isVisible = showImportLogsFromServer,
+        operationDesc = Localization.Key.ImportingDataFromTheSeverDesc.rememberLocalizedString(),
+        operationTitle = Localization.Key.ImportingDataFromTheSever.rememberLocalizedString(),
+        logs = serverManagementViewModel.dataImportLogs,
+        onCancel = {
+            serverManagementViewModel.cancelServerConnectionAndImporting()
+        })
 }

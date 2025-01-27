@@ -1355,6 +1355,16 @@ object Localization {
             override fun toString(): String {
                 return "updated_the_panel_name_successfully"
             }
+        },
+        ImportingDataFromTheSever(defaultValue = "Importing Data from the Remote Server") {
+            override fun toString(): String {
+                return "importing_data_from_the_sever"
+            }
+        },
+        ImportingDataFromTheSeverDesc(defaultValue = "If you cancel the import, some data may still be saved, and the server connection will be removed.") {
+            override fun toString(): String {
+                return "importing_data_from_the_sever_desc"
+            }
         }
     }
 }

@@ -215,3 +215,11 @@ suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Res
 fun String.asWebSocketUrl(): String = "ws://" + this.substringAfter("://")
 
 fun Correlation.isSameAsCurrentClient(): Boolean = this == AppPreferences.getCorrelation()
+
+fun String.mask(): String {
+    val stringBuilder = StringBuilder()
+    repeat(this.length) {
+        stringBuilder.append("*")
+    }
+    return stringBuilder.toString()
+}

@@ -16,6 +16,7 @@ import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.ExportDataRepo
@@ -77,6 +78,9 @@ class DataSettingsScreenVM(
                     importExportProgressLogs.add(importLogItem)
                 }.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar("Successfully imported the data."))
+                    file.delete()
+                }.onFailure {
+                    file.delete()
                 }.pushSnackbarOnFailure()
             }
         }
