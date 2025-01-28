@@ -34,6 +34,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.baseUrl
+import com.sakethh.linkora.common.utils.videoBasedPlatforms
+import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.utils.fadedEdges
@@ -102,6 +105,28 @@ fun GridViewLinkUIComponent(
                     contentScale = if (linkUIComponentParam.link.imgURL.startsWith("https://pbs.twimg.com/profile_images/") || !AppPreferences.isShelfMinimizedInHomeScreen.value || !forStaggeredView) ContentScale.Crop else ContentScale.Fit,
                     userAgent = linkUIComponentParam.link.userAgent ?: AppPreferences.primaryJsoupUserAgent.value
                 )
+                if (linkUIComponentParam.link.mediaType == MediaType.VIDEO || linkUIComponentParam.link.url.baseUrl(
+                        throwOnException = false
+                    ) in videoBasedPlatforms()
+                ) {
+                    Text(
+                        text = MediaType.VIDEO.name,
+                        modifier = Modifier
+                            .padding(
+                                start = if (AppPreferences.enableBorderForNonListViews.value) 10.dp else 0.dp,
+                            )
+                            .padding(bottom = if (!AppPreferences.enableBaseURLForNonListViews.value && !AppPreferences.enableTitleForNonListViews.value) 10.dp else 0.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.secondary.copy(0.25f),
+                                shape = RoundedCornerShape(5.dp)
+                            )
+                            .padding(5.dp).align(Alignment.BottomStart),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = 8.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 if (!AppPreferences.enableBaseURLForNonListViews.value && !AppPreferences.enableTitleForNonListViews.value) {
                     Icon(
                         Icons.Default.MoreVert,
@@ -144,8 +169,7 @@ fun GridViewLinkUIComponent(
             ) {
                 Box(Modifier.fillMaxWidth(0.75f)) {
                     Text(
-                        text = linkUIComponentParam.link.baseURL.replace("www.", "")
-                            .replace("http://", "").replace("https://", ""),
+                        text = linkUIComponentParam.link.url.baseUrl(throwOnException = false),
                         modifier = Modifier
                             .padding(
                                 start = if (AppPreferences.enableBorderForNonListViews.value) 10.dp else 0.dp,

@@ -12,6 +12,7 @@ import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddLinkDTO
@@ -106,7 +107,8 @@ class LocalLinksRepoImpl(
                     link.copy(
                         title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
                         imgURL = scrapedLinkInfo.imgUrl,
-                        localId = newLinkId
+                        localId = newLinkId,
+                        mediaType = scrapedLinkInfo.mediaType
                     )
                 )
             }
@@ -156,7 +158,8 @@ class LocalLinksRepoImpl(
             imgUrl = vxTwitterResponseBody.media.takeIf { vxTwitterResponseBody.hasMedia && it.isNotEmpty() }
                 ?.find { it.type in listOf("image", "video", "gif") }
                 ?.let { if (it.type == "image") it.url else it.thumbnailUrl }
-                ?: vxTwitterResponseBody.userPfp)
+                ?: vxTwitterResponseBody.userPfp,
+            mediaType = if (vxTwitterResponseBody.media.first().type == "video") MediaType.VIDEO else MediaType.IMAGE)
     }
 
     private suspend fun scrapeLinkData(
@@ -448,12 +451,18 @@ class LocalLinksRepoImpl(
                     )
                 }
             }) {
-            scrapeLinkData(
-                linkUrl = link.url, userAgent = link.userAgent ?: primaryUserAgent()
-            ).let { scrapedLinkInfo ->
+            if (link.url.isATwitterUrl()) {
+                retrieveFromVxTwitterApi(link.url)
+            } else {
+                scrapeLinkData(
+                    linkUrl = link.url, userAgent = link.userAgent ?: primaryUserAgent()
+                )
+            }.let { scrapedLinkInfo ->
                 linksDao.updateALink(
                     link.copy(
-                        title = scrapedLinkInfo.title, imgURL = scrapedLinkInfo.imgUrl
+                        title = scrapedLinkInfo.title,
+                        imgURL = scrapedLinkInfo.imgUrl,
+                        mediaType = scrapedLinkInfo.mediaType
                     )
                 )
             }

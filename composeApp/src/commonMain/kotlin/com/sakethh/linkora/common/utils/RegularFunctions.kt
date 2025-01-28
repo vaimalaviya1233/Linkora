@@ -112,3 +112,5 @@ fun initializeIfServerConfigured(init: () -> Unit) {
         init()
     }
 }
+
+fun videoBasedPlatforms(): List<String> = listOf("youtube", "youtu.be")
