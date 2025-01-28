@@ -220,8 +220,21 @@ class RemoteSyncRepoImpl(
 
                     RemoteRoute.Link.CREATE_A_NEW_LINK.name -> {
                         val addLinkDTO = Json.decodeFromString<AddLinkDTO>(queueItem.payload)
-                        remoteLinksRepo.addANewLink(addLinkDTO)
-                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                        remoteLinksRepo.addANewLink(
+                            addLinkDTO.copy(
+                                idOfLinkedFolder = if (addLinkDTO.idOfLinkedFolder != null) localFoldersRepo.getRemoteIdOfAFolder(
+                                    addLinkDTO.idOfLinkedFolder
+                                ) else null
+                            )
+                        ).collectLatest {
+                            it.onSuccess { remoteResponse ->
+                                val updatedLink =
+                                    localLinksRepo.getALink(addLinkDTO.pendingQueueSyncLocalId)
+                                        .copy(remoteId = remoteResponse.data.id)
+                                localLinksRepo.updateALink(updatedLink, viaSocket = true).collect()
+                                pendingSyncQueueRepo.removeFromQueue(queueItem.id)
+                            }
+                        }
                     }
 
                     RemoteRoute.Panel.ADD_A_NEW_PANEL.name -> {

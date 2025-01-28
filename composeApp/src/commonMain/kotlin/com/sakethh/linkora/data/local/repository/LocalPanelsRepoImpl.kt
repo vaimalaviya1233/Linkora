@@ -61,18 +61,16 @@ class LocalPanelsRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remotePanelId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Panel.DELETE_A_PANEL.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
-                                    id = remotePanelId, pendingQueueSyncLocalId = id
+                                    id = id, pendingQueueSyncLocalId = id
                                 )
                             )
                         )
                     )
-                }
             }) {
             panelsDao.deleteAPanel(id)
             panelsDao.deleteConnectedFoldersOfPanel(id)

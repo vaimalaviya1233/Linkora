@@ -281,7 +281,7 @@ class LocalFoldersRepoImpl(
     }
 
     override suspend fun getRemoteIdOfAFolder(localId: Long): Long? {
-        return foldersDao.getThisFolderData(localId).remoteId
+        return foldersDao.getRemoteIdOfAFolder(localId)
     }
 
     override suspend fun getLocalIdOfAFolder(remoteId: Long): Long? {

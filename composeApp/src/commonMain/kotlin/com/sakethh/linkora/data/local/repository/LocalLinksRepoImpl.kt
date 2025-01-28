@@ -56,17 +56,15 @@ class LocalLinksRepoImpl(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
                         payload = if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
-                            val remoteIdOfLinkedFolder =
-                                foldersDao.getRemoteIdOfAFolder(link.idOfLinkedFolder)
                             Json.encodeToString(
                                 linksDao.getLink(newLinkId)
-                                    .copy(idOfLinkedFolder = remoteIdOfLinkedFolder).asAddLinkDTO()
-                                    .copy(pendingQueueSyncLocalId = link.localId)
+                                    .copy(idOfLinkedFolder = link.idOfLinkedFolder).asAddLinkDTO()
+                                    .copy(pendingQueueSyncLocalId = newLinkId)
                             )
                         } else {
                             Json.encodeToString(
                                 linksDao.getLink(newLinkId).copy().asAddLinkDTO()
-                                    .copy(pendingQueueSyncLocalId = link.localId)
+                                    .copy(pendingQueueSyncLocalId = newLinkId)
                             )
                         }
                     )
