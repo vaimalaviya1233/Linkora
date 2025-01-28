@@ -13,7 +13,7 @@ interface LocalPanelsRepo {
         panelId: Long,
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
-
+    suspend fun updatePanel(panel: Panel)
     suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder,
         viaSocket: Boolean = false

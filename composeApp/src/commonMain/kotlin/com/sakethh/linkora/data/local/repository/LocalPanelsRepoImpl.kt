@@ -110,6 +110,9 @@ class LocalPanelsRepoImpl(
         }
     }
 
+    override suspend fun updatePanel(panel: Panel) {
+        panelsDao.updateAPanel(panel)
+    }
     override suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder,
         viaSocket: Boolean

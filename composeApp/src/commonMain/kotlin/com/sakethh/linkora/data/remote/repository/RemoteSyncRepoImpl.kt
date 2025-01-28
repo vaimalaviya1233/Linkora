@@ -227,8 +227,15 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Panel.ADD_A_NEW_PANEL.name -> {
                         val addANewPanelDTO =
                             Json.decodeFromString<AddANewPanelDTO>(queueItem.payload)
-                        remotePanelsRepo.addANewPanel(addANewPanelDTO)
-                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                        remotePanelsRepo.addANewPanel(addANewPanelDTO).collectLatest {
+                            it.onSuccess { remoteResponse ->
+                                val updatedPanel =
+                                    localPanelsRepo.getPanel(addANewPanelDTO.pendingQueueSyncLocalId)
+                                        .copy(remoteId = remoteResponse.data.id)
+                                localPanelsRepo.updatePanel(updatedPanel)
+                                pendingSyncQueueRepo.removeFromQueue(queueItem.id)
+                            }
+                        }
                     }
 
                     RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
