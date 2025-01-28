@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -46,8 +47,8 @@ import com.sakethh.platform
 data class RenameDialogBoxParam(
     val shouldDialogBoxAppear: MutableState<Boolean>,
     val renameDialogBoxFor: MenuBtmSheetType = MenuBtmSheetType.Folder.RegularFolder,
-    val onNoteChangeClick: ((newNote: String) -> Unit),
-    val onBothTitleAndNoteChangeClick: ((newTitle: String, newNote: String) -> Unit),
+    val onNoteChangeClick: ((newNote: String, onCompletion: () -> Unit) -> Unit),
+    val onBothTitleAndNoteChangeClick: ((newTitle: String, newNote: String, onCompletion: () -> Unit) -> Unit),
     val existingFolderName: String?,
     val existingTitle: String,
     val existingNote: String
@@ -65,12 +66,19 @@ fun RenameDialogBox(
         val newNote = rememberSaveable(renameDialogBoxParam.existingNote) {
             mutableStateOf(renameDialogBoxParam.existingNote)
         }
+        val showProgressBar = rememberSaveable {
+            mutableStateOf(false)
+        }
         BasicAlertDialog(
             modifier = Modifier.then(
                 if (platform() == Platform.Android.Mobile) Modifier.fillMaxSize() else Modifier.wrapContentSize()
             ).clip(RoundedCornerShape(10.dp)).background(AlertDialogDefaults.containerColor),
             properties = DialogProperties(usePlatformDefaultWidth = false),
-            onDismissRequest = { renameDialogBoxParam.shouldDialogBoxAppear.value = false }) {
+            onDismissRequest = {
+                if (showProgressBar.value.not()) {
+                    renameDialogBoxParam.shouldDialogBoxAppear.value = false
+                }
+            }) {
             LazyColumn(
                 Modifier.then(
                     if (platform() == Platform.Android.Mobile) Modifier.fillMaxSize() else Modifier.wrapContentSize()
@@ -92,7 +100,7 @@ fun RenameDialogBox(
                             modifier = Modifier.fillMaxWidth(if (platform() != Platform.Android.Mobile) 0.85f else 1f)
                         )
 
-                        if (platform() != Platform.Android.Mobile) {
+                        if (platform() != Platform.Android.Mobile && showProgressBar.value.not()) {
                             IconButton(
                                 onClick = {
                                     renameDialogBoxParam.shouldDialogBoxAppear.value = false
@@ -119,7 +127,8 @@ fun RenameDialogBox(
                         onValueChange = {
                             newFolderOrTitleName.value = it
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = showProgressBar.value
                     )
                 }
                 item {
@@ -136,14 +145,25 @@ fun RenameDialogBox(
                         onValueChange = {
                             newNote.value = it
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = showProgressBar.value
                     )
                 }
-
+                if (showProgressBar.value) {
+                    item {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                    return@LazyColumn
+                }
                 item {
                     Button(
                         modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                            renameDialogBoxParam.onNoteChangeClick(newNote.value)
+                            showProgressBar.value = true
+                            renameDialogBoxParam.onNoteChangeClick(newNote.value, {
+                                showProgressBar.value = false
+                            })
                         }) {
                         Text(
                             text = Localization.Key.ChangeNoteOnly.rememberLocalizedString(),
@@ -154,9 +174,13 @@ fun RenameDialogBox(
                     Spacer(modifier = Modifier.height(2.dp))
                     Button(
                         modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                            showProgressBar.value = true
                             renameDialogBoxParam.onBothTitleAndNoteChangeClick(
                                 newFolderOrTitleName.value,
-                                newNote.value
+                                newNote.value,
+                                {
+                                    showProgressBar.value = false
+                                }
                             )
                         }) {
                         Text(

@@ -58,6 +58,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.inRootScreen
+import com.sakethh.linkora.common.utils.initializeIfServerConfigured
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
@@ -542,6 +543,9 @@ fun App(
                 )
             )
             val localUriHandler = LocalUriHandler.current
+            val showProgressBarDuringRemoteSave = rememberSaveable {
+                mutableStateOf(false)
+            }
             MenuBtmSheetUI(
                 menuBtmSheetParam = MenuBtmSheetParam(
                     btmModalSheetState = menuBtmModalSheetState,
@@ -554,9 +558,13 @@ fun App(
                         shouldRenameDialogBoxBeVisible.value = true
                     },
                     onArchive = {
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
+                        }
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.archiveAFolder(
                                 selectedFolderForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
@@ -567,6 +575,7 @@ fun App(
                         } else {
                             collectionsScreenVM.archiveALink(
                                 selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
@@ -577,24 +586,44 @@ fun App(
                         }
                     },
                     onDeleteNote = {
-                        if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-                            collectionsScreenVM.deleteTheNote(selectedFolderForMenuBtmSheet.value)
-                        } else {
-                            collectionsScreenVM.deleteTheNote(selectedLinkForMenuBtmSheet.value)
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
                         }
-                        coroutineScope.launch {
-                            menuBtmModalSheetState.hide()
-                        }.invokeOnCompletion {
-                            shouldMenuBtmModalSheetBeVisible.value = false
+                        if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
+                            collectionsScreenVM.deleteTheNote(
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                    }
+                                })
+                        } else {
+                            collectionsScreenVM.deleteTheNote(
+                                selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                    }
+                                })
                         }
                     },
                     onRefreshClick = {
-                        collectionsScreenVM.refreshLinkMetadata(selectedLinkForMenuBtmSheet.value)
-                        coroutineScope.launch {
-                            menuBtmModalSheetState.hide()
-                        }.invokeOnCompletion {
-                            shouldMenuBtmModalSheetBeVisible.value = false
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
                         }
+                        collectionsScreenVM.refreshLinkMetadata(
+                            selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                showProgressBarDuringRemoteSave.value = false
+                                coroutineScope.launch {
+                                    menuBtmModalSheetState.hide()
+                                }.invokeOnCompletion {
+                                    shouldMenuBtmModalSheetBeVisible.value = false
+                                }
+                            })
                     },
                     onForceLaunchInAnExternalBrowser = {
                         localUriHandler.openUri(selectedLinkForMenuBtmSheet.value.url)
@@ -604,17 +633,23 @@ fun App(
                     link = selectedLinkForMenuBtmSheet,
                     folder = selectedFolderForMenuBtmSheet,
                     onAddToImportantLinks = {
-                        collectionsScreenVM.markALinkAsImp(selectedLinkForMenuBtmSheet.value)
-                        coroutineScope.launch {
-                            menuBtmModalSheetState.hide()
-                        }.invokeOnCompletion {
-                            shouldMenuBtmModalSheetBeVisible.value = false
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
                         }
-                        Unit
+                        collectionsScreenVM.markALinkAsImp(
+                            selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                showProgressBarDuringRemoteSave.value = false
+                                coroutineScope.launch {
+                                    menuBtmModalSheetState.hide()
+                                }.invokeOnCompletion {
+                                    shouldMenuBtmModalSheetBeVisible.value = false
+                                }
+                            })
                     },
                     shouldShowArchiveOption = {
                         menuBtmSheetVM.shouldShowArchiveOption(selectedLinkForMenuBtmSheet.value.url)
-                    })
+                    }, showProgressBarDuringRemoteSave = showProgressBarDuringRemoteSave
+                )
             )
             DeleteDialogBox(
                 DeleteDialogBoxParam(
@@ -651,50 +686,62 @@ fun App(
             )
             RenameDialogBox(
                 RenameDialogBoxParam(
-                    onNoteChangeClick = {
+                    onNoteChangeClick = { newNote, onCompletion ->
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.updateFolderNote(
                                 selectedFolderForMenuBtmSheet.value.localId,
-                                newNote = it,
-                                onCompletion = {})
+                                newNote = newNote,
+                                onCompletion = {
+                                    onCompletion()
+                                    shouldRenameDialogBoxBeVisible.value = false
+                                })
                         } else {
                             collectionsScreenVM.updateLinkNote(
                                 selectedLinkForMenuBtmSheet.value.localId,
-                                newNote = it,
-                                onCompletion = {})
+                                newNote = newNote,
+                                onCompletion = {
+                                    onCompletion()
+                                    shouldRenameDialogBoxBeVisible.value = false
+                                })
                         }
-                        shouldRenameDialogBoxBeVisible.value = false
                     },
                     shouldDialogBoxAppear = shouldRenameDialogBoxBeVisible,
                     existingFolderName = selectedFolderForMenuBtmSheet.value.name,
-                    onBothTitleAndNoteChangeClick = { title, note ->
+                    onBothTitleAndNoteChangeClick = { title, note, onCompletion ->
                         if (menuBtmSheetFor.value in menuBtmSheetFolderEntries()) {
                             collectionsScreenVM.updateFolderNote(
                                 selectedFolderForMenuBtmSheet.value.localId,
                                 newNote = note,
-                                pushSnackbarOnSuccess = false,
-                                onCompletion = {})
+                                pushSnackbarOnSuccess = false, onCompletion = {
+                                    onCompletion()
+                                    shouldRenameDialogBoxBeVisible.value = false
+                                })
                             collectionsScreenVM.updateFolderName(
                                 folder = selectedFolderForMenuBtmSheet.value,
                                 newName = title,
                                 ignoreFolderAlreadyExistsThrowable = true,
                                 onCompletion = {
+                                    onCompletion()
                                     collectionsScreenVM.triggerFoldersSorting()
+                                    shouldRenameDialogBoxBeVisible.value = false
                                 })
                         } else {
                             collectionsScreenVM.updateLinkNote(
                                 linkId = selectedLinkForMenuBtmSheet.value.localId,
                                 newNote = note,
-                                pushSnackbarOnSuccess = false,
-                                onCompletion = {})
+                                pushSnackbarOnSuccess = false, onCompletion = {
+                                    onCompletion()
+                                    shouldRenameDialogBoxBeVisible.value = false
+                                })
                             collectionsScreenVM.updateLinkTitle(
                                 linkId = selectedLinkForMenuBtmSheet.value.localId,
                                 newTitle = title,
                                 onCompletion = {
+                                    onCompletion()
                                     collectionsScreenVM.triggerLinksSorting()
+                                    shouldRenameDialogBoxBeVisible.value = false
                                 })
                         }
-                        shouldRenameDialogBoxBeVisible.value = false
                         coroutineScope.launch {
                             menuBtmModalSheetState.hide()
                         }.invokeOnCompletion {

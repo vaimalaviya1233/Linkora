@@ -287,7 +287,7 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun deleteTheNote(folder: Folder) {
+    fun deleteTheNote(folder: Folder, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localFoldersRepo.deleteAFolderNote(folder.localId).collectLatest {
                 it.onSuccess {
@@ -300,16 +300,20 @@ open class CollectionsScreenVM(
                     )
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
-    fun deleteTheNote(link: Link) {
+    fun deleteTheNote(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localLinksRepo.deleteALinkNote(link.localId).collectLatest {
                 it.onSuccess {
                     Localization.Key.DeletedTheNoteOfALink.pushLocalizedSnackbar()
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
@@ -345,7 +349,7 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun markALinkAsImp(link: Link) {
+    fun markALinkAsImp(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
             if (MenuBtmSheetVM.isCurrentLinkMarkedAsImp) {
                 if (link.linkType == LinkType.IMPORTANT_LINK) {
@@ -360,16 +364,20 @@ open class CollectionsScreenVM(
                     it.pushSnackbarOnFailure()
                 }
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
-    fun refreshLinkMetadata(link: Link) {
+    fun refreshLinkMetadata(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localLinksRepo.refreshLinkMetadata(link).collectLatest {
                 it.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.LinkRefreshedSuccessfully.getLocalizedString()))
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 

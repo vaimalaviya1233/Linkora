@@ -59,7 +59,7 @@ fun Modifier.fillMaxWidthWithPadding(
 
 @Composable
 fun Modifier.bottomNavPaddingAcrossPlatforms(): Modifier {
-    return if (platform() is Platform.Android) {
+    return if (platform() is Platform.Android.Mobile) {
         this.navigationBarsPadding()
     } else {
         this.padding(bottom = 10.dp)

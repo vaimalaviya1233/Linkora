@@ -1375,6 +1375,11 @@ object Localization {
             override fun toString(): String {
                 return "connection_to_server_failed"
             }
+        },
+        UpdatingChangesOnRemoteServer(defaultValue = "Updating Changes on Remote Server") {
+            override fun toString(): String {
+                return "updating_changes_on_remote_server"
+            }
         }
     }
 }
