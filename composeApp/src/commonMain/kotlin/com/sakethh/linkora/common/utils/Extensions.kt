@@ -128,8 +128,9 @@ fun Throwable?.pushSnackbar(coroutineScope: CoroutineScope) {
     }
 }
 
-fun <T> Flow<Result<T>>.catchAsThrowableAndEmitFailure(): Flow<Result<T>> {
+fun <T> Flow<Result<T>>.catchAsThrowableAndEmitFailure(init: suspend () -> Unit = {}): Flow<Result<T>> {
     return this.catch {
+        init()
         it.printStackTrace()
         emit(Result.Failure(message = it.message.toString()))
     }

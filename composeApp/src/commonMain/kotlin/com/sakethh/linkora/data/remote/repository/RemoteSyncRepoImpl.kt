@@ -107,8 +107,27 @@ class RemoteSyncRepoImpl(
                 when (queueItem.operation) {
                     RemoteRoute.Folder.CREATE_FOLDER.name -> {
                         val addFolderDTO = Json.decodeFromString<AddFolderDTO>(queueItem.payload)
-                        remoteFoldersRepo.createFolder(addFolderDTO)
-                            .collectAndRemoveQueueItemOnSuccess(queueItem.id)
+                        remoteFoldersRepo.createFolder(addFolderDTO.let {
+                            it.copy(
+                                parentFolderId = if (it.parentFolderId != null) localFoldersRepo.getRemoteIdOfAFolder(
+                                    it.parentFolderId
+                                ) else null
+                            )
+                        }).collectLatest {
+                            it.onSuccess { remoteResponse ->
+                                localFoldersRepo.getThisFolderData(addFolderDTO.pendingQueueSyncLocalId)
+                                    .collectLatest {
+                                        it.onSuccess {
+                                            localFoldersRepo.updateLocalFolderData(
+                                                it.data.copy(
+                                                    remoteId = remoteResponse.data.id,
+                                                )
+                                            ).collect()
+                                            pendingSyncQueueRepo.removeFromQueue(queueItem.id)
+                                        }
+                                    }
+                            }
+                        }
                     }
 
                     RemoteRoute.Folder.DELETE_FOLDER.name -> {
@@ -368,7 +387,7 @@ class RemoteSyncRepoImpl(
     ) {
         val localIdOfCurrentFolder = localFoldersRepo.getLocalIdOfAFolder(folderDTO.id)
         if (localIdOfCurrentFolder != null) {
-            localFoldersRepo.updateAFolderData(
+            localFoldersRepo.updateLocalFolderData(
                 Folder(
                     name = folderDTO.name,
                     note = folderDTO.note,
@@ -489,7 +508,7 @@ class RemoteSyncRepoImpl(
                 if (localFolderId != null) {
                     localFoldersRepo.getThisFolderData(localFolderId).collectLatest {
                         it.onSuccess {
-                            localFoldersRepo.updateAFolderData(
+                            localFoldersRepo.updateLocalFolderData(
                                 it.data.copy(
                                     localId = localFolderId,
                                     name = updateFolderNameDTO.newFolderName
@@ -511,7 +530,7 @@ class RemoteSyncRepoImpl(
                 if (localFolderId != null) {
                     localFoldersRepo.getThisFolderData(localFolderId).collectLatest {
                         it.onSuccess {
-                            localFoldersRepo.updateAFolderData(
+                            localFoldersRepo.updateLocalFolderData(
                                 it.data.copy(
                                     localId = localFolderId, note = updateFolderNoteDTO.newNote
                                 )

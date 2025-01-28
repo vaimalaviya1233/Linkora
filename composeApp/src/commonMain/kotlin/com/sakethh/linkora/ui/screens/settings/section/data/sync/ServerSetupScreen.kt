@@ -106,13 +106,7 @@ fun ServerSetupScreen(
                     modifier = Modifier.fillMaxWidthWithPadding(),
                     value = serverUrl.value,
                     onValueChange = {
-                        serverUrl.value =
-                            if (it.endsWith("/${RemoteRoute.SyncInLocalRoute.TEST_BEARER}")) {
-                            it
-                        } else {
-                                it.replace("/", "")
-                                    .plus("/${RemoteRoute.SyncInLocalRoute.TEST_BEARER}")
-                        }
+                        serverUrl.value = it
                     },
                     label = {
                         Text(

@@ -62,16 +62,9 @@ class LocalFoldersRepoImpl(
                     PendingSyncQueue(
                         operation = RemoteRoute.Folder.CREATE_FOLDER.name,
                         payload = Json.encodeToString(
-                            if (folder.parentFolderId != null) {
-                                val remoteParentFolderId =
-                                    getRemoteIdOfAFolder(folder.parentFolderId)
                                 folder.asAddFolderDTO().copy(
-                                    parentFolderId = remoteParentFolderId,
                                     pendingQueueSyncLocalId = newLocalId
                                 )
-                            } else {
-                                folder.asAddFolderDTO()
-                            }
                         )
                     )
                 )
@@ -395,7 +388,7 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override suspend fun updateAFolderData(folder: Folder): Flow<Result<Unit>> {
+    override suspend fun updateLocalFolderData(folder: Folder): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow<Unit, Unit>(performRemoteOperation = false) {
             foldersDao.updateAFolderData(folder)
         }

@@ -87,7 +87,7 @@ interface LocalFoldersRepo {
 
     suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>>
 
-    suspend fun updateAFolderData(folder: Folder): Flow<Result<Unit>>
+    suspend fun updateLocalFolderData(folder: Folder): Flow<Result<Unit>>
 
     suspend fun deleteAFolderNote(
         folderID: Long,

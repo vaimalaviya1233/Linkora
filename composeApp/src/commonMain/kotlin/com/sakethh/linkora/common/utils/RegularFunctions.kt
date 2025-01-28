@@ -95,7 +95,11 @@ fun <LocalType, RemoteType> performLocalOperationWithRemoteSyncFlow(
             }
             emit(success)
         }
-    }.catchAsThrowableAndEmitFailure()
+    }.catchAsThrowableAndEmitFailure(init = {
+        if (performRemoteOperation && AppPreferences.canPushToServer()) {
+            onRemoteOperationFailure()
+        }
+    })
 }
 
 fun defaultFolderIds(): List<Long> = listOf(
