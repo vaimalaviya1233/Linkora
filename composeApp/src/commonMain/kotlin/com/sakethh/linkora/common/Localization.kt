@@ -690,6 +690,11 @@ object Localization {
                 return "show_bottom_faded_edge"
             }
         },
+        ShowVideoTagOnUIIfApplicable(defaultValue = "Show Video Tag On UI If Applicable") {
+            override fun toString(): String {
+                return "show_video_tag_on_ui_if_applicable"
+            }
+        },
         LinkLayoutSettings(defaultValue = "Link Layout Settings") {
             override fun toString(): String {
                 return "link_layout_settings"

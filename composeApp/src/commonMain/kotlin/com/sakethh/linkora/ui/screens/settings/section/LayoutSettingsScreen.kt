@@ -45,6 +45,7 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.link.GridViewLinkUIComponent
@@ -82,27 +83,6 @@ fun LayoutSettingsScreen() {
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
-                },
-                onForceOpenInExternalBrowserClicked = { -> },
-                isSelectionModeEnabled = mutableStateOf(false),
-                isItemSelected = mutableStateOf(false),
-                onLongClick = { -> },
-            ),
-            LinkUIComponentParam(
-                link = Link(
-                    title = "Land of Hope – We fight against superstition and help children accused of being witches",
-                    baseURL = "landofhope.global",
-                    imgURL = "https://landofhope.global/wp-content/uploads/2022/08/Love-510x605.jpg",
-                    url = "https://landofhope.global/en/",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "",
-                    idOfLinkedFolder = null
-                ),
-                onMoreIconClick = { -> },
-                onLinkClick = { ->
-                    localUriHandler.openUri("https://landofhope.global/en/")
                 },
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
@@ -272,7 +252,6 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
-
                     idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
@@ -282,7 +261,70 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.youtube.com/@PhilippLackner")
                 },
-            )
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Nas - You're da Man (from Made You Look: God's Son Live)",
+                    baseURL = "youtube.com",
+                    imgURL = "https://i.ytimg.com/vi/3vlqI5TPVjQ/maxresdefault.jpg",
+                    url = "https://www.youtube.com/watch?v=3vlqI5TPVjQ",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null,
+                    mediaType = MediaType.VIDEO
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/watch?v=3vlqI5TPVjQ")
+                },
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Nas - Mastermind (from Made You Look: God's Son Live)",
+                    baseURL = "youtube.com",
+                    imgURL = "https://i.ytimg.com/vi/scCey_wI46w/maxresdefault.jpg",
+                    url = "https://www.youtube.com/watch?v=scCey_wI46w",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null,
+                    mediaType = MediaType.VIDEO
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/watch?v=scCey_wI46w")
+                },
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Nas - Rare (Official Video)",
+                    baseURL = "youtube.com",
+                    imgURL = "https://i.ytimg.com/vi/66OFYWBrg3o/maxresdefault.jpg",
+                    url = "https://www.youtube.com/watch?v=66OFYWBrg3o",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null,
+                    mediaType = MediaType.VIDEO
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/watch?v=66OFYWBrg3o")
+                },
+            ),
         ).sortedBy {
             it.link.title
         }
@@ -337,6 +379,18 @@ fun LayoutSettingsScreen() {
                 },
                 title = Localization.Key.ShowBottomFadedEdge.getLocalizedString(),
                 isSwitchChecked = AppPreferences.enableFadedEdgeForNonListViews
+            ),
+            LinkPref(
+                onClick = {
+                    AppPreferences.showVideoTagOnUIIfApplicable.value =
+                        !AppPreferences.showVideoTagOnUIIfApplicable.value
+                    settingsScreenViewModel.changeSettingPreferenceValue(
+                        preferenceKey = booleanPreferencesKey(AppPreferenceType.SHOW_VIDEO_TAG_IF_APPLICABLE.name),
+                        newValue = AppPreferences.showVideoTagOnUIIfApplicable.value
+                    )
+                },
+                title = Localization.Key.ShowVideoTagOnUIIfApplicable.getLocalizedString(),
+                isSwitchChecked = AppPreferences.showVideoTagOnUIIfApplicable
             ),
         )
     }

@@ -69,7 +69,7 @@ object AppPreferences {
     val useLinkoraTopDecoratorOnDesktop = mutableStateOf(true)
     val refreshLinksWorkerTag =
         mutableStateOf("52ae3f4a-d37f-4fdb-a6b6-4397b99ef1bd")
-
+    val showVideoTagOnUIIfApplicable = mutableStateOf(true)
     private var correlation = Correlation.generateRandomCorrelation()
 
     private var lastSyncedWithServer: Long = 0
@@ -340,6 +340,11 @@ object AppPreferences {
                     lastSyncedWithServer = preferencesRepository.readPreferenceValue(
                         preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name)
                     ) ?: lastSyncedWithServer
+                },
+                launch {
+                    showVideoTagOnUIIfApplicable.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = booleanPreferencesKey(AppPreferenceType.SHOW_VIDEO_TAG_IF_APPLICABLE.name)
+                    ) ?: showVideoTagOnUIIfApplicable.value
                 }
             ).joinAll()
         }

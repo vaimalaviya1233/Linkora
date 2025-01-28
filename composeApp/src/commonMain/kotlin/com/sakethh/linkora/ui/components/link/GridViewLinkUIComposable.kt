@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.baseUrl
-import com.sakethh.linkora.common.utils.videoBasedPlatforms
+import com.sakethh.linkora.common.utils.getVideoPlatformBaseUrls
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
@@ -105,9 +105,9 @@ fun GridViewLinkUIComponent(
                     contentScale = if (linkUIComponentParam.link.imgURL.startsWith("https://pbs.twimg.com/profile_images/") || !AppPreferences.isShelfMinimizedInHomeScreen.value || !forStaggeredView) ContentScale.Crop else ContentScale.Fit,
                     userAgent = linkUIComponentParam.link.userAgent ?: AppPreferences.primaryJsoupUserAgent.value
                 )
-                if (linkUIComponentParam.link.mediaType == MediaType.VIDEO || linkUIComponentParam.link.url.baseUrl(
+                if (AppPreferences.showVideoTagOnUIIfApplicable.value && (linkUIComponentParam.link.mediaType == MediaType.VIDEO || linkUIComponentParam.link.url.baseUrl(
                         throwOnException = false
-                    ) in videoBasedPlatforms()
+                    ) in getVideoPlatformBaseUrls())
                 ) {
                     Text(
                         text = MediaType.VIDEO.name,
