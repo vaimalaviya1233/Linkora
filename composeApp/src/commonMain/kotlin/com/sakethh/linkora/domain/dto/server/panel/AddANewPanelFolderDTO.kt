@@ -11,5 +11,5 @@ data class AddANewPanelFolderDTO(
     val folderName: String,
     val connectedPanelId: Long,
     val correlation: Correlation = AppPreferences.getCorrelation(),
-    val pendingQueueSyncLocalId: Long = 0
+    val offlineSyncItemId: Long = 0
 )

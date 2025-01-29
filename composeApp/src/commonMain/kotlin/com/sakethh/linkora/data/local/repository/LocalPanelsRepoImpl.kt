@@ -41,7 +41,7 @@ class LocalPanelsRepoImpl(
                     PendingSyncQueue(
                         operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
                         payload = Json.encodeToString(
-                            AddANewPanelDTO(panel.panelName, pendingQueueSyncLocalId = newPanelId)
+                            AddANewPanelDTO(panel.panelName, offlineSyncItemId = newPanelId)
                         )
                     )
                 )
@@ -146,7 +146,7 @@ class LocalPanelsRepoImpl(
                                     panelPosition = panelFolder.panelPosition,
                                     folderName = panelFolder.folderName,
                                     connectedPanelId = panelFolder.connectedPanelId,
-                                    pendingQueueSyncLocalId = newPanelFolderId
+                                    offlineSyncItemId = newPanelFolderId
                                 )
                             )
                         )

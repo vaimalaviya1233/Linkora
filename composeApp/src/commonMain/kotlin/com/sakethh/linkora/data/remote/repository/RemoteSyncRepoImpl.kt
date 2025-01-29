@@ -117,7 +117,7 @@ class RemoteSyncRepoImpl(
                             )
                         }).collectLatest {
                             it.onSuccess { remoteResponse ->
-                                localFoldersRepo.getThisFolderData(addFolderDTO.pendingQueueSyncLocalId)
+                                localFoldersRepo.getThisFolderData(addFolderDTO.offlineSyncItemId)
                                     .collectLatest {
                                         it.onSuccess {
                                             localFoldersRepo.updateLocalFolderData(
@@ -249,7 +249,7 @@ class RemoteSyncRepoImpl(
                         ).collectLatest {
                             it.onSuccess { remoteResponse ->
                                 val updatedLink =
-                                    localLinksRepo.getALink(addLinkDTO.pendingQueueSyncLocalId)
+                                    localLinksRepo.getALink(addLinkDTO.offlineSyncItemId)
                                         .copy(remoteId = remoteResponse.data.id)
                                 localLinksRepo.updateALink(updatedLink, viaSocket = true).collect()
                                 pendingSyncQueueRepo.removeFromQueue(queueItem.id)
@@ -263,7 +263,7 @@ class RemoteSyncRepoImpl(
                         remotePanelsRepo.addANewPanel(addANewPanelDTO).collectLatest {
                             it.onSuccess { remoteResponse ->
                                 val updatedPanel =
-                                    localPanelsRepo.getPanel(addANewPanelDTO.pendingQueueSyncLocalId)
+                                    localPanelsRepo.getPanel(addANewPanelDTO.offlineSyncItemId)
                                         .copy(remoteId = remoteResponse.data.id)
                                 localPanelsRepo.updatePanel(updatedPanel)
                                 pendingSyncQueueRepo.removeFromQueue(queueItem.id)
@@ -285,7 +285,7 @@ class RemoteSyncRepoImpl(
                         ).collectLatest {
                             it.onSuccess { remoteResponse ->
                                 val updatedPanel =
-                                    localPanelsRepo.getPanel(addANewPanelFolderDTO.pendingQueueSyncLocalId)
+                                    localPanelsRepo.getPanel(addANewPanelFolderDTO.offlineSyncItemId)
                                         .copy(remoteId = remoteResponse.data.id)
                                 localPanelsRepo.updatePanel(updatedPanel)
                                 pendingSyncQueueRepo.removeFromQueue(queueItem.id)

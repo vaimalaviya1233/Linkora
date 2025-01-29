@@ -63,7 +63,7 @@ class LocalFoldersRepoImpl(
                         operation = RemoteRoute.Folder.CREATE_FOLDER.name,
                         payload = Json.encodeToString(
                                 folder.asAddFolderDTO().copy(
-                                    pendingQueueSyncLocalId = newLocalId
+                                    offlineSyncItemId = newLocalId
                                 )
                         )
                     )
