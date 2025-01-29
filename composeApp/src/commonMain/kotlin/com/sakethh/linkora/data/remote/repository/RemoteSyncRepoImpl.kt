@@ -81,7 +81,9 @@ class RemoteSyncRepoImpl(
     }
     override suspend fun readSocketEvents(): Flow<Result<Unit>> {
         return wrappedResultFlow {
-            Network.client.webSocket(baseUrl().asWebSocketUrl() + "events") {
+            Network.client.webSocket(urlString = baseUrl().asWebSocketUrl() + "events", request = {
+                bearerAuth(authToken())
+            }) {
                 this.incoming.consumeAsFlow().collectLatest {
                     if (it is Frame.Text) {
                         val deserializedWebSocketEvent =
