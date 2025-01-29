@@ -1,6 +1,8 @@
 package com.sakethh.linkora.data.remote.repository
 
+import androidx.datastore.preferences.core.longPreferencesKey
 import com.sakethh.linkora.common.network.Network
+import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.utils.asWebSocketUrl
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
@@ -37,6 +39,7 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
@@ -60,6 +63,7 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import java.time.Instant
 import java.util.UUID
 
 class RemoteSyncRepoImpl(
@@ -71,7 +75,8 @@ class RemoteSyncRepoImpl(
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val remoteLinksRepo: RemoteLinksRepo,
-    private val remotePanelsRepo: RemotePanelsRepo
+    private val remotePanelsRepo: RemotePanelsRepo,
+    private val preferencesRepository: PreferencesRepository
 ) : RemoteSyncRepo {
     private val json = Json {
         this.ignoreUnknownKeys = true
@@ -88,7 +93,7 @@ class RemoteSyncRepoImpl(
                     if (it is Frame.Text) {
                         val deserializedWebSocketEvent =
                             json.decodeFromString<WebSocketEvent>((it.data).decodeToString())
-                        updateLocalDBAccordingToEvent(deserializedWebSocketEvent)
+                        updateLocalDBAccordingToEvent(deserializedWebSocketEvent, viaSocket = true)
                     }
                 }
             }
@@ -221,14 +226,6 @@ class RemoteSyncRepoImpl(
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)!!
                         remoteLinksRepo.unArchiveALink(remoteLinkId)
                             .collectAndRemoveQueueItemOnSuccess(queueItem.id)
-                    }
-
-                    RemoteRoute.Link.MARK_AS_IMP.name -> {
-                        TODO()
-                    }
-
-                    RemoteRoute.Link.UNMARK_AS_IMP.name -> {
-                        TODO()
                     }
 
                     RemoteRoute.Link.UPDATE_LINK.name -> {
@@ -500,7 +497,10 @@ class RemoteSyncRepoImpl(
     }
 
 
-    private suspend fun updateLocalDBAccordingToEvent(deserializedWebSocketEvent: WebSocketEvent) {
+    private suspend fun updateLocalDBAccordingToEvent(
+        deserializedWebSocketEvent: WebSocketEvent,
+        viaSocket: Boolean = false
+    ) {
         when (deserializedWebSocketEvent.operation) {
 
             // folders:
@@ -887,5 +887,12 @@ class RemoteSyncRepoImpl(
             }
         }
 
+        if (viaSocket) {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = longPreferencesKey(
+                    AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name
+                ), newValue = Instant.now().epochSecond
+            )
+        }
     }
 }
