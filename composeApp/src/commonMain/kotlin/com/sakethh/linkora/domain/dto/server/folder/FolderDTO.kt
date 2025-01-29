@@ -11,6 +11,5 @@ data class FolderDTO(
     val note: String,
     val parentFolderId: Long?,
     val isArchived: Boolean,
-    val correlation: Correlation = AppPreferences.getCorrelation(),
-    val pendingQueueSyncLocalId: Long = 0
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

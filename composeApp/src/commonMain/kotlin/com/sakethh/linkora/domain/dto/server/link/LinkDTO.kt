@@ -19,6 +19,5 @@ data class LinkDTO(
     val userAgent: String?,
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
-    val correlation: Correlation = AppPreferences.getCorrelation(),
-    val pendingQueueSyncLocalId: Long = 0
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

@@ -68,6 +68,7 @@ interface LocalLinksRepo {
     suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>>
 
     suspend fun getLocalLinkId(remoteID: Long): Long?
+    suspend fun getRemoteLinkId(localId: Long): Long?
 
     suspend fun getALink(localLinkId: Long): Link
 }

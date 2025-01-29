@@ -8,6 +8,5 @@ import kotlinx.serialization.Serializable
 data class UpdateNoteOfALinkDTO(
     val linkId: Long,
     val newNote: String,
-    val correlation: Correlation = AppPreferences.getCorrelation(),
-    val pendingQueueSyncLocalId: Long = 0
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

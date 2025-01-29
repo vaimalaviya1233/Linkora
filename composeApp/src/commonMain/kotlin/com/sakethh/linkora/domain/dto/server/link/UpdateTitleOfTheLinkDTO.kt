@@ -9,5 +9,5 @@ data class UpdateTitleOfTheLinkDTO(
     val linkId: Long,
     val newTitleOfTheLink: String,
     val correlation: Correlation = AppPreferences.getCorrelation(),
-    val pendingQueueSyncLocalId: Long = 0
-)
+
+    )

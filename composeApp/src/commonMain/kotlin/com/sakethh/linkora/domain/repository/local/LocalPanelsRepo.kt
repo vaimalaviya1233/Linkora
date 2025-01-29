@@ -29,6 +29,7 @@ interface LocalPanelsRepo {
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
     suspend fun getPanel(panelId: Long): Panel
     suspend fun getLocalPanelId(remoteId: Long): Long?
+    suspend fun getRemotePanelId(localId: Long): Long?
     suspend fun getLocalPanelFolderId(remoteId: Long): Long?
     suspend fun updateAFolderName(folderID: Long, newName: String)
     suspend fun addMultiplePanels(panels: List<Panel>)

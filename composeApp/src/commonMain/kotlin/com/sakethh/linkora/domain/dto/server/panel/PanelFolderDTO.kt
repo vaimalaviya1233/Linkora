@@ -11,6 +11,5 @@ data class PanelFolderDTO(
     val panelPosition: Long,
     val folderName: String,
     val connectedPanelId: Long,
-    val correlation: Correlation = AppPreferences.getCorrelation(),
-    val pendingQueueSyncLocalId: Long = 0
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

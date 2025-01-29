@@ -66,7 +66,7 @@ class LocalPanelsRepoImpl(
                             operation = RemoteRoute.Panel.DELETE_A_PANEL.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
-                                    id = id, pendingQueueSyncLocalId = id
+                                    id = id
                                 )
                             )
                         )
@@ -91,18 +91,16 @@ class LocalPanelsRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remotePanelId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
                             payload = Json.encodeToString(
                                 UpdatePanelNameDTO(
-                                    newName, remotePanelId, pendingQueueSyncLocalId = panelId
+                                    newName, panelId
                                 )
                             )
                         )
                     )
-                }
             }) {
             panelsDao.updateAPanelName(newName, panelId)
         }
@@ -139,28 +137,27 @@ class LocalPanelsRepoImpl(
                     panelsDao.getPanelFolder(newPanelFolderId).copy(remoteId = it.id)
                 )
             }, onRemoteOperationFailure = {
-                if (remoteIdOfFolder != null && remoteIdOfConnectedPanel != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
                             payload = Json.encodeToString(
                                 AddANewPanelFolderDTO(
-                                    folderId = remoteIdOfFolder,
+                                    folderId = panelFolder.folderId,
                                     panelPosition = panelFolder.panelPosition,
                                     folderName = panelFolder.folderName,
-                                    connectedPanelId = remoteIdOfConnectedPanel,
+                                    connectedPanelId = panelFolder.connectedPanelId,
                                     pendingQueueSyncLocalId = newPanelFolderId
                                 )
                             )
                         )
                     )
-                }
             }) {
             panelsDao.addANewFolderInAPanel(panelFolder.copy(localId = newPanelFolderId))
         }
     }
 
     override suspend fun deleteAFolderFromAllPanels(folderID: Long) {
+        // server already handles this internally, so no need to push it externally
         panelsDao.deleteAFolderFromAllPanels(folderID)
     }
 
@@ -185,18 +182,16 @@ class LocalPanelsRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remotePanelId != null && remoteFolderId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
                             payload = Json.encodeToString(
                                 DeleteAPanelFromAFolderDTO(
-                                    panelId = remotePanelId, folderID = remoteFolderId
+                                    panelId = panelId, folderID = folderID
                                 )
                             )
                         )
                     )
-                }
             }) {
             panelsDao.deleteAFolderFromAPanel(panelId, folderID)
         }
@@ -226,6 +221,9 @@ class LocalPanelsRepoImpl(
         return panelsDao.getLocalPanelId(remoteId)
     }
 
+    override suspend fun getRemotePanelId(localId: Long): Long? {
+        return panelsDao.getRemoteIdOfPanel(localId)
+    }
     override suspend fun getLocalPanelFolderId(remoteId: Long): Long? {
         return panelsDao.getLocalPanelFolderId(remoteId)
     }

@@ -264,19 +264,16 @@ class LocalFoldersRepoImpl(
             foldersDao.renameAFolderName(folderID, newFolderName)
                 localPanelsRepo.updateAFolderName(folderID, newFolderName)
             }, onRemoteOperationFailure = {
-                val remoteId = getRemoteIdOfAFolder(folderID)
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
                             payload = Json.encodeToString(
                                 UpdateFolderNameDTO(
-                                    remoteId, newFolderName, pendingQueueSyncLocalId = folderID
+                                    folderID, newFolderName
                                 )
                             )
                         )
                     )
-                }
             })
     }
 
@@ -301,20 +298,16 @@ class LocalFoldersRepoImpl(
                 emptyFlow()
             }
             }, onRemoteOperationFailure = {
-                val remoteId = getRemoteIdOfAFolder(folderID)
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
-                                    remoteId,
-                                    pendingQueueSyncLocalId = folderID
+                                    folderID
                                 )
                             )
                         )
                     )
-                }
             }) {
             foldersDao.markFolderAsArchive(folderID)
         }
@@ -339,20 +332,16 @@ class LocalFoldersRepoImpl(
                 emptyFlow()
             }
             }, onRemoteOperationFailure = {
-                val remoteFolderId = getRemoteIdOfAFolder(folderID)
-                if (remoteFolderId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
                             payload = Json.encodeToString(
                                 value = IDBasedDTO(
-                                    remoteFolderId,
-                                    pendingQueueSyncLocalId = folderID
+                                    folderID
                                 )
                             )
                         )
                     )
-                }
             }) {
             foldersDao.markFolderAsRegularFolder(folderID)
         }
@@ -368,21 +357,17 @@ class LocalFoldersRepoImpl(
                 emptyFlow()
             }
             }, onRemoteOperationFailure = {
-                val remoteID = getRemoteIdOfAFolder(folderID)
-                if (remoteID != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name,
                             payload = Json.encodeToString(
                                 UpdateFolderNoteDTO(
-                                    remoteID,
+                                    folderID,
                                     newNote,
-                                    pendingQueueSyncLocalId = folderID
                                 )
                             )
                         )
                     )
-                }
             }) {
             foldersDao.renameAFolderNote(folderID, newNote)
         }
@@ -407,20 +392,16 @@ class LocalFoldersRepoImpl(
                 emptyFlow()
             }
             }, onRemoteOperationFailure = {
-                val remoteId = getRemoteIdOfAFolder(folderID)
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
                             payload = Json.encodeToString(
                                 value = IDBasedDTO(
-                                    remoteId,
-                                    pendingQueueSyncLocalId = folderID
+                                    folderID
                                 )
                             )
                         )
                     )
-                }
             }) {
             foldersDao.deleteAFolderNote(folderID)
         }
@@ -440,19 +421,16 @@ class LocalFoldersRepoImpl(
                 emptyFlow()
             }
             }, onRemoteOperationFailure = {
-                if (remoteFolderId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.DELETE_FOLDER.name,
                             payload = Json.encodeToString(
                                 value = IDBasedDTO(
-                                    remoteFolderId,
-                                    pendingQueueSyncLocalId = folderID
+                                    folderID,
                                 )
                             )
                         )
                     )
-                }
             }, localOperation = {
             deleteLocalDataRelatedToTheFolder(folderID)
                 localLinksRepo.deleteLinksOfFolder(folderID).collect()

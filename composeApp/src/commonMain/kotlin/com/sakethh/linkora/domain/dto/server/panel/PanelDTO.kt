@@ -8,6 +8,5 @@ import kotlinx.serialization.Serializable
 data class PanelDTO(
     val panelId: Long,
     val panelName: String,
-    val correlation: Correlation = AppPreferences.getCorrelation(),
-    val pendingQueueSyncLocalId: Long = 0
+    val correlation: Correlation = AppPreferences.getCorrelation()
 )

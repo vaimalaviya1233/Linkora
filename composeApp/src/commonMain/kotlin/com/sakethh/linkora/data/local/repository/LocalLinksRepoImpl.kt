@@ -239,18 +239,16 @@ class LocalLinksRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
                             payload = Json.encodeToString(
                                 UpdateNoteOfALinkDTO(
-                                    remoteId, newNote = "", pendingQueueSyncLocalId = linkId
+                                    linkId, newNote = ""
                                 )
                             )
                         )
                     )
-                }
             }) {
             linksDao.deleteALinkNote(linkId)
         }
@@ -267,19 +265,16 @@ class LocalLinksRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.DELETE_A_LINK.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
-                                    remoteId,
-                                    pendingQueueSyncLocalId = linkId
+                                    linkId,
                                 )
                             )
                         )
                     )
-                }
             }) {
             linksDao.deleteALink(linkId)
         }
@@ -296,19 +291,16 @@ class LocalLinksRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.ARCHIVE_LINK.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
-                                    remoteId,
-                                    pendingQueueSyncLocalId = linkId
+                                    linkId,
                                 )
                             )
                         )
                     )
-                }
             }) {
             linksDao.archiveALink(linkId)
         }
@@ -328,15 +320,13 @@ class LocalLinksRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remoteId != null) {
-                    val linkDTO = linksDao.getLink(linkId).copy(note = newNote).asLinkDTO(remoteId)
+                val linkDTO = linksDao.getLink(linkId).copy(note = newNote).asLinkDTO(id = linkId)
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
-                            payload = Json.encodeToString(linkDTO.copy(pendingQueueSyncLocalId = linkId))
+                            payload = Json.encodeToString(linkDTO)
                         )
                     )
-                }
             }) {
             linksDao.updateLinkNote(linkId, newNote)
         }
@@ -356,16 +346,14 @@ class LocalLinksRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remoteId != null) {
                     val linkDTO =
-                        linksDao.getLink(linkId).copy(title = newTitle).asLinkDTO(remoteId)
+                        linksDao.getLink(linkId).copy(title = newTitle).asLinkDTO(linkId)
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
-                            payload = Json.encodeToString(linkDTO.copy(pendingQueueSyncLocalId = linkId))
+                            payload = Json.encodeToString(linkDTO)
                         )
                     )
-                }
             }) {
             linksDao.updateLinkTitle(linkId, newTitle)
         }
@@ -409,17 +397,14 @@ class LocalLinksRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.UPDATE_LINK.name,
                             payload = Json.encodeToString(
-                                link.asLinkDTO(id = remoteId)
-                                    .copy(pendingQueueSyncLocalId = link.localId)
+                                link.asLinkDTO(id = link.localId)
                             )
                         )
                     )
-                }
             }) {
             linksDao.updateALink(link)
         }
@@ -437,17 +422,14 @@ class LocalLinksRepoImpl(
                     emptyFlow()
                 }
             }, onRemoteOperationFailure = {
-                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.UPDATE_LINK.name,
                             payload = Json.encodeToString(
-                                linksDao.getLink(link.localId).asLinkDTO(id = remoteId)
-                                    .copy(pendingQueueSyncLocalId = link.localId)
+                                linksDao.getLink(link.localId).asLinkDTO(id = link.localId)
                             )
                         )
                     )
-                }
             }) {
             if (link.url.isATwitterUrl()) {
                 retrieveFromVxTwitterApi(link.url)
@@ -475,6 +457,9 @@ class LocalLinksRepoImpl(
         return linksDao.getLocalIdOfALink(remoteID)
     }
 
+    override suspend fun getRemoteLinkId(localId: Long): Long? {
+        return linksDao.getRemoteIdOfLocalLink(localId)
+    }
     override suspend fun getALink(localLinkId: Long): Link {
         return linksDao.getLink(localLinkId)
     }
