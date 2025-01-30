@@ -42,9 +42,9 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.AddANewPanelDialogBox
-import com.sakethh.linkora.ui.components.AddANewShelfParam
-import com.sakethh.linkora.ui.components.DeleteAShelfDialogBoxParam
-import com.sakethh.linkora.ui.components.DeleteAShelfPanelDialogBox
+import com.sakethh.linkora.ui.components.AddANewPanelParam
+import com.sakethh.linkora.ui.components.DeleteAPanelDialogBox
+import com.sakethh.linkora.ui.components.DeleteAPanelDialogBoxParam
 import com.sakethh.linkora.ui.components.RenameAShelfPanelDialogBox
 import com.sakethh.linkora.ui.components.menu.IndividualMenuComponent
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -188,34 +188,43 @@ fun PanelsManagerScreen() {
         }
     }
     AddANewPanelDialogBox(
-        addANewShelfParam = AddANewShelfParam(
-            isDialogBoxVisible = isAddANewPanelDialogBoxVisible, onCreateClick = { panelName ->
-                specificPanelManagerScreenVM.addANewAPanel(Panel(panelName = panelName))
-                isAddANewPanelDialogBoxVisible.value = false
+        addANewPanelParam = AddANewPanelParam(
+            isDialogBoxVisible = isAddANewPanelDialogBoxVisible,
+            onCreateClick = { panelName, onCompletion ->
+                specificPanelManagerScreenVM.addANewAPanel(Panel(panelName = panelName), {
+                    onCompletion()
+                    isAddANewPanelDialogBoxVisible.value = false
+                })
             })
     )
 
-    DeleteAShelfPanelDialogBox(
-        deleteAShelfDialogBoxParam = DeleteAShelfDialogBoxParam(
-            isDialogBoxVisible = isDeleteAPanelDialogBoxVisible, onDeleteClick = {
-                specificPanelManagerScreenVM.deleteAPanel(selectedPanelForDialogBoxes.value.localId)
-                selectedPanelForDetailView.value = Panel(localId = -45, panelName = "")
-                isDeleteAPanelDialogBoxVisible.value = false
+    DeleteAPanelDialogBox(
+        deleteAPanelDialogBoxParam = DeleteAPanelDialogBoxParam(
+            isDialogBoxVisible = isDeleteAPanelDialogBoxVisible, onDeleteClick = { onCompletion ->
+                specificPanelManagerScreenVM.deleteAPanel(
+                    selectedPanelForDialogBoxes.value.localId, onCompletion = {
+                        onCompletion()
+                        selectedPanelForDetailView.value = Panel(localId = -45, panelName = "")
+                        isDeleteAPanelDialogBoxVisible.value = false
+                    })
             }, panelName = selectedPanelForDialogBoxes.value.panelName
         )
     )
 
     RenameAShelfPanelDialogBox(
-        isDialogBoxVisible = isRenameAPanelDialogBoxVisible, onRenameClick = { newPanelName ->
+        isDialogBoxVisible = isRenameAPanelDialogBoxVisible,
+        onRenameClick = { newPanelName, onCompletion ->
             specificPanelManagerScreenVM.renameAPanel(
-                selectedPanelForDialogBoxes.value.localId, newPanelName
+                selectedPanelForDialogBoxes.value.localId, newPanelName, onCompletion = {
+                    onCompletion()
+                    SpecificPanelManagerScreenVM.updateSelectedPanelData(
+                        Panel(
+                            selectedPanelForDialogBoxes.value.localId, newPanelName
+                        )
+                    )
+                    isRenameAPanelDialogBoxVisible.value = false
+                }
             )
-            SpecificPanelManagerScreenVM.updateSelectedPanelData(
-                Panel(
-                    selectedPanelForDialogBoxes.value.localId, newPanelName
-                )
-            )
-            isRenameAPanelDialogBoxVisible.value = false
         }, panelName = selectedPanelForDialogBoxes.value.panelName
     )
 }

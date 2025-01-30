@@ -3,11 +3,14 @@ package com.sakethh.linkora.ui.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
@@ -16,19 +19,27 @@ import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
-data class DeleteAShelfDialogBoxParam(
-    val isDialogBoxVisible: MutableState<Boolean>, val onDeleteClick: () -> Unit,
+data class DeleteAPanelDialogBoxParam(
+    val isDialogBoxVisible: MutableState<Boolean>,
+    val onDeleteClick: (onCompletion: () -> Unit) -> Unit,
     val panelName: String
 )
 
 @Composable
-fun DeleteAShelfPanelDialogBox(deleteAShelfDialogBoxParam: DeleteAShelfDialogBoxParam) {
-    if (deleteAShelfDialogBoxParam.isDialogBoxVisible.value) {
+fun DeleteAPanelDialogBox(deleteAPanelDialogBoxParam: DeleteAPanelDialogBoxParam) {
+    if (deleteAPanelDialogBoxParam.isDialogBoxVisible.value) {
+        val isInProgress = rememberSaveable {
+            mutableStateOf(false)
+        }
         AlertDialog(confirmButton = {
+            if (isInProgress.value) return@AlertDialog
             Button(
                 modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                    deleteAShelfDialogBoxParam.onDeleteClick()
-                    deleteAShelfDialogBoxParam.isDialogBoxVisible.value = false
+                    isInProgress.value = true
+                    deleteAPanelDialogBoxParam.onDeleteClick({
+                        isInProgress.value = false
+                        deleteAPanelDialogBoxParam.isDialogBoxVisible.value = false
+                    })
                 }) {
                 Text(
                     text = Localization.Key.PermanentlyDeleteThePanel.rememberLocalizedString(),
@@ -37,20 +48,24 @@ fun DeleteAShelfPanelDialogBox(deleteAShelfDialogBoxParam: DeleteAShelfDialogBox
                 )
             }
         }, dismissButton = {
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                    deleteAShelfDialogBoxParam.isDialogBoxVisible.value = false
-                }) {
-                Text(
-                    text = Localization.Key.Cancel.rememberLocalizedString(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 16.sp
-                )
+            if (isInProgress.value.not()) {
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                        deleteAPanelDialogBoxParam.isDialogBoxVisible.value = false
+                    }) {
+                    Text(
+                        text = Localization.Key.Cancel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp
+                    )
+                }
+            } else {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
             }
         }, title = {
             Text(
                 text = Localization.Key.AreYouSureWantToDeleteThePanel.rememberLocalizedString()
-                    .replaceFirstPlaceHolderWith(deleteAShelfDialogBoxParam.panelName),
+                    .replaceFirstPlaceHolderWith(deleteAPanelDialogBoxParam.panelName),
                 style = MaterialTheme.typography.titleMedium,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
@@ -65,7 +80,9 @@ fun DeleteAShelfPanelDialogBox(deleteAShelfDialogBoxParam: DeleteAShelfDialogBox
                 textAlign = TextAlign.Start
             )
         }, onDismissRequest = {
-            deleteAShelfDialogBoxParam.isDialogBoxVisible.value = false
+            if (isInProgress.value.not()) {
+                deleteAPanelDialogBoxParam.isDialogBoxVisible.value = false
+            }
         })
     }
 }

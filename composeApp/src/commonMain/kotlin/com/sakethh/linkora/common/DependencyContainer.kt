@@ -63,6 +63,7 @@ object DependencyContainer {
             remoteFoldersRepo = remoteFoldersRepo.value,
             remoteLinksRepo = remoteLinksRepo.value,
             remotePanelsRepo = remotePanelsRepo.value,
+            preferencesRepository = preferencesRepo.value
         )
     }
     val pendingSyncQueueRepo = lazy {

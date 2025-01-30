@@ -84,7 +84,7 @@ class SpecificPanelManagerScreenVM(
         }
     }
 
-    fun addANewAPanel(panel: Panel) {
+    fun addANewAPanel(panel: Panel, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localPanelsRepo.addaNewPanel(panel).collectLatest {
                 it.onSuccess {
@@ -96,10 +96,12 @@ class SpecificPanelManagerScreenVM(
                     )
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
-    fun deleteAPanel(panelId: Long) {
+    fun deleteAPanel(panelId: Long, onCompletion: () -> Unit) {
         viewModelScope.launch {
             if (preferencesRepository.readPreferenceValue(longPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name)) == panelId) {
                 preferencesRepository.changePreferenceValue(
@@ -113,10 +115,12 @@ class SpecificPanelManagerScreenVM(
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.DeletedPanelSuccessfully.getLocalizedString()))
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
-    fun renameAPanel(panelId: Long, newName: String) {
+    fun renameAPanel(panelId: Long, newName: String, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localPanelsRepo.updateAPanelName(newName, panelId).collectLatest {
                 it.onSuccess {
@@ -128,6 +132,8 @@ class SpecificPanelManagerScreenVM(
                     )
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 

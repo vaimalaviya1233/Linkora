@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,18 +19,20 @@ import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
 
-data class AddANewShelfParam(
+data class AddANewPanelParam(
     val isDialogBoxVisible: MutableState<Boolean>,
-    val onCreateClick: (shelfName: String) -> Unit,
+    val onCreateClick: (shelfName: String, onCompletion: () -> Unit) -> Unit,
 )
 
 @Composable
-fun AddANewPanelDialogBox(addANewShelfParam: AddANewShelfParam) {
-    if (addANewShelfParam.isDialogBoxVisible.value) {
+fun AddANewPanelDialogBox(addANewPanelParam: AddANewPanelParam) {
+    if (addANewPanelParam.isDialogBoxVisible.value) {
         val customShelfName = rememberSaveable {
             mutableStateOf("")
         }
-
+        val isInProgress = rememberSaveable {
+            mutableStateOf(false)
+        }
         AlertDialog(title = {
             Text(
                 text = Localization.Key.AddANewPanel.rememberLocalizedString(),
@@ -38,7 +41,9 @@ fun AddANewPanelDialogBox(addANewShelfParam: AddANewShelfParam) {
                 lineHeight = 28.sp
             )
         }, onDismissRequest = {
-            addANewShelfParam.isDialogBoxVisible.value = false
+            if (isInProgress.value.not()) {
+                addANewPanelParam.isDialogBoxVisible.value = false
+            }
         }, text = {
             Column {
                 OutlinedTextField(
@@ -56,17 +61,22 @@ fun AddANewPanelDialogBox(addANewShelfParam: AddANewShelfParam) {
                     value = customShelfName.value,
                     onValueChange = {
                         customShelfName.value = it
-                    })
+                    }, readOnly = isInProgress.value
+                )
             }
         }, confirmButton = {
+            if (isInProgress.value) return@AlertDialog
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
                     .pulsateEffect(), onClick = {
-                    addANewShelfParam.onCreateClick(
-                        customShelfName.value,
+                    isInProgress.value = true
+                    addANewPanelParam.onCreateClick(
+                        customShelfName.value, {
+                            addANewPanelParam.isDialogBoxVisible.value = false
+                            isInProgress.value = false
+                        }
                     )
-                    addANewShelfParam.isDialogBoxVisible.value = false
                 }) {
                 Text(
                     text = Localization.Key.AddANewPanel.rememberLocalizedString(),
@@ -75,18 +85,22 @@ fun AddANewPanelDialogBox(addANewShelfParam: AddANewShelfParam) {
                 )
             }
         }, dismissButton = {
-            androidx.compose.material3.OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pulsateEffect(),
-                onClick = {
-                    addANewShelfParam.isDialogBoxVisible.value = false
-                }) {
-                Text(
-                    text = Localization.Key.Cancel.rememberLocalizedString(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 16.sp
-                )
+            if (isInProgress.value.not()) {
+                androidx.compose.material3.OutlinedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pulsateEffect(),
+                    onClick = {
+                        addANewPanelParam.isDialogBoxVisible.value = false
+                    }) {
+                    Text(
+                        text = Localization.Key.Cancel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp
+                    )
+                }
+            } else {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         })
     }

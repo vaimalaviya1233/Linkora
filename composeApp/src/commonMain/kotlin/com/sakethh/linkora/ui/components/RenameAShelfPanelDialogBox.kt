@@ -3,6 +3,7 @@ package com.sakethh.linkora.ui.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -21,19 +22,30 @@ import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @Composable
 fun RenameAShelfPanelDialogBox(
-    isDialogBoxVisible: MutableState<Boolean>, onRenameClick: (String) -> Unit, panelName: String
+    isDialogBoxVisible: MutableState<Boolean>,
+    onRenameClick: (String, onCompletion: () -> Unit) -> Unit,
+    panelName: String
 ) {
     if (isDialogBoxVisible.value) {
         val newShelfName = rememberSaveable {
             mutableStateOf("")
         }
+        val isInProgress = rememberSaveable {
+            mutableStateOf(false)
+        }
         AlertDialog(onDismissRequest = {
-            isDialogBoxVisible.value = false
+            if (isInProgress.value.not()) {
+                isDialogBoxVisible.value = false
+            }
         }, confirmButton = {
+            if (isInProgress.value) return@AlertDialog
             Button(
                 modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                    onRenameClick(newShelfName.value)
-                    isDialogBoxVisible.value = false
+                    isInProgress.value = true
+                    onRenameClick(newShelfName.value, {
+                        isInProgress.value = false
+                        isDialogBoxVisible.value = false
+                    })
                 }) {
                 Text(
                     text = Localization.Key.ChangePanelName.rememberLocalizedString(),
@@ -63,18 +75,23 @@ fun RenameAShelfPanelDialogBox(
                 value = newShelfName.value,
                 onValueChange = {
                     newShelfName.value = it
-                }, modifier = Modifier.fillMaxWidth()
+                }, modifier = Modifier.fillMaxWidth(),
+                readOnly = isInProgress.value
             )
         }, dismissButton = {
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                    isDialogBoxVisible.value = false
-                }) {
-                Text(
-                    text = Localization.Key.Cancel.rememberLocalizedString(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 16.sp
-                )
+            if (isInProgress.value.not()) {
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                        isDialogBoxVisible.value = false
+                    }) {
+                    Text(
+                        text = Localization.Key.Cancel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp
+                    )
+                }
+            } else {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
             }
         })
     }
