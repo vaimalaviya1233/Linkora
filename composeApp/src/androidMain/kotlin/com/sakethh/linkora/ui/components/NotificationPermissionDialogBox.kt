@@ -34,21 +34,21 @@ fun NotificationPermissionDialogBox(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Enable Notifications",
+                        text = Localization.Key.EnableNotifications.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall
                     )
                 }
             },
             title = {
                 Text(
-                    text = "Notification Permission Required",
+                    text = Localization.Key.NotificationPermissionRequired.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
                 )
             },
             text = {
                 Text(
-                    text = "Linkora needs notification permission to show the progress of link refreshes.",
+                    text = Localization.Key.NotificationPermissionDesc.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 15.sp
                 )

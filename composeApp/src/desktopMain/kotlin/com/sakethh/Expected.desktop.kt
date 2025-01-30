@@ -5,11 +5,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.RefreshAllLinksService
+import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isNotNull
+import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -68,7 +72,12 @@ actual suspend fun pickAValidFileForImporting(
     importFileType: ImportFileType, onStart: () -> Unit
 ): File? {
     val fileDialog =
-        FileDialog(Frame(), "Select a valid ${importFileType.name} File", FileDialog.LOAD)
+        FileDialog(
+            Frame(),
+            Localization.Key.SelectAValidFile.getLocalizedString()
+                .replaceFirstPlaceHolderWith(importFileType.name),
+            FileDialog.LOAD
+        )
     fileDialog.isVisible = true
     val chosenFile: File? = try {
         File(fileDialog.directory, fileDialog.file)
@@ -79,7 +88,13 @@ actual suspend fun pickAValidFileForImporting(
         onStart()
         chosenFile
     } else if (chosenFile.isNotNull() && chosenFile!!.extension != importFileType.name.lowercase()) {
-        UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar("${chosenFile.extension} files are not supported for importing, pick valid ${importFileType.name} file."))
+        UIEvent.pushUIEvent(
+            UIEvent.Type.ShowSnackbar(
+                Localization.Key.FileTypeNotSupportedOnDesktopImport.getLocalizedString()
+                    .replace(LinkoraPlaceHolder.First.value, chosenFile.extension)
+                    .replace(LinkoraPlaceHolder.Second.value, importFileType.name)
+            )
+        )
         null
     } else null
 }

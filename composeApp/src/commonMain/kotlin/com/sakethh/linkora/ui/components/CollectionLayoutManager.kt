@@ -21,7 +21,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -99,8 +101,8 @@ fun CollectionLayoutManager(
                     item {
                         val text = emptyDataText.ifBlank {
                             when {
-                                folders.isEmpty() && links.isEmpty() -> "No folders or links found. Please add some folders or links to get started!"
-                                else -> "You have folders, but no links yet. Add some links to organize your content."
+                                folders.isEmpty() && links.isEmpty() -> Localization.Key.NoFoldersOrLinksFound.rememberLocalizedString()
+                                else -> Localization.Key.FoldersExistsButNotLinks.rememberLocalizedString()
                             }
                         }
                         DataEmptyScreen(text = text)

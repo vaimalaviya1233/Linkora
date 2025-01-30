@@ -223,7 +223,7 @@ fun LanguageSettingsScreen() {
             if (availableLanguages.value.isEmpty()) {
                 item {
                     DataEmptyScreen(
-                        text = "No remote language packs found. Load them from the server.",
+                        text = Localization.Key.NoRemoteLangPacks.rememberLocalizedString(),
                         paddingValues = PaddingValues(top = 30.dp)
                     )
                 }
@@ -247,7 +247,14 @@ fun LanguageSettingsScreen() {
                     },
                     text = it.languageName,
                     isRemoteLanguage = true,
-                    localizationStatus = "${it.localizedStringsCount}/${Localization.Key.entries.size} strings localized",
+                    localizationStatus = Localization.Key.StringsLocalizedStatus.rememberLocalizedString()
+                        .replace(
+                            LinkoraPlaceHolder.First.value,
+                            it.localizedStringsCount.toString()
+                        ).replace(
+                            LinkoraPlaceHolder.Second.value,
+                            Localization.Key.entries.size.toString()
+                        ),
                     localizationStatusFraction = it.localizedStringsCount.toFloat() / Localization.Key.entries.size.toFloat()
                 )
                 Spacer(modifier = Modifier.height(15.dp))

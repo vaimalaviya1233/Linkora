@@ -138,7 +138,7 @@ fun PanelsManagerScreen() {
             ) {
                 if (panels.value.drop(1).isEmpty()) {
                     item {
-                        DataEmptyScreen(text = "No panels available. Create panels and add respective folders to organize by projects, research, tasks, events, or any other category.")
+                        DataEmptyScreen(text = Localization.Key.NoPanelsFound.rememberLocalizedString())
                     }
                 }
                 items(panels.value.drop(1)) { panel ->

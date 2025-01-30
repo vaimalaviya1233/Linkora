@@ -81,7 +81,7 @@ fun AcknowledgementSettingsScreen() {
                         )
                         Column {
                             Text(
-                                text = "Menu Bottom Sheet and Link Dialog Box for Android tablet/desktop platforms are inspired by and based on the mockups created by LOLCATpl.",
+                                text = Localization.Key.MenuBtmSheetAck.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 15.sp,
                                 lineHeight = 22.sp,
@@ -96,7 +96,7 @@ fun AcknowledgementSettingsScreen() {
                                     .padding(start = 15.dp, end = 15.dp)
                             ) {
                                 Text(
-                                    text = "LOLCATpl on Discord",
+                                    text = Localization.Key.LOLCATplOnDiscord.rememberLocalizedString(),
                                     style = MaterialTheme.typography.titleSmall,
                                 )
                             }

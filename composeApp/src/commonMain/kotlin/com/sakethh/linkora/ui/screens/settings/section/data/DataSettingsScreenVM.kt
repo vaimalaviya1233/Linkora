@@ -67,7 +67,7 @@ class DataSettingsScreenVM(
         importExportJob = viewModelScope.launch(Dispatchers.Default) {
             val file = pickAValidFileForImporting(importFileType, onStart = {
                 onStart()
-                importExportProgressLogs.add("Reading file...")
+                importExportProgressLogs.add(Localization.Key.ReadingFile.getLocalizedString())
             })
             if (file.isNull()) return@launch
             file as File
@@ -79,7 +79,7 @@ class DataSettingsScreenVM(
                 it.onLoading { importLogItem ->
                     importExportProgressLogs.add(importLogItem)
                 }.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar("Successfully imported the data."))
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.SuccessfullyImportedTheData.getLocalizedString()))
                     file.delete()
                 }.onFailure {
                     file.delete()

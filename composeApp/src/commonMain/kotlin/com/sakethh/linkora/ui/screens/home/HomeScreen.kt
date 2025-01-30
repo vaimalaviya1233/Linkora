@@ -170,7 +170,7 @@ fun HomeScreen() {
         }
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             if (panelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNotNull()) {
-                DataEmptyScreen(text = "No folders in this panel. Add folders in this panel to get started.")
+                DataEmptyScreen(text = Localization.Key.NoFoldersInThePanel.rememberLocalizedString())
                 return@Scaffold
             }
             ScrollableTabRow(
@@ -278,7 +278,7 @@ fun HomeScreen() {
                         false
                     },
                     emptyDataText = if (panelFolders.value.map { it.folderId }
-                            .contains(Constants.SAVED_LINKS_ID)) "No links found. Please add some links to get started!" else "")
+                            .contains(Constants.SAVED_LINKS_ID)) Localization.Key.NoLinksFound.rememberLocalizedString() else "")
             }
         }
     }

@@ -255,7 +255,7 @@ fun CollectionsScreen(
                 if (rootFolders.value.isEmpty()) {
                     item {
                         DataEmptyScreen(
-                            text = "No folders found. Add folders to get started.",
+                            text = Localization.Key.NoFoldersFound.rememberLocalizedString(),
                             paddingValues = PaddingValues(top = 50.dp, start = 15.dp)
                         )
                     }

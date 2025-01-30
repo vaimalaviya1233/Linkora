@@ -55,6 +55,7 @@ import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
@@ -94,7 +95,8 @@ fun DataSettingsScreen() {
             linksRepo = DependencyContainer.localLinksRepo.value,
             foldersRepo = DependencyContainer.localFoldersRepo.value,
             localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-            preferencesRepository = DependencyContainer.preferencesRepo.value
+            preferencesRepository = DependencyContainer.preferencesRepo.value,
+            pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo.value
         )
     })
     val isProgressUIVisible = rememberSaveable {
@@ -206,7 +208,8 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
-                            dataOperationTitle.value = "Exporting Data to JSON..."
+                            dataOperationTitle.value =
+                                Localization.Key.ExportingDataToJSON.getLocalizedString()
                             dataSettingsScreenVM.exportDataToAFile(
                                 platform = platform,
                                 exportFileType = ExportFileType.JSON,
@@ -231,7 +234,8 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
-                            dataOperationTitle.value = "Exporting Data to HTML..."
+                            dataOperationTitle.value =
+                                Localization.Key.ExportingDataToHTML.getLocalizedString()
                             dataSettingsScreenVM.exportDataToAFile(
                                 platform = platform,
                                 exportFileType = ExportFileType.HTML,
