@@ -20,6 +20,7 @@ import com.sakethh.linkora.utils.LinkoraExports
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
@@ -169,7 +170,7 @@ class ImportDataRepoImpl(
                                     note = "",
                                     idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
                                 ), linkSaveConfig = forceSaveWithoutRetrieving()
-                            )
+                            ).collect()
                         } else {
                             send(Result.Loading(message = "Link is part of saved links or folder links"))
                             localLinksRepo.addANewLink(
@@ -181,7 +182,7 @@ class ImportDataRepoImpl(
                                     note = "",
                                     idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
                                 ), linkSaveConfig = forceSaveWithoutRetrieving()
-                            )
+                            ).collect()
                         }
                     }
 
@@ -203,7 +204,7 @@ class ImportDataRepoImpl(
                                     parentFolderId = if (parentFolder == (-1).toLong()) null else parentFolder,
                                     isArchived = foldersNameStackForRetrievingDataFromHTML.isNotEmpty() && foldersNameStackForRetrievingDataFromHTML.peek() == LinkoraExports.ARCHIVED_FOLDERS__LINKORA_EXPORT.name
                                 ), ignoreFolderAlreadyExistsException = true
-                            )
+                            ).collect()
                             foldersIdStackForRetrievingDataFromHTML.push(localFoldersRepo.getLatestFoldersTableID())
                         } else {
                             send(Result.Loading(message = "Folder exists, skipping creation"))
