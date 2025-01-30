@@ -116,6 +116,10 @@ suspend fun <T> Result<T>.pushSnackbarOnFailure() {
     }
 }
 
+fun <T> Result.Success<T>.getRemoteOnlyFailureMsg(): String {
+    return if (this.isRemoteExecutionSuccessful.not()) "\n\n${Localization.Key.RemoteExecutionFailed.getLocalizedString()}\n" + this.remoteFailureMessage else ""
+}
+
 fun Exception?.pushSnackbar(coroutineScope: CoroutineScope) {
     if (this.isNotNull()) {
         coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))

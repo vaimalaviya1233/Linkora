@@ -9,6 +9,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
@@ -244,15 +245,15 @@ open class CollectionsScreenVM(
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             message = Localization.Key.FolderHasBeenCreatedSuccessful.getLocalizedString()
-                                .replaceFirstPlaceHolderWith(folder.name) + if (it.isRemoteExecutionSuccessful.not()) "\n\n${Localization.Key.RemoteExecutionFailed.getLocalizedString()}\n" + it.remoteFailureMessage else ""
+                                .replaceFirstPlaceHolderWith(folder.name) + it.getRemoteOnlyFailureMsg()
                         )
                     )
-                    onCompletion()
                 }.onFailure {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
-                    onCompletion()
                 }
-            }
+                }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
@@ -265,7 +266,8 @@ open class CollectionsScreenVM(
                         UIEvent.Type.ShowSnackbar(
                             Localization.getLocalizedString(
                                 Localization.Key.DeletedTheFolder
-                            ).replaceFirstPlaceHolderWith(folder.name)
+                            )
+                                .replaceFirstPlaceHolderWith(folder.name) + it.getRemoteOnlyFailureMsg()
                         )
                     )
                 }.onFailure {
@@ -279,7 +281,7 @@ open class CollectionsScreenVM(
         viewModelScope.launch {
             localLinksRepo.deleteALink(link.localId).collectLatest {
                 it.onSuccess {
-                    Localization.Key.DeletedTheLink.pushLocalizedSnackbar()
+                    Localization.Key.DeletedTheLink.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
                 }.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {
@@ -295,7 +297,8 @@ open class CollectionsScreenVM(
                         UIEvent.Type.ShowSnackbar(
                             Localization.getLocalizedString(
                                 Localization.Key.DeletedTheNoteOfAFolder
-                            ).replaceFirstPlaceHolderWith(folder.name)
+                            )
+                                .replaceFirstPlaceHolderWith(folder.name) + it.getRemoteOnlyFailureMsg()
                         )
                     )
                 }.pushSnackbarOnFailure()
@@ -309,7 +312,7 @@ open class CollectionsScreenVM(
         viewModelScope.launch {
             localLinksRepo.deleteALinkNote(link.localId).collectLatest {
                 it.onSuccess {
-                    Localization.Key.DeletedTheNoteOfALink.pushLocalizedSnackbar()
+                    Localization.Key.DeletedTheNoteOfALink.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
                 }.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {
@@ -326,7 +329,8 @@ open class CollectionsScreenVM(
                             UIEvent.Type.ShowSnackbar(
                                 Localization.getLocalizedString(
                                     Localization.Key.UnArchivedTheFolder
-                                ).replaceFirstPlaceHolderWith(folder.name)
+                                )
+                                    .replaceFirstPlaceHolderWith(folder.name) + it.getRemoteOnlyFailureMsg()
                             )
                         )
                     }.pushSnackbarOnFailure()
@@ -338,7 +342,8 @@ open class CollectionsScreenVM(
                             UIEvent.Type.ShowSnackbar(
                                 Localization.getLocalizedString(
                                     Localization.Key.ArchivedTheFolder
-                                ).replaceFirstPlaceHolderWith(folder.name)
+                                )
+                                    .replaceFirstPlaceHolderWith(folder.name) + it.getRemoteOnlyFailureMsg()
                             )
                         )
                     }.pushSnackbarOnFailure()
@@ -373,7 +378,7 @@ open class CollectionsScreenVM(
         viewModelScope.launch {
             localLinksRepo.refreshLinkMetadata(link).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.LinkRefreshedSuccessfully.getLocalizedString()))
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.LinkRefreshedSuccessfully.getLocalizedString() + it.getRemoteOnlyFailureMsg()))
                 }.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {
@@ -391,14 +396,14 @@ open class CollectionsScreenVM(
                     )
                 ).collectLatest {
                     it.onSuccess {
-                        pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.UnArchived.getLocalizedString()))
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.UnArchived.getLocalizedString() + it.getRemoteOnlyFailureMsg()))
                     }
                     it.pushSnackbarOnFailure()
                 }
             } else {
                 localLinksRepo.archiveALink(link.localId).collectLatest {
                     it.onSuccess {
-                        Localization.Key.ArchivedTheLink.pushLocalizedSnackbar()
+                        Localization.Key.ArchivedTheLink.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
                     }.pushSnackbarOnFailure()
                 }
             }
@@ -421,7 +426,7 @@ open class CollectionsScreenVM(
                             UIEvent.Type.ShowSnackbar(
                                 Localization.getLocalizedString(
                                     Localization.Key.UpdatedTheNote
-                                )
+                                ) + it.getRemoteOnlyFailureMsg()
                             )
                         )
                     }
@@ -442,7 +447,7 @@ open class CollectionsScreenVM(
             localLinksRepo.updateLinkNote(linkId, newNote).collectLatest {
                 it.onSuccess {
                     if (pushSnackbarOnSuccess) {
-                        Localization.Key.UpdatedTheNote.pushLocalizedSnackbar()
+                        Localization.Key.UpdatedTheNote.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
                     }
                 }.pushSnackbarOnFailure()
             }
@@ -455,7 +460,7 @@ open class CollectionsScreenVM(
         viewModelScope.launch {
             localLinksRepo.updateLinkTitle(linkId, newTitle).collectLatest {
                 it.onSuccess {
-                    Localization.Key.UpdatedTheTitle.pushLocalizedSnackbar()
+                    Localization.Key.UpdatedTheTitle.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
                 }.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {
@@ -479,7 +484,7 @@ open class CollectionsScreenVM(
                         UIEvent.Type.ShowSnackbar(
                             Localization.getLocalizedString(
                                 Localization.Key.UpdatedTheFolderData
-                            )
+                            ) + it.getRemoteOnlyFailureMsg()
                         )
                     )
                 }.pushSnackbarOnFailure()
@@ -539,7 +544,7 @@ open class CollectionsScreenVM(
                 it.onSuccess {
                     onCompletion()
                     if (pushSnackbarOnSuccess) {
-                        Localization.Key.SavedTheLink.pushLocalizedSnackbar()
+                        Localization.Key.SavedTheLink.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
                     }
                 }.onFailure {
                     onCompletion()

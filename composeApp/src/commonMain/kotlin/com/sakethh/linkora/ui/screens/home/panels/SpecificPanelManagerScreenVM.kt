@@ -8,6 +8,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.model.Folder
@@ -79,6 +80,11 @@ class SpecificPanelManagerScreenVM(
     fun addANewFolderInAPanel(panelFolder: PanelFolder) {
         viewModelScope.launch {
             localPanelsRepo.addANewFolderInAPanel(panelFolder).collectLatest {
+                it.onSuccess {
+                    if (it.isRemoteExecutionSuccessful.not()) {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(message = it.getRemoteOnlyFailureMsg()))
+                    }
+                }
                 it.pushSnackbarOnFailure()
             }
         }
@@ -91,7 +97,7 @@ class SpecificPanelManagerScreenVM(
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             message = Localization.Key.PanelCreatedSuccessfully.getLocalizedString()
-                                .replaceFirstPlaceHolderWith(panel.panelName)
+                                .replaceFirstPlaceHolderWith(panel.panelName) + it.getRemoteOnlyFailureMsg()
                         )
                     )
                 }.pushSnackbarOnFailure()
@@ -112,7 +118,7 @@ class SpecificPanelManagerScreenVM(
             }
             localPanelsRepo.deleteAPanel(panelId).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.DeletedPanelSuccessfully.getLocalizedString()))
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.DeletedPanelSuccessfully.getLocalizedString() + it.getRemoteOnlyFailureMsg()))
                 }.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {
@@ -127,7 +133,7 @@ class SpecificPanelManagerScreenVM(
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             message = Localization.Key.UpdatedThePanelNameSuccessfully.getLocalizedString()
-                                .replaceFirstPlaceHolderWith(newName)
+                                .replaceFirstPlaceHolderWith(newName) + it.getRemoteOnlyFailureMsg()
                         )
                     )
                 }.pushSnackbarOnFailure()
@@ -143,6 +149,11 @@ class SpecificPanelManagerScreenVM(
     ) {
         viewModelScope.launch {
             localPanelsRepo.deleteAFolderFromAPanel(panelId, folderId).collectLatest {
+                it.onSuccess {
+                    if (it.isRemoteExecutionSuccessful.not()) {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(it.getRemoteOnlyFailureMsg()))
+                    }
+                }
                 it.pushSnackbarOnFailure()
             }
         }

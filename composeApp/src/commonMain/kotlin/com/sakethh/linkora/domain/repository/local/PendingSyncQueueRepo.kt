@@ -8,4 +8,6 @@ interface PendingSyncQueueRepo {
     suspend fun removeFromQueue(id: Long)
 
     suspend fun getAllItemsFromQueue(): List<PendingSyncQueue>
+
+    suspend fun deleteAllItems()
 }

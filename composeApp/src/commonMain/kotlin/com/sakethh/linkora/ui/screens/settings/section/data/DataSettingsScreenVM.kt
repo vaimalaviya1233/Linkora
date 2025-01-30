@@ -24,6 +24,7 @@ import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -42,7 +43,8 @@ class DataSettingsScreenVM(
     private val exportDataRepo: ExportDataRepo, private val importDataRepo: ImportDataRepo,
     private val linksRepo: LocalLinksRepo, private val foldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo
 ) : ViewModel() {
     val importExportProgressLogs = mutableStateListOf<String>()
 
@@ -149,6 +151,7 @@ class DataSettingsScreenVM(
             foldersRepo.deleteAllFolders()
             localPanelsRepo.deleteAllPanels()
             localPanelsRepo.deleteAllPanelFolders()
+            pendingSyncQueueRepo.deleteAllItems()
         }.invokeOnCompletion {
             onCompletion()
         }

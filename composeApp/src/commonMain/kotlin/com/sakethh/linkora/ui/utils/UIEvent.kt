@@ -24,8 +24,8 @@ object UIEvent {
         }
     }
 
-    suspend fun Localization.Key.pushLocalizedSnackbar() {
-        _uiChannel.send(Type.ShowSnackbar(this.getLocalizedString()))
+    suspend fun Localization.Key.pushLocalizedSnackbar(append: String = "") {
+        _uiChannel.send(Type.ShowSnackbar(this.getLocalizedString() + append))
     }
 
     sealed interface Type {
