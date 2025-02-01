@@ -556,6 +556,7 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
                 if (folderDto.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(folderDto.eventTimestamp)
                     return
                 }
                 localFoldersRepo.insertANewFolder(
@@ -575,7 +576,10 @@ class RemoteSyncRepoImpl(
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val folderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                 if (folderId != null) {
@@ -588,7 +592,10 @@ class RemoteSyncRepoImpl(
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val folderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                 if (folderId != null) {
@@ -602,7 +609,10 @@ class RemoteSyncRepoImpl(
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val folderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                 if (folderId != null) {
@@ -616,7 +626,10 @@ class RemoteSyncRepoImpl(
                 val updateFolderNameDTO = json.decodeFromJsonElement<UpdateFolderNameDTO>(
                     deserializedWebSocketEvent.payload
                 )
-                if (updateFolderNameDTO.correlation.isSameAsCurrentClient()) return
+                if (updateFolderNameDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(updateFolderNameDTO.eventTimestamp)
+                    return
+                }
 
                 val localFolderId =
                     localFoldersRepo.getLocalIdOfAFolder(updateFolderNameDTO.folderId)
@@ -641,7 +654,10 @@ class RemoteSyncRepoImpl(
                 val updateFolderNoteDTO = json.decodeFromJsonElement<UpdateFolderNoteDTO>(
                     deserializedWebSocketEvent.payload
                 )
-                if (updateFolderNoteDTO.correlation.isSameAsCurrentClient()) return
+                if (updateFolderNoteDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(updateFolderNoteDTO.eventTimestamp)
+                    return
+                }
 
                 val localFolderId =
                     localFoldersRepo.getLocalIdOfAFolder(updateFolderNoteDTO.folderId)
@@ -665,7 +681,10 @@ class RemoteSyncRepoImpl(
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localFolderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                 if (localFolderId != null) {
@@ -688,7 +707,12 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (updateTitleOfTheLinkDTO.correlation.isSameAsCurrentClient()) return
+                if (updateTitleOfTheLinkDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        updateTitleOfTheLinkDTO.eventTimestamp
+                    )
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(updateTitleOfTheLinkDTO.linkId)
                 if (localLinkId != null) {
@@ -703,7 +727,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (updateNoteOfALinkDTO.correlation.isSameAsCurrentClient()) return
+                if (updateNoteOfALinkDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(updateNoteOfALinkDTO.eventTimestamp)
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(updateNoteOfALinkDTO.linkId)
                 if (localLinkId != null) {
@@ -718,7 +745,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
@@ -732,7 +762,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
@@ -746,7 +779,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
@@ -762,7 +798,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
@@ -778,7 +817,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
@@ -794,7 +836,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (linkDTO.correlation.isSameAsCurrentClient()) return
+                if (linkDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(linkDTO.eventTimestamp)
+                    return
+                }
 
                 val localLinkId = localLinksRepo.getLocalLinkId(linkDTO.id)
                 if (localLinkId != null) {
@@ -822,7 +867,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (linkDTO.correlation.isSameAsCurrentClient()) return
+                if (linkDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(linkDTO.eventTimestamp)
+                    return
+                }
 
                 localLinksRepo.addANewLink(
                     link = Link(
@@ -849,7 +897,10 @@ class RemoteSyncRepoImpl(
                 val panelDTO =
                     json.decodeFromJsonElement<PanelDTO>(deserializedWebSocketEvent.payload)
 
-                if (panelDTO.correlation.isSameAsCurrentClient()) return
+                if (panelDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(panelDTO.eventTimestamp)
+                    return
+                }
 
                 localPanelsRepo.addaNewPanel(
                     Panel(
@@ -863,7 +914,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (panelFolderDTO.correlation.isSameAsCurrentClient()) return
+                if (panelFolderDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(panelFolderDTO.eventTimestamp)
+                    return
+                }
 
                 val localFolderId = localFoldersRepo.getLocalIdOfAFolder(panelFolderDTO.folderId)
                 val localPanelsId = localPanelsRepo.getLocalPanelId(panelFolderDTO.connectedPanelId)
@@ -885,7 +939,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localPanelId = localPanelsRepo.getLocalPanelId(idBasedDTO.id)
                 if (localPanelId != null) {
@@ -901,7 +958,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (updatePanelNameDTO.correlation.isSameAsCurrentClient()) return
+                if (updatePanelNameDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(updatePanelNameDTO.eventTimestamp)
+                    return
+                }
 
                 val localPanelId = localPanelsRepo.getLocalPanelId(updatePanelNameDTO.panelId)
                 if (localPanelId != null) {
@@ -918,7 +978,10 @@ class RemoteSyncRepoImpl(
                     deserializedWebSocketEvent.payload
                 )
 
-                if (idBasedDTO.correlation.isSameAsCurrentClient()) return
+                if (idBasedDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(idBasedDTO.eventTimestamp)
+                    return
+                }
 
                 val localFolderId = localFoldersRepo.getLocalIdOfAFolder(idBasedDTO.id)
                 if (localFolderId != null) {
@@ -933,7 +996,12 @@ class RemoteSyncRepoImpl(
                         deserializedWebSocketEvent.payload
                     )
 
-                if (deleteAPanelFromAFolderDTO.correlation.isSameAsCurrentClient()) return
+                if (deleteAPanelFromAFolderDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        deleteAPanelFromAFolderDTO.eventTimestamp
+                    )
+                    return
+                }
 
                 val localFolderId =
                     localFoldersRepo.getLocalIdOfAFolder(deleteAPanelFromAFolderDTO.folderID)
