@@ -86,7 +86,7 @@ class AppVM(
                 throwable.printStackTrace()
                 throwable.pushSnackbar(coroutineScope)
             }) {
-                remoteSyncRepo.readSocketEvents().collectLatest {
+                remoteSyncRepo.readSocketEvents(AppPreferences.getCorrelation()).collectLatest {
                     it.pushSnackbarOnFailure()
                 }
             }

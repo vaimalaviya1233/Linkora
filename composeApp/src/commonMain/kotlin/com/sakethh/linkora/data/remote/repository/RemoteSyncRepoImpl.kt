@@ -60,6 +60,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -83,10 +84,11 @@ class RemoteSyncRepoImpl(
         this.isLenient = true
         this.prettyPrint = true
     }
-    override suspend fun readSocketEvents(): Flow<Result<Unit>> {
+    override suspend fun readSocketEvents(currentCorrelation: Correlation): Flow<Result<Unit>> {
         return wrappedResultFlow {
             Network.client.webSocket(urlString = baseUrl().asWebSocketUrl() + "events", request = {
                 bearerAuth(authToken())
+                parameter(key = "correlation", value = Json.encodeToString(currentCorrelation))
             }) {
                 this.incoming.consumeAsFlow().collectLatest {
                     if (it is Frame.Text) {
