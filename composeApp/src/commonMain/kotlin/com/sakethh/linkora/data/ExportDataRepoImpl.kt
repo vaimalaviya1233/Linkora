@@ -8,8 +8,8 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.model.JSONExport
-import com.sakethh.linkora.domain.model.PanelForJSONExport
+import com.sakethh.linkora.domain.model.JSONExportSchema
+import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -63,11 +63,11 @@ class ExportDataRepoImpl(
 
                 emit(Result.Loading(message = Localization.Key.SerializingCollectedDataForExport.getLocalizedString()))
 
-                val exportObject = JSONExport(
+                val exportObject = JSONExportSchema(
                     schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
                     links = links,
                     folders = folders,
-                    panels = PanelForJSONExport(
+                    panels = PanelForJSONExportSchema(
                         panels = panels, panelFolders = panelFolders
                     ),
                 )

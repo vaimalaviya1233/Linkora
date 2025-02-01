@@ -7,8 +7,10 @@ import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.asJSONExportSchema
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.JSONExport
+import com.sakethh.linkora.domain.model.JSONExportSchema
+import com.sakethh.linkora.domain.model.legacy.LegacyExportSchema
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.onFailure
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import java.io.File
@@ -38,9 +41,30 @@ class ImportDataRepoImpl(
             send(Result.Loading(message = "Starting data import from JSON file: ${file.name}"))
 
             send(Result.Loading(message = "Reading and deserializing JSON file: ${file.name}"))
-            val deserializedData = file.readText().run {
-                Json.decodeFromString<JSONExport>(this)
+            val rawImportString = file.readText()
+            val basedOnLegacyExportSchema = try {
+                Json.parseToJsonElement(rawImportString).jsonObject["appVersion"].toString()
+                    .toLong().let {
+                        it <= 11
+                    }
+            } catch (_: Exception) {
+                false
             }
+            val deserializedData = if (basedOnLegacyExportSchema) {
+                Json.decodeFromString<LegacyExportSchema>(rawImportString).asJSONExportSchema()
+            } else rawImportString.run {
+                Json.decodeFromString<JSONExportSchema>(this)
+            }
+
+            send(
+                Result.Loading(
+                    message = if (basedOnLegacyExportSchema) {
+                        "This JSON file is based on the legacy export schema (v${deserializedData.schemaVersion})."
+                    } else {
+                        "This JSON file is based on schema version ${deserializedData.schemaVersion}."
+                    }
+                )
+            )
 
             send(Result.Loading(message = "Deserialization completed: Links=${deserializedData.links.size}, Folders=${deserializedData.folders.size}, Panels=${deserializedData.panels.panels.size}, PanelFolders=${deserializedData.panels.panelFolders.size}"))
 

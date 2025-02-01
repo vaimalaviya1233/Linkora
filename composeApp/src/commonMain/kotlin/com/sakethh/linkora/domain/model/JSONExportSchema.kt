@@ -6,14 +6,14 @@ import com.sakethh.linkora.domain.model.panel.PanelFolder
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class JSONExport(
+data class JSONExportSchema(
     val schemaVersion: Int,
     val links: List<Link>,
     val folders: List<Folder>,
-    val panels: PanelForJSONExport
+    val panels: PanelForJSONExportSchema
 )
 
 @Serializable
-data class PanelForJSONExport(
+data class PanelForJSONExportSchema(
     val panels: List<Panel>, val panelFolders: List<PanelFolder>
 )
