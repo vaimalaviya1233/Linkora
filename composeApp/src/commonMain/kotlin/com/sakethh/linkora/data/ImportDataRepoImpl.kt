@@ -19,6 +19,7 @@ import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -34,7 +35,9 @@ import java.util.Stack
 class ImportDataRepoImpl(
     private val localLinksRepo: LocalLinksRepo,
     private val localFoldersRepo: LocalFoldersRepo,
-    private val localPanelsRepo: LocalPanelsRepo
+    private val localPanelsRepo: LocalPanelsRepo,
+    private val remoteSyncRepo: RemoteSyncRepo,
+    private val canPushToServer: () -> Boolean,
 ) : ImportDataRepo {
     override suspend fun importDataFromAJSONFile(file: File): Flow<Result<Unit>> {
         return channelFlow<Result<Unit>> {
@@ -134,6 +137,14 @@ class ImportDataRepoImpl(
                     it.copy(connectedPanelId = latestPanelId, localId = 0)
                 })
             }
+            if (canPushToServer()) {
+                send(Result.Loading(message = "Server is configured. Initiating push."))
+                with(remoteSyncRepo) {
+                    this@channelFlow.pushNonSyncedDataToServer()
+                }
+            } else {
+                send(Result.Loading(message = "Server is not configured. Skipping push."))
+            }
             send(Result.Success(Unit))
         }.catchAsThrowableAndEmitFailure()
     }
@@ -142,6 +153,14 @@ class ImportDataRepoImpl(
         return channelFlow<Result<Unit>> {
             send(Result.Loading(message = "Starting to import data from HTML file: ${file.name}"))
             retrieveDataFromHTML(Jsoup.parse(file.readText()).body().select("dl").first())
+            if (canPushToServer()) {
+                send(Result.Loading(message = "Server is configured. Initiating push."))
+                with(remoteSyncRepo) {
+                    this@channelFlow.pushNonSyncedDataToServer()
+                }
+            } else {
+                send(Result.Loading(message = "Server is not configured. Skipping push."))
+            }
             send(Result.Success(Unit))
         }.catchAsThrowableAndEmitFailure()
     }

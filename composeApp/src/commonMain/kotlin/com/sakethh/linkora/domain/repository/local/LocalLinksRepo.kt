@@ -71,4 +71,7 @@ interface LocalLinksRepo {
     suspend fun getRemoteLinkId(localId: Long): Long?
 
     suspend fun getALink(localLinkId: Long): Link
+
+    suspend fun getLatestId(): Long
+    suspend fun getUnSyncedLinks(): List<Link>
 }

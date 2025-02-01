@@ -118,6 +118,10 @@ class LocalPanelsRepoImpl(
     override suspend fun updatePanel(panel: Panel) {
         panelsDao.updateAPanel(panel)
     }
+
+    override suspend fun updateAPanelFolder(panelFolder: PanelFolder) {
+        panelsDao.updateAPanelFolder(panelFolder)
+    }
     override suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder,
         viaSocket: Boolean
@@ -256,5 +260,13 @@ class LocalPanelsRepoImpl(
 
     override suspend fun addMultiplePanels(panels: List<Panel>) {
         panelsDao.addMultiplePanels(panels)
+    }
+
+    override suspend fun getUnSyncedPanelFolders(): List<PanelFolder> {
+        return panelsDao.getUnSyncedPanelFolders()
+    }
+
+    override suspend fun getUnSyncedPanels(): List<Panel> {
+        return panelsDao.getUnSyncedPanels()
     }
 }

@@ -84,4 +84,10 @@ interface PanelsDao {
 
     @Query("SELECT * FROM panel_folder WHERE localId=:localPanelFolderId LIMIT 1")
     suspend fun getPanelFolder(localPanelFolderId: Long): PanelFolder
+
+    @Query("SELECT * FROM panel WHERE remoteId IS NULL")
+    suspend fun getUnSyncedPanels(): List<Panel>
+
+    @Query("SELECT * FROM panel_folder WHERE remoteId IS NULL")
+    suspend fun getUnSyncedPanelFolders(): List<PanelFolder>
 }

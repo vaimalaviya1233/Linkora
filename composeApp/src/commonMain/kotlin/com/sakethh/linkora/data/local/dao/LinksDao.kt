@@ -124,4 +124,7 @@ interface LinksDao {
 
     @Query("SELECT * FROM links WHERE localId = :localId LIMIT 1")
     suspend fun getLink(localId: Long): Link
+
+    @Query("SELECT * FROM links WHERE remoteId IS NULL")
+    suspend fun getUnSyncedLinks(): List<Link>
 }

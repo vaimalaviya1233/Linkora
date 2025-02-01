@@ -38,4 +38,7 @@ interface LocalPanelsRepo {
     suspend fun deleteAllPanels()
     suspend fun deleteAllPanelFolders()
     suspend fun getLatestPanelID(): Long
+    suspend fun getUnSyncedPanels(): List<Panel>
+    suspend fun getUnSyncedPanelFolders(): List<PanelFolder>
+    suspend fun updateAPanelFolder(panelFolder: PanelFolder)
 }

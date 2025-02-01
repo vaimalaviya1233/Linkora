@@ -481,4 +481,12 @@ class LocalLinksRepoImpl(
     override suspend fun getALink(localLinkId: Long): Link {
         return linksDao.getLink(localLinkId)
     }
+
+    override suspend fun getUnSyncedLinks(): List<Link> {
+        return linksDao.getUnSyncedLinks()
+    }
+
+    override suspend fun getLatestId(): Long {
+        return linksDao.getLatestId()
+    }
 }

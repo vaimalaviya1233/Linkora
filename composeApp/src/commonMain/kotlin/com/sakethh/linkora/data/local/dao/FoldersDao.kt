@@ -164,4 +164,7 @@ interface FoldersDao {
 
     @Query("SELECT localId FROM folders WHERE remoteId = :remoteId")
     suspend fun getLocalIdOfAFolder(remoteId: Long): Long?
+
+    @Query("SELECT * FROM folders WHERE remoteId IS NULL")
+    suspend fun getUnSyncedFolders(): List<Folder>
 }

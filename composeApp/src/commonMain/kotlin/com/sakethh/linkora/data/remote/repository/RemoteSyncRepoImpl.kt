@@ -10,6 +10,8 @@ import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.asAddFolderDTO
+import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -30,6 +32,7 @@ import com.sakethh.linkora.domain.dto.server.panel.PanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
@@ -54,6 +57,7 @@ import io.ktor.http.contentType
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -1016,5 +1020,78 @@ class RemoteSyncRepoImpl(
                 }
             }
         }
+    }
+
+    override suspend fun <T> SendChannel<Result<T>>.pushNonSyncedDataToServer() {
+        send(Result.Loading(message = "[SYNC] Starting non-synced data push to server"))
+
+        send(Result.Loading(message = "[FOLDERS] Fetching unsynced folders"))
+        localFoldersRepo.getUnSyncedFolders().forEach { currentFolder ->
+            send(Result.Loading(message = "[FOLDERS] Processing folder (ID: ${currentFolder.localId}, Name: ${currentFolder.name})"))
+            pendingSyncQueueRepo.addInQueue(
+                PendingSyncQueue(
+                    operation = RemoteRoute.Folder.CREATE_FOLDER.name,
+                    payload = Json.encodeToString(
+                        currentFolder.asAddFolderDTO()
+                            .copy(offlineSyncItemId = currentFolder.localId)
+                    )
+                )
+            )
+            send(Result.Loading(message = "[FOLDERS] Queued folder (ID: ${currentFolder.localId}) for sync"))
+        }
+
+        send(Result.Loading(message = "[LINKS] Fetching unsynced links"))
+        localLinksRepo.getUnSyncedLinks().forEach { currentLink ->
+            send(Result.Loading(message = "[LINKS] Processing link (ID: ${currentLink.localId}, Title: ${currentLink.title})"))
+            pendingSyncQueueRepo.addInQueue(
+                PendingSyncQueue(
+                    operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+                    payload = Json.encodeToString(
+                        currentLink.asAddLinkDTO().copy(offlineSyncItemId = currentLink.localId)
+                    )
+                )
+            )
+            send(Result.Loading(message = "[LINKS] Queued link (ID: ${currentLink.localId}) for sync"))
+        }
+
+        send(Result.Loading(message = "[PANELS] Fetching unsynced panels"))
+        localPanelsRepo.getUnSyncedPanels().forEach { currentPanel ->
+            send(Result.Loading(message = "[PANELS] Processing panel (ID: ${currentPanel.localId}, Name: ${currentPanel.panelName})"))
+            pendingSyncQueueRepo.addInQueue(
+                PendingSyncQueue(
+                    operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
+                    payload = Json.encodeToString(
+                        AddANewPanelDTO(
+                            panelName = currentPanel.panelName,
+                            offlineSyncItemId = currentPanel.localId
+                        )
+                    )
+                )
+            )
+            send(Result.Loading(message = "[PANELS] Queued panel (ID: ${currentPanel.localId}) for sync"))
+        }
+
+        send(Result.Loading(message = "[PANEL FOLDERS] Fetching unsynced panel folders"))
+        localPanelsRepo.getUnSyncedPanelFolders().forEach { currentPanelFolder ->
+            send(Result.Loading(message = "[PANEL FOLDERS] Processing panel folder (ID: ${currentPanelFolder.localId}, Panel ID: ${currentPanelFolder.connectedPanelId})"))
+            pendingSyncQueueRepo.addInQueue(
+                PendingSyncQueue(
+                    operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                    payload = Json.encodeToString(
+                        AddANewPanelFolderDTO(
+                            folderId = currentPanelFolder.folderId,
+                            panelPosition = currentPanelFolder.panelPosition,
+                            folderName = currentPanelFolder.folderName,
+                            connectedPanelId = currentPanelFolder.connectedPanelId,
+                            offlineSyncItemId = currentPanelFolder.localId
+                        )
+                    )
+                )
+            )
+            send(Result.Loading(message = "[PANEL FOLDERS] Queued panel folder (ID: ${currentPanelFolder.localId}) for sync"))
+        }
+
+        send(Result.Loading(message = "[SYNC] Pushing queued items to server"))
+        pushPendingSyncQueueToServer().collect()
     }
 }

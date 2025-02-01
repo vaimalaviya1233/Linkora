@@ -128,6 +128,10 @@ object DependencyContainer {
     }
 
     val importDataRepo = lazy {
-        ImportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, localPanelsRepo.value)
+        ImportDataRepoImpl(
+            localLinksRepo.value, localFoldersRepo.value, localPanelsRepo.value, canPushToServer = {
+                AppPreferences.canPushToServer()
+            }, remoteSyncRepo = remoteSyncRepo.value
+        )
     }
 }
