@@ -7,6 +7,7 @@ import com.sakethh.linkora.common.utils.isATwitterUrl
 import com.sakethh.linkora.common.utils.isAValidLink
 import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
 import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
@@ -26,6 +27,7 @@ import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -44,7 +46,8 @@ class LocalLinksRepoImpl(
     private val httpClient: HttpClient,
     private val remoteLinksRepo: RemoteLinksRepo,
     private val foldersDao: FoldersDao,
-    private val pendingSyncQueueRepo: PendingSyncQueueRepo
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo,
+    private val preferencesRepository: PreferencesRepository
 ) : LocalLinksRepo {
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
@@ -86,6 +89,7 @@ class LocalLinksRepoImpl(
                 linksDao.updateALink(
                     linksDao.getLink(newLinkId).copy(remoteId = it.id)
                 )
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             }) {
             if (linkSaveConfig.forceSaveWithoutRetrievingData) {
                 link.url.isAValidLink().ifNot {
@@ -238,6 +242,8 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -264,6 +270,8 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -290,6 +298,8 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -319,6 +329,8 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                 val linkDTO = linksDao.getLink(linkId).copy(note = newNote).asLinkDTO(id = linkId)
                     pendingSyncQueueRepo.addInQueue(
@@ -345,6 +357,8 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     val linkDTO =
                         linksDao.getLink(linkId).copy(title = newTitle).asLinkDTO(linkId)
@@ -396,6 +410,8 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -421,6 +437,8 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(

@@ -20,5 +20,6 @@ data class AddLinkDTO(
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
     val correlation: Correlation = AppPreferences.getCorrelation(),
+    val eventTimestamp: Long = 0,
     val offlineSyncItemId: Long = 0
 )

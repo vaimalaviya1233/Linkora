@@ -106,7 +106,7 @@ fun ServerSetupScreen(
                     modifier = Modifier.fillMaxWidthWithPadding(),
                     value = serverUrl.value,
                     onValueChange = {
-                        serverUrl.value = it
+                        serverUrl.value = if (it.endsWith("/")) it else "$it/"
                     },
                     label = {
                         Text(

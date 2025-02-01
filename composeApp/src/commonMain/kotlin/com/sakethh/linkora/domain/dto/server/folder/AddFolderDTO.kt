@@ -10,6 +10,7 @@ data class AddFolderDTO(
     val note: String,
     val parentFolderId: Long?,
     val isArchived: Boolean,
+    val eventTimestamp: Long = 0,
     val correlation: Correlation = AppPreferences.getCorrelation(),
     val offlineSyncItemId: Long = 0
 )

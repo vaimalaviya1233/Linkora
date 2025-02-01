@@ -74,7 +74,8 @@ object DependencyContainer {
             foldersDao = localDatabase?.foldersDao!!,
             remoteFoldersRepo = remoteFoldersRepo.value,
             localLinksRepo = localLinksRepo.value, localPanelsRepo = localPanelsRepo.value,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
+            preferencesRepository = preferencesRepo.value
         )
     }
 
@@ -87,7 +88,8 @@ object DependencyContainer {
             httpClient = Network.client,
             remoteLinksRepo = remoteLinksRepo.value,
             foldersDao = localDatabase?.foldersDao!!,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
+            preferencesRepository = preferencesRepo.value
         )
     }
 
@@ -116,7 +118,8 @@ object DependencyContainer {
             panelsDao = localDatabase?.panelsDao!!,
             remotePanelsRepo = remotePanelsRepo.value,
             foldersDao = localDatabase?.foldersDao!!,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
+            preferencesRepository = preferencesRepo.value
         )
     }
 

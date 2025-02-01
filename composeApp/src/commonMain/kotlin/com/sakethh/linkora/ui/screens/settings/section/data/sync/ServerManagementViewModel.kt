@@ -128,12 +128,12 @@ class ServerManagementViewModel(
                     }.onSuccess {
                         preferencesRepository.changePreferenceValue(
                             preferenceKey = longPreferencesKey(
-                                AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name
+                                AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name
                             ), newValue = Instant.now().epochSecond
                         )
                         AppPreferences.updateLastSyncedLocally(
                             preferencesRepository.readPreferenceValue(
-                                longPreferencesKey(AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name)
+                                longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
                             ) ?: 0
                         )
                         onCompletion()

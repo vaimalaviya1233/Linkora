@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.PanelsDao
 import com.sakethh.linkora.domain.RemoteRoute
@@ -15,6 +16,7 @@ import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -25,7 +27,8 @@ class LocalPanelsRepoImpl(
     private val panelsDao: PanelsDao,
     private val remotePanelsRepo: RemotePanelsRepo,
     private val foldersDao: FoldersDao,
-    private val pendingSyncQueueRepo: PendingSyncQueueRepo
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo,
+    private val preferencesRepository: PreferencesRepository
 ) : LocalPanelsRepo {
     override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Unit>> {
         val newPanelId = panelsDao.getLatestPanelID() + 1
@@ -36,6 +39,7 @@ class LocalPanelsRepoImpl(
             },
             remoteOperationOnSuccess = {
                 panelsDao.updateAPanel(panelsDao.getPanel(newPanelId).copy(remoteId = it.id))
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             }, onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
@@ -60,6 +64,8 @@ class LocalPanelsRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -90,13 +96,16 @@ class LocalPanelsRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
                             payload = Json.encodeToString(
                                 UpdatePanelNameDTO(
-                                    newName, panelId
+                                    newName, panelId,
+                                    eventTimestamp = 0
                                 )
                             )
                         )
@@ -136,6 +145,7 @@ class LocalPanelsRepoImpl(
                 panelsDao.updateAPanelFolder(
                     panelsDao.getPanelFolder(newPanelFolderId).copy(remoteId = it.id)
                 )
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -181,6 +191,8 @@ class LocalPanelsRepoImpl(
                 } else {
                     emptyFlow()
                 }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(

@@ -338,7 +338,7 @@ object AppPreferences {
                 },
                 launch {
                     lastSyncedWithServer = preferencesRepository.readPreferenceValue(
-                        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name)
+                        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
                     ) ?: lastSyncedWithServer
                 },
                 launch {

@@ -3,8 +3,8 @@ package com.sakethh.linkora.data.local.repository
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.data.local.dao.FoldersDao
-import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
@@ -20,6 +20,7 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -35,13 +36,14 @@ class LocalFoldersRepoImpl(
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val localLinksRepo: LocalLinksRepo,
     private val localPanelsRepo: LocalPanelsRepo,
-    private val pendingSyncQueueRepo: PendingSyncQueueRepo
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo,
+    private val preferencesRepository: PreferencesRepository
 ) : LocalFoldersRepo {
 
     override suspend fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean,
         viaSocket: Boolean
-    ): Flow<Result<Message>> {
+    ): Flow<Result<Unit>> {
         val newLocalId = foldersDao.getLastIDOfFoldersTable() + 1
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(), remoteOperation = {
@@ -57,6 +59,7 @@ class LocalFoldersRepoImpl(
             foldersDao.updateAFolderData(
                 foldersDao.getThisFolderData(newLocalId).copy(remoteId = it.id)
             )
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             }, onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
@@ -95,8 +98,7 @@ class LocalFoldersRepoImpl(
                     }
                 }
             }
-            val newId = foldersDao.insertANewFolder(folder.copy(localId = newLocalId))
-            "Folder created successfully with id = $newId"
+                foldersDao.insertANewFolder(folder.copy(localId = newLocalId))
         })
     }
 
@@ -255,7 +257,9 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
-        }, localOperation = {
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+            }, localOperation = {
             if (newFolderName.isEmpty() || linkoraPlaceHolders()
                     .contains(newFolderName) || existingFolderName == newFolderName
             ) {
@@ -297,6 +301,8 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -331,6 +337,8 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -356,6 +364,8 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -391,6 +401,8 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -420,6 +432,8 @@ class LocalFoldersRepoImpl(
             } else {
                 emptyFlow()
             }
+            }, remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(

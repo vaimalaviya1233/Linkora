@@ -1,11 +1,11 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.postFlow
-import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
@@ -39,17 +39,17 @@ class RemotePanelsRepoImpl(
         )
     }
 
-    override suspend fun deleteAPanel(id: Long): Flow<Result<Message>> {
+    override suspend fun deleteAPanel(id: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_PANEL.name,
-            body = IDBasedDTO(id)
+            body = IDBasedDTO(id, eventTimestamp = 0)
         )
     }
 
-    override suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Flow<Result<Message>> {
+    override suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -59,17 +59,17 @@ class RemotePanelsRepoImpl(
         )
     }
 
-    override suspend fun deleteAFolderFromAllPanels(folderID: Long): Flow<Result<Message>> {
+    override suspend fun deleteAFolderFromAllPanels(folderID: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
-            body = IDBasedDTO(folderID)
+            body = IDBasedDTO(folderID, eventTimestamp = 0)
         )
     }
 
-    override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Flow<Result<Message>> {
+    override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,

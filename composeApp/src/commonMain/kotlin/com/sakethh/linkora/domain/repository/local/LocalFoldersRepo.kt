@@ -1,6 +1,5 @@
 package com.sakethh.linkora.domain.repository.local
 
-import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +10,7 @@ interface LocalFoldersRepo {
         folder: Folder,
         ignoreFolderAlreadyExistsException: Boolean,
         viaSocket: Boolean = false
-    ): Flow<Result<Message>>
+    ): Flow<Result<Unit>>
 
     suspend fun duplicateAFolder(actualFolderId: Long, parentFolderID: Long?): Flow<Result<Long>>
 

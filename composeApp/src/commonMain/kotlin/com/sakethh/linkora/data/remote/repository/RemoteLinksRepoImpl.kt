@@ -1,11 +1,11 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.postFlow
-import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
@@ -29,7 +29,7 @@ class RemoteLinksRepoImpl(
         )
     }
 
-    override suspend fun deleteALink(remoteLinkId: Long): Flow<Result<Message>> {
+    override suspend fun deleteALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -41,7 +41,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun renameALinkTitle(
         remoteLinkId: Long, newTitle: String
-    ): Flow<Result<Message>> {
+    ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -53,7 +53,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun renameALinkNote(
         remoteLinkId: Long, newNote: String
-    ): Flow<Result<Message>> {
+    ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -63,7 +63,7 @@ class RemoteLinksRepoImpl(
         )
     }
 
-    override suspend fun archiveALink(remoteLinkId: Long): Flow<Result<Message>> {
+    override suspend fun archiveALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -73,7 +73,7 @@ class RemoteLinksRepoImpl(
         )
     }
 
-    override suspend fun unArchiveALink(remoteLinkId: Long): Flow<Result<Message>> {
+    override suspend fun unArchiveALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -83,7 +83,7 @@ class RemoteLinksRepoImpl(
         )
     }
 
-    override suspend fun markALinkAsImp(remoteLinkId: Long): Flow<Result<Message>> {
+    override suspend fun markALinkAsImp(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -93,7 +93,7 @@ class RemoteLinksRepoImpl(
         )
     }
 
-    override suspend fun markALinkAsNonImp(remoteLinkId: Long): Flow<Result<Message>> {
+    override suspend fun markALinkAsNonImp(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -103,7 +103,7 @@ class RemoteLinksRepoImpl(
         )
     }
 
-    override suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<Message>> {
+    override suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,

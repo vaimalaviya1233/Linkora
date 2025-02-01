@@ -1,10 +1,8 @@
 package com.sakethh.linkora
 
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.pushSnackbar
@@ -23,7 +21,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import java.time.Instant
 
 class AppVM(
     private val remoteSyncRepo: RemoteSyncRepo,
@@ -71,11 +68,6 @@ class AppVM(
                         }
                 }
             }).joinAll()
-            preferencesRepository.changePreferenceValue(
-                preferenceKey = longPreferencesKey(
-                    AppPreferenceType.LAST_TIME_STAMP_SYNCED_WITH_SERVER.name
-                ), newValue = Instant.now().epochSecond
-            )
         }
     }
 

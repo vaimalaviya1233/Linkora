@@ -757,7 +757,10 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 Modifier.fillMaxWidth().wrapContentHeight()
             ) {
                 stickyHeader {
-                    Column {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
                         TopAppBar(title = {
                             Text(
                                 text = AddANewLinkDialogBox.subFoldersList.last().name,

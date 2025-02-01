@@ -8,5 +8,6 @@ import kotlinx.serialization.Serializable
 data class UpdateFolderNameDTO(
     val folderId: Long,
     val newFolderName: String,
+    val eventTimestamp: Long = 0,
     val correlation: Correlation = AppPreferences.getCorrelation()
 )

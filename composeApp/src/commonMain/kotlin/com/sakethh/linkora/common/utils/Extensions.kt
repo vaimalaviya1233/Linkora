@@ -7,16 +7,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -126,6 +129,12 @@ fun Exception?.pushSnackbar(coroutineScope: CoroutineScope) {
     }
 }
 
+suspend fun Exception?.pushSnackbar() {
+    if (this.isNotNull()) {
+        pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))
+    }
+}
+
 fun Throwable?.pushSnackbar(coroutineScope: CoroutineScope) {
     if (this.isNotNull()) {
         coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))
@@ -219,12 +228,11 @@ suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Res
 
 fun String.asWebSocketUrl(): String = "ws://" + this.substringAfter("://")
 
-fun Correlation.isSameAsCurrentClient(): Boolean = this == AppPreferences.getCorrelation()
+fun Correlation.isSameAsCurrentClient(): Boolean = this.id == AppPreferences.getCorrelation().id
 
-fun String.mask(): String {
-    val stringBuilder = StringBuilder()
-    repeat(this.length) {
-        stringBuilder.append("*")
-    }
-    return stringBuilder.toString()
+suspend fun PreferencesRepository.updateLastSyncedWithServerTimeStamp(newValue: Long) {
+    this.changePreferenceValue(
+        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name),
+        newValue = newValue
+    )
 }

@@ -1,11 +1,11 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.postFlow
-import com.sakethh.linkora.domain.Message
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
@@ -30,7 +30,7 @@ class RemoteFoldersRepoImpl(
         )
     }
 
-    override suspend fun deleteFolder(folderId: Long): Flow<Result<Message>> {
+    override suspend fun deleteFolder(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -39,7 +39,7 @@ class RemoteFoldersRepoImpl(
         )
     }
 
-    override suspend fun markAsArchive(folderId: Long): Flow<Result<Message>> {
+    override suspend fun markAsArchive(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -49,7 +49,7 @@ class RemoteFoldersRepoImpl(
         )
     }
 
-    override suspend fun markAsRegularFolder(folderId: Long): Flow<Result<Message>> {
+    override suspend fun markAsRegularFolder(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -60,7 +60,7 @@ class RemoteFoldersRepoImpl(
 
     override suspend fun changeParentFolder(
         folderId: Long, newParentFolderId: Long?
-    ): Flow<Result<Message>> {
+    ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -71,7 +71,7 @@ class RemoteFoldersRepoImpl(
 
     override suspend fun updateFolderName(
         folderId: Long, newFolderName: String
-    ): Flow<Result<Message>> {
+    ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -80,7 +80,10 @@ class RemoteFoldersRepoImpl(
         )
     }
 
-    override suspend fun updateFolderNote(folderId: Long, newNote: String): Flow<Result<Message>> {
+    override suspend fun updateFolderNote(
+        folderId: Long,
+        newNote: String
+    ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
@@ -89,7 +92,7 @@ class RemoteFoldersRepoImpl(
         )
     }
 
-    override suspend fun deleteFolderNote(folderId: Long): Flow<Result<Message>> {
+    override suspend fun deleteFolderNote(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
