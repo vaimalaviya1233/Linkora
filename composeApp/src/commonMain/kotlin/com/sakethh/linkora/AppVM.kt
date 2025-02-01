@@ -18,6 +18,8 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -47,8 +49,12 @@ class AppVM(
             }
             launch {
                 if (AppPreferences.canPushToServer()) {
-                    remoteSyncRepo.pushPendingSyncQueueToServer().collectLatest {
-                        it.pushSnackbarOnFailure()
+                    with(remoteSyncRepo) {
+                        channelFlow {
+                            pushPendingSyncQueueToServer<Unit>().collectLatest {
+                                it.pushSnackbarOnFailure()
+                            }
+                        }.collect()
                     }
                 }
             }
