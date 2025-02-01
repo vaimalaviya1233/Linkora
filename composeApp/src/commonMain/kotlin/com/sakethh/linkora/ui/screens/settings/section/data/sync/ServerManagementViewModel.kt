@@ -2,7 +2,6 @@ package com.sakethh.linkora.ui.screens.settings.section.data.sync
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,9 +21,9 @@ import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.time.Instant
 
 class ServerManagementViewModel(
     private val networkRepo: NetworkRepo,
@@ -126,17 +125,18 @@ class ServerManagementViewModel(
                     it.onLoading {
                         dataImportLogs.add(it)
                     }.onSuccess {
-                        preferencesRepository.changePreferenceValue(
-                            preferenceKey = longPreferencesKey(
-                                AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name
-                            ), newValue = Instant.now().epochSecond
-                        )
-                        AppPreferences.updateLastSyncedLocally(
-                            preferencesRepository.readPreferenceValue(
-                                longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
-                            ) ?: 0
-                        )
-                        onCompletion()
+                        with(remoteSyncRepo) {
+                            channelFlow {
+                                this.pushNonSyncedDataToServer<Unit>()
+                            }.collectLatest {
+                                it.onLoading {
+                                    dataImportLogs.add(it)
+                                }
+                                it.onSuccess {
+                                    onCompletion()
+                                }
+                            }
+                        }
                         pushUIEvent(
                             UIEvent.Type.ShowSnackbar(
                                 Localization.getLocalizedString(

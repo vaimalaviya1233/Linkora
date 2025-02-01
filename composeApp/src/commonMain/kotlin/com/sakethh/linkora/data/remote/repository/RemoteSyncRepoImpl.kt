@@ -356,7 +356,7 @@ class RemoteSyncRepoImpl(
                         val addANewPanelFolderDTO =
                             Json.decodeFromString<AddANewPanelFolderDTO>(queueItem.payload)
                         val remoteFolderId =
-                            localPanelsRepo.getRemotePanelId(addANewPanelFolderDTO.folderId)!!
+                            localFoldersRepo.getRemoteIdOfAFolder(addANewPanelFolderDTO.folderId)!!
                         val remoteConnectedPanelId =
                             localPanelsRepo.getRemotePanelId(addANewPanelFolderDTO.connectedPanelId)!!
                         remotePanelsRepo.addANewFolderInAPanel(
@@ -458,7 +458,7 @@ class RemoteSyncRepoImpl(
             Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
-                parameter("timestamp", timeStampAfter)
+                parameter("eventTimestamp", timeStampAfter)
             }.body<AllTablesDTO>().let { remoteResponse ->
                 send(Result.Loading("Received updates from server. Processing folders..."))
 
@@ -588,7 +588,7 @@ class RemoteSyncRepoImpl(
             Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
-                parameter("timestamp", timeStampAfter)
+                parameter("eventTimestamp", timeStampAfter)
             }.body<List<TombstoneDTO>>().map {
                 WebSocketEvent(
                     operation = it.operation,
