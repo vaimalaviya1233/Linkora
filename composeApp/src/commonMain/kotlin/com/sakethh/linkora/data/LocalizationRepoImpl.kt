@@ -9,13 +9,13 @@ import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.domain.model.localization.LocalizedString
 import com.sakethh.linkora.domain.repository.LocalizationRepo
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.serialization.json.Json
 
 class LocalizationRepoImpl(
     private val httpClient: HttpClient,
@@ -26,8 +26,8 @@ class LocalizationRepoImpl(
     override fun getLanguagesFromServer(): Flow<Result<LocalizationInfoDTO>> {
         return flow {
             emit(Result.Loading())
-            httpClient.get(localizationServerURL() + "info").body<LocalizationInfoDTO>().let {
-                emit(Result.Success(it))
+            httpClient.get(localizationServerURL() + "info").bodyAsText().let {
+                emit(Result.Success(Json.decodeFromString<LocalizationInfoDTO>(it)))
             }
         }.catchAsExceptionAndEmitFailure()
     }
@@ -35,26 +35,15 @@ class LocalizationRepoImpl(
     override suspend fun getLanguagePackFromServer(languageCode: String): Flow<Result<List<LocalizedString>>> {
         return flow {
             emit(Result.Loading())
-            val localizedStrings = mutableListOf<LocalizedString>()
-            httpClient.get(localizationServerURL() + languageCode)
-                .bodyAsText()
-                .substringAfter("<resources>")
-                .substringBefore("</resources>")
-                .split("<string").forEach {
-                    if (it.substringAfter("name=\"").substringBefore("\">").trim().isNotBlank()) {
-                        localizedStrings.add(
-                            LocalizedString(
-                                languageCode = languageCode,
-                                stringName = it.substringAfter("name=\"").substringBefore("\">")
-                                    .substringBefore("\"/>").trim(),
-                                stringValue = it.substringAfter("\">").substringAfter("\"/>")
-                                    .substringBefore("</string>")
-                                    .trim()
-                            )
-                        )
-                    }
-                }
-            emit(Result.Success(localizedStrings.toList()))
+            httpClient.get(localizationServerURL() + languageCode).bodyAsText().let {
+                Json.decodeFromString<Map<String, String>>(it)
+            }.map {
+                LocalizedString(
+                    languageCode = languageCode, stringName = it.key, stringValue = it.value
+                )
+            }.let {
+                emit(Result.Success(it))
+            }
         }.catchAsExceptionAndEmitFailure()
     }
 

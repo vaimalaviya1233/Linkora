@@ -3,9 +3,8 @@ package com.sakethh.linkora.domain.dto.localization
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AvailableLanguage(
+data class AvailableLanguageDTO(
     val languageCode: String,
-    val languageName: String,
+    val localizedName: String,
     val localizedStringsCount: Int,
-    val contributionLink: String
 )

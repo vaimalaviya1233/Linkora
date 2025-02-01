@@ -53,9 +53,9 @@ class LanguageSettingsScreenVM(
                         .map {
                             LocalizedLanguage(
                                 languageCode = it.languageCode,
-                                languageName = it.languageName,
+                                languageName = it.localizedName,
                                 localizedStringsCount = it.localizedStringsCount,
-                                contributionLink = it.contributionLink
+                                contributionLink = ""
                             )
                         }).collectLatest {
                         it.onSuccess {
