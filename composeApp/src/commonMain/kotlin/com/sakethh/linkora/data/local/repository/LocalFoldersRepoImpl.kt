@@ -129,10 +129,8 @@ class LocalFoldersRepoImpl(
         )
     }
 
-    override suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>> {
-        return performLocalOperationWithRemoteSyncFlow<List<Folder>, Unit>(performRemoteOperation = false) {
-            foldersDao.getAllRootFoldersAsList()
-        }
+    override suspend fun getAllRootFoldersAsList(): List<Folder> {
+        return foldersDao.getAllRootFoldersAsList()
     }
 
     override suspend fun getAllFolders(): Flow<Result<List<Folder>>> {

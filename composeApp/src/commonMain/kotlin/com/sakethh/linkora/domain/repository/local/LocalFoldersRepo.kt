@@ -18,7 +18,7 @@ interface LocalFoldersRepo {
 
     suspend fun getAllArchiveFoldersAsList(): Flow<Result<List<Folder>>>
 
-    suspend fun getAllRootFoldersAsList(): Flow<Result<List<Folder>>>
+    suspend fun getAllRootFoldersAsList(): List<Folder>
 
     suspend fun getAllFolders(): Flow<Result<List<Folder>>>
 

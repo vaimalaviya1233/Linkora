@@ -202,7 +202,7 @@ class ExportDataRepoImpl(
 
         val foldersList = if (parentFolderId == null) {
             send(Result.Loading(message = "Fetching all top-level folders"))
-            localFoldersRepo.getAllFoldersAsList().filter {
+            localFoldersRepo.getAllRootFoldersAsList().filter {
                 it.isArchived == forArchiveFolders
             }
         } else {
