@@ -532,14 +532,16 @@ class RemoteSyncRepoImpl(
                             remoteResponse.panelFolders.forEach { remotePanelFolder ->
                                 send(Result.Loading("Adding folder to panel with id: ${remotePanelFolder.id}"))
                                 // a panel_folder can only be added with this endpoint response because if it got deleted, it will be caught in the tombstones response, not here
-                                updateLocalDBAccordingToEvent(
-                                    WebSocketEvent(
-                                        operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
-                                        payload = json.encodeToJsonElement(
-                                            remotePanelFolder.copy(correlation = randomCorrelation)
+                                if (localPanelsRepo.getLocalPanelFolderId(remotePanelFolder.id) == null) {
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                                            payload = json.encodeToJsonElement(
+                                                remotePanelFolder.copy(correlation = randomCorrelation)
+                                            )
                                         )
                                     )
-                                )
+                                }
                             }
                     })
                 }
