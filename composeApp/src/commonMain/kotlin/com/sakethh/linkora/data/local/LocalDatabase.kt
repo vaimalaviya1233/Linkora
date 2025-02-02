@@ -17,7 +17,7 @@ import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 
 @Database(
-    version = 8,
+    version = 9,
     exportSchema = true,
     entities = [Link::class, Folder::class, LocalizedString::class, LocalizedLanguage::class, Panel::class, PanelFolder::class, PendingSyncQueue::class]
 )

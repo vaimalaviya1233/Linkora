@@ -7,14 +7,17 @@ import android.content.Context
 import android.os.Build
 import androidx.room.Room
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.driver.AndroidSQLiteDriver
+import androidx.sqlite.execSQL
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.data.local.createDataStore
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
 
 class LinkoraApp : Application() {
@@ -180,7 +183,191 @@ class LinkoraApp : Application() {
             }
         }
 
-        val dbFile = applicationContext.getDatabasePath("${LocalDatabase.NAME}.db")
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `pending_sync_queue` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `operation` TEXT NOT NULL, `payload` TEXT NOT NULL)")
+                linkoraLog("herere")
+                // migrate all of those links table from previous schema into the new solo table:
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `links` (`linkType` TEXT NOT NULL, `localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `baseURL` TEXT NOT NULL, `imgURL` TEXT NOT NULL, `note` TEXT NOT NULL, `idOfLinkedFolder` INTEGER, `userAgent` TEXT, `markedAsImportant` INTEGER NOT NULL, `mediaType` TEXT NOT NULL)")
+                connection.execSQL(
+                    """
+                    INSERT INTO links (
+                        remoteId,
+                        title,
+                        url,
+                        baseURL,
+                        imgURL,
+                        note,
+                        idOfLinkedFolder,
+                        userAgent,
+                        markedAsImportant,
+                        mediaType,
+                        linkType
+                    )
+                    SELECT
+                        NULL AS remoteId,
+                        title,
+                        webURL AS url,
+                        baseURL,
+                        imgURL,
+                        infoForSaving AS note,
+                        keyOfLinkedFolderV10 AS idOfLinkedFolder,
+                        userAgent,
+                        0 AS markedAsImportant,
+                        'IMAGE' AS mediaType,
+                        CASE
+                            WHEN keyOfLinkedFolderV10 IS NULL THEN 'SAVED_LINK'
+                            ELSE 'FOLDER_LINK'
+                        END AS linkType
+                    FROM links_table;
+                """.trimIndent()
+                )
+                connection.execSQL(
+                    """
+                    INSERT INTO links (
+                        remoteId,
+                        title,
+                        url,
+                        baseURL,
+                        imgURL,
+                        note,
+                        idOfLinkedFolder,
+                        userAgent,
+                        markedAsImportant,
+                        mediaType,
+                        linkType
+                    )
+                    SELECT
+                        NULL AS remoteId,
+                        title,
+                        webURL AS url,
+                        baseURL,
+                        imgURL,
+                        infoForSaving AS note,
+                        NULL AS idOfLinkedFolder,
+                        userAgent,
+                        0 AS markedAsImportant,
+                        'IMAGE' AS mediaType,
+                        'ARCHIVE_LINK' AS linkType
+                    FROM archived_links_table;
+                """.trimIndent()
+                )
+                connection.execSQL(
+                    """
+                   INSERT INTO links (
+                       remoteId,
+                       title,
+                       url,
+                       baseURL,
+                       imgURL,
+                       note,
+                       idOfLinkedFolder,
+                       userAgent,
+                       markedAsImportant,
+                       mediaType,
+                       linkType
+                   )
+                   SELECT
+                       NULL AS remoteId,
+                       title,
+                       webURL AS url,
+                       baseURL,
+                       imgURL,
+                       infoForSaving AS note,
+                       NULL AS idOfLinkedFolder,
+                       userAgent,
+                       1 AS markedAsImportant,
+                       'IMAGE' AS mediaType,
+                       'IMPORTANT_LINK' AS linkType
+                   FROM important_links_table;
+                """.trimIndent()
+                )
+
+                connection.execSQL(
+                    """
+                    INSERT INTO links (
+                        remoteId,
+                        title,
+                        url,
+                        baseURL,
+                        imgURL,
+                        note,
+                        idOfLinkedFolder,
+                        userAgent,
+                        markedAsImportant,
+                        mediaType,
+                        linkType
+                    )
+                    SELECT
+                        NULL AS remoteId,
+                        title,
+                        webURL AS url,
+                        baseURL,
+                        imgURL,
+                        infoForSaving AS note,
+                        NULL AS idOfLinkedFolder,
+                        userAgent,
+                        0 AS markedAsImportant,
+                        'IMAGE' AS mediaType,
+                        'HISTORY_LINK' AS linkType
+                    FROM recently_visited_table;
+                """.trimIndent()
+                )
+
+                // folders migration
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `folders` (`name` TEXT NOT NULL, `note` TEXT NOT NULL, `parentFolderId` INTEGER, `localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `isArchived` INTEGER NOT NULL)")
+                connection.execSQL(
+                    """
+                    INSERT INTO folders (
+                        name,
+                        note,
+                        parentFolderId,
+                        localId,
+                        remoteId,
+                        isArchived
+                    )
+                    SELECT
+                        folderName AS name,
+                        infoForSaving AS note,
+                        parentFolderID AS parentFolderId,
+                        id AS localId,
+                        NULL AS remoteId,
+                        isFolderArchived AS isArchived
+                    FROM folders_table;
+                """.trimIndent()
+                )
+
+                // panels
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `panel_new` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `panelName` TEXT NOT NULL, `remoteId` INTEGER)")
+                connection.execSQL("INSERT INTO panel_new (localId, panelName) SELECT panelId, panelName FROM panel;")
+                connection.execSQL("DROP TABLE panel;")
+                connection.execSQL("ALTER TABLE panel_new RENAME TO panel;")
+
+                // panel folders
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `panel_folder_new` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `folderId` INTEGER NOT NULL, `panelPosition` INTEGER NOT NULL, `folderName` TEXT NOT NULL, `connectedPanelId` INTEGER NOT NULL)")
+                connection.execSQL("INSERT INTO panel_folder_new (localId, remoteId, folderId, panelPosition, folderName, connectedPanelId) SELECT id, NULL, folderId, panelPosition, folderName, connectedPanelId FROM panel_folder;")
+                connection.execSQL("DROP TABLE panel_folder;")
+                connection.execSQL("ALTER TABLE panel_folder_new RENAME TO panel_folder;")
+
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `localized_languages` (`languageCode` TEXT NOT NULL, `languageName` TEXT NOT NULL, `localizedStringsCount` INTEGER NOT NULL, `contributionLink` TEXT NOT NULL, PRIMARY KEY(`languageCode`))")
+                connection.execSQL("INSERT INTO localized_languages (languageCode, languageName, localizedStringsCount, contributionLink) SELECT languageCode, languageName, localizedStringsCount, contributionLink FROM language;")
+                connection.execSQL("DROP TABLE language;")
+
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `localized_strings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `languageCode` TEXT NOT NULL, `stringName` TEXT NOT NULL, `stringValue` TEXT NOT NULL)")
+                connection.execSQL("INSERT INTO localized_strings (id, languageCode, stringName, stringValue) SELECT id, languageCode, stringName, stringValue FROM translation;")
+                connection.execSQL("DROP TABLE translation;")
+
+                connection.execSQL("DROP TABLE links_table;")
+                connection.execSQL("DROP TABLE folders_table;")
+                connection.execSQL("DROP TABLE archived_links_table;")
+                connection.execSQL("DROP TABLE archived_folders_table;")
+                connection.execSQL("DROP TABLE important_links_table;")
+                connection.execSQL("DROP TABLE important_folders_table;")
+                connection.execSQL("DROP TABLE recently_visited_table;")
+            }
+        }
+
+        val dbFile = applicationContext.getDatabasePath(LocalDatabase.NAME)
         return Room.databaseBuilder(
             applicationContext, LocalDatabase::class.java, name = dbFile.absolutePath
         ).setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).addMigrations(
@@ -190,7 +377,8 @@ class LinkoraApp : Application() {
             MIGRATION_4_5,
             MIGRATION_5_6,
             MIGRATION_6_7,
-            MIGRATION_7_8
+            MIGRATION_7_8,
+            MIGRATION_8_9
         ).build()
     }
 }
