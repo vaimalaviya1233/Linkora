@@ -308,8 +308,8 @@ fun DataSettingsScreen() {
                 }
             }
 
-            item {
-                if (AppPreferences.isServerConfigured()) {
+            if (AppPreferences.isServerConfigured()) {
+                item {
                     SettingComponent(
                         SettingComponentParam(
                             isIconNeeded = rememberSaveable { mutableStateOf(true) },
@@ -338,6 +338,7 @@ fun DataSettingsScreen() {
                     )
                 }
             }
+
             item {
                 HorizontalDivider(
                     Modifier.padding(

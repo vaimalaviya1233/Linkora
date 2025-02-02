@@ -245,8 +245,8 @@ fun ServerSetupScreen(
     }
     LogsScreen(
         isVisible = showImportLogsFromServer,
-        operationDesc = Localization.Key.ImportingDataFromTheSeverDesc.rememberLocalizedString(),
-        operationTitle = Localization.Key.ImportingDataFromTheSever.rememberLocalizedString(),
+        operationDesc = Localization.Key.SyncingDataLabel.rememberLocalizedString(),
+        operationTitle = Localization.Key.InitiateManualSyncDescAlt.rememberLocalizedString(),
         logs = serverManagementViewModel.dataSyncLogs,
         onCancel = {
             serverManagementViewModel.cancelServerConnectionAndSync()

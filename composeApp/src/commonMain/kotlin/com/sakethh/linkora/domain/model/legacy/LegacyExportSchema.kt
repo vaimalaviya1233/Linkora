@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName("Export")
 data class LegacyExportSchema(
-    @SerialName("appVersion") val schemaVersion: Int,
+    @SerialName("appVersion") val schemaVersion: Int = 11,
     @SerialName("savedLinks") val linksTable: List<LinksTable>,
     @SerialName("importantLinks") val importantLinksTable: List<ImportantLinks>,
     @SerialName("folders") val foldersTable: List<FoldersTable>,

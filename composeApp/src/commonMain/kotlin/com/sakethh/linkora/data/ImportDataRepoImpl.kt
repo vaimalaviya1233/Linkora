@@ -39,29 +39,32 @@ class ImportDataRepoImpl(
     private val remoteSyncRepo: RemoteSyncRepo,
     private val canPushToServer: () -> Boolean,
 ) : ImportDataRepo {
+    private val json = Json {
+        ignoreUnknownKeys = true
+    }
     override suspend fun importDataFromAJSONFile(file: File): Flow<Result<Unit>> {
         return channelFlow<Result<Unit>> {
             send(Result.Loading(message = "Starting data import from JSON file: ${file.name}"))
 
             send(Result.Loading(message = "Reading and deserializing JSON file: ${file.name}"))
             val rawImportString = file.readText()
-            val basedOnLegacyExportSchema = try {
-                Json.parseToJsonElement(rawImportString).jsonObject["appVersion"].toString()
+            val basedOnNewExportSchema = try {
+                json.parseToJsonElement(rawImportString).jsonObject["schemaVersion"].toString()
                     .toLong().let {
-                        it <= 11
+                        it > 11
                     }
             } catch (_: Exception) {
                 false
             }
-            val deserializedData = if (basedOnLegacyExportSchema) {
+            val deserializedData = if (basedOnNewExportSchema.not()) {
                 Json.decodeFromString<LegacyExportSchema>(rawImportString).asJSONExportSchema()
             } else rawImportString.run {
-                Json.decodeFromString<JSONExportSchema>(this)
+                json.decodeFromString<JSONExportSchema>(this)
             }
 
             send(
                 Result.Loading(
-                    message = if (basedOnLegacyExportSchema) {
+                    message = if (basedOnNewExportSchema.not()) {
                         "This JSON file is based on the legacy export schema (v${deserializedData.schemaVersion})."
                     } else {
                         "This JSON file is based on schema version ${deserializedData.schemaVersion}."

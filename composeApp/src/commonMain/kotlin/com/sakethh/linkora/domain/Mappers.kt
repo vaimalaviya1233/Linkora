@@ -169,7 +169,7 @@ suspend fun LegacyExportSchema.asJSONExportSchema(): JSONExportSchema = coroutin
                 this@asJSONExportSchema.foldersTable.map {
                     Folder(
                         name = it.folderName,
-                        note = it.folderName,
+                        note = it.infoForSaving,
                         parentFolderId = it.parentFolderID,
                         isArchived = it.isFolderArchived,
                         localId = it.id
