@@ -95,7 +95,7 @@ class ServerManagementViewModel(
         }
     }
 
-    fun saveServerConnectionAndImport(
+    fun saveServerConnectionAndSync(
         serverConnection: ServerConnection, onImportStart: () -> Unit, onCompletion: () -> Unit
     ) {
         saveServerConnectionAndImportDataJob?.cancel()
@@ -135,6 +135,9 @@ class ServerManagementViewModel(
                                 it.onSuccess {
                                     onCompletion()
                                 }
+                                it.onFailure {
+                                    onCompletion()
+                                }
                             }
                         }
                         pushUIEvent(
@@ -145,6 +148,8 @@ class ServerManagementViewModel(
                             )
                         )
                         AppVM.readSocketEvents(viewModelScope, remoteSyncRepo)
+                    }.onFailure {
+                        onCompletion()
                     }.pushSnackbarOnFailure()
                 }
             }

@@ -218,7 +218,7 @@ fun ServerSetupScreen(
             item {
                 Button(
                     onClick = {
-                        serverManagementViewModel.saveServerConnectionAndImport(
+                        serverManagementViewModel.saveServerConnectionAndSync(
                             serverConnection = ServerConnection(
                                 serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
                                 authToken = securityToken.value,
