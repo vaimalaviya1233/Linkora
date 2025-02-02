@@ -525,9 +525,9 @@ open class CollectionsScreenVM(
                 sortingType
             }.collectLatest { sortingType ->
                 if (folderId.isNull()) {
-                    localLinksRepo.sortLinks(linkType, sortingType)
+                    localLinksRepo.getSortedLinks(linkType, sortingType)
                 } else {
-                    localLinksRepo.sortLinks(linkType, folderId!!, sortingType)
+                    localLinksRepo.getSortedLinks(linkType, folderId!!, sortingType)
                 }.collectAndEmitLinks()
             }
         }

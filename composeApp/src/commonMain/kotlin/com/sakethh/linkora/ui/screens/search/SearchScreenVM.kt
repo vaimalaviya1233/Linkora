@@ -176,7 +176,7 @@ class SearchScreenVM(
             snapshotFlow {
                 AppPreferences.selectedSortingTypeType.value
             }.collectLatest {
-                localLinksRepo.sortLinks(linkType = LinkType.HISTORY_LINK, it).collectLatest {
+                localLinksRepo.getSortedLinks(linkType = LinkType.HISTORY_LINK, it).collectLatest {
                     it.onSuccess {
                         _links.emit(it.data)
                     }.pushSnackbarOnFailure()

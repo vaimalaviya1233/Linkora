@@ -33,6 +33,7 @@ sealed interface RemoteRoute {
     enum class SyncInLocalRoute {
         TEST_BEARER,
         GET_UPDATES,
-        GET_TOMBSTONES
+        GET_TOMBSTONES,
+        DELETE_EVERYTHING
     }
 }

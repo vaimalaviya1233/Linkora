@@ -657,7 +657,7 @@ fun App(
                     if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                         DeleteDialogBoxType.FOLDER
                     } else DeleteDialogBoxType.LINK,
-                    onDeleteClick = { onCompletion ->
+                    onDeleteClick = { onCompletion, _ ->
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.deleteAFolder(
                                 selectedFolderForMenuBtmSheet.value, onCompletion = {

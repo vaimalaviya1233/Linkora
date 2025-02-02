@@ -98,7 +98,8 @@ fun DataSettingsScreen() {
             foldersRepo = DependencyContainer.localFoldersRepo.value,
             localPanelsRepo = DependencyContainer.localPanelsRepo.value,
             preferencesRepository = DependencyContainer.preferencesRepo.value,
-            pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo.value
+            pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo.value,
+            remoteSyncRepo = DependencyContainer.remoteSyncRepo.value
         )
     })
     val isImportExportProgressUIVisible = rememberSaveable {
@@ -553,8 +554,8 @@ fun DataSettingsScreen() {
         deleteDialogBoxParam = DeleteDialogBoxParam(
             shouldDialogBoxAppear = shouldDeleteEntireDialogBoxAppear,
             deleteDialogBoxType = DeleteDialogBoxType.REMOVE_ENTIRE_DATA,
-            onDeleteClick = { onCompletion ->
-                dataSettingsScreenVM.deleteEntireDatabase(onCompletion)
+            onDeleteClick = { onCompletion, deleteEverythingFromRemote ->
+                dataSettingsScreenVM.deleteEntireDatabase(deleteEverythingFromRemote, onCompletion)
             }
         ))
     PlatformSpecificBackHandler {

@@ -54,6 +54,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -64,6 +65,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -1146,5 +1148,20 @@ class RemoteSyncRepoImpl(
 
         send(Result.Loading(message = "[SYNC] Pushing queued items to server"))
         pushPendingSyncQueueToServer().collect()
+    }
+
+    override suspend fun deleteEverythingOnRemote(): Flow<Result<Unit>> {
+        return flow {
+            emit(Result.Loading())
+            Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name) {
+                bearerAuth(authToken())
+            }.status.let {
+                if (it.isSuccess()) {
+                    emit(Result.Success(Unit))
+                } else {
+                    emit(Result.Failure(""))
+                }
+            }
+        }
     }
 }

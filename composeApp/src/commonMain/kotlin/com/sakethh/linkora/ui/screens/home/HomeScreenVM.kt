@@ -111,7 +111,12 @@ class HomeScreenVM(
                 if (it.isNull() || it!! == Constants.DEFAULT_PANELS_ID) {
                     defaultPanel()
                 } else {
-                    localPanelsRepo.getPanel(it)
+                    try {
+                        localPanelsRepo.getPanel(it)
+                    } catch (_: Exception) {
+                        updatePanelFolders(Constants.DEFAULT_PANELS_ID)
+                        defaultPanel()
+                    }
                 }
             }
         }

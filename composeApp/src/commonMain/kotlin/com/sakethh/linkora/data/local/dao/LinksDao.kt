@@ -66,7 +66,7 @@ interface LinksDao {
         CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
     """
     )
-    fun sortLinks(
+    fun getSortedLinks(
         linkType: com.sakethh.linkora.domain.LinkType, sortOption: String
     ): Flow<List<Link>>
 
@@ -80,7 +80,7 @@ interface LinksDao {
         CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
     """
     )
-    fun sortAllLinks(
+    fun getAllLinks(
         sortOption: String
     ): Flow<List<Link>>
 
@@ -96,7 +96,7 @@ interface LinksDao {
         CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
     """
     )
-    fun sortLinks(
+    fun getSortedLinks(
         linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>>
 

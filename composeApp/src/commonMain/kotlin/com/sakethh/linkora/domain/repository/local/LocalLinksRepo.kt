@@ -15,7 +15,7 @@ interface LocalLinksRepo {
 
     suspend fun addMultipleLinks(links: List<Link>)
 
-    suspend fun sortLinks(
+    suspend fun getSortedLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>>
 
@@ -23,7 +23,7 @@ interface LocalLinksRepo {
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>>
 
-    suspend fun sortLinks(
+    suspend fun getSortedLinks(
         linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>>
 

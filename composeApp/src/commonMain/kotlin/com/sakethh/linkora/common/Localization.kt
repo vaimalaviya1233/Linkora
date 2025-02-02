@@ -191,6 +191,7 @@ object Localization {
         DeleteEntireDataPermanently(defaultValue = "Delete entire data permanently"), DeleteEntireDataPermanentlyDesc(
             defaultValue = "Permanently delete all links, folders, panels, and localized strings."
         ),
+        DeletedEntireDataPermanently(defaultValue = "Deleted entire data permanently."),
         ClearImageCache(defaultValue = "Clear Image Cache"), ClearImageCacheDesc(defaultValue = "Images are cached by default. Changing the user agent might affect what you see. Clear the cache to resolve it."), RefreshAllLinksTitlesAndImages(
             defaultValue = "Refresh Titles and Images of all links"
         ),
@@ -435,6 +436,7 @@ object Localization {
         InitiateManualSyncDesc(defaultValue = "Pending queue items will be force-pushed, while non-synced server items will be pulled."), InitiateManualSyncDescAlt(
             defaultValue = "Pending items will be pushed, and unsynced data from the server will be pulled."
         ),
-        SyncingDataLabel(defaultValue = "Syncing Data...")
+        SyncingDataLabel(defaultValue = "Syncing Data..."), RemoteDataDeletionFailure(defaultValue = "The data from the remote database could not be deleted."),
+        DeleteEverythingFromRemoteDatabaseLabel(defaultValue = "Delete all data from the remote database as well")
     }
 }

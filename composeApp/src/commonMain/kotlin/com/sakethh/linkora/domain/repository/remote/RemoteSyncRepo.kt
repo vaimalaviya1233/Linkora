@@ -11,4 +11,5 @@ interface RemoteSyncRepo {
     suspend fun <T> SendChannel<Result<T>>.pushPendingSyncQueueToServer(): Flow<Result<Unit>>
     suspend fun applyUpdatesFromRemote(timeStampAfter: Long): Flow<Result<Unit>>
     suspend fun <T> SendChannel<Result<T>>.pushNonSyncedDataToServer()
+    suspend fun deleteEverythingOnRemote(): Flow<Result<Unit>>
 }

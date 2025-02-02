@@ -1,10 +1,15 @@
 package com.sakethh.linkora.ui.components
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -13,11 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
@@ -28,7 +36,7 @@ enum class DeleteDialogBoxType {
 data class DeleteDialogBoxParam(
     val shouldDialogBoxAppear: MutableState<Boolean>,
     val deleteDialogBoxType: DeleteDialogBoxType,
-    val onDeleteClick: (onCompletion: () -> Unit) -> Unit,
+    val onDeleteClick: (onCompletion: () -> Unit, deleteEverythingFromRemote: Boolean) -> Unit,
     val areFoldersSelectable: Boolean = false
 )
 
@@ -37,6 +45,9 @@ fun DeleteDialogBox(
     deleteDialogBoxParam: DeleteDialogBoxParam
 ) {
     val isDeletionInProgress: MutableState<Boolean> = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val deleteEverythingFromRemoteToo = rememberSaveable {
         mutableStateOf(false)
     }
     Column {
@@ -49,7 +60,7 @@ fun DeleteDialogBox(
                             deleteDialogBoxParam.onDeleteClick({
                                 isDeletionInProgress.value = false
                                 deleteDialogBoxParam.shouldDialogBoxAppear.value = false
-                            })
+                            }, deleteEverythingFromRemoteToo.value)
                         }) {
                         Text(
                             text = Localization.rememberLocalizedString(Localization.Key.Delete),
@@ -82,6 +93,25 @@ fun DeleteDialogBox(
                     textAlign = TextAlign.Start
                 )
             }, text = {
+                if (isDeletionInProgress.value.not() && AppPreferences.canPushToServer() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.REMOVE_ENTIRE_DATA) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            if (isDeletionInProgress.value.not()) {
+                                deleteEverythingFromRemoteToo.value =
+                                    deleteEverythingFromRemoteToo.value.not()
+                            }
+                        }, verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = deleteEverythingFromRemoteToo.value, onCheckedChange = {
+                            deleteEverythingFromRemoteToo.value = it
+                        }, enabled = isDeletionInProgress.value)
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = Localization.Key.DeleteEverythingFromRemoteDatabaseLabel.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                }
                 if (isDeletionInProgress.value.not() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.FOLDER) {
                     Text(
                         text = Localization.Key.FolderDeletionLabel.rememberLocalizedString(),

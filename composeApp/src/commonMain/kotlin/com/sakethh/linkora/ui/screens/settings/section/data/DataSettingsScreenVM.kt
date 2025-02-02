@@ -2,12 +2,15 @@ package com.sakethh.linkora.ui.screens.settings.section.data
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.cancelRefreshingLinks
 import com.sakethh.isAnyRefreshingScheduled
 import com.sakethh.isStorageAccessPermittedOnAndroid
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.ifTrue
@@ -26,6 +29,7 @@ import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.onRefreshAllLinks
@@ -36,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -44,7 +49,8 @@ class DataSettingsScreenVM(
     private val linksRepo: LocalLinksRepo, private val foldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
-    private val pendingSyncQueueRepo: PendingSyncQueueRepo
+    private val pendingSyncQueueRepo: PendingSyncQueueRepo,
+    private val remoteSyncRepo: RemoteSyncRepo
 ) : ViewModel() {
     val importExportProgressLogs = mutableStateListOf<String>()
 
@@ -145,14 +151,44 @@ class DataSettingsScreenVM(
         importExportJob?.cancel()
     }
 
-    fun deleteEntireDatabase(onCompletion: () -> Unit) {
+    fun deleteEntireDatabase(deleteEverythingFromRemote: Boolean, onCompletion: () -> Unit) {
+        var remoteOperationFailed: Boolean? = null
         viewModelScope.launch {
-            linksRepo.deleteAllLinks()
-            foldersRepo.deleteAllFolders()
-            localPanelsRepo.deleteAllPanels()
-            localPanelsRepo.deleteAllPanelFolders()
-            pendingSyncQueueRepo.deleteAllItems()
+            supervisorScope {
+                listOf(launch {
+                    linksRepo.deleteAllLinks()
+                }, launch {
+                    foldersRepo.deleteAllFolders()
+                }, launch {
+                    localPanelsRepo.deleteAllPanels()
+                    preferencesRepository.changePreferenceValue(
+                        preferenceKey = longPreferencesKey(
+                            AppPreferenceType.LAST_SELECTED_PANEL_ID.name
+                        ), newValue = Constants.DEFAULT_PANELS_ID
+                    )
+                }, launch {
+                    localPanelsRepo.deleteAllPanelFolders()
+                }, launch {
+                    pendingSyncQueueRepo.deleteAllItems()
+                }, launch {
+                    if (deleteEverythingFromRemote) {
+                        remoteSyncRepo.deleteEverythingOnRemote().collectLatest {
+                            it.onFailure {
+                                remoteOperationFailed = true
+                            }
+                        }
+                    }
+                })
+            }
         }.invokeOnCompletion {
+            viewModelScope.launch {
+                pushUIEvent(
+                    UIEvent.Type.ShowSnackbar(
+                        if (remoteOperationFailed == null) Localization.Key.DeletedEntireDataPermanently.getLocalizedString()
+                        else Localization.Key.RemoteDataDeletionFailure.getLocalizedString()
+                    )
+                )
+            }
             onCompletion()
         }
     }
