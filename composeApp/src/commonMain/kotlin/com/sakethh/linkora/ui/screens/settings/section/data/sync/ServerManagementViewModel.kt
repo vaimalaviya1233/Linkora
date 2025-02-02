@@ -9,6 +9,7 @@ import com.sakethh.linkora.AppVM
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.onFailure
@@ -21,13 +22,14 @@ import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ServerManagementViewModel(
     private val networkRepo: NetworkRepo,
-    private val preferencesRepository: PreferencesRepository,
+    val preferencesRepository: PreferencesRepository,
     private val remoteSyncRepo: RemoteSyncRepo
 ) : ViewModel() {
     val serverSetupState = mutableStateOf(
@@ -74,11 +76,14 @@ class ServerManagementViewModel(
         }
     }
 
-    val dataImportLogs = mutableStateListOf<String>()
-    private var saveServerConnectionAndImportDataJob: Job? = null
+    val dataSyncLogs = mutableStateListOf<String>()
+    private var saveServerConnectionAndSyncJob: Job? = null
 
-    fun cancelServerConnectionAndImporting() {
-        saveServerConnectionAndImportDataJob?.cancel()
+    fun cancelServerConnectionAndSync(removeConnection: Boolean = true) {
+        saveServerConnectionAndSyncJob?.cancel()
+        if (removeConnection.not()) {
+            return
+        }
         viewModelScope.launch {
             preferencesRepository.changePreferenceValue(
                 preferenceKey = stringPreferencesKey(
@@ -96,10 +101,14 @@ class ServerManagementViewModel(
     }
 
     fun saveServerConnectionAndSync(
-        serverConnection: ServerConnection, onImportStart: () -> Unit, onCompletion: () -> Unit
+        serverConnection: ServerConnection,
+        timeStampAfter: suspend () -> Long = { 0 },
+        onSyncStart: () -> Unit,
+        onCompletion: () -> Unit
     ) {
-        saveServerConnectionAndImportDataJob?.cancel()
-        saveServerConnectionAndImportDataJob = viewModelScope.launch {
+        saveServerConnectionAndSyncJob?.cancel()
+        dataSyncLogs.clear()
+        saveServerConnectionAndSyncJob = viewModelScope.launch {
             preferencesRepository.changePreferenceValue(
                 preferenceKey = stringPreferencesKey(
                     AppPreferenceType.SERVER_URL.name
@@ -119,44 +128,44 @@ class ServerManagementViewModel(
                 ), newValue = serverConnection.syncType.name
             )
             AppPreferences.serverSyncType.value = serverConnection.syncType
+            onSyncStart()
             if (AppPreferences.canReadFromServer()) {
-                onImportStart()
-                remoteSyncRepo.applyUpdatesFromRemote(0).collectLatest {
+                remoteSyncRepo.applyUpdatesFromRemote(timeStampAfter()).collectLatest {
                     it.onLoading {
-                        dataImportLogs.add(it)
+                        dataSyncLogs.add(it)
                     }.onSuccess {
-                        with(remoteSyncRepo) {
-                            channelFlow {
-                                this.pushNonSyncedDataToServer<Unit>()
-                            }.collectLatest {
-                                it.onLoading {
-                                    dataImportLogs.add(it)
-                                }
-                                it.onSuccess {
-                                    onCompletion()
-                                }
-                                it.onFailure {
-                                    onCompletion()
-                                }
-                            }
-                        }
-                        pushUIEvent(
-                            UIEvent.Type.ShowSnackbar(
-                                Localization.getLocalizedString(
-                                    Localization.Key.SuccessfullySavedConnectionDetails
-                                )
-                            )
-                        )
                         AppVM.readSocketEvents(viewModelScope, remoteSyncRepo)
                     }.onFailure {
-                        onCompletion()
+                        cancel()
                     }.pushSnackbarOnFailure()
                 }
             }
+            if (AppPreferences.canPushToServer()) {
+                with(remoteSyncRepo) {
+                    channelFlow {
+                        this.pushNonSyncedDataToServer<Unit>()
+                    }.collectLatest {
+                        it.onLoading {
+                            dataSyncLogs.add(it)
+                        }
+                        it.onSuccess {
+                            onCompletion()
+                        }
+                        it.onFailure {
+                            cancel()
+                        }.pushSnackbarOnFailure()
+                    }
+                }
+            }
         }
-        saveServerConnectionAndImportDataJob?.invokeOnCompletion {
+        saveServerConnectionAndSyncJob?.invokeOnCompletion {
+            if (it == null) {
+                viewModelScope.launch {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.DataSynchronizationCompletedSuccessfully.getLocalizedString()))
+                }
+            }
             onCompletion()
-            dataImportLogs.clear()
+            dataSyncLogs.clear()
         }
     }
 

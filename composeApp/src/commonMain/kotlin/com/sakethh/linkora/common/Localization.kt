@@ -428,6 +428,13 @@ object Localization {
         ),
         NoHistoryFound(defaultValue = "No history found. Your history is clean!"), StartingImportingProcess(
             defaultValue = "Starting data import from JSON file: ${LinkoraPlaceHolder.First.value}"
-        )
+        ),
+        DataSynchronizationCompletedSuccessfully(defaultValue = "Data synchronization completed successfully."), InitiateManualSync(
+            defaultValue = "Initiate Manual Sync"
+        ),
+        InitiateManualSyncDesc(defaultValue = "Pending queue items will be force-pushed, while non-synced server items will be pulled."), InitiateManualSyncDescAlt(
+            defaultValue = "Pending items will be pushed, and unsynced data from the server will be pulled."
+        ),
+        SyncingDataLabel(defaultValue = "Syncing Data...")
     }
 }

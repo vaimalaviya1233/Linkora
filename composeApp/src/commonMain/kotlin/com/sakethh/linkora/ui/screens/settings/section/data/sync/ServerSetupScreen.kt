@@ -223,7 +223,7 @@ fun ServerSetupScreen(
                                 serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
                                 authToken = securityToken.value,
                                 syncType = selectedSyncType.value
-                            ), onImportStart = {
+                            ), onSyncStart = {
                                 showImportLogsFromServer.value = true
                             }, onCompletion = {
                                 showImportLogsFromServer.value = false
@@ -247,8 +247,8 @@ fun ServerSetupScreen(
         isVisible = showImportLogsFromServer,
         operationDesc = Localization.Key.ImportingDataFromTheSeverDesc.rememberLocalizedString(),
         operationTitle = Localization.Key.ImportingDataFromTheSever.rememberLocalizedString(),
-        logs = serverManagementViewModel.dataImportLogs,
+        logs = serverManagementViewModel.dataSyncLogs,
         onCancel = {
-            serverManagementViewModel.cancelServerConnectionAndImporting()
+            serverManagementViewModel.cancelServerConnectionAndSync()
         })
 }

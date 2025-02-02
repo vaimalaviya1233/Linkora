@@ -7,6 +7,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
+import com.sakethh.linkora.ui.domain.model.ServerConnection
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
@@ -118,3 +119,11 @@ fun initializeIfServerConfigured(init: () -> Unit) {
 }
 
 fun getVideoPlatformBaseUrls(): List<String> = listOf("youtube.com", "youtu.be")
+
+fun currentSavedServerConfig(): ServerConnection {
+    return ServerConnection(
+        serverUrl = AppPreferences.serverBaseUrl.value,
+        authToken = AppPreferences.serverSecurityToken.value,
+        syncType = AppPreferences.serverSyncType.value
+    )
+}

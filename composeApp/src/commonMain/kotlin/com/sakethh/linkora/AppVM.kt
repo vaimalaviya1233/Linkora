@@ -61,14 +61,22 @@ class AppVM(
 
             listOf(launch {
                 if (AppPreferences.canReadFromServer()) {
-                    remoteSyncRepo.applyUpdatesBasedOnRemoteTombstones(AppPreferences.lastSyncedLocally())
+                    remoteSyncRepo.applyUpdatesBasedOnRemoteTombstones(
+                        AppPreferences.lastSyncedLocally(
+                            preferencesRepository
+                        )
+                    )
                         .collectLatest {
                             it.pushSnackbarOnFailure()
                         }
                 }
             }, launch {
                 if (AppPreferences.canReadFromServer()) {
-                    remoteSyncRepo.applyUpdatesFromRemote(AppPreferences.lastSyncedLocally())
+                    remoteSyncRepo.applyUpdatesFromRemote(
+                        AppPreferences.lastSyncedLocally(
+                            preferencesRepository
+                        )
+                    )
                         .collectLatest {
                             it.pushSnackbarOnFailure()
                         }

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Html
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialogDefaults
@@ -55,6 +56,7 @@ import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.currentSavedServerConfig
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ExportFileType
@@ -99,10 +101,12 @@ fun DataSettingsScreen() {
             pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo.value
         )
     })
-    val isProgressUIVisible = rememberSaveable {
+    val isImportExportProgressUIVisible = rememberSaveable {
         mutableStateOf(false)
     }
-
+    val isForcePushAndPullProgressUIVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
     val shouldDeleteEntireDialogBoxAppear = rememberSaveable { mutableStateOf(false) }
 
     val dataOperationTitle = rememberSaveable {
@@ -153,10 +157,10 @@ fun DataSettingsScreen() {
                             dataSettingsScreenVM.importDataFromAFile(
                                 importFileType = ImportFileType.JSON,
                                 onStart = {
-                                    isProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible.value = true
                                 },
                                 onCompletion = {
-                                    isProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible.value = false
                                 })
                         },
                         icon = Icons.Default.DataObject,
@@ -178,10 +182,10 @@ fun DataSettingsScreen() {
                             dataSettingsScreenVM.importDataFromAFile(
                                 importFileType = ImportFileType.HTML,
                                 onStart = {
-                                    isProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible.value = true
                                 },
                                 onCompletion = {
-                                    isProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible.value = false
                                 })
                         },
                         icon = Icons.Default.Html,
@@ -214,10 +218,10 @@ fun DataSettingsScreen() {
                                 platform = platform,
                                 exportFileType = ExportFileType.JSON,
                                 onStart = {
-                                    isProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible.value = true
                                 },
                                 onCompletion = {
-                                    isProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible.value = false
                                 })
                         },
                         icon = Icons.Default.DataObject,
@@ -240,10 +244,10 @@ fun DataSettingsScreen() {
                                 platform = platform,
                                 exportFileType = ExportFileType.HTML,
                                 onStart = {
-                                    isProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible.value = true
                                 },
                                 onCompletion = {
-                                    isProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible.value = false
                                 })
                         },
                         icon = Icons.Default.Html,
@@ -303,7 +307,36 @@ fun DataSettingsScreen() {
                 }
             }
 
-
+            item {
+                if (AppPreferences.isServerConfigured()) {
+                    SettingComponent(
+                        SettingComponentParam(
+                            isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                            title = Localization.Key.InitiateManualSync.rememberLocalizedString(),
+                            doesDescriptionExists = true,
+                            description = Localization.Key.InitiateManualSyncDesc.rememberLocalizedString(),
+                            isSwitchNeeded = false,
+                            isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
+                            onSwitchStateChange = {
+                                serverManagementViewModel.saveServerConnectionAndSync(
+                                    serverConnection = currentSavedServerConfig(),
+                                    timeStampAfter = {
+                                        AppPreferences.lastSyncedLocally(serverManagementViewModel.preferencesRepository)
+                                    },
+                                    onSyncStart = {
+                                        isForcePushAndPullProgressUIVisible.value = true
+                                    },
+                                    onCompletion = {
+                                        isForcePushAndPullProgressUIVisible.value = false
+                                    }
+                                )
+                            },
+                            icon = Icons.Default.Sync,
+                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) }
+                        )
+                    )
+                }
+            }
             item {
                 HorizontalDivider(
                     Modifier.padding(
@@ -502,11 +535,19 @@ fun DataSettingsScreen() {
         navController = navController
     )
     LogsScreen(
-        isVisible = isProgressUIVisible, onCancel = {
+        isVisible = isImportExportProgressUIVisible, onCancel = {
             dataSettingsScreenVM.cancelImportExportJob()
         }, logs = dataSettingsScreenVM.importExportProgressLogs,
         operationTitle = dataOperationTitle.value,
         operationDesc = Localization.Key.ImportExportScreenTopAppBarDesc.rememberLocalizedString()
+    )
+    LogsScreen(
+        isVisible = isForcePushAndPullProgressUIVisible, onCancel = {
+            serverManagementViewModel.cancelServerConnectionAndSync(removeConnection = false)
+            isForcePushAndPullProgressUIVisible.value = false
+        }, logs = serverManagementViewModel.dataSyncLogs,
+        operationTitle = Localization.Key.SyncingDataLabel.rememberLocalizedString(),
+        operationDesc = Localization.Key.InitiateManualSyncDescAlt.rememberLocalizedString()
     )
     DeleteDialogBox(
         deleteDialogBoxParam = DeleteDialogBoxParam(
@@ -517,7 +558,7 @@ fun DataSettingsScreen() {
             }
         ))
     PlatformSpecificBackHandler {
-        if (isProgressUIVisible.value) {
+        if (isImportExportProgressUIVisible.value) {
             return@PlatformSpecificBackHandler
         } else {
             navController.navigateUp()

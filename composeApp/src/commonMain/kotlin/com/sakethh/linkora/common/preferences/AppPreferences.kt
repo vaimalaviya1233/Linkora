@@ -72,14 +72,11 @@ object AppPreferences {
     val showVideoTagOnUIIfApplicable = mutableStateOf(true)
     private var correlation = Correlation.generateRandomCorrelation()
 
-    private var lastSyncedWithServer: Long = 0
 
-    fun lastSyncedLocally(): Long {
-        return lastSyncedWithServer
-    }
-
-    fun updateLastSyncedLocally(value: Long) {
-        lastSyncedWithServer = value
+    suspend fun lastSyncedLocally(preferencesRepository: PreferencesRepository): Long {
+        return preferencesRepository.readPreferenceValue(
+            preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
+        ) ?: 0
     }
 
     fun getCorrelation(): Correlation {
@@ -335,11 +332,6 @@ object AppPreferences {
                             )
                         }
                     }
-                },
-                launch {
-                    lastSyncedWithServer = preferencesRepository.readPreferenceValue(
-                        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
-                    ) ?: lastSyncedWithServer
                 },
                 launch {
                     showVideoTagOnUIIfApplicable.value = preferencesRepository.readPreferenceValue(
