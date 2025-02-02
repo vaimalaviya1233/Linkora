@@ -8,9 +8,11 @@ import androidx.work.WorkerParameters
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreenVM
 import com.sakethh.linkora.ui.screens.settings.section.data.RefreshLinksState
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.flow.collectLatest
 import java.util.UUID
 
@@ -39,16 +41,10 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
                     DependencyContainer.preferencesRepo.value.readPreferenceValue(
                         longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name)
                     )
-                val startIndex = if (lastRefreshedIndex == null) {
-                    0
-                } else if (lastRefreshedIndex.toInt() == 0) {
-                    1
-                } else {
-                    lastRefreshedIndex + 1
-                }.toInt()
+                val startIndex = (lastRefreshedIndex?.plus(1) ?: 0).toInt()
                 if (allLinks.lastIndex < startIndex) return Result.success()
                 allLinks.subList(
-                    fromIndex = startIndex, toIndex = allLinks.size - 1
+                    fromIndex = startIndex, toIndex = allLinks.size
                 ).forEachIndexed { index, link ->
                     DependencyContainer.localLinksRepo.value.refreshLinkMetadata(link)
                         .collectLatest {
@@ -62,6 +58,8 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
                                     newValue = index.toLong()
                                 )
                                 refreshAllLinksNotificationService.showNotification()
+                            }.onFailure {
+                                linkoraLog(it)
                             }
                         }
                 }
@@ -72,7 +70,10 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
             Result.failure()
         } finally {
             DataSettingsScreenVM.refreshLinksState.value =
-                DataSettingsScreenVM.refreshLinksState.value.copy(isInRefreshingState = false)
+                DataSettingsScreenVM.refreshLinksState.value.copy(
+                    isInRefreshingState = false, currentIteration = 0
+                )
+            refreshAllLinksNotificationService.clearNotifications()
         }
     }
 }

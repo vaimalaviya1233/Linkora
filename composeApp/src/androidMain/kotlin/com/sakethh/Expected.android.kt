@@ -166,7 +166,7 @@ actual suspend fun onRefreshAllLinks(
     )
     preferencesRepository.changePreferenceValue(
         preferenceKey = longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name),
-        newValue = 0
+        newValue = -1
     )
     workManager.enqueueUniqueWork(
         AppPreferences.refreshLinksWorkerTag.value, ExistingWorkPolicy.KEEP, request

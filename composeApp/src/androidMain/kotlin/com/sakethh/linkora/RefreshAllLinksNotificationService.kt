@@ -24,6 +24,10 @@ class RefreshAllLinksNotificationService(private val context: Context) {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
+    fun clearNotifications() {
+        notificationManager.cancelAll()
+    }
+
     fun showNotification() {
         val notification = NotificationCompat.Builder(context, "1")
             .setSmallIcon(R.drawable.ic_launcher_background)
@@ -43,6 +47,8 @@ class RefreshAllLinksNotificationService(private val context: Context) {
                 DataSettingsScreenVM.refreshLinksState.value.currentIteration,
                 false
             )
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
             .addAction(
                 R.drawable.ic_launcher_background,
                 Localization.Key.Cancel.getLocalizedString(),
