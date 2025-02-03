@@ -30,7 +30,7 @@ class RefreshAllLinksNotificationService(private val context: Context) {
 
     fun showNotification() {
         val notification = NotificationCompat.Builder(context, "1")
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle(Localization.Key.RefreshingLinks.getLocalizedString())
             .setContentText(
                 Localization.Key.NoOfLinksRefreshed.getLocalizedString()
