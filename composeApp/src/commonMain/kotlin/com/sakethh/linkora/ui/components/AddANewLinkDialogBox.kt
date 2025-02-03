@@ -44,6 +44,7 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -393,31 +394,33 @@ private fun TopPartOfAddANewLinkDialogBox(
                 )
             )
         }
-        if (!isForceSaveWithoutFetchingMetaDataEnabled.value && !AppPreferences.isAutoDetectTitleForLinksEnabled.value && !AppPreferences.forceSaveWithoutFetchingAnyMetaData.value) {
-            Row(
-                modifier = Modifier.padding(top = if (AppPreferences.isAutoDetectTitleForLinksEnabled.value) 0.dp else 10.dp)
-                    .fillMaxWidth().clickable {
-                        if (!isDataExtractingForTheLink) {
-                            isAutoDetectTitleEnabled.value = !isAutoDetectTitleEnabled.value
-                        }
-                    }.padding(
-                        start = 10.dp, end = 20.dp
-                    ), verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    enabled = !isDataExtractingForTheLink,
-                    checked = isAutoDetectTitleEnabled.value,
-                    onCheckedChange = {
-                        isAutoDetectTitleEnabled.value = it
-                        if (it) {
-                            isForceSaveWithoutFetchingMetaDataEnabled.value = false
-                        }
-                    })
-                Text(
-                    text = Localization.rememberLocalizedString(Localization.Key.ForceAutoDetectTitle),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 16.sp
-                )
+        Box(modifier = Modifier.fillMaxWidth().animateContentSize()) {
+            if (!isForceSaveWithoutFetchingMetaDataEnabled.value && !AppPreferences.isAutoDetectTitleForLinksEnabled.value && !AppPreferences.forceSaveWithoutFetchingAnyMetaData.value) {
+                Row(
+                    modifier = Modifier.padding(top = if (AppPreferences.isAutoDetectTitleForLinksEnabled.value) 0.dp else 10.dp)
+                        .fillMaxWidth().clickable {
+                            if (!isDataExtractingForTheLink) {
+                                isAutoDetectTitleEnabled.value = !isAutoDetectTitleEnabled.value
+                            }
+                        }.padding(
+                            start = 10.dp, end = 20.dp
+                        ), verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        enabled = !isDataExtractingForTheLink,
+                        checked = isAutoDetectTitleEnabled.value,
+                        onCheckedChange = {
+                            isAutoDetectTitleEnabled.value = it
+                            if (it) {
+                                isForceSaveWithoutFetchingMetaDataEnabled.value = false
+                            }
+                        })
+                    Text(
+                        text = Localization.rememberLocalizedString(Localization.Key.ForceAutoDetectTitle),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
 
@@ -642,7 +645,9 @@ private fun BottomPartOfAddANewLinkDialogBox(
             if (currentlyInFolder.isNull()) {
                 Button(
                     modifier = Modifier.padding(
-                        end = 20.dp, start = 20.dp
+                        end = 20.dp,
+                        start = 20.dp,
+                        top = if (isDropDownMenuIconClicked.value) 0.dp else 5.dp
                     ).fillMaxWidth().pulsateEffect(), onClick = {
                         addTheFolderInRoot.value = false
                         shouldShowNewFolderDialog.value = true
@@ -659,6 +664,11 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     }
                 }
             }
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 25.dp, end = 25.dp, top = 10.dp, bottom = 10.dp),
+                color = DividerDefaults.color.copy(0.25f)
+            )
             OutlinedButton(
                 colors = ButtonDefaults.outlinedButtonColors(), border = BorderStroke(
                     width = 1.dp, color = MaterialTheme.colorScheme.secondary
