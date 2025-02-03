@@ -177,13 +177,16 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val systemUIController = rememberSystemUiController()
                     val rootBtmNavColor = BottomAppBarDefaults.containerColor
-                    LaunchedEffect(Unit) {
-                        systemUIController.setStatusBarColor(colors.surface)
-                    }
                     Surface {
                         App()
                     }
-                    LaunchedEffect(currentBackStackEntryState.value) {
+                    LaunchedEffect(
+                        currentBackStackEntryState.value,
+                        AppPreferences.shouldUseAmoledTheme.value,
+                        AppPreferences.shouldUseDynamicTheming.value,
+                        AppPreferences.shouldUseForceDarkTheme.value,
+                        AppPreferences.shouldFollowSystemTheme.value,
+                    ) {
                         if (rootRouteList.any {
                                 currentBackStackEntryState.value?.destination?.hasRoute(it::class) == true
                             }) {
@@ -191,6 +194,7 @@ class MainActivity : ComponentActivity() {
                         } else {
                             systemUIController.setNavigationBarColor(colors.surface)
                         }
+                        systemUIController.setStatusBarColor(colors.surface)
                     }
                     NotificationPermissionDialogBox(
                         isVisible = isNotificationPermissionDialogVisible,
