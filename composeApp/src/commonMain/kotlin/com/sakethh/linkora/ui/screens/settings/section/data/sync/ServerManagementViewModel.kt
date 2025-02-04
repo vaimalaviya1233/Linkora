@@ -21,6 +21,7 @@ import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.permittedToShowNotification
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.channelFlow
@@ -58,6 +59,7 @@ class ServerManagementViewModel(
                         isConnectedSuccessfully = true,
                         isError = false
                     )
+                    permittedToShowNotification()
                 }.onFailure { failureMessage ->
                     serverSetupState.value = ServerSetupState(
                         isConnecting = false,

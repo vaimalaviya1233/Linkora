@@ -422,7 +422,7 @@ object Localization {
         EnableNotifications(defaultValue = "Enable Notifications"), NotificationPermissionRequired(
             defaultValue = "Notification Permission Required"
         ),
-        NotificationPermissionDesc(defaultValue = "Linkora needs notification permission to show the progress of link refreshes."),
+        NotificationPermissionDesc(defaultValue = "Linkora requires notification permission to display the progress of data syncing, including link refreshes."),
         NoPanelsFound(defaultValue = "No panels available. Create panels and add respective folders to organize by projects, research, tasks, events, or any other category."),
         SearchInLinkora(defaultValue = "Search Linkora: Browse through all your saved links and folders."), NoSearchResults(
             defaultValue = "Nothing matched your search. Remember, you can search both by title and note. Give it another try!"
