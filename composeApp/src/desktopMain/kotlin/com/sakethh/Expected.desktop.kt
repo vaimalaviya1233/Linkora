@@ -125,3 +125,9 @@ actual suspend fun permittedToShowNotification(): Boolean = false
 actual fun platformSpecificLogging(string: String) {
     println("Linkora Log : $string")
 }
+
+
+actual class DataSyncingNotificationService actual constructor() {
+    actual fun showNotification() = Unit
+    actual fun clearNotification() = Unit
+}

@@ -2,6 +2,7 @@ package com.sakethh.linkora
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.DataSyncingNotificationService
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
@@ -29,6 +30,9 @@ class AppVM(
     private val preferencesRepository: PreferencesRepository,
     private val networkRepo: NetworkRepo
 ) : ViewModel() {
+
+    private val dataSyncingNotificationService = DataSyncingNotificationService()
+
     init {
         readSocketEvents(viewModelScope, remoteSyncRepo)
 
@@ -41,47 +45,48 @@ class AppVM(
                     ).collectLatest {
                         it.onSuccess {
                             pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.SuccessfullyConnectedToTheServer.getLocalizedString()))
+                            dataSyncingNotificationService.showNotification()
+                            launch {
+                                if (AppPreferences.canPushToServer()) {
+                                    with(remoteSyncRepo) {
+                                        channelFlow {
+                                            pushPendingSyncQueueToServer<Unit>().collectLatest {
+                                                it.pushSnackbarOnFailure()
+                                            }
+                                        }.collect()
+                                    }
+                                }
+                            }
+
+                            listOf(launch {
+                                if (AppPreferences.canReadFromServer()) {
+                                    remoteSyncRepo.applyUpdatesBasedOnRemoteTombstones(
+                                        AppPreferences.lastSyncedLocally(
+                                            preferencesRepository
+                                        )
+                                    ).collectLatest {
+                                        it.pushSnackbarOnFailure()
+                                    }
+                                }
+                            }, launch {
+                                if (AppPreferences.canReadFromServer()) {
+                                    remoteSyncRepo.applyUpdatesFromRemote(
+                                        AppPreferences.lastSyncedLocally(
+                                            preferencesRepository
+                                        )
+                                    ).collectLatest {
+                                        it.pushSnackbarOnFailure()
+                                    }
+                                }
+                            }).joinAll()
                         }.onFailure {
                             pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ConnectionToServerFailed.getLocalizedString() + "\n" + it))
                         }
                     }
                 }
             }
-            launch {
-                if (AppPreferences.canPushToServer()) {
-                    with(remoteSyncRepo) {
-                        channelFlow {
-                            pushPendingSyncQueueToServer<Unit>().collectLatest {
-                                it.pushSnackbarOnFailure()
-                            }
-                        }.collect()
-                    }
-                }
-            }
-
-            listOf(launch {
-                if (AppPreferences.canReadFromServer()) {
-                    remoteSyncRepo.applyUpdatesBasedOnRemoteTombstones(
-                        AppPreferences.lastSyncedLocally(
-                            preferencesRepository
-                        )
-                    )
-                        .collectLatest {
-                            it.pushSnackbarOnFailure()
-                        }
-                }
-            }, launch {
-                if (AppPreferences.canReadFromServer()) {
-                    remoteSyncRepo.applyUpdatesFromRemote(
-                        AppPreferences.lastSyncedLocally(
-                            preferencesRepository
-                        )
-                    )
-                        .collectLatest {
-                            it.pushSnackbarOnFailure()
-                        }
-                }
-            }).joinAll()
+        }.invokeOnCompletion {
+            dataSyncingNotificationService.clearNotification()
         }
     }
 

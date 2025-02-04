@@ -1,6 +1,8 @@
 package com.sakethh
 
 import android.Manifest
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -11,6 +13,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -22,9 +25,12 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sakethh.linkora.LinkoraApp
+import com.sakethh.linkora.R
 import com.sakethh.linkora.RefreshAllLinksWorker
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
@@ -208,4 +214,27 @@ actual suspend fun permittedToShowNotification(): Boolean {
 
 actual fun platformSpecificLogging(string: String) {
     Log.d("Linkora Log", string)
+}
+
+actual class DataSyncingNotificationService actual constructor() {
+
+    private val context = LinkoraApp.getContext()
+    private val notificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    actual fun showNotification() {
+        val notification =
+            NotificationCompat.Builder(context, "1").setSmallIcon(R.drawable.ic_stat_name)
+                .setContentTitle(Localization.Key.SyncingDataLabel.getLocalizedString())
+                .setProgress(
+                    0, 0, true
+                ).setPriority(NotificationCompat.PRIORITY_LOW).setSilent(true).build()
+
+        notificationManager.notify(1, notification)
+    }
+
+    actual fun clearNotification() {
+        notificationManager.cancelAll()
+    }
+
 }

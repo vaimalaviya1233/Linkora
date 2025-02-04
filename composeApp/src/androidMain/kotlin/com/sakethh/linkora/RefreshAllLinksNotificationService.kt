@@ -50,7 +50,7 @@ class RefreshAllLinksNotificationService(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setSilent(true)
             .addAction(
-                R.drawable.ic_launcher_background,
+                R.drawable.ic_stat_name,
                 Localization.Key.Cancel.getLocalizedString(),
                 cancelRefreshingPendingIntent
             )

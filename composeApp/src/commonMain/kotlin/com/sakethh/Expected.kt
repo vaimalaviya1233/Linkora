@@ -52,3 +52,8 @@ expect fun PlatformSpecificBackHandler(init: () -> Unit)
 expect suspend fun permittedToShowNotification(): Boolean
 
 expect fun platformSpecificLogging(string: String)
+
+expect class DataSyncingNotificationService() {
+    fun showNotification()
+    fun clearNotification()
+}
