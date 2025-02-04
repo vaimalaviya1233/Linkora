@@ -127,8 +127,8 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.sakethh.linkora"
-            packageVersion = "1.0.0"
+            packageName = "Linkora"
+            this.vendor = "Saketh Pathike"
         }
     }
 }
