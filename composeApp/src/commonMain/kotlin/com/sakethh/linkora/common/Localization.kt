@@ -336,7 +336,7 @@ object Localization {
         NewUpdateIsAvailable(defaultValue = "Linkora just got better, new update is available."), CurrentVersion(
             defaultValue = "version you're using"
         ),
-        LatestVersion(defaultValue = "latest version which you should be using"), TrackRecentChangesAndUpdatesToLinkora(
+        LatestVersionAvailableDesc(defaultValue = "a new ${LinkoraPlaceHolder.First.value} build has been released"), TrackRecentChangesAndUpdatesToLinkora(
             defaultValue = "Track recent changes and updates to Linkora."
         ),
         Changelog(defaultValue = "Changelog"), OpenAGithubIssue(defaultValue = "Open a GitHub Issue"), HaveASuggestionCreateAnIssueOnGithubToImproveLinkora(

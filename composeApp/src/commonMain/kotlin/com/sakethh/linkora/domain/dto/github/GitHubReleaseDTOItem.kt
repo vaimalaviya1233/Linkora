@@ -12,5 +12,7 @@ data class GitHubReleaseDTOItem(
     @SerialName("html_url")
     val releasePageURL: String,
     @SerialName("name")
-    var releaseName: String,
+    val releaseName: String,
+    @SerialName("tag_name")
+    val tagName: String
 )

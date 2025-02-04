@@ -78,7 +78,12 @@ fun AboutSettingsScreen() {
     val retrievedAppVersionData = rememberDeserializableMutableObject {
         mutableStateOf(
             GitHubReleaseDTOItem(
-                assets = listOf(), body = "", createdAt = "", releasePageURL = "", releaseName = ""
+                assets = listOf(),
+                body = "",
+                createdAt = "",
+                releasePageURL = "",
+                releaseName = "",
+                tagName = ""
             )
         )
     }
@@ -127,7 +132,8 @@ fun AboutSettingsScreen() {
                                         body = "",
                                         createdAt = "",
                                         releasePageURL = "",
-                                        releaseName = ""
+                                        releaseName = "",
+                                        tagName = ""
                                     )
                                     AppPreferences.isOnLatestUpdate.value = false
                                 } else {
@@ -376,7 +382,8 @@ fun AboutSettingsScreen() {
                     shouldBtmModalSheetBeVisible = shouldBtmModalSheetBeVisible,
                     modalBtmSheetState = btmModalSheetState,
                     latestVersion = retrievedAppVersionData.value.releaseName,
-                    urlOfLatestReleasePage = retrievedAppVersionData.value.releasePageURL
+                    urlOfLatestReleasePage = retrievedAppVersionData.value.releasePageURL,
+                    tagName = retrievedAppVersionData.value.tagName
                 )
             }
         }

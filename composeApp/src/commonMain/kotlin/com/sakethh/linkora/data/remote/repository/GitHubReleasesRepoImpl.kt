@@ -15,10 +15,11 @@ class GitHubReleasesRepoImpl(
     override suspend fun getLatestVersionData(): Flow<Result<GitHubReleaseDTOItem>> {
         return wrappedResultFlow {
             ktorClient.get("https://api.github.com/repos/sakethpathike/Linkora/releases")
-                .body<List<GitHubReleaseDTOItem>>().first().apply {
-                    if (releaseName.startsWith("v").not()) {
-                        releaseName = "v$releaseName"
-                    }
+                .body<List<GitHubReleaseDTOItem>>().first().run {
+                    copy(
+                        releaseName = if (releaseName.startsWith("v").not()) "v$releaseName"
+                        else releaseName
+                    )
                 }
         }
     }

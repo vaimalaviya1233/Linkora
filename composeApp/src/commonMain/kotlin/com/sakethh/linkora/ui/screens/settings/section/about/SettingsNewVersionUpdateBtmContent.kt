@@ -25,6 +25,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
@@ -33,8 +34,7 @@ import kotlinx.coroutines.launch
 fun NewVersionUpdateBtmContent(
     modalBtmSheetState: SheetState,
     shouldBtmModalSheetBeVisible: MutableState<Boolean>,
-    latestVersion: String,
-    urlOfLatestReleasePage: String
+    latestVersion: String, urlOfLatestReleasePage: String, tagName: String
 ) {
     val uriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
@@ -59,7 +59,8 @@ fun NewVersionUpdateBtmContent(
         }
         item {
             VersionCardForBtmSheetContent(
-                title = Localization.Key.LatestVersion.rememberLocalizedString(),
+                title = Localization.Key.LatestVersionAvailableDesc.rememberLocalizedString()
+                    .replaceFirstPlaceHolderWith(tagName.substringBefore("-")),
                 value = latestVersion
             )
         }
