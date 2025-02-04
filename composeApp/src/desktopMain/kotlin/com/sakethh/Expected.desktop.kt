@@ -37,7 +37,13 @@ actual val platform: @Composable () -> Platform = {
     Platform.Desktop
 }
 actual val localDatabase: LocalDatabase? =
-    File(System.getProperty("java.io.tmpdir"), "${LocalDatabase.NAME}.db").run {
+    File(System.getProperty("user.home").run {
+        val appDataDir = File(this, ".linkora")
+        if (appDataDir.exists().not()) {
+            appDataDir.mkdirs()
+        }
+        appDataDir
+    }, "${LocalDatabase.NAME}.db").run {
         Room.databaseBuilder<LocalDatabase>(name = this.absolutePath).setDriver(BundledSQLiteDriver()).build()
     }
 
