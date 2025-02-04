@@ -129,6 +129,22 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Linkora"
             this.vendor = "Saketh Pathike"
+
+            /*
+
+            This logo (src/desktopMain/resources/logo.*) was painted by `mondstern`.
+            The original post can be found here: https://pixelfed.social/p/mondstern/747494483548287527
+
+             */
+
+            windows {
+                this.iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
+            }
+
+            linux {
+                this.iconFile.set(project.file("src/desktopMain/resources/logo.png"))
+            }
+
         }
     }
 }
