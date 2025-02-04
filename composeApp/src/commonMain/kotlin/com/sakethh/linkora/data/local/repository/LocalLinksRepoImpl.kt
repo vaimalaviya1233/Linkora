@@ -162,7 +162,7 @@ class LocalLinksRepoImpl(
                 ?.find { it.type in listOf("image", "video", "gif") }
                 ?.let { if (it.type == "image") it.url else it.thumbnailUrl }
                 ?: vxTwitterResponseBody.userPfp,
-            mediaType = if (vxTwitterResponseBody.media.first().type == "video") MediaType.VIDEO else MediaType.IMAGE)
+            mediaType = if (vxTwitterResponseBody.media.isNotEmpty() && vxTwitterResponseBody.media.first().type == "video") MediaType.VIDEO else MediaType.IMAGE)
     }
 
     private suspend fun scrapeLinkData(
