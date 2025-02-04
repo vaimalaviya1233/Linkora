@@ -25,7 +25,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
@@ -60,7 +60,7 @@ fun NewVersionUpdateBtmContent(
         item {
             VersionCardForBtmSheetContent(
                 title = Localization.Key.LatestVersionAvailableDesc.rememberLocalizedString()
-                    .replaceFirstPlaceHolderWith(tagName.substringBefore("-")),
+                    .replace(LinkoraPlaceHolder.First.value, tagName.substringBefore("-")),
                 value = latestVersion
             )
         }

@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.SettingsInputSvideo
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -117,13 +116,13 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
             sectionTitle = Localization.getLocalizedString(Localization.Key.Data),
             sectionIcon = Icons.Default.Storage
         ),
-        SettingSectionComponentParam(
+        /*SettingSectionComponentParam(
             onClick = {
 
             },
             sectionTitle = Localization.getLocalizedString(Localization.Key.Privacy),
             sectionIcon = Icons.Default.PrivacyTip
-        ),
+        ),*/
         SettingSectionComponentParam(
             onClick = {
                 navController.navigate(Navigation.Settings.AboutSettingsScreen)
