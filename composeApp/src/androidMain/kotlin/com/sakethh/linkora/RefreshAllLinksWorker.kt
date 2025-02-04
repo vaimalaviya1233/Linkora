@@ -1,8 +1,10 @@
 package com.sakethh.linkora
 
 import android.content.Context
+import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sakethh.linkora.common.DependencyContainer
@@ -27,6 +29,15 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
                 isInRefreshingState = false, currentIteration = 0
             )
         }
+    }
+
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return ForegroundInfo(
+            1,
+            NotificationCompat.Builder(applicationContext, "1")
+                .setSmallIcon(R.drawable.ic_stat_name)
+                .build()
+        )
     }
 
     private val refreshAllLinksNotificationService = RefreshAllLinksNotificationService(appContext)
