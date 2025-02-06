@@ -1,5 +1,6 @@
 package com.sakethh.linkora.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -294,7 +297,7 @@ fun App(
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
         if (platform() == Platform.Desktop || platform() == Platform.Android.Tablet) {
             Row {
-                Box(modifier = Modifier.fillMaxHeight()) {
+                Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -337,6 +340,19 @@ fun App(
                                         maxLines = 1
                                     )
                                 })
+                        }
+                    }
+                    if (platform() !is Platform.Android.Mobile && appVM.isPerformingStartupSync.value) {
+                        Box(
+                            Modifier.fillMaxHeight().padding(bottom = 30.dp),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudSync, contentDescription = null
+                                )
+                                CircularProgressIndicator()
+                            }
                         }
                     }
                 }
@@ -398,7 +414,7 @@ fun App(
                 sheetShape = RectangleShape,
                 sheetContent = {
                     if (platform() == Platform.Android.Mobile) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
                             if (appVM.isPerformingStartupSync.value) {
                                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                             }
