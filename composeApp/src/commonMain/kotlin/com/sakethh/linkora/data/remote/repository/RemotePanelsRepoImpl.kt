@@ -39,13 +39,13 @@ class RemotePanelsRepoImpl(
         )
     }
 
-    override suspend fun deleteAPanel(id: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_PANEL.name,
-            body = IDBasedDTO(id, eventTimestamp = 0)
+            body = idBasedDTO
         )
     }
 
@@ -59,13 +59,13 @@ class RemotePanelsRepoImpl(
         )
     }
 
-    override suspend fun deleteAFolderFromAllPanels(folderID: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun deleteAFolderFromAllPanels(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
-            body = IDBasedDTO(folderID, eventTimestamp = 0)
+            body = idBasedDTO
         )
     }
 

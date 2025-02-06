@@ -11,6 +11,6 @@ data class FolderDTO(
     val note: String,
     val parentFolderId: Long?,
     val isArchived: Boolean,
-    val eventTimestamp: Long = 0,
+    val eventTimestamp: Long,
     val correlation: Correlation = AppPreferences.getCorrelation()
 )

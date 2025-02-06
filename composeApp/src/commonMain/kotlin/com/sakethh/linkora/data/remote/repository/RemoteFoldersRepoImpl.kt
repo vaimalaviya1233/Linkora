@@ -30,74 +30,73 @@ class RemoteFoldersRepoImpl(
         )
     }
 
-    override suspend fun deleteFolder(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER.name,
-            body = IDBasedDTO(folderId),
+            body = idBasedDTO,
         )
     }
 
-    override suspend fun markAsArchive(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun markAsArchive(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
-            body = IDBasedDTO(folderId)
+            body = idBasedDTO
         )
     }
 
-    override suspend fun markAsRegularFolder(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun markAsRegularFolder(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
-            body = IDBasedDTO(folderId),
+            body = idBasedDTO
         )
     }
 
     override suspend fun changeParentFolder(
-        folderId: Long, newParentFolderId: Long?
+        changeParentFolderDTO: ChangeParentFolderDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.CHANGE_PARENT_FOLDER.name,
-            body = ChangeParentFolderDTO(folderId, newParentFolderId),
+            body = changeParentFolderDTO
         )
     }
 
     override suspend fun updateFolderName(
-        folderId: Long, newFolderName: String
+        updateFolderNameDTO: UpdateFolderNameDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
-            body = UpdateFolderNameDTO(folderId, newFolderName),
+            body = updateFolderNameDTO
         )
     }
 
     override suspend fun updateFolderNote(
-        folderId: Long,
-        newNote: String
+        updateFolderNoteDTO: UpdateFolderNoteDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name,
-            body = UpdateFolderNoteDTO(folderId, newNote),
+            body = updateFolderNoteDTO
         )
     }
 
-    override suspend fun deleteFolderNote(folderId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
-            body = IDBasedDTO(folderId),
+            body = idBasedDTO
         )
     }
 }

@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class IDBasedDTO(
     val id: Long,
-    val eventTimestamp: Long = 0,
+    val eventTimestamp: Long,
     val correlation: Correlation = AppPreferences.getCorrelation(),
 )

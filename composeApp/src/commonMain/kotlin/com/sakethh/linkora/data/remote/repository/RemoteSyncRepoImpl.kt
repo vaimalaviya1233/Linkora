@@ -171,7 +171,8 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[FOLDER] Deleting folder from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
-                        remoteFoldersRepo.deleteFolder(remoteId).removeQueueItemAndSyncTimestamp(
+                        remoteFoldersRepo.deleteFolder(idBasedDTO.copy(id = remoteId))
+                            .removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
                         send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder"))
@@ -181,7 +182,8 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[FOLDER] Marking folder as archive from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
-                        remoteFoldersRepo.markAsArchive(remoteId).removeQueueItemAndSyncTimestamp(
+                        remoteFoldersRepo.markAsArchive(idBasedDTO.copy(id = remoteId))
+                            .removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
                         send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after marking folder as archive"))
@@ -191,7 +193,7 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[FOLDER] Marking folder as regular from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
-                        remoteFoldersRepo.markAsRegularFolder(remoteId)
+                        remoteFoldersRepo.markAsRegularFolder(idBasedDTO.copy(id = remoteId))
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
@@ -205,8 +207,7 @@ class RemoteSyncRepoImpl(
                         val remoteId =
                             localFoldersRepo.getRemoteIdOfAFolder(updateFolderNameDTO.folderId)!!
                         remoteFoldersRepo.updateFolderName(
-                            remoteId,
-                            updateFolderNameDTO.newFolderName
+                            updateFolderNameDTO.copy(folderId = remoteId)
                         ).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
@@ -220,8 +221,7 @@ class RemoteSyncRepoImpl(
                         val remoteId =
                             localFoldersRepo.getRemoteIdOfAFolder(updateFolderNoteDTO.folderId)!!
                         remoteFoldersRepo.updateFolderNote(
-                            remoteId,
-                            updateFolderNoteDTO.newNote
+                            updateFolderNoteDTO.copy(folderId = remoteId)
                         ).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
@@ -232,7 +232,7 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[FOLDER] Deleting folder note from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
-                        remoteFoldersRepo.deleteFolderNote(remoteId)
+                        remoteFoldersRepo.deleteFolderNote(idBasedDTO.copy(id = remoteId))
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
@@ -270,7 +270,8 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[LINK] Deleting link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)!!
-                        remoteLinksRepo.deleteALink(remoteLinkId).removeQueueItemAndSyncTimestamp(
+                        remoteLinksRepo.deleteALink(idBasedDTO.copy(id = remoteLinkId))
+                            .removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
                         send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after deleting link"))
@@ -280,7 +281,8 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[LINK] Archiving link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)!!
-                        remoteLinksRepo.archiveALink(remoteLinkId).removeQueueItemAndSyncTimestamp(
+                        remoteLinksRepo.archiveALink(idBasedDTO.copy(id = remoteLinkId))
+                            .removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
                         send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after archiving link"))
@@ -290,7 +292,7 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[LINK] Unarchiving link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)!!
-                        remoteLinksRepo.unArchiveALink(remoteLinkId)
+                        remoteLinksRepo.unArchiveALink(idBasedDTO.copy(id = remoteLinkId))
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
@@ -385,7 +387,8 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[PANEL] Deleting panel from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localPanelsRepo.getRemotePanelId(idBasedDTO.id)!!
-                        remotePanelsRepo.deleteAPanel(remoteId).removeQueueItemAndSyncTimestamp(
+                        remotePanelsRepo.deleteAPanel(idBasedDTO.copy(id = remoteId))
+                            .removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
                         send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after deleting panel"))
@@ -408,7 +411,7 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading(message = "[PANEL] Deleting folder from all panels from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteFolderId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
-                        remotePanelsRepo.deleteAFolderFromAllPanels(remoteFolderId)
+                        remotePanelsRepo.deleteAFolderFromAllPanels(idBasedDTO.copy(id = remoteFolderId))
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
@@ -522,7 +525,8 @@ class RemoteSyncRepoImpl(
                                                 UpdatePanelNameDTO(
                                                     newName = remotePanelDTO.panelName,
                                                     panelId = remotePanelDTO.panelId,
-                                                    correlation = randomCorrelation
+                                                    correlation = randomCorrelation,
+                                                    eventTimestamp = remotePanelDTO.eventTimestamp
                                                 )
                                             )
                                         )
@@ -569,7 +573,8 @@ class RemoteSyncRepoImpl(
                     ) else null,
                     localId = localIdOfCurrentFolder,
                     remoteId = folderDTO.id,
-                    isArchived = folderDTO.isArchived
+                    isArchived = folderDTO.isArchived,
+                    lastModified = folderDTO.eventTimestamp
                 )
             ).collectAndUpdateTimestamp(folderDTO.eventTimestamp)
         } else {
@@ -581,7 +586,8 @@ class RemoteSyncRepoImpl(
                         folderDTO.parentFolderId
                     ) else null,
                     remoteId = folderDTO.id,
-                    isArchived = folderDTO.isArchived
+                    isArchived = folderDTO.isArchived,
+                    lastModified = folderDTO.eventTimestamp
                 ), ignoreFolderAlreadyExistsException = true, viaSocket = true
             ).collectAndUpdateTimestamp(folderDTO.eventTimestamp)
         }
@@ -628,7 +634,8 @@ class RemoteSyncRepoImpl(
                             folderDto.parentFolderId
                         ) else null,
                         remoteId = folderDto.id,
-                        isArchived = folderDto.isArchived
+                        isArchived = folderDto.isArchived,
+                        lastModified = folderDto.eventTimestamp
                     ), ignoreFolderAlreadyExistsException = true, viaSocket = true
                 ).collectAndUpdateTimestamp(folderDto.eventTimestamp)
             }
@@ -946,7 +953,8 @@ class RemoteSyncRepoImpl(
                         remoteId = linkDTO.id,
                         userAgent = linkDTO.userAgent,
                         markedAsImportant = linkDTO.markedAsImportant,
-                        mediaType = linkDTO.mediaType
+                        mediaType = linkDTO.mediaType,
+                        lastModified = linkDTO.eventTimestamp
                     ), linkSaveConfig = forceSaveWithoutRetrieving(), viaSocket = true
                 ).collectAndUpdateTimestamp(linkDTO.eventTimestamp)
             }
@@ -965,7 +973,9 @@ class RemoteSyncRepoImpl(
 
                 localPanelsRepo.addaNewPanel(
                     Panel(
-                        panelName = panelDTO.panelName, remoteId = panelDTO.panelId
+                        panelName = panelDTO.panelName,
+                        remoteId = panelDTO.panelId,
+                        lastModified = panelDTO.eventTimestamp
                     ), viaSocket = true
                 ).collectAndUpdateTimestamp(panelDTO.eventTimestamp)
             }
@@ -989,7 +999,8 @@ class RemoteSyncRepoImpl(
                             panelPosition = panelFolderDTO.panelPosition,
                             folderName = panelFolderDTO.folderName,
                             connectedPanelId = localPanelsId,
-                            remoteId = panelFolderDTO.id
+                            remoteId = panelFolderDTO.id,
+                            lastModified = panelFolderDTO.eventTimestamp
                         ), viaSocket = true
                     ).collectAndUpdateTimestamp(panelFolderDTO.eventTimestamp)
                 }
@@ -1118,7 +1129,8 @@ class RemoteSyncRepoImpl(
                     payload = Json.encodeToString(
                         AddANewPanelDTO(
                             panelName = currentPanel.panelName,
-                            offlineSyncItemId = currentPanel.localId
+                            offlineSyncItemId = currentPanel.localId,
+                            eventTimestamp = currentPanel.lastModified
                         )
                     )
                 )
@@ -1138,7 +1150,8 @@ class RemoteSyncRepoImpl(
                             panelPosition = currentPanelFolder.panelPosition,
                             folderName = currentPanelFolder.folderName,
                             connectedPanelId = currentPanelFolder.connectedPanelId,
-                            offlineSyncItemId = currentPanelFolder.localId
+                            offlineSyncItemId = currentPanelFolder.localId,
+                            eventTimestamp = currentPanelFolder.lastModified
                         )
                     )
                 )

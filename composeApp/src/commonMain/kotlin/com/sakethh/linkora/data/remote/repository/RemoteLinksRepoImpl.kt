@@ -29,77 +29,77 @@ class RemoteLinksRepoImpl(
         )
     }
 
-    override suspend fun deleteALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun deleteALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.DELETE_A_LINK.name,
-            body = IDBasedDTO(remoteLinkId)
+            body = idBasedDTO
         )
     }
 
-    override suspend fun renameALinkTitle(
-        remoteLinkId: Long, newTitle: String
+    override suspend fun updateLinkTitle(
+        updateTitleOfTheLinkDTO: UpdateTitleOfTheLinkDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
-            body = UpdateTitleOfTheLinkDTO(linkId = remoteLinkId, newTitleOfTheLink = newTitle)
+            body = updateTitleOfTheLinkDTO
         )
     }
 
-    override suspend fun renameALinkNote(
-        remoteLinkId: Long, newNote: String
+    override suspend fun updateALinkNote(
+        updateNoteOfALinkDTO: UpdateNoteOfALinkDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
-            body = UpdateNoteOfALinkDTO(remoteLinkId, newNote)
+            body = updateNoteOfALinkDTO
         )
     }
 
-    override suspend fun archiveALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun archiveALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.ARCHIVE_LINK.name,
-            body = IDBasedDTO(remoteLinkId)
+            body = idBasedDTO
         )
     }
 
-    override suspend fun unArchiveALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun unArchiveALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UNARCHIVE_LINK.name,
-            body = IDBasedDTO(remoteLinkId)
+            body = idBasedDTO
         )
     }
 
-    override suspend fun markALinkAsImp(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.MARK_AS_IMP.name,
-            body = IDBasedDTO(remoteLinkId)
+            body = idBasedDTO
         )
     }
 
-    override suspend fun markALinkAsNonImp(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UNMARK_AS_IMP.name,
-            body = IDBasedDTO(remoteLinkId)
+            body = idBasedDTO
         )
     }
 

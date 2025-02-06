@@ -19,6 +19,6 @@ data class LinkDTO(
     val userAgent: String?,
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
-    val eventTimestamp: Long = 0,
+    val eventTimestamp: Long,
     val correlation: Correlation = AppPreferences.getCorrelation()
 )

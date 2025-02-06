@@ -9,6 +9,7 @@ import com.sakethh.linkora.common.utils.isATwitterUrl
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 @Entity(tableName = "links")
 @Serializable
@@ -25,7 +26,8 @@ data class Link(
     val idOfLinkedFolder: Long?,
     val userAgent: String? = AppPreferences.primaryJsoupUserAgent.value,
     val markedAsImportant: Boolean = linkType == LinkType.IMPORTANT_LINK,
-    val mediaType: MediaType = MediaType.IMAGE
+    val mediaType: MediaType = MediaType.IMAGE,
+    val lastModified: Long = Instant.now().epochSecond
 ) {
     class Invalid(message: String = Localization.getLocalizedString(Localization.Key.InvalidLink)) :
         Throwable(message)

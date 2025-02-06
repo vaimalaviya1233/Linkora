@@ -17,7 +17,9 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.data.local.createDataStore
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
+import java.time.Instant
 
 class LinkoraApp : Application() {
 
@@ -184,9 +186,15 @@ class LinkoraApp : Application() {
 
         val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(connection: SQLiteConnection) {
+                val timestamp = if (Build.VERSION.SDK_INT <= 25) {
+                    System.currentTimeMillis() / 1000
+                } else {
+                    Instant.now().epochSecond
+                }
+
                 connection.execSQL("CREATE TABLE IF NOT EXISTS `pending_sync_queue` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `operation` TEXT NOT NULL, `payload` TEXT NOT NULL)")
 
-                connection.execSQL("CREATE TABLE IF NOT EXISTS `links` (`linkType` TEXT NOT NULL, `localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `baseURL` TEXT NOT NULL, `imgURL` TEXT NOT NULL, `note` TEXT NOT NULL, `idOfLinkedFolder` INTEGER, `userAgent` TEXT, `markedAsImportant` INTEGER NOT NULL, `mediaType` TEXT NOT NULL)")
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `links` (`linkType` TEXT NOT NULL, `localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `baseURL` TEXT NOT NULL, `imgURL` TEXT NOT NULL, `note` TEXT NOT NULL, `idOfLinkedFolder` INTEGER, `userAgent` TEXT, `markedAsImportant` INTEGER NOT NULL, `mediaType` TEXT NOT NULL, `lastModified` INTEGER NOT NULL DEFAULT $timestamp)")
                 connection.execSQL(
                     """
                     INSERT INTO links (
@@ -312,7 +320,7 @@ class LinkoraApp : Application() {
                 """.trimIndent()
                 )
 
-                connection.execSQL("CREATE TABLE IF NOT EXISTS `folders` (`name` TEXT NOT NULL, `note` TEXT NOT NULL, `parentFolderId` INTEGER, `localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `isArchived` INTEGER NOT NULL)")
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `folders` (`name` TEXT NOT NULL, `note` TEXT NOT NULL, `parentFolderId` INTEGER, `localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `isArchived` INTEGER NOT NULL, `lastModified` INTEGER NOT NULL DEFAULT $timestamp)")
                 connection.execSQL(
                     """
                     INSERT INTO folders (
@@ -334,12 +342,12 @@ class LinkoraApp : Application() {
                 """.trimIndent()
                 )
 
-                connection.execSQL("CREATE TABLE IF NOT EXISTS `panel_new` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `panelName` TEXT NOT NULL, `remoteId` INTEGER)")
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `panel_new` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `panelName` TEXT NOT NULL, `remoteId` INTEGER, `lastModified` INTEGER NOT NULL DEFAULT $timestamp)")
                 connection.execSQL("INSERT INTO panel_new (localId, panelName) SELECT panelId, panelName FROM panel;")
                 connection.execSQL("DROP TABLE panel;")
                 connection.execSQL("ALTER TABLE panel_new RENAME TO panel;")
 
-                connection.execSQL("CREATE TABLE IF NOT EXISTS `panel_folder_new` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `folderId` INTEGER NOT NULL, `panelPosition` INTEGER NOT NULL, `folderName` TEXT NOT NULL, `connectedPanelId` INTEGER NOT NULL)")
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `panel_folder_new` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `folderId` INTEGER NOT NULL, `panelPosition` INTEGER NOT NULL, `folderName` TEXT NOT NULL, `connectedPanelId` INTEGER NOT NULL, `lastModified` INTEGER NOT NULL DEFAULT $timestamp)")
                 connection.execSQL("INSERT INTO panel_folder_new (localId, remoteId, folderId, panelPosition, folderName, connectedPanelId) SELECT id, NULL, folderId, panelPosition, folderName, connectedPanelId FROM panel_folder;")
                 connection.execSQL("DROP TABLE panel_folder;")
                 connection.execSQL("ALTER TABLE panel_folder_new RENAME TO panel_folder;")
@@ -359,6 +367,7 @@ class LinkoraApp : Application() {
                 connection.execSQL("DROP TABLE important_links_table;")
                 connection.execSQL("DROP TABLE important_folders_table;")
                 connection.execSQL("DROP TABLE recently_visited_table;")
+                linkoraLog("hell yeah $timestamp")
             }
         }
 

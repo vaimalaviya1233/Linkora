@@ -47,7 +47,8 @@ fun Link.asHistoryLinkWithoutId(): Link {
         note = this.note,
         idOfLinkedFolder = null,
         userAgent = this.userAgent,
-        markedAsImportant = this.markedAsImportant
+        markedAsImportant = this.markedAsImportant,
+        lastModified = this.lastModified
     )
 }
 
@@ -74,7 +75,8 @@ fun Folder.asAddFolderDTO(): AddFolderDTO = AddFolderDTO(
     name = this.name,
     note = this.note,
     parentFolderId = this.parentFolderId,
-    isArchived = this.isArchived
+    isArchived = this.isArchived,
+    eventTimestamp = this.lastModified
 )
 
 fun Link.asAddLinkDTO(): AddLinkDTO = AddLinkDTO(
@@ -84,7 +86,7 @@ fun Link.asAddLinkDTO(): AddLinkDTO = AddLinkDTO(
     baseURL = this.baseURL,
     imgURL = this.imgURL,
     note = this.note,
-    lastModified = "",
+    eventTimestamp = this.lastModified,
     idOfLinkedFolder = this.idOfLinkedFolder,
     userAgent = this.userAgent,
     markedAsImportant = this.markedAsImportant,
@@ -102,7 +104,8 @@ fun Link.asLinkDTO(id: Long): LinkDTO = LinkDTO(
     userAgent = this.userAgent,
     markedAsImportant = this.markedAsImportant,
     mediaType = this.mediaType,
-    id = id
+    id = id,
+    eventTimestamp = this.lastModified
 )
 
 suspend fun LegacyExportSchema.asJSONExportSchema(): JSONExportSchema = coroutineScope {

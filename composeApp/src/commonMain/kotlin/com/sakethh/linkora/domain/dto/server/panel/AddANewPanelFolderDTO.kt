@@ -10,7 +10,7 @@ data class AddANewPanelFolderDTO(
     val panelPosition: Long,
     val folderName: String,
     val connectedPanelId: Long,
-    val eventTimestamp: Long = 0,
+    val eventTimestamp: Long,
     val correlation: Correlation = AppPreferences.getCorrelation(),
     val offlineSyncItemId: Long = 0
 )

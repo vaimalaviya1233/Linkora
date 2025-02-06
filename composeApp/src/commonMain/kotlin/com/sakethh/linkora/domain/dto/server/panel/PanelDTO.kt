@@ -9,5 +9,5 @@ data class PanelDTO(
     val panelId: Long,
     val panelName: String,
     val correlation: Correlation = AppPreferences.getCorrelation(),
-    val eventTimestamp: Long = 0
+    val eventTimestamp: Long
 )

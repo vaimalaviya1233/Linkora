@@ -102,6 +102,9 @@ interface FoldersDao {
     @Update
     suspend fun updateAFolderData(foldersTable: Folder)
 
+    @Query("UPDATE folders SET lastModified =:timestamp WHERE localId =:localFolderID")
+    suspend fun updateFolderTimestamp(timestamp: Long, localFolderID: Long)
+
     @Query("UPDATE folders SET note = \"\" WHERE localId = :folderID")
     suspend fun deleteAFolderNote(folderID: Long)
 

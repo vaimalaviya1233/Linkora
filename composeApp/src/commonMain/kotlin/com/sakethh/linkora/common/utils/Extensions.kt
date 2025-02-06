@@ -215,7 +215,8 @@ fun Link.excludeLocalId(): Link = Link(
     note = this.note,
     idOfLinkedFolder = this.idOfLinkedFolder,
     userAgent = this.userAgent,
-    markedAsImportant = this.markedAsImportant
+    markedAsImportant = this.markedAsImportant,
+    lastModified = this.lastModified
 )
 
 suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Result<IncomingBody> {

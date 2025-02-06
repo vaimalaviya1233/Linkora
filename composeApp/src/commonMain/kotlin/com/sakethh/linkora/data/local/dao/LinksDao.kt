@@ -127,4 +127,7 @@ interface LinksDao {
 
     @Query("SELECT * FROM links WHERE remoteId IS NULL")
     suspend fun getUnSyncedLinks(): List<Link>
+
+    @Query("UPDATE links SET lastModified = :timestamp WHERE localId=:localLinkId")
+    suspend fun updateLinkTimestamp(timestamp: Long, localLinkId: Long)
 }

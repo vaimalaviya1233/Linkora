@@ -10,6 +10,6 @@ data class PanelFolderDTO(
     val folderId: Long,
     val panelPosition: Long,
     val folderName: String,
-    val connectedPanelId: Long, val eventTimestamp: Long = 0,
+    val connectedPanelId: Long, val eventTimestamp: Long,
     val correlation: Correlation = AppPreferences.getCorrelation()
 )

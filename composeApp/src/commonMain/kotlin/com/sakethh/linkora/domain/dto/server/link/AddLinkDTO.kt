@@ -14,12 +14,11 @@ data class AddLinkDTO(
     val baseURL: String,
     val imgURL: String,
     val note: String,
-    val lastModified: String,
     val idOfLinkedFolder: Long?,
     val userAgent: String?,
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
     val correlation: Correlation = AppPreferences.getCorrelation(),
-    val eventTimestamp: Long = 0,
+    val eventTimestamp: Long,
     val offlineSyncItemId: Long = 0
 )

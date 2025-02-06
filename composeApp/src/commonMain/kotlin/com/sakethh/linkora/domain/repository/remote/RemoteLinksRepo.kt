@@ -1,28 +1,29 @@
 package com.sakethh.linkora.domain.repository.remote
 
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
+import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
+import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteLinksRepo {
     suspend fun addANewLink(addLinkDTO: AddLinkDTO): Flow<Result<NewItemResponseDTO>>
-    suspend fun deleteALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>>
-    suspend fun renameALinkTitle(
-        remoteLinkId: Long,
-        newTitle: String
+    suspend fun deleteALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
+    suspend fun updateLinkTitle(
+        updateTitleOfTheLinkDTO: UpdateTitleOfTheLinkDTO
     ): Flow<Result<TimeStampBasedResponse>>
 
-    suspend fun renameALinkNote(
-        remoteLinkId: Long,
-        newNote: String
+    suspend fun updateALinkNote(
+        updateNoteOfALinkDTO: UpdateNoteOfALinkDTO
     ): Flow<Result<TimeStampBasedResponse>>
 
-    suspend fun archiveALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>>
-    suspend fun unArchiveALink(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>>
-    suspend fun markALinkAsImp(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>>
-    suspend fun markALinkAsNonImp(remoteLinkId: Long): Flow<Result<TimeStampBasedResponse>>
+    suspend fun archiveALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
+    suspend fun unArchiveALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
+    suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
+    suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<TimeStampBasedResponse>>
 }

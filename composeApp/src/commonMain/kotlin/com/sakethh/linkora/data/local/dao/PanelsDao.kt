@@ -43,6 +43,9 @@ interface PanelsDao {
     @Query("UPDATE panel SET panelName = :newName WHERE localId = :panelId")
     suspend fun updateAPanelName(newName: String, panelId: Long)
 
+    @Query("UPDATE panel SET lastModified = :timestamp WHERE localId = :panelId")
+    suspend fun updatePanelTimestamp(panelId: Long, timestamp: Long)
+
     @Query("DELETE FROM panel_folder WHERE connectedPanelId = :panelId")
     suspend fun deleteConnectedFoldersOfPanel(panelId: Long)
 

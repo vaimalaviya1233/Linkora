@@ -3,6 +3,7 @@ package com.sakethh.linkora.domain.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 @Entity(tableName = "folders")
 @Serializable
@@ -14,6 +15,7 @@ data class Folder(
     val localId: Long = 0,
     val remoteId: Long? = null,
     val isArchived: Boolean = false,
+    val lastModified: Long = Instant.now().epochSecond
 ) {
     class FolderAlreadyExists(message: String) : Throwable(message)
     class InvalidName(message: String) : Throwable(message)

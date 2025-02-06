@@ -3,6 +3,7 @@ package com.sakethh.linkora.domain.model.panel
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 @Serializable
 @Entity(tableName = "panel_folder")
@@ -13,4 +14,5 @@ data class PanelFolder(
     val panelPosition: Long,
     val folderName: String,
     val connectedPanelId: Long,
+    val lastModified: Long = Instant.now().epochSecond
 )

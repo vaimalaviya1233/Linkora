@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
 
 class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
@@ -37,7 +38,7 @@ class LocalFoldersRepoImpl(
     private val localLinksRepo: LocalLinksRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
 ) : LocalFoldersRepo {
 
     override suspend fun insertANewFolder(
@@ -246,17 +247,25 @@ class LocalFoldersRepoImpl(
         newFolderName: String,
         ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true, remoteOperation = {
                 val remoteId = getRemoteIdOfAFolder(folderID)
             if (remoteId.isNotNull()) {
-                remoteFoldersRepo.updateFolderName(remoteId!!, newFolderName)
+                remoteFoldersRepo.updateFolderName(
+                    UpdateFolderNameDTO(
+                        remoteId!!,
+                        newFolderName,
+                        eventTimestamp
+                    )
+                )
                 // folder name in panel_folders gets updated on server-side when the actual folder name changes, so no need to push externally
             } else {
                 emptyFlow()
             }
             }, remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+                foldersDao.updateFolderTimestamp(it.eventTimestamp, folderID)
             }, localOperation = {
             if (newFolderName.isEmpty() || linkoraPlaceHolders()
                     .contains(newFolderName) || existingFolderName == newFolderName
@@ -264,6 +273,8 @@ class LocalFoldersRepoImpl(
                 throw Folder.InvalidName(if (newFolderName.isEmpty()) "Folder name cannot be blank." else if (existingFolderName == newFolderName) "Nothing has changed to update." else "\"${newFolderName}\" is reserved.")
             }
             foldersDao.renameAFolderName(folderID, newFolderName)
+                foldersDao.updateFolderTimestamp(eventTimestamp, folderID)
+
                 localPanelsRepo.updateAFolderName(folderID, newFolderName)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
@@ -271,7 +282,7 @@ class LocalFoldersRepoImpl(
                             operation = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
                             payload = Json.encodeToString(
                                 UpdateFolderNameDTO(
-                                    folderID, newFolderName
+                                    folderID, newFolderName, eventTimestamp
                                 )
                             )
                         )
@@ -291,29 +302,33 @@ class LocalFoldersRepoImpl(
         folderID: Long,
         viaSocket: Boolean
     ): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(), remoteOperation = {
                 val remoteId = getRemoteIdOfAFolder(folderID)
             if (remoteId.isNotNull()) {
-                remoteFoldersRepo.markAsArchive(remoteId!!)
+                remoteFoldersRepo.markAsArchive(IDBasedDTO(remoteId!!, eventTimestamp))
             } else {
                 emptyFlow()
             }
             }, remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+                foldersDao.updateFolderTimestamp(it.eventTimestamp, folderID)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
-                                    folderID
+                                    folderID,
+                                    eventTimestamp
                                 )
                             )
                         )
                     )
             }) {
             foldersDao.markFolderAsArchive(folderID)
+            foldersDao.updateFolderTimestamp(eventTimestamp, folderID)
         }
     }
 
@@ -327,43 +342,55 @@ class LocalFoldersRepoImpl(
         folderID: Long,
         viaSocket: Boolean
     ): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(), remoteOperation = {
                 val remoteFolderId = getRemoteIdOfAFolder(folderID)
             if (remoteFolderId.isNotNull()) {
-                remoteFoldersRepo.markAsRegularFolder(remoteFolderId!!)
+                remoteFoldersRepo.markAsRegularFolder(IDBasedDTO(remoteFolderId!!, eventTimestamp))
             } else {
                 emptyFlow()
             }
             }, remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+                foldersDao.updateFolderTimestamp(it.eventTimestamp, folderID)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
                             payload = Json.encodeToString(
                                 value = IDBasedDTO(
-                                    folderID
+                                    folderID,
+                                    eventTimestamp
                                 )
                             )
                         )
                     )
             }) {
             foldersDao.markFolderAsRegularFolder(folderID)
+            foldersDao.updateFolderTimestamp(eventTimestamp, folderID)
         }
     }
 
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true, remoteOperation = {
                 val remoteID = getRemoteIdOfAFolder(folderID)
             if (remoteID.isNotNull()) {
-                remoteFoldersRepo.updateFolderNote(remoteID!!, newNote)
+                remoteFoldersRepo.updateFolderNote(
+                    UpdateFolderNoteDTO(
+                        remoteID!!,
+                        newNote,
+                        eventTimestamp
+                    )
+                )
             } else {
                 emptyFlow()
             }
             }, remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+                foldersDao.updateFolderTimestamp(it.eventTimestamp, folderID)
             }, onRemoteOperationFailure = {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
@@ -372,18 +399,20 @@ class LocalFoldersRepoImpl(
                                 UpdateFolderNoteDTO(
                                     folderID,
                                     newNote,
+                                    eventTimestamp
                                 )
                             )
                         )
                     )
             }) {
             foldersDao.renameAFolderNote(folderID, newNote)
+            foldersDao.updateFolderTimestamp(eventTimestamp, folderID)
         }
     }
 
     override suspend fun updateLocalFolderData(folder: Folder): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow<Unit, Unit>(performRemoteOperation = false) {
-            foldersDao.updateAFolderData(folder)
+            foldersDao.updateAFolderData(folder.copy(lastModified = Instant.now().epochSecond))
         }
     }
 
@@ -391,11 +420,12 @@ class LocalFoldersRepoImpl(
         folderID: Long,
         viaSocket: Boolean
     ): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(), remoteOperation = {
                 val remoteId = getRemoteIdOfAFolder(folderID)
             if (remoteId.isNotNull()) {
-                remoteFoldersRepo.deleteFolderNote(remoteId!!)
+                remoteFoldersRepo.deleteFolderNote(IDBasedDTO(remoteId!!, eventTimestamp))
             } else {
                 emptyFlow()
             }
@@ -407,7 +437,8 @@ class LocalFoldersRepoImpl(
                             operation = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
                             payload = Json.encodeToString(
                                 value = IDBasedDTO(
-                                    folderID
+                                    folderID,
+                                    eventTimestamp
                                 )
                             )
                         )
@@ -423,10 +454,11 @@ class LocalFoldersRepoImpl(
     ): Flow<Result<Unit>> {
         // we need to hold the id because the local folder gets deleted first, so if we try to search after that, there will be nothing to search
         val remoteFolderId = getRemoteIdOfAFolder(folderID)
+        val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(), remoteOperation = {
             if (remoteFolderId.isNotNull()) {
-                remoteFoldersRepo.deleteFolder(remoteFolderId!!)
+                remoteFoldersRepo.deleteFolder(IDBasedDTO(remoteFolderId!!, eventTimestamp))
             } else {
                 emptyFlow()
             }
@@ -439,6 +471,7 @@ class LocalFoldersRepoImpl(
                             payload = Json.encodeToString(
                                 value = IDBasedDTO(
                                     folderID,
+                                    eventTimestamp
                                 )
                             )
                         )
