@@ -173,7 +173,13 @@ object Localization {
         TwoWaySyncDesc(defaultValue = "Changes are sent both ways: client updates the server, and server updates the client."), ImportLabel(
             defaultValue = "Import"
         ),
-        ExportLabel(defaultValue = "Export"), ImportUsingJsonFile(defaultValue = "Import using JSON file"), ImportUsingJsonFileDesc(
+        ImportLabelDesc(
+            defaultValue = "You are connected to a sync server. To load existing data from the remote database, use server-sync instead of manual import. Importing externally will duplicate data, even if it already exists remotely."
+        ),
+        ExportLabel(defaultValue = "Export"), ExportLabelDesc(defaultValue = "Exporting will remove all data linked to the remote database, making the exported data portable across different clients."), ImportUsingJsonFile(
+            defaultValue = "Import using JSON file"
+        ),
+        ImportUsingJsonFileDesc(
             defaultValue = "Import data from external JSON file based on Linkora Schema."
         ),
         ImportDataFromHtmlFile(defaultValue = "Import data from HTML file"), ImportDataFromHtmlFileDesc(

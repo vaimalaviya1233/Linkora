@@ -141,6 +141,15 @@ fun DataSettingsScreen() {
                     textAlign = TextAlign.Start,
                     modifier = Modifier.padding(start = 15.dp, end = 15.dp),
                 )
+                if (AppPreferences.isServerConfigured()) {
+                    Text(
+                        text = Localization.rememberLocalizedString(Localization.Key.ImportLabelDesc),
+                        style = MaterialTheme.typography.titleSmall,
+                        lineHeight = 20.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 5.dp),
+                    )
+                }
             }
 
             item {
@@ -202,6 +211,15 @@ fun DataSettingsScreen() {
                     textAlign = TextAlign.Start,
                     modifier = Modifier.padding(start = 15.dp, end = 15.dp),
                 )
+                if (AppPreferences.isServerConfigured()) {
+                    Text(
+                        text = Localization.rememberLocalizedString(Localization.Key.ExportLabelDesc),
+                        style = MaterialTheme.typography.titleSmall,
+                        lineHeight = 20.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 5.dp),
+                    )
+                }
             }
             item {
                 SettingComponent(
