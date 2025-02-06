@@ -407,10 +407,18 @@ object Localization {
         SuccessfullyConnectedToTheServer(defaultValue = "Server connection established successfully."), ConnectionToServerFailed(
             defaultValue = "Could not connect to the server. Ensure the server is reachable."
         ),
-        UpdatingChangesOnRemoteServer(defaultValue = "Updating Changes on Remote Server"), MenuBtmSheetAck(
+        UpdatingChangesOnRemoteServer(defaultValue = "Updating Changes on Remote Server"), LOLCATplAck(
             defaultValue = "Menu Bottom Sheet and Link Dialog Box for Android tablet/desktop platforms are inspired by and based on the mockups created by LOLCATpl."
         ),
-        LOLCATplOnDiscord(defaultValue = "LOLCATpl on Discord"), NoFoldersOrLinksFound(defaultValue = "No folders or links found. Please add some folders or links to get started!"), FoldersExistsButNotLinks(
+        MondsternAck(
+            defaultValue = "Linkora app icon is painted by mondstern."
+        ),
+        AckEndingText(defaultValue = "And, of course, the underlying libraries used by these also impact Linkora's behavior."),
+        LOLCATplOnDiscord(defaultValue = "LOLCATpl on Discord"),
+        MondsternOnDiscord(defaultValue = "mondstern on Pixelfed"), NoFoldersOrLinksFound(
+            defaultValue = "No folders or links found. Please add some folders or links to get started!"
+        ),
+        FoldersExistsButNotLinks(
             defaultValue = "You have folders, but no links yet. Add some links to organize your content."
         ),
         NoFoldersFound(defaultValue = "No folders found. Add folders to get started."), ExportingDataToJSON(

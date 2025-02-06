@@ -169,6 +169,21 @@ open class SettingsScreenViewModel(
                 isIconNeeded = mutableStateOf(false)
             ),
             SettingComponentParam(
+                title = "ktor-client",
+                doesDescriptionExists = true,
+                description = "Apache License (Version 2.0)",
+                isSwitchNeeded = false,
+                isSwitchEnabled = mutableStateOf(false),
+                onSwitchStateChange = {
+
+                },
+                onAcknowledgmentClick = { uriHandler ->
+                    uriHandler.openUri("https://github.com/ktorio/ktor")
+                },
+                shouldArrowIconBeAppear = mutableStateOf(true),
+                isIconNeeded = mutableStateOf(false)
+            ),
+            SettingComponentParam(
                 title = "kotlinx.serialization",
                 doesDescriptionExists = true,
                 description = "Apache License (Version 2.0)",
