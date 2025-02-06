@@ -108,15 +108,11 @@ class HomeScreenVM(
                     AppPreferenceType.LAST_SELECTED_PANEL_ID.name
                 )
             ).let {
-                if (it.isNull() || it!! == Constants.DEFAULT_PANELS_ID) {
+                try {
+                    if (it.isNull() || it!! == Constants.DEFAULT_PANELS_ID) throw Exception()
+                    localPanelsRepo.getPanel(it)
+                } catch (_: Exception) {
                     defaultPanel()
-                } else {
-                    try {
-                        localPanelsRepo.getPanel(it)
-                    } catch (_: Exception) {
-                        updatePanelFolders(Constants.DEFAULT_PANELS_ID)
-                        defaultPanel()
-                    }
                 }
             }
         }
@@ -132,6 +128,7 @@ class HomeScreenVM(
             }
         }
     }
+
     init {
         currentPhaseOfTheDay.value = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
             in 0..11 -> {

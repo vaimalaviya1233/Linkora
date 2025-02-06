@@ -1,4 +1,4 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.ui
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
@@ -23,6 +24,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -64,8 +66,6 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
-import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
@@ -117,7 +117,7 @@ import kotlinx.coroutines.launch
 fun App(
     modifier: Modifier = Modifier
 ) {
-    viewModel<AppVM>(factory = genericViewModelFactory {
+    val appVM = viewModel<AppVM>(factory = genericViewModelFactory {
         AppVM(
             remoteSyncRepo = DependencyContainer.remoteSyncRepo.value,
             preferencesRepository = DependencyContainer.preferencesRepo.value,
@@ -398,42 +398,49 @@ fun App(
                 sheetShape = RectangleShape,
                 sheetContent = {
                     if (platform() == Platform.Android.Mobile) {
-                        NavigationBar {
-                            rootRouteList.forEach { navRouteItem ->
-                                val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
-                                NavigationBarItem(selected = isSelected, onClick = {
-                                    isSelected.ifNot {
-                                        CollectionsScreenVM.resetCollectionDetailPaneInfo()
-                                        localNavController.navigate(navRouteItem)
-                                    }
-                                }, icon = {
-                                    Icon(
-                                        imageVector = if (isSelected) {
-                                            when (navRouteItem) {
-                                                Navigation.Root.HomeScreen -> Icons.Filled.Home
-                                                Navigation.Root.SearchScreen -> Icons.Filled.Search
-                                                Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
-                                                Navigation.Root.SettingsScreen -> Icons.Filled.Settings
-                                                else -> return@NavigationBarItem
-                                            }
-                                        } else {
-                                            when (navRouteItem) {
-                                                Navigation.Root.HomeScreen -> Icons.Outlined.Home
-                                                Navigation.Root.SearchScreen -> Icons.Outlined.Search
-                                                Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
-                                                Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
-                                                else -> return@NavigationBarItem
-                                            }
-                                        }, contentDescription = null
-                                    )
-                                }, label = {
-                                    Text(
-                                        text = navRouteItem.toString(),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        maxLines = 1
-                                    )
-                                })
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            if (appVM.isPerformingStartupSync.value) {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                             }
+                            NavigationBar {
+                                rootRouteList.forEach { navRouteItem ->
+                                    val isSelected =
+                                        currentRoute?.hasRoute(navRouteItem::class) == true
+                                    NavigationBarItem(selected = isSelected, onClick = {
+                                        isSelected.ifNot {
+                                            CollectionsScreenVM.resetCollectionDetailPaneInfo()
+                                            localNavController.navigate(navRouteItem)
+                                        }
+                                    }, icon = {
+                                        Icon(
+                                            imageVector = if (isSelected) {
+                                                when (navRouteItem) {
+                                                    Navigation.Root.HomeScreen -> Icons.Filled.Home
+                                                    Navigation.Root.SearchScreen -> Icons.Filled.Search
+                                                    Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
+                                                    Navigation.Root.SettingsScreen -> Icons.Filled.Settings
+                                                    else -> return@NavigationBarItem
+                                                }
+                                            } else {
+                                                when (navRouteItem) {
+                                                    Navigation.Root.HomeScreen -> Icons.Outlined.Home
+                                                    Navigation.Root.SearchScreen -> Icons.Outlined.Search
+                                                    Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                                    Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
+                                                    else -> return@NavigationBarItem
+                                                }
+                                            }, contentDescription = null
+                                        )
+                                    }, label = {
+                                        Text(
+                                            text = navRouteItem.toString(),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 1
+                                        )
+                                    })
+                                }
+                            }
+
                         }
                     }
                 }) {

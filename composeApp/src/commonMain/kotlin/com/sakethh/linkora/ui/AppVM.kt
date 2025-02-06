@@ -1,5 +1,6 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.ui
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.DataSyncingNotificationService
@@ -32,13 +33,13 @@ class AppVM(
 ) : ViewModel() {
 
     private val dataSyncingNotificationService = DataSyncingNotificationService()
-
+    val isPerformingStartupSync = mutableStateOf(false)
     init {
         readSocketEvents(viewModelScope, remoteSyncRepo)
 
         viewModelScope.launch {
-            launch {
-                if (AppPreferences.isServerConfigured()) {
+            if (AppPreferences.isServerConfigured()) {
+                isPerformingStartupSync.value = true
                     networkRepo.testServerConnection(
                         serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,
                         token = AppPreferences.serverSecurityToken.value
@@ -84,8 +85,8 @@ class AppVM(
                         }
                     }
                 }
-            }
         }.invokeOnCompletion {
+            isPerformingStartupSync.value = false
             dataSyncingNotificationService.clearNotification()
         }
     }
