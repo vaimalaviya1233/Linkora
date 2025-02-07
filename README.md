@@ -20,8 +20,9 @@ height="80">](https://github.com/sakethpathike/Linkora/releases)
 - Import and export data easily.
 - Auto-recognize link images and titles.
 - Add folders to your **_Panels_** for instant home screen access.
-- Localization supported via a central localization server, also written in Ktor. The server code
+- Localization supported via a central localization server. The server code
   can be found [here](https://github.com/LinkoraApp/LinkoraLocalizationServer).
+- Sync data with a [self-hostable server](https://github.com/LinkoraApp/sync-server)
 
 ## Screenshots
 
