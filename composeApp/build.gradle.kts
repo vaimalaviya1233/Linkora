@@ -126,7 +126,9 @@ compose.desktop {
         mainClass = "com.sakethh.linkora.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,
+                TargetFormat.AppImage, TargetFormat.Rpm, TargetFormat.Pkg, TargetFormat.Exe
+            )
             packageName = "Linkora"
             this.vendor = "Saketh Pathike"
 
