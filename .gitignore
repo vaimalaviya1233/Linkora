@@ -25,9 +25,8 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
-
-local.properties
 /app/src/main/java/com/sakethh/linkora/screens/settings/LinkoraAPI.kt
 /app/google-services.json
 /shelf/
 /workspace.xml
+.gitignore

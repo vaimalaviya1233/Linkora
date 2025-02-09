@@ -1,3 +1,0 @@
-Fixes:
-
-- The "in-built browser" will now open based on the default browser instead of Chrome.
