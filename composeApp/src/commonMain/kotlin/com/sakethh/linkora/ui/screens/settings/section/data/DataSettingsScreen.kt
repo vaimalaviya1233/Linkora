@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -23,19 +25,25 @@ import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Html
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -45,7 +53,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,6 +79,7 @@ import com.sakethh.linkora.ui.components.DeleteDialogBox
 import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
 import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.InfoCard
+import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
@@ -76,6 +87,7 @@ import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagemen
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.platform
+import com.sakethh.poppinsFontFamily
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,6 +132,15 @@ fun DataSettingsScreen() {
     val coroutineScope = rememberCoroutineScope()
     val platform = platform()
     val coilPlatformContext = LocalPlatformContext.current
+    val importFileSelectionMethod = rememberSaveable {
+        mutableStateOf(ImportFileSelectionMethod.FilePicker.name)
+    }
+    val showFileLocationPickerDialog = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val selectedImportFormat = rememberSaveable {
+        mutableStateOf(ImportFileType.JSON.name)
+    }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
         navController = navController
@@ -141,6 +162,34 @@ fun DataSettingsScreen() {
                     textAlign = TextAlign.Start,
                     modifier = Modifier.padding(start = 15.dp, end = 15.dp),
                 )
+                if (platform() is Platform.Desktop) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 5.dp)
+                    ) {
+                        Text(
+                            text = Localization.Key.ImportMethodLabel.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) Localization.Key.FileLocationLabel.rememberLocalizedString() else Localization.Key.FilePickerLabel.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        FilledTonalIconButton(modifier = Modifier.size(24.dp), onClick = {
+                            if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) importFileSelectionMethod.value =
+                                ImportFileSelectionMethod.FilePicker.name else importFileSelectionMethod.value =
+                                ImportFileSelectionMethod.FileLocationString.name
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.SwitchLeft,
+                                contentDescription = null,
+                                modifier = Modifier.rotate(if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) 0f else 180f)
+                            )
+                        }
+                    }
+                }
                 if (AppPreferences.isServerConfigured()) {
                     Text(
                         text = Localization.rememberLocalizedString(Localization.Key.ImportLabelDesc),
@@ -162,6 +211,11 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = rememberSaveable { mutableStateOf(false) },
                         onSwitchStateChange = {
+                            if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) {
+                                selectedImportFormat.value = ImportFileType.JSON.name
+                                showFileLocationPickerDialog.value = true
+                                return@SettingComponentParam
+                            }
                             dataOperationTitle.value =
                                 Localization.getLocalizedString(Localization.Key.ImportUsingJsonFile)
                             dataSettingsScreenVM.importDataFromAFile(
@@ -171,7 +225,9 @@ fun DataSettingsScreen() {
                                 },
                                 onCompletion = {
                                     isImportExportProgressUIVisible.value = false
-                                })
+                                },
+                                importFileSelectionMethod = ImportFileSelectionMethod.FilePicker to ""
+                            )
                         },
                         icon = Icons.Default.DataObject,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -187,6 +243,11 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                         onSwitchStateChange = {
+                            if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) {
+                                selectedImportFormat.value = ImportFileType.HTML.name
+                                showFileLocationPickerDialog.value = true
+                                return@SettingComponentParam
+                            }
                             dataOperationTitle.value =
                                 Localization.getLocalizedString(Localization.Key.ImportDataFromHtmlFile)
                             dataSettingsScreenVM.importDataFromAFile(
@@ -196,7 +257,9 @@ fun DataSettingsScreen() {
                                 },
                                 onCompletion = {
                                     isImportExportProgressUIVisible.value = false
-                                })
+                                },
+                                importFileSelectionMethod = ImportFileSelectionMethod.FilePicker to ""
+                            )
                         },
                         icon = Icons.Default.Html,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -547,6 +610,65 @@ fun DataSettingsScreen() {
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
+    }
+    if (showFileLocationPickerDialog.value) {
+        val fileLocation = rememberSaveable {
+            mutableStateOf("")
+        }
+        AlertDialog(onDismissRequest = {
+            showFileLocationPickerDialog.value = false
+        }, confirmButton = {
+            Button(modifier = Modifier.fillMaxWidth(), onClick = {
+                dataSettingsScreenVM.importDataFromAFile(
+                    importFileType = ImportFileType.valueOf(selectedImportFormat.value),
+                    onStart = {
+                        showFileLocationPickerDialog.value = false
+                        isImportExportProgressUIVisible.value = true
+                    },
+                    onCompletion = {
+                        isImportExportProgressUIVisible.value = false
+                        showFileLocationPickerDialog.value = false
+                    },
+                    importFileSelectionMethod = ImportFileSelectionMethod.FileLocationString to fileLocation.value
+                )
+            }) {
+                Text(
+                    text = Localization.Key.ImportLabel.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+        }, dismissButton = {
+            OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
+                showFileLocationPickerDialog.value = false
+            }) {
+                Text(
+                    text = Localization.Key.Cancel.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+        }, text = {
+            OutlinedTextField(
+                label = {
+                    Text(
+                        text = Localization.Key.FileLocationLabel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1
+                    )
+                },
+                value = fileLocation.value,
+                onValueChange = {
+                    fileLocation.value = it
+                },
+                textStyle = TextStyle(fontFamily = poppinsFontFamily),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }, title = {
+            Text(
+                text = Localization.Key.ProvideAValidFileLocation.rememberLocalizedString(),
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 18.sp
+            )
+        })
     }
     ServerManagementBottomSheet(
         serverManagementViewModel = serverManagementViewModel,

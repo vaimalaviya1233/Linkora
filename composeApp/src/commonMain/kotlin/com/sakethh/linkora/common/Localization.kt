@@ -451,6 +451,8 @@ object Localization {
             defaultValue = "Pending items will be pushed, and unsynced data from the server will be pulled."
         ),
         SyncingDataLabel(defaultValue = "Syncing Data..."), RemoteDataDeletionFailure(defaultValue = "The data from the remote database could not be deleted."),
-        DeleteEverythingFromRemoteDatabaseLabel(defaultValue = "Delete all data from the remote database as well")
+        DeleteEverythingFromRemoteDatabaseLabel(defaultValue = "Delete all data from the remote database as well"),
+        ProvideAValidFileLocation(defaultValue = "Provide a valid file location"), ImportMethodLabel(defaultValue = "Import Method : "),
+        FileLocationLabel(defaultValue = "File Location"),FilePickerLabel(defaultValue = "File Picker")
     }
 }

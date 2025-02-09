@@ -18,6 +18,7 @@ import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
+import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
@@ -30,6 +31,7 @@ import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.onRefreshAllLinks
@@ -45,8 +47,10 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class DataSettingsScreenVM(
-    private val exportDataRepo: ExportDataRepo, private val importDataRepo: ImportDataRepo,
-    private val linksRepo: LocalLinksRepo, private val foldersRepo: LocalFoldersRepo,
+    private val exportDataRepo: ExportDataRepo,
+    private val importDataRepo: ImportDataRepo,
+    private val linksRepo: LocalLinksRepo,
+    private val foldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
@@ -67,14 +71,40 @@ class DataSettingsScreenVM(
     }
 
     fun importDataFromAFile(
-        importFileType: ImportFileType, onStart: () -> Unit, onCompletion: () -> Unit
+        importFileType: ImportFileType,
+        onStart: () -> Unit,
+        onCompletion: () -> Unit,
+        importFileSelectionMethod: Pair<ImportFileSelectionMethod, String>
     ) {
         importExportJob?.cancel()
         importExportJob = viewModelScope.launch(Dispatchers.Default) {
-            val file = pickAValidFileForImporting(importFileType, onStart = {
-                onStart()
-                importExportProgressLogs.add(Localization.Key.ReadingFile.getLocalizedString())
-            })
+            val file =
+                if (importFileSelectionMethod.first == ImportFileSelectionMethod.FileLocationString) {
+                    File(importFileSelectionMethod.second).let {
+                        if (it.exists() && it.extension.lowercase() == importFileType.name.lowercase()) {
+                            onStart()
+                            it
+                        } else if (it.exists() && it.extension.lowercase() != importFileType.name.lowercase()) {
+                            UIEvent.pushUIEvent(
+                                UIEvent.Type.ShowSnackbar(
+                                    Localization.Key.FileTypeNotSupportedOnDesktopImport.getLocalizedString()
+                                        .replace(LinkoraPlaceHolder.First.value, it.extension)
+                                        .replace(
+                                            LinkoraPlaceHolder.Second.value, importFileType.name
+                                        )
+                                )
+                            )
+                            return@launch
+                        } else {
+                            null
+                        }
+                    }
+                } else {
+                    pickAValidFileForImporting(importFileType, onStart = {
+                        onStart()
+                        importExportProgressLogs.add(Localization.Key.ReadingFile.getLocalizedString())
+                    })
+                }
             if (file.isNull()) return@launch
             file as File
             if (importFileType == ImportFileType.JSON) {
@@ -127,8 +157,7 @@ class DataSettingsScreenVM(
                     importExportProgressLogs.add(exportLogItem)
                 }.onSuccess {
                     try {
-                        writeRawExportStringToFile(
-                            exportFileType = exportFileType,
+                        writeRawExportStringToFile(exportFileType = exportFileType,
                             rawExportString = it.data,
                             onCompletion = {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
@@ -209,8 +238,7 @@ class DataSettingsScreenVM(
             }
             launch {
                 onRefreshAllLinks(
-                    localLinksRepo = linksRepo,
-                    preferencesRepository = preferencesRepository
+                    localLinksRepo = linksRepo, preferencesRepository = preferencesRepository
                 )
             }
         }
