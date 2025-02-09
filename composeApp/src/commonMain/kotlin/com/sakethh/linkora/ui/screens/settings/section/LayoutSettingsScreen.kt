@@ -183,26 +183,6 @@ fun LayoutSettingsScreen() {
             ),
             LinkUIComponentParam(
                 link = Link(
-                    title = "KanYe West | Spotify",
-                    baseURL = "open.spotify.com",
-                    imgURL = "https://i.scdn.co/image/b076a71cd18041144e0c5a1f2fc785cc6f6faa37",
-                    url = "https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "",
-                    idOfLinkedFolder = null
-                ),
-                onForceOpenInExternalBrowserClicked = { -> },
-                isSelectionModeEnabled = mutableStateOf(false),
-                isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> },
-                onLinkClick = { ->
-                    localUriHandler.openUri("https://open.spotify.com/artist/5K4W6rqBFWDnAN6FQUkS6x")
-                },
-            ),
-            LinkUIComponentParam(
-                link = Link(
                     title = "Hacker (small type)",
                     baseURL = "twitter.com",
                     imgURL = "https://pbs.twimg.com/media/GT7RIrWWwAAjZzg.jpg",
