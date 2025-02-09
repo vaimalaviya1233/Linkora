@@ -14,9 +14,7 @@ import androidx.sqlite.execSQL
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.data.local.LinkoraDataStoreName
 import com.sakethh.linkora.data.local.LocalDatabase
-import com.sakethh.linkora.data.local.createDataStore
 import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
 import java.time.Instant
@@ -36,9 +34,6 @@ class LinkoraApp : Application() {
     override fun onCreate() {
         super.onCreate()
         LinkoraApp.applicationContext = this.applicationContext
-        DependencyContainer.dataStorePref = createDataStore {
-            applicationContext.filesDir.resolve(LinkoraDataStoreName).absolutePath
-        }
         localDatabase = buildLocalDatabase()
         AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
         Localization.loadLocalizedStrings(

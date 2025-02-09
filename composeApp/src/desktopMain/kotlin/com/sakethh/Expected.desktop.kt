@@ -2,10 +2,14 @@ package com.sakethh
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.RefreshAllLinksService
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isNotNull
@@ -23,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
+import okio.Path.Companion.toPath
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
@@ -36,17 +41,22 @@ actual val BUILD_FLAVOUR: String = "desktop"
 actual val platform: @Composable () -> Platform = {
     Platform.Desktop
 }
-actual val localDatabase: LocalDatabase? =
-    File(System.getProperty("user.home").run {
-        val appDataDir = File(this, ".linkora")
-        if (appDataDir.exists().not()) {
-            appDataDir.mkdirs()
-        }
-        appDataDir
-    }, "${LocalDatabase.NAME}.db").run {
-        Room.databaseBuilder<LocalDatabase>(name = this.absolutePath).setDriver(BundledSQLiteDriver()).build()
+private val linkoraSpecificFolder = System.getProperty("user.home").run {
+    val appDataDir = File(this, ".linkora")
+    if (appDataDir.exists().not()) {
+        appDataDir.mkdirs()
     }
+    appDataDir
+}
 
+actual val localDatabase: LocalDatabase? =
+    File(linkoraSpecificFolder, "${LocalDatabase.NAME}.db").run {
+        Room.databaseBuilder<LocalDatabase>(name = this.absolutePath)
+            .setDriver(BundledSQLiteDriver()).build()
+    }
+actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath {
+    linkoraSpecificFolder.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
+}
 actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = false
 

@@ -15,6 +15,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.work.Constraints
@@ -30,6 +33,7 @@ import com.sakethh.linkora.RefreshAllLinksWorker
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.data.local.LocalDatabase
@@ -50,6 +54,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import okio.Path.Companion.toPath
 import java.io.File
 import java.text.DateFormat
 import java.util.Date
@@ -238,3 +243,9 @@ actual class DataSyncingNotificationService actual constructor() {
     }
 
 }
+
+actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(
+    produceFile = {
+        LinkoraApp.getContext().applicationContext.filesDir.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
+    }
+)

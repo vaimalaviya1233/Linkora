@@ -43,8 +43,6 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.inDoubleQuotes
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.data.local.LinkoraDataStoreName
-import com.sakethh.linkora.data.local.createDataStore
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.App
@@ -58,10 +56,6 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 
 fun main() {
-    val dataStorePref = createDataStore {
-        LinkoraDataStoreName
-    }
-    DependencyContainer.dataStorePref = dataStorePref
     AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
     Localization.loadLocalizedStrings(
         AppPreferences.preferredAppLanguageCode.value
@@ -90,13 +84,14 @@ fun main() {
                         if (AppPreferences.shouldUseForceDarkTheme.value) DarkColors else LightColors
                     }
                 ) {
-                    Scaffold(topBar = {
-                        if (AppPreferences.useLinkoraTopDecoratorOnDesktop.value) {
-                            WindowDraggableArea {
-                                TopDecorator(windowState)
+                    Scaffold(
+                        topBar = {
+                            if (AppPreferences.useLinkoraTopDecoratorOnDesktop.value) {
+                                WindowDraggableArea {
+                                    TopDecorator(windowState)
+                                }
                             }
-                        }
-                    },
+                        },
                         modifier = Modifier.border(
                             0.5.dp,
                             MaterialTheme.colorScheme.outline.copy(0.25f)

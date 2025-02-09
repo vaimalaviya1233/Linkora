@@ -1,7 +1,5 @@
 package com.sakethh.linkora.common
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.network.repository.NetworkRepoImpl
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -18,13 +16,13 @@ import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteLinksRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemotePanelsRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteSyncRepoImpl
+import com.sakethh.linkoraDataStore
 import com.sakethh.localDatabase
 
 object DependencyContainer {
-    lateinit var dataStorePref: DataStore<Preferences>
 
     val preferencesRepo = lazy {
-        PreferencesImpl(dataStorePref)
+        PreferencesImpl(linkoraDataStore)
     }
 
     val localizationRepo = lazy {

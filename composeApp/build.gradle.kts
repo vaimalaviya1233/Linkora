@@ -21,7 +21,7 @@ kotlin {
     }
 
     jvm("desktop")
-    
+
     sourceSets {
         val desktopMain by getting
 
@@ -126,7 +126,8 @@ compose.desktop {
         mainClass = "com.sakethh.linkora.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,
+            targetFormats(
+                TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,
                 TargetFormat.AppImage, TargetFormat.Rpm, TargetFormat.Pkg, TargetFormat.Exe
             )
             packageName = "Linkora"
@@ -146,7 +147,8 @@ compose.desktop {
             linux {
                 this.iconFile.set(project.file("src/desktopMain/resources/logo.png"))
             }
-
+            modules("jdk.unsupported")
+            modules("jdk.unsupported.desktop")
         }
     }
 }
