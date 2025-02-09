@@ -1,0 +1,4 @@
+/build
+src/github/google-services.json
+/src/main/java/com/sakethh/linkora/LinkoraAPIKey.kt
+.gitignore
