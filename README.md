@@ -24,6 +24,8 @@ height="80">](https://github.com/sakethpathike/Linkora/releases)
   can be found [here](https://github.com/LinkoraApp/LinkoraLocalizationServer).
 - Sync data with a [self-hostable server](https://github.com/LinkoraApp/sync-server)
 
+To learn how to connect to the server from the Linkora app, check [these instructions](/docs/ServerConnectionSetup.md).
+
 ## Screenshots
 
 ### Tablet/Desktop Screenshots
