@@ -1,10 +1,10 @@
 Starting Linkora v0.11.0, the app supports connection to [sync-server](https://github.com/LinkoraApp/sync-server) for syncing your data (or just to store your data on cloud).
 
-#### 1. Setup server and its database
+### 1. Setup server and its database
 
 [sync-server](https://github.com/LinkoraApp/sync-server) is a self-hostable solution that connects to an SQL-based database of your choice for storing and syncing data.
 
-Go through the README of [`sync-server`](https://github.com/LinkoraApp/sync-server) to learn how to set up the server, then continue with the further instructions here.
+Go through the [README of [`sync-server`](https://github.com/LinkoraApp/sync-server)](https://github.com/LinkoraApp/sync-server/blob/master/README.md) to learn how to set up the server, then continue with the further instructions here.
 
 ### 2. Connecting to the server from the app
 
@@ -12,7 +12,7 @@ Now, follow the steps using the images below:
 - Navigate to **Settings -> Data**.
 - **Step 1 (Image 1)**: Click on `Connect to a Linkora Server`.
 - **Step 2 (Image 2, 3, 4)**: Provide the required values and click `Test Server Availability`.
-- **Step 3 (Image 5)**: If the server is reachable, you'll see a confirmation screen. Click on `Use This Connection`, and Linkora will handle everything else.
+- **Step 3 (Image 5)**: If the server is reachable, you'll see a few more options to configure how the app should interact with the server. Click on `Use This Connection`, and Linkora will handle everything else.
 - **Step 4 (Image 6)**:
     - A new option appears to initiate a manual sync in case Linkora couldn't connect to the server on app launch.
     - By clicking `Manage Connected Server`, you can view the sync type, edit the connection, or delete it, which will remove the link between the app and server.
