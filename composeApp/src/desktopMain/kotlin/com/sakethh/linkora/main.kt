@@ -54,16 +54,24 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 
-fun main() {
-    AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
-    Localization.loadLocalizedStrings(
-        AppPreferences.preferredAppLanguageCode.value
-    )
+suspend fun main() {
+    withContext(Dispatchers.IO) {
+        awaitAll(async {
+            AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
+        }, async {
+            Localization.loadLocalizedStrings(
+                AppPreferences.preferredAppLanguageCode.value
+            )
+        })
+    }
     application {
         val windowState = rememberWindowState(
-            width = 1054.dp,
-            height = 600.dp
+            width = 1054.dp, height = 600.dp
         )
         val navController = rememberNavController()
         Window(
@@ -73,8 +81,7 @@ fun main() {
             undecorated = AppPreferences.useLinkoraTopDecoratorOnDesktop.value
         ) {
             CompositionLocalProvider(
-                LocalNavController provides navController,
-                LocalPlatform provides Platform.Desktop
+                LocalNavController provides navController, LocalPlatform provides Platform.Desktop
             ) {
                 LinkoraTheme(
                     typography = DesktopTypography,
@@ -91,10 +98,8 @@ fun main() {
                                     TopDecorator(windowState)
                                 }
                             }
-                        },
-                        modifier = Modifier.border(
-                            0.5.dp,
-                            MaterialTheme.colorScheme.outline.copy(0.25f)
+                        }, modifier = Modifier.border(
+                            0.5.dp, MaterialTheme.colorScheme.outline.copy(0.25f)
                         )
                     ) {
                         App(modifier = Modifier.padding(it))
