@@ -144,11 +144,12 @@ fun AboutSettingsScreen() {
                                         Constants.APP_VERSION_NAME == githubReleaseDTO.releaseName
                                 }
                                 shouldVersionCheckerDialogAppear.value = false
-                                shouldBtmModalSheetBeVisible.value = true
+                                shouldBtmModalSheetBeVisible.value =
+                                    AppPreferences.isOnLatestUpdate.value.not() && githubReleaseDTO != null
                             })
                         },
                     )
-                } else if (retrievedAppVersionData.value.releaseName == Constants.APP_VERSION_NAME) {
+                } else if (AppPreferences.isOnLatestUpdate.value) {
                     Card(
                         border = BorderStroke(
                             1.dp, contentColorFor(MaterialTheme.colorScheme.surface)
