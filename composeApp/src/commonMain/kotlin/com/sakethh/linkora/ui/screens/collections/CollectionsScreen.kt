@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
@@ -131,9 +132,7 @@ fun CollectionsScreen(
                             top = 15.dp,
                             start = 25.dp,
                             end = if (platform() is Platform.Android.Mobile) 25.dp else 5.dp
-                        ),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                        ), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(0.25f)
                     )
                 }
                 item {
@@ -231,9 +230,7 @@ fun CollectionsScreen(
                             top = 15.dp,
                             bottom = 10.dp,
                             end = if (platform() is Platform.Android.Mobile) 20.dp else 0.dp
-                        ),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                        ), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(0.25f)
                     )
                 }
                 item {
@@ -267,8 +264,7 @@ fun CollectionsScreen(
                             onClick = { ->
                                 collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                                     CollectionDetailPaneInfo(
-                                        currentFolder = folder,
-                                        isAnyCollectionSelected = true
+                                        currentFolder = folder, isAnyCollectionSelected = true
                                     )
                                 )
                                 if (platform is Platform.Android.Mobile) navController.navigate(
@@ -313,6 +309,13 @@ fun CollectionsScreen(
                     collectionsScreenVM = collectionsScreenVM,
                 )
             }
+        }
+    }
+    PlatformSpecificBackHandler {
+        if (CollectionsScreenVM.isSelectionEnabled.value) {
+            CollectionsScreenVM.clearAllSelections()
+        } else {
+            navController.navigateUp()
         }
     }
 }

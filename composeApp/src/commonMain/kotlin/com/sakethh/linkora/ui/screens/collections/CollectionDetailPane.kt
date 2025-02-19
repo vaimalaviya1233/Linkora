@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -96,78 +97,7 @@ fun CollectionDetailPane(
     val navController = LocalNavController.current
     val localUriHandler = LocalUriHandler.current
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        Column(modifier = Modifier.animateContentSize()) {
-            if (CollectionsScreenVM.isSelectionEnabled.value) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                        .background(TopAppBarDefaults.topAppBarColors().containerColor)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = {
-                            CollectionsScreenVM.clearAllSelections()
-                        }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
-                        }
-                        Column {
-                            Text(
-                                text = "Selected ${CollectionsScreenVM.selectedLinksViaLongClick.size} links",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            Text(
-                                text = "Selected ${CollectionsScreenVM.selectedFolderViaLongClick.size} folders",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Actions",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.align(Alignment.CenterStart).padding(start = 15.dp)
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.align(
-                                Alignment.CenterEnd
-                            ).animateContentSize()
-                        ) {
-                            IconButton(onClick = {
-                                coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
-                            }) {
-                                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                            }
-                            if (CollectionsScreenVM.selectedLinksViaLongClick.map { it.linkType }
-                                    .contains(
-                                        LinkType.ARCHIVE_LINK
-                                    )
-                                    .not() || CollectionsScreenVM.selectedFolderViaLongClick.map { it.isArchived }
-                                    .contains(false)) {
-                                IconButton(onClick = {
-                                    collectionsScreenVM.archiveSelectedItems()
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Archive,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-                            IconButton(onClick = {}) {
-                                Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
-                            }
-                            IconButton(onClick = {}) {
-                                Icon(
-                                    imageVector = Icons.Outlined.DriveFileMove,
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    }
-                }
-                return@Column
-            }
+        Column {
             TopAppBar(actions = {
                 SortingIconButton()
             }, navigationIcon = {

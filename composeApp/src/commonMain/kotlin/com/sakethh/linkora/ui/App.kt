@@ -7,26 +7,36 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.CopyAll
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -38,6 +48,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -107,6 +118,7 @@ import com.sakethh.linkora.ui.screens.settings.section.about.AboutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
 import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
@@ -359,8 +371,84 @@ fun App(
             }
         }
         Scaffold(
+            bottomBar = {
+                Box(modifier = Modifier.animateContentSize()){
+                    if (CollectionsScreenVM.isSelectionEnabled.value) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                                .background(if(inRootScreen == true) BottomAppBarDefaults.containerColor else TopAppBarDefaults.topAppBarColors().containerColor)
+                        ) {
+                            HorizontalDivider()
+                            Spacer(modifier = Modifier.height(5.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = {
+                                    CollectionsScreenVM.clearAllSelections()
+                                }) {
+                                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                                }
+                                Column {
+                                    Text(
+                                        text = "Selected ${CollectionsScreenVM.selectedLinksViaLongClick.size} links",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Text(
+                                        text = "Selected ${CollectionsScreenVM.selectedFolderViaLongClick.size} folders",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+                            }
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Actions",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 15.dp)
+                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.align(
+                                        Alignment.CenterEnd
+                                    ).animateContentSize()
+                                ) {
+                                    IconButton(onClick = {
+                                        coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
+                                    }) {
+                                        Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                                    }
+                                    if (CollectionsScreenVM.selectedLinksViaLongClick.map { it.linkType }
+                                            .contains(
+                                                LinkType.ARCHIVE_LINK
+                                            )
+                                            .not() || CollectionsScreenVM.selectedFolderViaLongClick.map { it.isArchived }
+                                            .contains(false)) {
+                                        IconButton(onClick = {
+                                            collectionsScreenVM.archiveSelectedItems()
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Archive,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    }
+                                    IconButton(onClick = {}) {
+                                        Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
+                                    }
+                                    IconButton(onClick = {}) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.DriveFileMove,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             floatingActionButton = {
-            if (showAddingLinkOrFoldersFAB.value) {
+            if (showAddingLinkOrFoldersFAB.value && CollectionsScreenVM.isSelectionEnabled.value.not()) {
                 if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
                         Constants.SAVED_LINKS_ID,
                         Constants.IMPORTANT_LINKS_ID,
@@ -584,8 +672,7 @@ fun App(
                         }
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.archiveAFolder(
-                                selectedFolderForMenuBtmSheet.value,
-                                onCompletion = {
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
                                     showProgressBarDuringRemoteSave.value = false
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
@@ -596,8 +683,7 @@ fun App(
                                 })
                         } else {
                             collectionsScreenVM.archiveALink(
-                                selectedLinkForMenuBtmSheet.value,
-                                onCompletion = {
+                                selectedLinkForMenuBtmSheet.value, onCompletion = {
                                     showProgressBarDuringRemoteSave.value = false
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
@@ -614,8 +700,7 @@ fun App(
                         }
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.deleteTheNote(
-                                selectedFolderForMenuBtmSheet.value,
-                                onCompletion = {
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
                                     showProgressBarDuringRemoteSave.value = false
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
@@ -625,8 +710,7 @@ fun App(
                                 })
                         } else {
                             collectionsScreenVM.deleteTheNote(
-                                selectedLinkForMenuBtmSheet.value,
-                                onCompletion = {
+                                selectedLinkForMenuBtmSheet.value, onCompletion = {
                                     showProgressBarDuringRemoteSave.value = false
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
@@ -641,8 +725,7 @@ fun App(
                             showProgressBarDuringRemoteSave.value = true
                         }
                         collectionsScreenVM.refreshLinkMetadata(
-                            selectedLinkForMenuBtmSheet.value,
-                            onCompletion = {
+                            selectedLinkForMenuBtmSheet.value, onCompletion = {
                                 showProgressBarDuringRemoteSave.value = false
                                 coroutineScope.launch {
                                     menuBtmModalSheetState.hide()
@@ -663,8 +746,7 @@ fun App(
                             showProgressBarDuringRemoteSave.value = true
                         }
                         collectionsScreenVM.markALinkAsImp(
-                            selectedLinkForMenuBtmSheet.value,
-                            onCompletion = {
+                            selectedLinkForMenuBtmSheet.value, onCompletion = {
                                 showProgressBarDuringRemoteSave.value = false
                                 coroutineScope.launch {
                                     menuBtmModalSheetState.hide()
@@ -695,8 +777,7 @@ fun App(
                         }
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
                             collectionsScreenVM.deleteAFolder(
-                                selectedFolderForMenuBtmSheet.value,
-                                onCompletion = {
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
@@ -707,8 +788,7 @@ fun App(
                                 })
                         } else {
                             collectionsScreenVM.deleteALink(
-                                selectedLinkForMenuBtmSheet.value,
-                                onCompletion = {
+                                selectedLinkForMenuBtmSheet.value, onCompletion = {
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
