@@ -169,8 +169,10 @@ class SearchScreenVM(
             }
         }
     }
+
     private val _links = MutableStateFlow(emptyList<Link>())
     val links = _links.asStateFlow()
+
     init {
         viewModelScope.launch {
             snapshotFlow {

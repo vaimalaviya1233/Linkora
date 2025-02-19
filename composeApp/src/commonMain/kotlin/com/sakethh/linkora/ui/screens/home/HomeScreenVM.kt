@@ -90,6 +90,7 @@ class HomeScreenVM(
     }
 
     val selectedPanelData = mutableStateOf<Panel?>(null)
+
     init {
         if (triggerCollectionOfPanels) {
             viewModelScope.launch {

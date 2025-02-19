@@ -151,7 +151,7 @@ fun AddANewLinkDialogBox(
                 isDropDownMenuIconClicked.value = false
             }
         }
-        val linkTextFieldValue = rememberSaveable() {
+        val linkTextFieldValue = rememberSaveable {
             mutableStateOf(url)
         }
         LaunchedEffect(Unit) {

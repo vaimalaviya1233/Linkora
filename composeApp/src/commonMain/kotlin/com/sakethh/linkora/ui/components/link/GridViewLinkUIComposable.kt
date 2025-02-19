@@ -103,7 +103,8 @@ fun GridViewLinkUIComponent(
                         ),
                     imgURL = linkUIComponentParam.link.imgURL,
                     contentScale = if (linkUIComponentParam.link.imgURL.startsWith("https://pbs.twimg.com/profile_images/") || !AppPreferences.isShelfMinimizedInHomeScreen.value || !forStaggeredView) ContentScale.Crop else ContentScale.Fit,
-                    userAgent = linkUIComponentParam.link.userAgent ?: AppPreferences.primaryJsoupUserAgent.value
+                    userAgent = linkUIComponentParam.link.userAgent
+                        ?: AppPreferences.primaryJsoupUserAgent.value
                 )
                 if (AppPreferences.showVideoTagOnUIIfApplicable.value && (linkUIComponentParam.link.mediaType == MediaType.VIDEO || linkUIComponentParam.link.url.baseUrl(
                         throwOnException = false

@@ -137,8 +137,8 @@ object AppPreferences {
                 launch {
                     startDestination.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.INITIAL_ROUTE.name),
-                        
-                    ) ?: startDestination.value
+
+                        ) ?: startDestination.value
                 },
                 launch {
                     shouldUseForceDarkTheme.value = preferencesRepository.readPreferenceValue(
@@ -148,57 +148,59 @@ object AppPreferences {
                 launch {
                     shouldUseDynamicTheming.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(AppPreferenceType.DYNAMIC_THEMING.name),
-                    ) ?: false
+                    ) == true
                 },
                 launch {
                     primaryJsoupUserAgent.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.JSOUP_USER_AGENT.name),
-                        
-                    )
+
+                        )
                         ?: primaryJsoupUserAgent.value
                 },
                 launch {
                     secondaryJsoupUserAgent.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.SECONDARY_JSOUP_USER_AGENT.name),
-                        
-                    )
+
+                        )
                         ?: secondaryJsoupUserAgent.value
                 },
                 launch {
-                    showDescriptionForSettingsState.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.SETTING_COMPONENT_DESCRIPTION_STATE.name),
-                        
-                    ) ?: true
+                    showDescriptionForSettingsState.value =
+                        preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.SETTING_COMPONENT_DESCRIPTION_STATE.name),
+
+                            ) != false
                 },
                 launch {
                     isInAppWebTabEnabled.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(AppPreferenceType.CUSTOM_TABS.name),
-                        
-                    ) ?: false
+
+                        ) == true
                 },
                 launch {
                     didDataAutoDataMigratedFromV9.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(AppPreferenceType.IS_DATA_MIGRATION_COMPLETED_FROM_V9.name),
-                        
-                    ) ?: false
+
+                        ) == true
                 },
                 launch {
-                    isAutoDetectTitleForLinksEnabled.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name),
-                        
-                    ) ?: false
+                    isAutoDetectTitleForLinksEnabled.value =
+                        preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name),
+
+                            ) == true
                 },
                 launch {
                     totalRemoteStrings.intValue = preferencesRepository.readPreferenceValue(
                         preferenceKey = intPreferencesKey(AppPreferenceType.TOTAL_REMOTE_STRINGS.name),
-                        
-                    ) ?: 0
+
+                        ) ?: 0
                 },
                 launch {
                     isSendCrashReportsEnabled.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(AppPreferenceType.SEND_CRASH_REPORTS.name),
-                        
-                    ) ?: true
+
+                        ) != false
                 },
                 launch {
                     isAutoCheckUpdatesEnabled.value = (preferencesRepository.readPreferenceValue(
@@ -211,75 +213,77 @@ object AppPreferences {
                     ) ?: SortingType.NEW_TO_OLD.name
                 },
                 launch {
-                    showAssociatedImagesInLinkMenu.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name),
-                        
-                    ) ?: true
+                    showAssociatedImagesInLinkMenu.value =
+                        preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name),
+
+                            ) != false
                 },
                 launch {
                     isShelfMinimizedInHomeScreen.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(AppPreferenceType.SHELF_VISIBLE_STATE.name),
-                        
-                    ) ?: false
+
+                        ) == true
                 },
                 launch {
-                    forceSaveWithoutFetchingAnyMetaData.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name),
-                        
-                    ) ?: forceSaveWithoutFetchingAnyMetaData.value
+                    forceSaveWithoutFetchingAnyMetaData.value =
+                        preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name),
+
+                            ) ?: forceSaveWithoutFetchingAnyMetaData.value
                 },
                 launch {
                     preferredAppLanguageName.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_NAME.name),
-                        
-                    ) ?: "English"
+
+                        ) ?: "English"
                 },
                 launch {
                     preferredAppLanguageCode.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_CODE.name),
-                        
-                    ) ?: "en"
+
+                        ) ?: "en"
                 },
                 launch {
                     lastSelectedPanelID.longValue = (preferencesRepository.readPreferenceValue(
                         preferenceKey = longPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name),
-                        
-                    ) ?: -1).toLong()
+
+                        ) ?: -1).toLong()
                 },
                 launch {
                     useLanguageStringsBasedOnFetchedValuesFromServer.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.USE_REMOTE_LANGUAGE_STRINGS.name),
-                            
-                        ) ?: false
+
+                            ) == true
                 },
                 launch {
                     enableBorderForNonListViews.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.BORDER_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-                            
-                        ) ?: enableBorderForNonListViews.value
+
+                            ) ?: enableBorderForNonListViews.value
                 },
                 launch {
                     enableTitleForNonListViews.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.TITLE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-                            
-                        ) ?: enableTitleForNonListViews.value
+
+                            ) ?: enableTitleForNonListViews.value
                 },
                 launch {
                     enableBaseURLForNonListViews.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.BASE_URL_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-                            
-                        ) ?: enableBaseURLForNonListViews.value
+
+                            ) ?: enableBaseURLForNonListViews.value
                 },
                 launch {
                     enableFadedEdgeForNonListViews.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.FADED_EDGE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-                            
-                        ) ?: enableFadedEdgeForNonListViews.value
+
+                            ) ?: enableFadedEdgeForNonListViews.value
                 },
                 launch {
                     localizationServerURL.value =
@@ -291,22 +295,22 @@ object AppPreferences {
                     remoteStringsLastUpdatedOn.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = stringPreferencesKey(AppPreferenceType.REMOTE_STRINGS_LAST_UPDATED_ON.name),
-                            
-                        ) ?: ""
+
+                            ) ?: ""
                 },
                 launch {
                     currentlySelectedLinkLayout.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
-                            
-                        ) ?: currentlySelectedLinkLayout.value
+
+                            ) ?: currentlySelectedLinkLayout.value
                 },
                 launch {
                     shouldFollowAmoledTheme.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.AMOLED_THEME_STATE.name),
-                            
-                        ) ?: false
+
+                            ) == true
                 },
                 launch {
                     useLinkoraTopDecoratorOnDesktop.value =

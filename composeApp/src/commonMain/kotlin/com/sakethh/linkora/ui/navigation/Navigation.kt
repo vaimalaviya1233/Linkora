@@ -34,7 +34,6 @@ sealed interface Navigation {
     }
 
 
-
     @Serializable
     sealed interface Settings : Navigation {
 

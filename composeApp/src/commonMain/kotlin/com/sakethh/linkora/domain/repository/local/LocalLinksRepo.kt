@@ -8,9 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface LocalLinksRepo {
     suspend fun addANewLink(
-        link: Link,
-        linkSaveConfig: LinkSaveConfig,
-        viaSocket: Boolean = false
+        link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun addMultipleLinks(links: List<Link>)
@@ -38,17 +36,19 @@ interface LocalLinksRepo {
     suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>>
 
     suspend fun deleteALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
-
-    suspend fun archiveALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
-
-    suspend fun updateLinkNote(
-        linkId: Long, newNote: String,
+    suspend fun deleteMultipleLinks(
+        linkIds: List<Long>,
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
+    suspend fun archiveALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
+    suspend fun archiveMultipleLinks(linksIDs: List<Long>): Flow<Result<Unit>>
+    suspend fun updateLinkNote(
+        linkId: Long, newNote: String, viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
+
     suspend fun updateLinkTitle(
-        linkId: Long, newTitle: String,
-        viaSocket: Boolean = false
+        linkId: Long, newTitle: String, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun markedAsImportant(linkUrl: String): Flow<Result<Boolean>>

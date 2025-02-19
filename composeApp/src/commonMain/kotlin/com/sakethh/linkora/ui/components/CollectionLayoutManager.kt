@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -33,12 +32,12 @@ import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 
 @Composable
 fun CollectionLayoutManager(
     folders: List<Folder>,
     links: List<Link>,
-    isInSelectionMode: MutableState<Boolean>,
     paddingValues: PaddingValues,
     folderMoreIconClick: (folder: Folder) -> Unit,
     onFolderClick: (folder: Folder) -> Unit,
@@ -50,19 +49,34 @@ fun CollectionLayoutManager(
     val linkUIComponentParam: (link: Link) -> LinkUIComponentParam = {
         LinkUIComponentParam(
             link = it,
-            isSelectionModeEnabled = isInSelectionMode,
+            isSelectionModeEnabled = CollectionsScreenVM.isSelectionEnabled,
             onMoreIconClick = {
                 linkMoreIconClick(it)
             },
             onLinkClick = {
-                onLinkClick(it)
+                if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
+                    onLinkClick(it)
+                } else {
+                    if (CollectionsScreenVM.selectedLinksViaLongClick.contains(it)) {
+                        CollectionsScreenVM.selectedLinksViaLongClick.remove(it)
+                    } else {
+                        CollectionsScreenVM.selectedLinksViaLongClick.add(it)
+                    }
+                }
             },
             onForceOpenInExternalBrowserClicked = {
 
             },
-            isItemSelected = mutableStateOf(false),
+            isItemSelected = mutableStateOf(
+                CollectionsScreenVM.selectedLinksViaLongClick.contains(
+                    it
+                )
+            ),
             onLongClick = {
-
+                if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
+                    CollectionsScreenVM.isSelectionEnabled.value = true
+                    CollectionsScreenVM.selectedLinksViaLongClick.add(it)
+                }
             })
     }
     val bottomSpacing = remember {

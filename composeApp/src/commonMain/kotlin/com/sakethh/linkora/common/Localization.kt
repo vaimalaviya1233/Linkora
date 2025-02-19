@@ -45,7 +45,7 @@ object Localization {
             localizedStrings[key.name] =
                 if (languageCode == DEFAULT_APP_LANGUAGE_CODE || forceLoadDefaultValues) {
                     key.defaultValue
-            } else {
+                } else {
                     DependencyContainer.localizationRepo.value.getLocalizedStringValueFor(
                         key.name,
                         languageCode
@@ -452,7 +452,9 @@ object Localization {
         ),
         SyncingDataLabel(defaultValue = "Syncing Data..."), RemoteDataDeletionFailure(defaultValue = "The data from the remote database could not be deleted."),
         DeleteEverythingFromRemoteDatabaseLabel(defaultValue = "Delete all data from the remote database as well"),
-        ProvideAValidFileLocation(defaultValue = "Provide a valid file location"), ImportMethodLabel(defaultValue = "Import Method : "),
-        FileLocationLabel(defaultValue = "File Location"),FilePickerLabel(defaultValue = "File Picker")
+        ProvideAValidFileLocation(defaultValue = "Provide a valid file location"), ImportMethodLabel(
+            defaultValue = "Import Method : "
+        ),
+        FileLocationLabel(defaultValue = "File Location"), FilePickerLabel(defaultValue = "File Picker")
     }
 }

@@ -157,7 +157,8 @@ class DataSettingsScreenVM(
                     importExportProgressLogs.add(exportLogItem)
                 }.onSuccess {
                     try {
-                        writeRawExportStringToFile(exportFileType = exportFileType,
+                        writeRawExportStringToFile(
+                            exportFileType = exportFileType,
                             rawExportString = it.data,
                             onCompletion = {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))

@@ -69,7 +69,12 @@ interface LocalFoldersRepo {
 
     suspend fun getSizeOfChildFoldersOfThisParentID(parentFolderID: Long?): Flow<Result<Int>>
 
-    suspend fun renameAFolderName(folderID: Long, existingFolderName:String, newFolderName: String,ignoreFolderAlreadyExistsException:Boolean): Flow<Result<Unit>>
+    suspend fun renameAFolderName(
+        folderID: Long,
+        existingFolderName: String,
+        newFolderName: String,
+        ignoreFolderAlreadyExistsException: Boolean
+    ): Flow<Result<Unit>>
 
 
     suspend fun markFolderAsArchive(
@@ -77,7 +82,11 @@ interface LocalFoldersRepo {
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
-    suspend fun markMultipleFoldersAsArchive(folderIDs: Array<Long>): Flow<Result<Unit>>
+    suspend fun markMultipleFoldersAsArchive(
+        folderIDs: List<Long>,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
+
 
     suspend fun markFolderAsRegularFolder(
         folderID: Long,
@@ -95,6 +104,11 @@ interface LocalFoldersRepo {
 
     suspend fun deleteAFolder(
         folderID: Long,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
+
+    suspend fun deleteMultipleFolders(
+        folderIDs: List<Long>,
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 

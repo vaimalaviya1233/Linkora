@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -106,7 +105,10 @@ fun HomeScreen() {
     })
     val localUriHandler = LocalUriHandler.current
     Scaffold(topBar = {
-        Column(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).animateContentSize().fillMaxWidth()) {
+        Column(
+            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).animateContentSize()
+                .fillMaxWidth()
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().padding(5.dp),
@@ -236,7 +238,6 @@ fun HomeScreen() {
                     ).collectAsStateWithLifecycle(
                         emptyList()
                     ).value,
-                    isInSelectionMode = mutableStateOf(false),
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
                         coroutineScope.pushUIEvent(

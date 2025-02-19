@@ -90,6 +90,7 @@ class RemoteSyncRepoImpl(
         this.isLenient = true
         this.prettyPrint = true
     }
+
     override suspend fun readSocketEvents(currentCorrelation: Correlation): Flow<Result<Unit>> {
         return wrappedResultFlow {
             Network.client.webSocket(urlString = baseUrl().asWebSocketUrl() + "events", request = {
@@ -173,8 +174,8 @@ class RemoteSyncRepoImpl(
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
                         remoteFoldersRepo.deleteFolder(idBasedDTO.copy(id = remoteId))
                             .removeQueueItemAndSyncTimestamp(
-                            queueItem.id
-                        )
+                                queueItem.id
+                            )
                         send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder"))
                     }
 
@@ -184,8 +185,8 @@ class RemoteSyncRepoImpl(
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
                         remoteFoldersRepo.markAsArchive(idBasedDTO.copy(id = remoteId))
                             .removeQueueItemAndSyncTimestamp(
-                            queueItem.id
-                        )
+                                queueItem.id
+                            )
                         send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after marking folder as archive"))
                     }
 
@@ -272,8 +273,8 @@ class RemoteSyncRepoImpl(
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)!!
                         remoteLinksRepo.deleteALink(idBasedDTO.copy(id = remoteLinkId))
                             .removeQueueItemAndSyncTimestamp(
-                            queueItem.id
-                        )
+                                queueItem.id
+                            )
                         send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after deleting link"))
                     }
 
@@ -283,8 +284,8 @@ class RemoteSyncRepoImpl(
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)!!
                         remoteLinksRepo.archiveALink(idBasedDTO.copy(id = remoteLinkId))
                             .removeQueueItemAndSyncTimestamp(
-                            queueItem.id
-                        )
+                                queueItem.id
+                            )
                         send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after archiving link"))
                     }
 
@@ -389,8 +390,8 @@ class RemoteSyncRepoImpl(
                         val remoteId = localPanelsRepo.getRemotePanelId(idBasedDTO.id)!!
                         remotePanelsRepo.deleteAPanel(idBasedDTO.copy(id = remoteId))
                             .removeQueueItemAndSyncTimestamp(
-                            queueItem.id
-                        )
+                                queueItem.id
+                            )
                         send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after deleting panel"))
                     }
 
@@ -475,80 +476,80 @@ class RemoteSyncRepoImpl(
                 coroutineScope {
                     awaitAll(async {
                         send(Result.Loading("Processing links..."))
-                            remoteResponse.links.forEach { remoteLinkDTO ->
-                                send(Result.Loading("Processing link with id: ${remoteLinkDTO.id}"))
-                                val localId = localLinksRepo.getLocalLinkId(remoteLinkDTO.id)
-                                if (localId == null) {
-                                    send(Result.Loading("Creating new link with id: ${remoteLinkDTO.id}"))
-                                    updateLocalDBAccordingToEvent(
-                                        WebSocketEvent(
-                                            operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
-                                            payload = json.encodeToJsonElement(
-                                                remoteLinkDTO.copy(correlation = randomCorrelation)
-                                            )
+                        remoteResponse.links.forEach { remoteLinkDTO ->
+                            send(Result.Loading("Processing link with id: ${remoteLinkDTO.id}"))
+                            val localId = localLinksRepo.getLocalLinkId(remoteLinkDTO.id)
+                            if (localId == null) {
+                                send(Result.Loading("Creating new link with id: ${remoteLinkDTO.id}"))
+                                updateLocalDBAccordingToEvent(
+                                    WebSocketEvent(
+                                        operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+                                        payload = json.encodeToJsonElement(
+                                            remoteLinkDTO.copy(correlation = randomCorrelation)
                                         )
                                     )
-                                } else {
-                                    send(Result.Loading("Updating existing link with id: ${remoteLinkDTO.id}"))
-                                    updateLocalDBAccordingToEvent(
-                                        WebSocketEvent(
-                                            operation = RemoteRoute.Link.UPDATE_LINK.name,
-                                            payload = json.encodeToJsonElement(
-                                                remoteLinkDTO.copy(correlation = randomCorrelation)
-                                            )
+                                )
+                            } else {
+                                send(Result.Loading("Updating existing link with id: ${remoteLinkDTO.id}"))
+                                updateLocalDBAccordingToEvent(
+                                    WebSocketEvent(
+                                        operation = RemoteRoute.Link.UPDATE_LINK.name,
+                                        payload = json.encodeToJsonElement(
+                                            remoteLinkDTO.copy(correlation = randomCorrelation)
                                         )
                                     )
-                                }
+                                )
                             }
+                        }
                     }, async {
                         send(Result.Loading("Processing panels..."))
-                            remoteResponse.panels.forEach { remotePanelDTO ->
-                                send(Result.Loading("Processing panel with id: ${remotePanelDTO.panelId}"))
-                                val localId =
-                                    localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
-                                if (localId == null) {
-                                    send(Result.Loading("Creating new panel with id: ${remotePanelDTO.panelId}"))
-                                    updateLocalDBAccordingToEvent(
-                                        WebSocketEvent(
-                                            operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
-                                            payload = json.encodeToJsonElement(
-                                                remotePanelDTO.copy(correlation = randomCorrelation)
+                        remoteResponse.panels.forEach { remotePanelDTO ->
+                            send(Result.Loading("Processing panel with id: ${remotePanelDTO.panelId}"))
+                            val localId =
+                                localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
+                            if (localId == null) {
+                                send(Result.Loading("Creating new panel with id: ${remotePanelDTO.panelId}"))
+                                updateLocalDBAccordingToEvent(
+                                    WebSocketEvent(
+                                        operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
+                                        payload = json.encodeToJsonElement(
+                                            remotePanelDTO.copy(correlation = randomCorrelation)
+                                        )
+                                    )
+                                )
+                            } else {
+                                send(Result.Loading("Updating existing panel name for id: ${remotePanelDTO.panelId}"))
+                                updateLocalDBAccordingToEvent(
+                                    WebSocketEvent(
+                                        operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
+                                        payload = json.encodeToJsonElement(
+                                            UpdatePanelNameDTO(
+                                                newName = remotePanelDTO.panelName,
+                                                panelId = remotePanelDTO.panelId,
+                                                correlation = randomCorrelation,
+                                                eventTimestamp = remotePanelDTO.eventTimestamp
                                             )
                                         )
                                     )
-                                } else {
-                                    send(Result.Loading("Updating existing panel name for id: ${remotePanelDTO.panelId}"))
-                                    updateLocalDBAccordingToEvent(
-                                        WebSocketEvent(
-                                            operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
-                                            payload = json.encodeToJsonElement(
-                                                UpdatePanelNameDTO(
-                                                    newName = remotePanelDTO.panelName,
-                                                    panelId = remotePanelDTO.panelId,
-                                                    correlation = randomCorrelation,
-                                                    eventTimestamp = remotePanelDTO.eventTimestamp
-                                                )
-                                            )
-                                        )
-                                    )
-                                }
+                                )
                             }
+                        }
 
                         send(Result.Loading("Processing panel folders..."))
-                            remoteResponse.panelFolders.forEach { remotePanelFolder ->
-                                send(Result.Loading("Adding folder to panel with id: ${remotePanelFolder.id}"))
-                                // a panel_folder can only be added with this endpoint response because if it got deleted, it will be caught in the tombstones response, not here
-                                if (localPanelsRepo.getLocalPanelFolderId(remotePanelFolder.id) == null) {
-                                    updateLocalDBAccordingToEvent(
-                                        WebSocketEvent(
-                                            operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
-                                            payload = json.encodeToJsonElement(
-                                                remotePanelFolder.copy(correlation = randomCorrelation)
-                                            )
+                        remoteResponse.panelFolders.forEach { remotePanelFolder ->
+                            send(Result.Loading("Adding folder to panel with id: ${remotePanelFolder.id}"))
+                            // a panel_folder can only be added with this endpoint response because if it got deleted, it will be caught in the tombstones response, not here
+                            if (localPanelsRepo.getLocalPanelFolderId(remotePanelFolder.id) == null) {
+                                updateLocalDBAccordingToEvent(
+                                    WebSocketEvent(
+                                        operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                                        payload = json.encodeToJsonElement(
+                                            remotePanelFolder.copy(correlation = randomCorrelation)
                                         )
                                     )
-                                }
+                                )
                             }
+                        }
                     })
                 }
             }

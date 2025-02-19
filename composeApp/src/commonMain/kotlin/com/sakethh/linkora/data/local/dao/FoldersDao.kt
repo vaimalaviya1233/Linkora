@@ -90,7 +90,7 @@ interface FoldersDao {
     suspend fun markFolderAsArchive(folderID: Long)
 
     @Query("UPDATE folders SET isArchived = 1 WHERE localId in (:folderIDs)")
-    suspend fun markMultipleFoldersAsArchive(folderIDs: Array<Long>)
+    suspend fun markMultipleFoldersAsArchive(folderIDs: List<Long>)
 
     @Query("UPDATE folders SET isArchived = 0 WHERE localId=:folderID")
     suspend fun markFolderAsRegularFolder(folderID: Long)
@@ -110,6 +110,9 @@ interface FoldersDao {
 
     @Query("DELETE from folders WHERE localId = :folderID")
     suspend fun deleteAFolder(folderID: Long)
+
+    @Query("DELETE from folders WHERE localId IN (:folderIDs)")
+    suspend fun deleteMultipleFolders(folderIDs: List<Long>)
 
     @Query("DELETE from folders WHERE parentFolderID = :parentFolderId")
     suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long)

@@ -5,8 +5,10 @@ sealed interface Result<T> {
         var isRemoteExecutionSuccessful: Boolean = true
         var remoteFailureMessage = ""
     }
+
     data class Loading<T>(val message: String = "https://open.spotify.com/track/41zVhpZuRDsGYKuxnyGxgV") :
         Result<T>
+
     data class Failure<T>(val message: String) : Result<T>
 }
 

@@ -41,9 +41,9 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
             .fillMaxWidth()
             .then(
                 if (platform() is Platform.Android.Mobile) Modifier else Modifier.background(
-                if (folderComponentParam.isCurrentlyInDetailsView.value) MaterialTheme.colorScheme.primary.copy(
-                    0.25f
-                ) else Color.Transparent
+                    if (folderComponentParam.isCurrentlyInDetailsView.value) MaterialTheme.colorScheme.primary.copy(
+                        0.25f
+                    ) else Color.Transparent
                 )
             )
     ) {

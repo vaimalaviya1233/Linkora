@@ -56,43 +56,31 @@ fun LinkListItemComposable(
     modifier: Modifier = Modifier
 ) {
     val localClipBoardManager = LocalClipboardManager.current
-    val localURIHandler = LocalUriHandler.current
+    LocalUriHandler.current
     val platform = LocalPlatform.current
     Column(
-        modifier = Modifier
-            .background(
-                if (linkUIComponentParam.isItemSelected.value) MaterialTheme.colorScheme.primary.copy(
-                    0.25f
-                ) else Color.Transparent
-            )
-            .combinedClickable(interactionSource = remember {
-                MutableInteractionSource()
-            }, indication = null,
-                onClick = { linkUIComponentParam.onLinkClick() },
-                onLongClick = {
-                    linkUIComponentParam.onLongClick()
-                })
-            .padding(start = 15.dp, top = 15.dp)
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .pulsateEffect()
-            .animateContentSize()
-            .then(modifier),
-        verticalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.background(
+            if (linkUIComponentParam.isItemSelected.value) MaterialTheme.colorScheme.primary.copy(
+                0.25f
+            ) else Color.Transparent
+        ).combinedClickable(interactionSource = remember {
+            MutableInteractionSource()
+        }, indication = null, onClick = {
+            linkUIComponentParam.onLinkClick()
+        }, onLongClick = {
+            linkUIComponentParam.onLongClick()
+        }).padding(start = 15.dp, top = 15.dp).fillMaxWidth().wrapContentHeight().pulsateEffect()
+            .animateContentSize().then(modifier), verticalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 15.dp)
-                .wrapContentHeight(),
+            modifier = Modifier.fillMaxWidth().padding(end = 15.dp).wrapContentHeight(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = linkUIComponentParam.link.title,
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 16.sp,
-                modifier = Modifier
-                    .fillMaxWidth(if (!linkUIComponentParam.isSelectionModeEnabled.value && forTitleOnlyView) 1f else 0.65f)
+                modifier = Modifier.fillMaxWidth(if (!linkUIComponentParam.isSelectionModeEnabled.value && forTitleOnlyView) 1f else 0.65f)
                     .padding(end = 15.dp),
                 maxLines = 4,
                 lineHeight = 20.sp,
@@ -102,16 +90,15 @@ fun LinkListItemComposable(
             if (!linkUIComponentParam.isItemSelected.value && !forTitleOnlyView) {
                 if (linkUIComponentParam.link.imgURL.isNotEmpty()) {
                     CoilImage(
-                        modifier = Modifier
-                            .width(95.dp)
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(15.dp)), imgURL = linkUIComponentParam.link.imgURL, userAgent = linkUIComponentParam.link.userAgent ?: AppPreferences.primaryJsoupUserAgent.value
+                        modifier = Modifier.width(95.dp).height(60.dp)
+                            .clip(RoundedCornerShape(15.dp)),
+                        imgURL = linkUIComponentParam.link.imgURL,
+                        userAgent = linkUIComponentParam.link.userAgent
+                            ?: AppPreferences.primaryJsoupUserAgent.value
                     )
                 } else {
                     Box(
-                        modifier = Modifier
-                            .width(95.dp)
-                            .height(60.dp)
+                        modifier = Modifier.width(95.dp).height(60.dp)
                             .clip(RoundedCornerShape(15.dp))
                             .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
@@ -120,17 +107,13 @@ fun LinkListItemComposable(
                             tint = MaterialTheme.colorScheme.onPrimary,
                             imageVector = Icons.Rounded.ImageNotSupported,
                             contentDescription = null,
-                            modifier = Modifier
-                                .size(32.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
                 }
             } else if (linkUIComponentParam.isItemSelected.value) {
                 Box(
-                    modifier = Modifier
-                        .width(95.dp)
-                        .height(60.dp)
-                        .clip(RoundedCornerShape(15.dp))
+                    modifier = Modifier.width(95.dp).height(60.dp).clip(RoundedCornerShape(15.dp))
                         .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
@@ -138,24 +121,20 @@ fun LinkListItemComposable(
                         tint = MaterialTheme.colorScheme.onPrimary,
                         imageVector = Icons.Rounded.CheckCircle,
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(32.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }
         }
         Text(
-            modifier = Modifier
-                .padding(
-                    top = 15.dp,
-                    end = 15.dp,
-                    bottom = if (linkUIComponentParam.isSelectionModeEnabled.value) 15.dp else 0.dp
-                )
-                .background(
-                    color = MaterialTheme.colorScheme.primary.copy(0.1f),
-                    shape = RoundedCornerShape(5.dp)
-                )
-                .padding(5.dp),
+            modifier = Modifier.padding(
+                top = 15.dp,
+                end = 15.dp,
+                bottom = if (linkUIComponentParam.isSelectionModeEnabled.value) 15.dp else 0.dp
+            ).background(
+                color = MaterialTheme.colorScheme.primary.copy(0.1f),
+                shape = RoundedCornerShape(5.dp)
+            ).padding(5.dp),
             text = linkUIComponentParam.link.baseURL.replace("www.", "").replace("http://", "")
                 .replace("https://", ""),
             style = MaterialTheme.typography.titleLarge,
@@ -165,9 +144,7 @@ fun LinkListItemComposable(
             fontSize = 12.sp
         )
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
@@ -190,8 +167,7 @@ fun LinkListItemComposable(
                             )
                         }) {
                             Icon(
-                                imageVector = Icons.Outlined.ContentCopy,
-                                contentDescription = null
+                                imageVector = Icons.Outlined.ContentCopy, contentDescription = null
                             )
                         }
                         if (platform is Platform.Android) {
@@ -205,8 +181,7 @@ fun LinkListItemComposable(
                             linkUIComponentParam.onMoreIconClick()
                         }) {
                             Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = null
+                                imageVector = Icons.Filled.MoreVert, contentDescription = null
                             )
                         }
                     }

@@ -30,10 +30,13 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -50,7 +53,7 @@ open class CollectionsScreenVM(
     companion object {
         private val _collectionDetailPaneInfo = mutableStateOf(
             CollectionDetailPaneInfo(
-            currentFolder = null, isAnyCollectionSelected = false
+                currentFolder = null, isAnyCollectionSelected = false
             )
         )
         val collectionDetailPaneInfo = _collectionDetailPaneInfo
@@ -63,6 +66,45 @@ open class CollectionsScreenVM(
             _collectionDetailPaneInfo.value = CollectionDetailPaneInfo(
                 currentFolder = null, isAnyCollectionSelected = false
             )
+        }
+
+        val selectedLinksViaLongClick = mutableStateListOf<Link>()
+        val selectedFolderViaLongClick = mutableStateListOf<Folder>()
+        val isSelectionEnabled = mutableStateOf(false)
+
+        fun clearAllSelections() {
+            isSelectionEnabled.value = false
+            selectedLinksViaLongClick.clear()
+            selectedFolderViaLongClick.clear()
+        }
+    }
+
+    fun archiveSelectedItems() {
+        viewModelScope.launch {
+            awaitAll(async {
+                localLinksRepo.archiveMultipleLinks(
+                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
+            }, async {
+                localFoldersRepo.markMultipleFoldersAsArchive(
+                    selectedFolderViaLongClick.toList().map { it.localId }).collect()
+            })
+        }.invokeOnCompletion {
+            clearAllSelections()
+        }
+    }
+
+    fun deleteSelectedItems(onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            awaitAll(async {
+                localLinksRepo.deleteMultipleLinks(
+                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
+            }, async {
+                localFoldersRepo.deleteMultipleFolders(
+                    selectedFolderViaLongClick.toList().map { it.localId }).collect()
+            })
+        }.invokeOnCompletion {
+            clearAllSelections()
+            onCompletion()
         }
     }
 
@@ -97,8 +139,7 @@ open class CollectionsScreenVM(
 
             else -> {
                 updateCollectableLinks(
-                    LinkType.FOLDER_LINK,
-                    collectionDetailPaneInfo.currentFolder?.localId
+                    LinkType.FOLDER_LINK, collectionDetailPaneInfo.currentFolder?.localId
                 )
                 updateCollectableChildFolders(collectionDetailPaneInfo.currentFolder?.localId!!)
             }
@@ -241,16 +282,16 @@ open class CollectionsScreenVM(
         viewModelScope.launch {
             localFoldersRepo.insertANewFolder(folder, ignoreFolderAlreadyExistsThrowable)
                 .collectLatest {
-                it.onSuccess {
-                    pushUIEvent(
-                        UIEvent.Type.ShowSnackbar(
-                            message = Localization.Key.FolderHasBeenCreatedSuccessful.getLocalizedString()
-                                .replaceFirstPlaceHolderWith(folder.name) + it.getRemoteOnlyFailureMsg()
+                    it.onSuccess {
+                        pushUIEvent(
+                            UIEvent.Type.ShowSnackbar(
+                                message = Localization.Key.FolderHasBeenCreatedSuccessful.getLocalizedString()
+                                    .replaceFirstPlaceHolderWith(folder.name) + it.getRemoteOnlyFailureMsg()
+                            )
                         )
-                    )
-                }.onFailure {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
-                }
+                    }.onFailure {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(message = it))
+                    }
                 }
         }.invokeOnCompletion {
             onCompletion()
@@ -470,7 +511,9 @@ open class CollectionsScreenVM(
 
     fun updateFolderName(
         folder: Folder,
-        newName: String, ignoreFolderAlreadyExistsThrowable: Boolean, onCompletion: () -> Unit
+        newName: String,
+        ignoreFolderAlreadyExistsThrowable: Boolean,
+        onCompletion: () -> Unit
     ) {
         viewModelScope.launch {
             localFoldersRepo.renameAFolderName(

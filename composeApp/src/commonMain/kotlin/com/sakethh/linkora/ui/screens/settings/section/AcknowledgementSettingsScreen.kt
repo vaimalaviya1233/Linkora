@@ -52,7 +52,7 @@ fun AcknowledgementSettingsScreen() {
         viewModel(factory = genericViewModelFactory {
             SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
         })
-    val localUriHandler = LocalUriHandler.current
+    LocalUriHandler.current
     val platform = platform()
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.AcknowledgementSettingsScreen.toString(),

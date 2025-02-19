@@ -13,16 +13,19 @@ interface LocalPanelsRepo {
         panelId: Long,
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
+
     suspend fun updatePanel(panel: Panel)
     suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder,
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
+
     suspend fun deleteAFolderFromAllPanels(folderID: Long)
     suspend fun deleteAFolderFromAPanel(
         panelId: Long, folderID: Long,
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
+
     fun getAllThePanels(): Flow<List<Panel>>
     suspend fun getAllThePanelsAsAList(): List<Panel>
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>

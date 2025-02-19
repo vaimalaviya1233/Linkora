@@ -45,6 +45,7 @@ class LanguageSettingsScreenVM(
         languageSettingsState.value =
             LanguageSettingsState(fetchingStrings = false, fetchingLanguageInfo = false)
     }
+
     fun fetchRemoteLanguages() {
         viewModelScope.launch {
             localizationRepoRemote.getLanguagesFromServer().collect {

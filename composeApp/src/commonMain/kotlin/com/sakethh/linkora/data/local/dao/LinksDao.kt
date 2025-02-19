@@ -26,8 +26,14 @@ interface LinksDao {
     @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE localId=:linkId")
     suspend fun archiveALink(linkId: Long)
 
+    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE localId IN (:linkIds)")
+    suspend fun archiveMultipleLinks(linkIds: List<Long>)
+
     @Query("DELETE FROM links WHERE localId = :linkId")
     suspend fun deleteALink(linkId: Long)
+
+    @Query("DELETE FROM links WHERE localId IN (:linkIds)")
+    suspend fun deleteMultipleLinks(linkIds: List<Long>)
 
     @Query("UPDATE links SET note = :newNote WHERE localId=:linkId")
     suspend fun updateLinkNote(linkId: Long, newNote: String)
@@ -42,14 +48,7 @@ interface LinksDao {
     suspend fun isInArchive(url: String): Boolean
 
     @Query(
-        "SELECT * FROM links \n" +
-                "    WHERE (LOWER(title) LIKE '%' || LOWER(:query) || '%' \n" +
-                "           OR LOWER(note) LIKE '%' || LOWER(:query) || '%') \n" +
-                "    ORDER BY \n" +
-                "        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC"
+        "SELECT * FROM links \n" + "    WHERE (LOWER(title) LIKE '%' || LOWER(:query) || '%' \n" + "           OR LOWER(note) LIKE '%' || LOWER(:query) || '%') \n" + "    ORDER BY \n" + "        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,\n" + "        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,\n" + "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,\n" + "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC"
     )
     fun search(query: String, sortOption: String): Flow<List<Link>>
 

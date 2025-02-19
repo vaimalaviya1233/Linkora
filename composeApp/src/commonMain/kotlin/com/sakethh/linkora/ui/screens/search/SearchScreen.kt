@@ -26,7 +26,6 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -137,7 +136,6 @@ fun SearchScreen() {
                             emptyDataText = Localization.Key.NoSearchResults.rememberLocalizedString(),
                             folders = searchQueryFolderResults.value,
                             links = searchQueryLinkResults.value,
-                            isInSelectionMode = mutableStateOf(false),
                             paddingValues = PaddingValues(0.dp),
                             folderMoreIconClick = {
                                 coroutineScope.pushUIEvent(
@@ -202,7 +200,6 @@ fun SearchScreen() {
             emptyDataText = Localization.Key.NoHistoryFound.rememberLocalizedString(),
             folders = emptyList(),
             links = historyLinks.value,
-            isInSelectionMode = mutableStateOf(false),
             paddingValues = PaddingValues(0.dp),
             folderMoreIconClick = {},
             onFolderClick = {},

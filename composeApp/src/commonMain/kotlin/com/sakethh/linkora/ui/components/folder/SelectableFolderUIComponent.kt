@@ -45,11 +45,11 @@ fun SelectableFolderUIComponent(
     Column {
         Row(
             modifier = Modifier
-            .clickable {
-                onClick()
-            }
-            .fillMaxWidth()
-            .requiredHeight(75.dp)) {
+                .clickable {
+                    onClick()
+                }
+                .fillMaxWidth()
+                .requiredHeight(75.dp)) {
             Box(
                 modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.CenterStart
             ) {

@@ -88,17 +88,17 @@ class LocalPanelsRepoImpl(
             }, remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Panel.DELETE_A_PANEL.name,
-                            payload = Json.encodeToString(
-                                IDBasedDTO(
-                                    id = id,
-                                    eventTimestamp = 0
-                                )
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Panel.DELETE_A_PANEL.name,
+                        payload = Json.encodeToString(
+                            IDBasedDTO(
+                                id = id,
+                                eventTimestamp = 0
                             )
                         )
                     )
+                )
             }) {
             panelsDao.deleteAPanel(id)
             panelsDao.deleteConnectedFoldersOfPanel(id)
@@ -129,17 +129,17 @@ class LocalPanelsRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 panelsDao.updatePanelTimestamp(panelId, it.eventTimestamp)
             }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
-                            payload = Json.encodeToString(
-                                UpdatePanelNameDTO(
-                                    newName, panelId,
-                                    eventTimestamp = eventTimestamp
-                                )
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
+                        payload = Json.encodeToString(
+                            UpdatePanelNameDTO(
+                                newName, panelId,
+                                eventTimestamp = eventTimestamp
                             )
                         )
                     )
+                )
             }) {
             panelsDao.updateAPanelName(newName, panelId)
             panelsDao.updatePanelTimestamp(panelId, eventTimestamp)
@@ -153,6 +153,7 @@ class LocalPanelsRepoImpl(
     override suspend fun updateAPanelFolder(panelFolder: PanelFolder) {
         panelsDao.updateAPanelFolder(panelFolder)
     }
+
     override suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder,
         viaSocket: Boolean
@@ -187,21 +188,21 @@ class LocalPanelsRepoImpl(
                 )
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
-                            payload = Json.encodeToString(
-                                AddANewPanelFolderDTO(
-                                    folderId = panelFolder.folderId,
-                                    panelPosition = panelFolder.panelPosition,
-                                    folderName = panelFolder.folderName,
-                                    connectedPanelId = panelFolder.connectedPanelId,
-                                    offlineSyncItemId = newPanelFolderId,
-                                    eventTimestamp = eventTimestamp
-                                )
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                        payload = Json.encodeToString(
+                            AddANewPanelFolderDTO(
+                                folderId = panelFolder.folderId,
+                                panelPosition = panelFolder.panelPosition,
+                                folderName = panelFolder.folderName,
+                                connectedPanelId = panelFolder.connectedPanelId,
+                                offlineSyncItemId = newPanelFolderId,
+                                eventTimestamp = eventTimestamp
                             )
                         )
                     )
+                )
             }) {
             panelsDao.addANewFolderInAPanel(
                 panelFolder.copy(
@@ -220,6 +221,7 @@ class LocalPanelsRepoImpl(
     override suspend fun getLatestPanelID(): Long {
         return panelsDao.getLatestPanelID()
     }
+
     override suspend fun deleteAFolderFromAPanel(
         panelId: Long, folderID: Long,
         viaSocket: Boolean
@@ -243,18 +245,18 @@ class LocalPanelsRepoImpl(
             }, remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
-                            payload = Json.encodeToString(
-                                DeleteAPanelFromAFolderDTO(
-                                    panelId = panelId,
-                                    folderID = folderID,
-                                    eventTimestamp = eventTimestamp
-                                )
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
+                        payload = Json.encodeToString(
+                            DeleteAPanelFromAFolderDTO(
+                                panelId = panelId,
+                                folderID = folderID,
+                                eventTimestamp = eventTimestamp
                             )
                         )
                     )
+                )
             }) {
             panelsDao.deleteAFolderFromAPanel(panelId, folderID)
         }
@@ -287,12 +289,15 @@ class LocalPanelsRepoImpl(
     override suspend fun getRemotePanelId(localId: Long): Long? {
         return panelsDao.getRemoteIdOfPanel(localId)
     }
+
     override suspend fun getLocalPanelFolderId(remoteId: Long): Long? {
         return panelsDao.getLocalPanelFolderId(remoteId)
     }
+
     override suspend fun updateAFolderName(folderID: Long, newName: String) {
         return panelsDao.updateAFolderName(folderID, newName)
     }
+
     override suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>) {
         panelsDao.addMultiplePanelFolders(panelFolders)
     }

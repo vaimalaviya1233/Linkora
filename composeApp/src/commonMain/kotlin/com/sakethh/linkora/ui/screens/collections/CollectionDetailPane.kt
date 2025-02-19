@@ -1,6 +1,9 @@
 package com.sakethh.linkora.ui.screens.collections
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,6 +19,11 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CopyAll
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,11 +35,13 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
@@ -45,6 +55,7 @@ import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asLocalizedString
@@ -85,7 +96,78 @@ fun CollectionDetailPane(
     val navController = LocalNavController.current
     val localUriHandler = LocalUriHandler.current
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        Column {
+        Column(modifier = Modifier.animateContentSize()) {
+            if (CollectionsScreenVM.isSelectionEnabled.value) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .background(TopAppBarDefaults.topAppBarColors().containerColor)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = {
+                            CollectionsScreenVM.clearAllSelections()
+                        }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                        }
+                        Column {
+                            Text(
+                                text = "Selected ${CollectionsScreenVM.selectedLinksViaLongClick.size} links",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                text = "Selected ${CollectionsScreenVM.selectedFolderViaLongClick.size} folders",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Actions",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.align(Alignment.CenterStart).padding(start = 15.dp)
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.align(
+                                Alignment.CenterEnd
+                            ).animateContentSize()
+                        ) {
+                            IconButton(onClick = {
+                                coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
+                            }) {
+                                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                            }
+                            if (CollectionsScreenVM.selectedLinksViaLongClick.map { it.linkType }
+                                    .contains(
+                                        LinkType.ARCHIVE_LINK
+                                    )
+                                    .not() || CollectionsScreenVM.selectedFolderViaLongClick.map { it.isArchived }
+                                    .contains(false)) {
+                                IconButton(onClick = {
+                                    collectionsScreenVM.archiveSelectedItems()
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Archive,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            IconButton(onClick = {}) {
+                                Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
+                            }
+                            IconButton(onClick = {}) {
+                                Icon(
+                                    imageVector = Icons.Outlined.DriveFileMove,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
+                }
+                return@Column
+            }
             TopAppBar(actions = {
                 SortingIconButton()
             }, navigationIcon = {
@@ -109,13 +191,14 @@ fun CollectionDetailPane(
                         }
                         collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                             CollectionDetailPaneInfo(
-                                currentFolder = null,
-                                isAnyCollectionSelected = false
+                                currentFolder = null, isAnyCollectionSelected = false
                             )
                         )
                     }
                 }) {
-                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
+                    )
                 }
             }, title = {
                 Text(
@@ -159,7 +242,6 @@ fun CollectionDetailPane(
                             CollectionLayoutManager(
                                 folders = emptyList(),
                                 links = links.value,
-                                isInSelectionMode = mutableStateOf(false),
                                 paddingValues = PaddingValues(0.dp),
                                 linkMoreIconClick = {
                                     coroutineScope.pushUIEvent(
@@ -248,7 +330,6 @@ fun CollectionDetailPane(
             CollectionLayoutManager(
                 folders = childFolders.value,
                 links = links.value,
-                isInSelectionMode = mutableStateOf(false),
                 paddingValues = PaddingValues(0.dp),
                 linkMoreIconClick = {
                     coroutineScope.pushUIEvent(
@@ -308,8 +389,7 @@ fun CollectionDetailPane(
             }
             collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                 CollectionDetailPaneInfo(
-                    currentFolder = null,
-                    isAnyCollectionSelected = false
+                    currentFolder = null, isAnyCollectionSelected = false
                 )
             )
         }

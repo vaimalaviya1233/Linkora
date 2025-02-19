@@ -34,57 +34,58 @@ class AppVM(
 
     private val dataSyncingNotificationService = DataSyncingNotificationService()
     val isPerformingStartupSync = mutableStateOf(false)
+
     init {
         readSocketEvents(viewModelScope, remoteSyncRepo)
 
         viewModelScope.launch {
             if (AppPreferences.isServerConfigured()) {
                 isPerformingStartupSync.value = true
-                    networkRepo.testServerConnection(
-                        serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,
-                        token = AppPreferences.serverSecurityToken.value
-                    ).collectLatest {
-                        it.onSuccess {
-                            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.SuccessfullyConnectedToTheServer.getLocalizedString()))
-                            dataSyncingNotificationService.showNotification()
-                            launch {
-                                if (AppPreferences.canPushToServer()) {
-                                    with(remoteSyncRepo) {
-                                        channelFlow {
-                                            pushPendingSyncQueueToServer<Unit>().collectLatest {
-                                                it.pushSnackbarOnFailure()
-                                            }
-                                        }.collect()
-                                    }
+                networkRepo.testServerConnection(
+                    serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,
+                    token = AppPreferences.serverSecurityToken.value
+                ).collectLatest {
+                    it.onSuccess {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.SuccessfullyConnectedToTheServer.getLocalizedString()))
+                        dataSyncingNotificationService.showNotification()
+                        launch {
+                            if (AppPreferences.canPushToServer()) {
+                                with(remoteSyncRepo) {
+                                    channelFlow {
+                                        pushPendingSyncQueueToServer<Unit>().collectLatest {
+                                            it.pushSnackbarOnFailure()
+                                        }
+                                    }.collect()
                                 }
                             }
-
-                            listOf(launch {
-                                if (AppPreferences.canReadFromServer()) {
-                                    remoteSyncRepo.applyUpdatesBasedOnRemoteTombstones(
-                                        AppPreferences.lastSyncedLocally(
-                                            preferencesRepository
-                                        )
-                                    ).collectLatest {
-                                        it.pushSnackbarOnFailure()
-                                    }
-                                }
-                            }, launch {
-                                if (AppPreferences.canReadFromServer()) {
-                                    remoteSyncRepo.applyUpdatesFromRemote(
-                                        AppPreferences.lastSyncedLocally(
-                                            preferencesRepository
-                                        )
-                                    ).collectLatest {
-                                        it.pushSnackbarOnFailure()
-                                    }
-                                }
-                            }).joinAll()
-                        }.onFailure {
-                            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ConnectionToServerFailed.getLocalizedString() + "\n" + it))
                         }
+
+                        listOf(launch {
+                            if (AppPreferences.canReadFromServer()) {
+                                remoteSyncRepo.applyUpdatesBasedOnRemoteTombstones(
+                                    AppPreferences.lastSyncedLocally(
+                                        preferencesRepository
+                                    )
+                                ).collectLatest {
+                                    it.pushSnackbarOnFailure()
+                                }
+                            }
+                        }, launch {
+                            if (AppPreferences.canReadFromServer()) {
+                                remoteSyncRepo.applyUpdatesFromRemote(
+                                    AppPreferences.lastSyncedLocally(
+                                        preferencesRepository
+                                    )
+                                ).collectLatest {
+                                    it.pushSnackbarOnFailure()
+                                }
+                            }
+                        }).joinAll()
+                    }.onFailure {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ConnectionToServerFailed.getLocalizedString() + "\n" + it))
                     }
                 }
+            }
         }.invokeOnCompletion {
             isPerformingStartupSync.value = false
             dataSyncingNotificationService.clearNotification()
