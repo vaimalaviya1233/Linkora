@@ -12,6 +12,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.ifTrue
 import com.sakethh.linkora.common.utils.isNull
@@ -157,7 +158,8 @@ class DataSettingsScreenVM(
                     importExportProgressLogs.add(exportLogItem)
                 }.onSuccess {
                     try {
-                        writeRawExportStringToFile(exportFileType = exportFileType,
+                        writeRawExportStringToFile(
+                            exportFileType = exportFileType,
                             rawExportString = it.data,
                             onCompletion = {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
@@ -246,5 +248,23 @@ class DataSettingsScreenVM(
 
     fun cancelRefreshingAllLinks() {
         cancelRefreshingLinks()
+    }
+
+    fun deleteDuplicates(onStart: () -> Unit, onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            linksRepo.deleteDuplicateLinks().collectLatest {
+                it.onSuccess {
+                    onCompletion()
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.DeletedDuplicatedLinksSuccessfully.getLocalizedString() + it.getRemoteOnlyFailureMsg()))
+                }
+                it.onLoading {
+                    onStart()
+                }
+                it.onFailure {
+                    onCompletion()
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(it))
+                }
+            }
+        }
     }
 }
