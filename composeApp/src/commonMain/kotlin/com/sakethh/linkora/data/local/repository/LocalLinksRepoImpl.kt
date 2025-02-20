@@ -51,30 +51,35 @@ class LocalLinksRepoImpl(
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val preferencesRepository: PreferencesRepository
 ) : LocalLinksRepo {
+    override suspend fun changeIdOfALink(existingId: Long, newId: Long) {
+        linksDao.changeIdOfALink(existingId, newId)
+    }
+
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
+        if (link.linkType == LinkType.HISTORY_LINK) {
+            linksDao.deleteLinksFromHistory(link.url)
+        }
         val newLinkId = linksDao.getLatestId() + 1
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(), onRemoteOperationFailure = {
+            performRemoteOperation = viaSocket.not(),
+            onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
                         payload = if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
                             Json.encodeToString(
-                                linksDao.getLink(newLinkId)
-                                    .copy(
-                                        idOfLinkedFolder = link.idOfLinkedFolder,
-                                        lastModified = eventTimestamp
-                                    ).asAddLinkDTO()
-                                    .copy(offlineSyncItemId = newLinkId)
+                                linksDao.getLink(newLinkId).copy(
+                                    idOfLinkedFolder = link.idOfLinkedFolder,
+                                    lastModified = eventTimestamp
+                                ).asAddLinkDTO().copy(offlineSyncItemId = newLinkId)
                             )
                         } else {
                             Json.encodeToString(
                                 linksDao.getLink(newLinkId).copy(lastModified = eventTimestamp)
-                                    .asAddLinkDTO()
-                                    .copy(offlineSyncItemId = newLinkId)
+                                    .asAddLinkDTO().copy(offlineSyncItemId = newLinkId)
                             )
                         }
                     )
@@ -86,10 +91,8 @@ class LocalLinksRepoImpl(
                         foldersDao.getRemoteIdOfAFolder(link.idOfLinkedFolder)
                     remoteLinksRepo.addANewLink(
                         linksDao.getLink(newLinkId).copy(
-                            idOfLinkedFolder = remoteIdOfLinkedFolder,
-                            lastModified = eventTimestamp
-                        )
-                            .asAddLinkDTO()
+                            idOfLinkedFolder = remoteIdOfLinkedFolder, lastModified = eventTimestamp
+                        ).asAddLinkDTO()
                     )
                 } else {
                     remoteLinksRepo.addANewLink(
@@ -101,8 +104,7 @@ class LocalLinksRepoImpl(
             remoteOperationOnSuccess = {
                 linksDao.updateALink(
                     linksDao.getLink(newLinkId).copy(
-                        remoteId = it.id,
-                        lastModified = it.timeStampBasedResponse.eventTimestamp
+                        remoteId = it.id, lastModified = it.timeStampBasedResponse.eventTimestamp
                     )
                 )
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
@@ -145,9 +147,7 @@ class LocalLinksRepoImpl(
     }
 
     override fun sortLinksAsNonResultFlow(
-        linkType: LinkType,
-        parentFolderId: Long,
-        sortOption: String
+        linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>> {
         return linksDao.getSortedLinks(linkType, parentFolderId, sortOption)
     }
@@ -159,11 +159,11 @@ class LocalLinksRepoImpl(
     }
 
     override fun sortLinksAsNonResultFlow(
-        linkType: LinkType,
-        sortOption: String
+        linkType: LinkType, sortOption: String
     ): Flow<List<Link>> {
         return linksDao.getSortedLinks(linkType, sortOption)
     }
+
     override suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>> {
         return linksDao.getAllLinks(sortOption).mapToResultFlow()
     }
@@ -259,28 +259,28 @@ class LocalLinksRepoImpl(
                 if (remoteId != null) {
                     remoteLinksRepo.updateALinkNote(
                         UpdateNoteOfALinkDTO(
-                            linkId,
-                            "",
-                            eventTimestamp
+                            linkId, "", eventTimestamp
                         )
                     )
                 } else {
                     emptyFlow()
                 }
-            }, remoteOperationOnSuccess = {
+            },
+            remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 linksDao.updateLinkTimestamp(timestamp = it.eventTimestamp, linkId)
-            }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
-                            payload = Json.encodeToString(
-                                UpdateNoteOfALinkDTO(
-                                    linkId, newNote = "", eventTimestamp = eventTimestamp
-                                )
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
+                        payload = Json.encodeToString(
+                            UpdateNoteOfALinkDTO(
+                                linkId, newNote = "", eventTimestamp = eventTimestamp
                             )
                         )
                     )
+                )
             }) {
             linksDao.deleteALinkNote(linkId)
             linksDao.updateLinkTimestamp(timestamp = eventTimestamp, linkId)
@@ -298,19 +298,21 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
-            }, remoteOperationOnSuccess = {
+            },
+            remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
-            }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Link.DELETE_A_LINK.name,
-                            payload = Json.encodeToString(
-                                IDBasedDTO(
-                                    linkId, Instant.now().epochSecond
-                                )
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.DELETE_A_LINK.name,
+                        payload = Json.encodeToString(
+                            IDBasedDTO(
+                                linkId, Instant.now().epochSecond
                             )
                         )
                     )
+                )
             }) {
             linksDao.deleteALink(linkId)
         }
@@ -327,20 +329,22 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
-            }, remoteOperationOnSuccess = {
+            },
+            remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 linksDao.updateLinkTimestamp(it.eventTimestamp, linkId)
-            }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Link.ARCHIVE_LINK.name,
-                            payload = Json.encodeToString(
-                                IDBasedDTO(
-                                    linkId, eventTimestamp
-                                )
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.ARCHIVE_LINK.name,
+                        payload = Json.encodeToString(
+                            IDBasedDTO(
+                                linkId, eventTimestamp
                             )
                         )
                     )
+                )
             }) {
             linksDao.archiveALink(linkId)
             linksDao.updateLinkTimestamp(eventTimestamp, linkId)
@@ -348,8 +352,7 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun updateLinkNote(
-        linkId: Long, newNote: String,
-        viaSocket: Boolean
+        linkId: Long, newNote: String, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
         val eventTimestamp = Instant.now().epochSecond
@@ -359,27 +362,27 @@ class LocalLinksRepoImpl(
                 if (remoteId != null) {
                     remoteLinksRepo.updateALinkNote(
                         UpdateNoteOfALinkDTO(
-                            remoteId,
-                            newNote,
-                            eventTimestamp
+                            remoteId, newNote, eventTimestamp
                         )
                     )
                 } else {
                     emptyFlow()
                 }
-            }, remoteOperationOnSuccess = {
+            },
+            remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 linksDao.updateLinkTimestamp(eventTimestamp, linkId)
-            }, onRemoteOperationFailure = {
+            },
+            onRemoteOperationFailure = {
                 val linkDTO =
                     linksDao.getLink(linkId).copy(note = newNote, lastModified = eventTimestamp)
                         .asLinkDTO(id = linkId)
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
-                            payload = Json.encodeToString(linkDTO)
-                        )
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
+                        payload = Json.encodeToString(linkDTO)
                     )
+                )
             }) {
             linksDao.updateLinkNote(linkId, newNote)
             linksDao.updateLinkTimestamp(eventTimestamp, linkId)
@@ -387,8 +390,7 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun updateLinkTitle(
-        linkId: Long, newTitle: String,
-        viaSocket: Boolean
+        linkId: Long, newTitle: String, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
         val eventTimestamp = Instant.now().epochSecond
@@ -398,27 +400,27 @@ class LocalLinksRepoImpl(
                 if (remoteId != null) {
                     remoteLinksRepo.updateLinkTitle(
                         UpdateTitleOfTheLinkDTO(
-                            remoteId,
-                            newTitle,
-                            eventTimestamp
+                            remoteId, newTitle, eventTimestamp
                         )
                     )
                 } else {
                     emptyFlow()
                 }
-            }, remoteOperationOnSuccess = {
+            },
+            remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 linksDao.updateLinkTimestamp(it.eventTimestamp, linkId)
-            }, onRemoteOperationFailure = {
-                    val linkDTO =
-                        linksDao.getLink(linkId)
-                            .copy(title = newTitle, lastModified = eventTimestamp).asLinkDTO(linkId)
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
-                            payload = Json.encodeToString(linkDTO)
-                        )
+            },
+            onRemoteOperationFailure = {
+                val linkDTO =
+                    linksDao.getLink(linkId).copy(title = newTitle, lastModified = eventTimestamp)
+                        .asLinkDTO(linkId)
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
+                        payload = Json.encodeToString(linkDTO)
                     )
+                )
             }) {
             linksDao.updateLinkTitle(linkId, newTitle)
             linksDao.updateLinkTimestamp(eventTimestamp, linkId)
@@ -457,25 +459,27 @@ class LocalLinksRepoImpl(
         val remoteId = getRemoteIdOfLink(link.localId)
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(), remoteOperation = {
+            performRemoteOperation = viaSocket.not(),
+            remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.updateLink(link.asLinkDTO(id = remoteId))
                 } else {
                     emptyFlow()
                 }
-            }, remoteOperationOnSuccess = {
+            },
+            remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 linksDao.updateLinkTimestamp(it.eventTimestamp, link.localId)
-            }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Link.UPDATE_LINK.name,
-                            payload = Json.encodeToString(
-                                link.asLinkDTO(id = link.localId)
-                                    .copy(eventTimestamp = eventTimestamp)
-                            )
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.UPDATE_LINK.name,
+                        payload = Json.encodeToString(
+                            link.asLinkDTO(id = link.localId).copy(eventTimestamp = eventTimestamp)
                         )
                     )
+                )
             }) {
             linksDao.updateALink(link)
             linksDao.updateLinkTimestamp(eventTimestamp, link.localId)
@@ -486,7 +490,8 @@ class LocalLinksRepoImpl(
         val remoteId = getRemoteIdOfLink(link.localId)
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true, remoteOperation = {
+            performRemoteOperation = true,
+            remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.updateLink(
                         linksDao.getLink(link.localId).asLinkDTO(id = remoteId)
@@ -494,20 +499,21 @@ class LocalLinksRepoImpl(
                 } else {
                     emptyFlow()
                 }
-            }, remoteOperationOnSuccess = {
+            },
+            remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 linksDao.updateLinkTimestamp(it.eventTimestamp, link.localId)
-            }, onRemoteOperationFailure = {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = RemoteRoute.Link.UPDATE_LINK.name,
-                            payload = Json.encodeToString(
-                                linksDao.getLink(link.localId)
-                                    .asLinkDTO(id = link.localId)
-                                    .copy(eventTimestamp = eventTimestamp)
-                            )
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.UPDATE_LINK.name,
+                        payload = Json.encodeToString(
+                            linksDao.getLink(link.localId).asLinkDTO(id = link.localId)
+                                .copy(eventTimestamp = eventTimestamp)
                         )
                     )
+                )
             }) {
             if (link.url.isATwitterUrl()) {
                 retrieveFromVxTwitterApi(link.url)
@@ -539,6 +545,7 @@ class LocalLinksRepoImpl(
     override suspend fun getRemoteLinkId(localId: Long): Long? {
         return linksDao.getRemoteIdOfLocalLink(localId)
     }
+
     override suspend fun getALink(localLinkId: Long): Link {
         return linksDao.getLink(localLinkId)
     }
@@ -549,5 +556,9 @@ class LocalLinksRepoImpl(
 
     override suspend fun getLatestId(): Long {
         return linksDao.getLatestId()
+    }
+
+    override suspend fun doesLinkExist(linkType: LinkType, url: String): Boolean {
+        return linksDao.doesLinkExist(linkType, url)
     }
 }

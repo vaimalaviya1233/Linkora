@@ -29,6 +29,9 @@ interface LinksDao {
     @Query("DELETE FROM links WHERE localId = :linkId")
     suspend fun deleteALink(linkId: Long)
 
+    @Query("DELETE FROM links WHERE url = :url")
+    suspend fun deleteALink(url: String)
+
     @Query("UPDATE links SET note = :newNote WHERE localId=:linkId")
     suspend fun updateLinkNote(linkId: Long, newNote: String)
 
@@ -42,14 +45,7 @@ interface LinksDao {
     suspend fun isInArchive(url: String): Boolean
 
     @Query(
-        "SELECT * FROM links \n" +
-                "    WHERE (LOWER(title) LIKE '%' || LOWER(:query) || '%' \n" +
-                "           OR LOWER(note) LIKE '%' || LOWER(:query) || '%') \n" +
-                "    ORDER BY \n" +
-                "        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,\n" +
-                "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC"
+        "SELECT * FROM links \n" + "    WHERE (LOWER(title) LIKE '%' || LOWER(:query) || '%' \n" + "           OR LOWER(note) LIKE '%' || LOWER(:query) || '%') \n" + "    ORDER BY \n" + "        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,\n" + "        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,\n" + "        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,\n" + "        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC"
     )
     fun search(query: String, sortOption: String): Flow<List<Link>>
 
@@ -130,4 +126,13 @@ interface LinksDao {
 
     @Query("UPDATE links SET lastModified = :timestamp WHERE localId=:localLinkId")
     suspend fun updateLinkTimestamp(timestamp: Long, localLinkId: Long)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM links WHERE linkType = :linkType AND url = :url)")
+    suspend fun doesLinkExist(linkType: com.sakethh.linkora.domain.LinkType, url: String): Boolean
+
+    @Query("UPDATE links SET localId = :newId WHERE localId=:existingId")
+    suspend fun changeIdOfALink(existingId: Long, newId: Long)
+
+    @Query("DELETE FROM links WHERE url=:url AND linkType = 'HISTORY_LINK'")
+    suspend fun deleteLinksFromHistory(url: String)
 }
