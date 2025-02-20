@@ -132,7 +132,7 @@ compose.desktop {
             )
             packageName = "Linkora"
             this.vendor = "Saketh Pathike"
-
+            this.packageVersion = "1.0.1"
             /*
 
             This logo (src/desktopMain/resources/logo.*) was painted by `mondstern`.
