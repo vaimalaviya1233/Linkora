@@ -5,7 +5,7 @@ import com.sakethh.linkora.domain.dto.server.Correlation
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DeleteAPanelFromAFolderDTO(
+data class DeleteAFolderFromAPanelDTO(
     val panelId: Long,
     val folderID: Long,
     val eventTimestamp: Long,

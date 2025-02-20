@@ -307,16 +307,18 @@ class LocalLinksRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                pendingSyncQueueRepo.addInQueue(
-                    PendingSyncQueue(
-                        operation = RemoteRoute.Link.DELETE_A_LINK.name,
-                        payload = Json.encodeToString(
-                            IDBasedDTO(
-                                linkId, Instant.now().epochSecond
+                if (remoteId != null){
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.DELETE_A_LINK.name,
+                            payload = Json.encodeToString(
+                                IDBasedDTO(
+                                    remoteId, Instant.now().epochSecond
+                                )
                             )
                         )
                     )
-                )
+                }
             }) {
             linksDao.deleteALink(linkId)
         }
@@ -585,7 +587,7 @@ class LocalLinksRepoImpl(
                             it.remoteId == null
                         }.map {
                             it.remoteId!!
-                        }.toList(), eventTimestamp = eventTimestamp))
+                        }, eventTimestamp = eventTimestamp))
                     )
                 )
             },

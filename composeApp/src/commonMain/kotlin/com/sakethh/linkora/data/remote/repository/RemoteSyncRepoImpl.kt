@@ -28,7 +28,7 @@ import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
-import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.DeleteAFolderFromAPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
@@ -172,8 +172,7 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Folder.DELETE_FOLDER.name -> {
                         send(Result.Loading(message = "[FOLDER] Deleting folder from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
-                        val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)!!
-                        remoteFoldersRepo.deleteFolder(idBasedDTO.copy(id = remoteId))
+                        remoteFoldersRepo.deleteFolder(idBasedDTO)
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
@@ -269,11 +268,7 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Link.DELETE_A_LINK.name -> {
                         send(Result.Loading(message = "[LINK] Deleting link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
-                        val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)!!
-                        remoteLinksRepo.deleteALink(idBasedDTO.copy(id = remoteLinkId))
-                            .removeQueueItemAndSyncTimestamp(
-                                queueItem.id
-                            )
+                        remoteLinksRepo.deleteALink(idBasedDTO).removeQueueItemAndSyncTimestamp(queueItem.id)
                         send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after deleting link"))
                     }
 
@@ -386,8 +381,7 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Panel.DELETE_A_PANEL.name -> {
                         send(Result.Loading(message = "[PANEL] Deleting panel from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
-                        val remoteId = localPanelsRepo.getRemotePanelId(idBasedDTO.id)!!
-                        remotePanelsRepo.deleteAPanel(idBasedDTO.copy(id = remoteId))
+                        remotePanelsRepo.deleteAPanel(idBasedDTO)
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
@@ -420,16 +414,10 @@ class RemoteSyncRepoImpl(
 
                     RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
                         send(Result.Loading(message = "[PANEL] Deleting folder from a panel from queue item (ID: ${queueItem.id})"))
-                        val deleteAPanelFromAFolderDTO =
-                            Json.decodeFromString<DeleteAPanelFromAFolderDTO>(queueItem.payload)
-                        val remoteFolderId =
-                            localFoldersRepo.getRemoteIdOfAFolder(deleteAPanelFromAFolderDTO.folderID)!!
-                        val remotePanelId =
-                            localPanelsRepo.getRemotePanelId(deleteAPanelFromAFolderDTO.panelId)!!
+                        val deleteAFolderFromAPanelDTO =
+                            Json.decodeFromString<DeleteAFolderFromAPanelDTO>(queueItem.payload)
                         remotePanelsRepo.deleteAFolderFromAPanel(
-                            deleteAPanelFromAFolderDTO.copy(
-                                panelId = remotePanelId, folderID = remoteFolderId
-                            )
+                            deleteAFolderFromAPanelDTO
                         ).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
@@ -1087,26 +1075,26 @@ class RemoteSyncRepoImpl(
             }
 
             RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
-                val deleteAPanelFromAFolderDTO =
-                    json.decodeFromJsonElement<DeleteAPanelFromAFolderDTO>(
+                val deleteAFolderFromAPanelDTO =
+                    json.decodeFromJsonElement<DeleteAFolderFromAPanelDTO>(
                         deserializedWebSocketEvent.payload
                     )
 
-                if (deleteAPanelFromAFolderDTO.correlation.isSameAsCurrentClient()) {
+                if (deleteAFolderFromAPanelDTO.correlation.isSameAsCurrentClient()) {
                     preferencesRepository.updateLastSyncedWithServerTimeStamp(
-                        deleteAPanelFromAFolderDTO.eventTimestamp
+                        deleteAFolderFromAPanelDTO.eventTimestamp
                     )
                     return
                 }
 
                 val localFolderId =
-                    localFoldersRepo.getLocalIdOfAFolder(deleteAPanelFromAFolderDTO.folderID)
+                    localFoldersRepo.getLocalIdOfAFolder(deleteAFolderFromAPanelDTO.folderID)
                 val localPanelId =
-                    localPanelsRepo.getLocalPanelId(deleteAPanelFromAFolderDTO.panelId)
+                    localPanelsRepo.getLocalPanelId(deleteAFolderFromAPanelDTO.panelId)
                 if (localFolderId != null && localPanelId != null) {
                     localPanelsRepo.deleteAFolderFromAPanel(
                         localPanelId, localFolderId, viaSocket = true
-                    ).collectAndUpdateTimestamp(deleteAPanelFromAFolderDTO.eventTimestamp)
+                    ).collectAndUpdateTimestamp(deleteAFolderFromAPanelDTO.eventTimestamp)
                 }
             }
         }
