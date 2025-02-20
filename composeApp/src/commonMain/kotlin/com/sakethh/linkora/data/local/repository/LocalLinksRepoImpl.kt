@@ -34,6 +34,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
@@ -560,5 +563,87 @@ class LocalLinksRepoImpl(
 
     override suspend fun doesLinkExist(linkType: LinkType, url: String): Boolean {
         return linksDao.doesLinkExist(linkType, url)
+    }
+
+    override suspend fun deleteDuplicateLinks(): Flow<Result<Unit>> {
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = true,
+            remoteOperation = {
+                emptyFlow<Result<Unit>>()
+            },
+            onRemoteOperationFailure = {
+
+            },
+            localOperation = {
+                coroutineScope {
+                    val allLinks = linksDao.getAllLinks()
+                    val allFolders = allLinks.map {
+                        it.idOfLinkedFolder
+                    }.filter {
+                        it != null && it !in defaultFolderIds()
+                    }.distinct()
+
+                    val historyLinks =
+                        async { allLinks.filter { it.linkType == LinkType.HISTORY_LINK } }
+                    val importantLinks =
+                        async { allLinks.filter { it.linkType == LinkType.IMPORTANT_LINK } }
+                    val savedLinks = async {
+                        allLinks.filter { it.linkType == LinkType.SAVED_LINK }
+                    }
+                    val archiveLinks = async {
+                        allLinks.filter { it.linkType == LinkType.ARCHIVE_LINK }
+                    }
+                    val folderLinks = async {
+                        allLinks.filter { it.linkType == LinkType.FOLDER_LINK }
+                    }
+
+                    val filteredHistoryLinks = historyLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredImportantLinks = importantLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredSavedLinks = savedLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredArchiveLinks = archiveLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredFolderLinks = mutableListOf<Link>()
+
+                    allFolders.forEach { currentFolderId ->
+                        filteredFolderLinks.addAll(folderLinks.await().filter {
+                            it.idOfLinkedFolder == currentFolderId
+                        }.distinctBy {
+                            it.url
+                        })
+                    }
+
+                    val linksToBeDeleted = mutableListOf<Link>()
+
+                    awaitAll(async {
+                        linksToBeDeleted.addAll(historyLinks.await().filterNot {
+                            filteredHistoryLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(importantLinks.await().filterNot {
+                            filteredImportantLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(savedLinks.await().filterNot {
+                            filteredSavedLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(archiveLinks.await().filterNot {
+                            filteredArchiveLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(folderLinks.await().filterNot {
+                            filteredFolderLinks.contains(it)
+                        })
+                    })
+                    linksDao.deleteLinks(linksToBeDeleted.map { it.localId })
+                }
+            })
     }
 }

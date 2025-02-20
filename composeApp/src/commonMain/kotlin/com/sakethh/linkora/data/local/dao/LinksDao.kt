@@ -135,4 +135,7 @@ interface LinksDao {
 
     @Query("DELETE FROM links WHERE url=:url AND linkType = 'HISTORY_LINK'")
     suspend fun deleteLinksFromHistory(url: String)
+
+    @Query("DELETE FROM links WHERE localId IN (:linkIds)")
+    suspend fun deleteLinks(linkIds: List<Long>)
 }
