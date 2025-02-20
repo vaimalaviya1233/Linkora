@@ -581,10 +581,10 @@ class LocalLinksRepoImpl(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
                         payload = Json.encodeToString(
-                            DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filter {
-                            it.remoteId != null
+                            DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filterNot {
+                            it.remoteId == null
                         }.map {
-                            it.localId
+                            it.remoteId!!
                         }.toList(), eventTimestamp = eventTimestamp))
                     )
                 )
@@ -659,5 +659,11 @@ class LocalLinksRepoImpl(
                     linksDao.deleteLinks(linksToBeDeleted.map { it.localId })
                 }
             })
+    }
+
+    override suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            linksDao.deleteLinks(linksIds)
+        }
     }
 }
