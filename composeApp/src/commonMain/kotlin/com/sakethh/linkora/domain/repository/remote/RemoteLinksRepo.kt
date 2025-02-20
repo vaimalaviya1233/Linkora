@@ -5,6 +5,7 @@ import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
+import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
@@ -26,4 +27,5 @@ interface RemoteLinksRepo {
     suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<TimeStampBasedResponse>>
+    suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Flow<Result<TimeStampBasedResponse>>
 }

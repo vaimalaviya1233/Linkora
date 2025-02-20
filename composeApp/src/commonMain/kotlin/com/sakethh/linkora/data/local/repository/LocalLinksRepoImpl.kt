@@ -19,6 +19,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.asLinkDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
@@ -565,14 +566,28 @@ class LocalLinksRepoImpl(
         return linksDao.doesLinkExist(linkType, url)
     }
 
-    override suspend fun deleteDuplicateLinks(): Flow<Result<Unit>> {
+    override suspend fun deleteDuplicateLinks(viaSocket: Boolean): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
+        val linksToBeDeleted = mutableListOf<Link>()
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = true,
+            performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                emptyFlow<Result<Unit>>()
+                remoteLinksRepo.deleteDuplicateLinks(DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filter {
+                    it.remoteId != null
+                }.map { it.remoteId!! }, eventTimestamp = eventTimestamp))
             },
             onRemoteOperationFailure = {
-
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
+                        payload = Json.encodeToString(
+                            DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filter {
+                            it.remoteId != null
+                        }.map {
+                            it.localId
+                        }.toList(), eventTimestamp = eventTimestamp))
+                    )
+                )
             },
             localOperation = {
                 coroutineScope {
@@ -619,7 +634,6 @@ class LocalLinksRepoImpl(
                         })
                     }
 
-                    val linksToBeDeleted = mutableListOf<Link>()
 
                     awaitAll(async {
                         linksToBeDeleted.addAll(historyLinks.await().filterNot {
