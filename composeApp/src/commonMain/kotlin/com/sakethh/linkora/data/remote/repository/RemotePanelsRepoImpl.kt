@@ -8,7 +8,7 @@ import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
-import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.DeleteAFolderFromAPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import io.ktor.client.HttpClient
@@ -69,13 +69,13 @@ class RemotePanelsRepoImpl(
         )
     }
 
-    override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Flow<Result<TimeStampBasedResponse>> {
+    override suspend fun deleteAFolderFromAPanel(deleteAFolderFromAPanelDTO: DeleteAFolderFromAPanelDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
-            body = deleteAPanelFromAFolderDTO
+            body = deleteAFolderFromAPanelDTO
         )
     }
 }

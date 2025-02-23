@@ -35,6 +35,9 @@ interface LinksDao {
     @Query("DELETE FROM links WHERE localId IN (:linkIds)")
     suspend fun deleteMultipleLinks(linkIds: List<Long>)
 
+    @Query("DELETE FROM links WHERE url = :url")
+    suspend fun deleteALink(url: String)
+
     @Query("UPDATE links SET note = :newNote WHERE localId=:linkId")
     suspend fun updateLinkNote(linkId: Long, newNote: String)
 
@@ -129,4 +132,16 @@ interface LinksDao {
 
     @Query("UPDATE links SET lastModified = :timestamp WHERE localId=:localLinkId")
     suspend fun updateLinkTimestamp(timestamp: Long, localLinkId: Long)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM links WHERE linkType = :linkType AND url = :url)")
+    suspend fun doesLinkExist(linkType: com.sakethh.linkora.domain.LinkType, url: String): Boolean
+
+    @Query("UPDATE links SET localId = :newId WHERE localId=:existingId")
+    suspend fun changeIdOfALink(existingId: Long, newId: Long)
+
+    @Query("DELETE FROM links WHERE url=:url AND linkType = 'HISTORY_LINK'")
+    suspend fun deleteLinksFromHistory(url: String)
+
+    @Query("DELETE FROM links WHERE localId IN (:linkIds)")
+    suspend fun deleteLinks(linkIds: List<Long>)
 }

@@ -6,7 +6,7 @@ import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
-import com.sakethh.linkora.domain.dto.server.panel.DeleteAPanelFromAFolderDTO
+import com.sakethh.linkora.domain.dto.server.panel.DeleteAFolderFromAPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
 import kotlinx.coroutines.flow.Flow
 
@@ -16,5 +16,5 @@ interface RemotePanelsRepo {
     suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun deleteAFolderFromAllPanels(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
-    suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Flow<Result<TimeStampBasedResponse>>
+    suspend fun deleteAFolderFromAPanel(deleteAFolderFromAPanelDTO: DeleteAFolderFromAPanelDTO): Flow<Result<TimeStampBasedResponse>>
 }

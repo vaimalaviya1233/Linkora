@@ -19,6 +19,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.asLinkDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
@@ -34,6 +35,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
@@ -51,9 +55,16 @@ class LocalLinksRepoImpl(
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val preferencesRepository: PreferencesRepository
 ) : LocalLinksRepo {
+    override suspend fun changeIdOfALink(existingId: Long, newId: Long) {
+        linksDao.changeIdOfALink(existingId, newId)
+    }
+
     override suspend fun addANewLink(
         link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
+        if (link.linkType == LinkType.HISTORY_LINK) {
+            linksDao.deleteLinksFromHistory(link.url)
+        }
         val newLinkId = linksDao.getLatestId() + 1
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
@@ -296,16 +307,16 @@ class LocalLinksRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                pendingSyncQueueRepo.addInQueue(
+                if (remoteId != null){pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.DELETE_A_LINK.name,
                         payload = Json.encodeToString(
                             IDBasedDTO(
-                                linkId, Instant.now().epochSecond
+                                remoteId, Instant.now().epochSecond
                             )
                         )
                     )
-                )
+                )}
             }) {
             linksDao.deleteALink(linkId)
         }
@@ -564,5 +575,110 @@ class LocalLinksRepoImpl(
 
     override suspend fun getLatestId(): Long {
         return linksDao.getLatestId()
+    }
+
+    override suspend fun doesLinkExist(linkType: LinkType, url: String): Boolean {
+        return linksDao.doesLinkExist(linkType, url)
+    }
+
+    override suspend fun deleteDuplicateLinks(viaSocket: Boolean): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
+        val linksToBeDeleted = mutableListOf<Link>()
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = viaSocket.not(),
+            remoteOperation = {
+                remoteLinksRepo.deleteDuplicateLinks(DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filter {
+                    it.remoteId != null
+                }.map { it.remoteId!! }, eventTimestamp = eventTimestamp))
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
+                        payload = Json.encodeToString(
+                            DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filterNot {
+                            it.remoteId == null
+                        }.map {
+                            it.remoteId!!
+                        }, eventTimestamp = eventTimestamp))
+                    )
+                )
+            },
+            localOperation = {
+                coroutineScope {
+                    val allLinks = linksDao.getAllLinks()
+                    val allFolders = allLinks.map {
+                        it.idOfLinkedFolder
+                    }.filter {
+                        it != null && it !in defaultFolderIds()
+                    }.distinct()
+
+                    val historyLinks =
+                        async { allLinks.filter { it.linkType == LinkType.HISTORY_LINK } }
+                    val importantLinks =
+                        async { allLinks.filter { it.linkType == LinkType.IMPORTANT_LINK } }
+                    val savedLinks = async {
+                        allLinks.filter { it.linkType == LinkType.SAVED_LINK }
+                    }
+                    val archiveLinks = async {
+                        allLinks.filter { it.linkType == LinkType.ARCHIVE_LINK }
+                    }
+                    val folderLinks = async {
+                        allLinks.filter { it.linkType == LinkType.FOLDER_LINK }
+                    }
+
+                    val filteredHistoryLinks = historyLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredImportantLinks = importantLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredSavedLinks = savedLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredArchiveLinks = archiveLinks.await().distinctBy {
+                        it.url
+                    }
+                    val filteredFolderLinks = mutableListOf<Link>()
+
+                    allFolders.forEach { currentFolderId ->
+                        filteredFolderLinks.addAll(folderLinks.await().filter {
+                            it.idOfLinkedFolder == currentFolderId
+                        }.distinctBy {
+                            it.url
+                        })
+                    }
+
+
+                    awaitAll(async {
+                        linksToBeDeleted.addAll(historyLinks.await().filterNot {
+                            filteredHistoryLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(importantLinks.await().filterNot {
+                            filteredImportantLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(savedLinks.await().filterNot {
+                            filteredSavedLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(archiveLinks.await().filterNot {
+                            filteredArchiveLinks.contains(it)
+                        })
+                    }, async {
+                        linksToBeDeleted.addAll(folderLinks.await().filterNot {
+                            filteredFolderLinks.contains(it)
+                        })
+                    })
+                    linksDao.deleteLinks(linksToBeDeleted.map { it.localId })
+                }
+            })
+    }
+
+    override suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            linksDao.deleteLinks(linksIds)
+        }
     }
 }

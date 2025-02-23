@@ -18,8 +18,7 @@ object Localization {
     private val localizedStrings = mutableStateMapOf<LocalizedStringKey, String>()
 
     fun loadLocalizedStrings(
-        languageCode: String,
-        forceLoadDefaultValues: Boolean = false
+        languageCode: String, forceLoadDefaultValues: Boolean = false
     ) = runBlocking {
         if (languageCode == DEFAULT_APP_LANGUAGE_CODE && forceLoadDefaultValues.not()) return@runBlocking
         if (AppPreferences.preferredAppLanguageCode.value != languageCode) {
@@ -47,8 +46,7 @@ object Localization {
                     key.defaultValue
                 } else {
                     DependencyContainer.localizationRepo.value.getLocalizedStringValueFor(
-                        key.name,
-                        languageCode
+                        key.name, languageCode
                     ) ?: key.defaultValue
                 }
         }
@@ -197,8 +195,16 @@ object Localization {
         DeleteEntireDataPermanently(defaultValue = "Delete entire data permanently"), DeleteEntireDataPermanentlyDesc(
             defaultValue = "Permanently delete all links, folders, panels, and localized strings."
         ),
-        DeletedEntireDataPermanently(defaultValue = "Deleted entire data permanently."),
-        ClearImageCache(defaultValue = "Clear Image Cache"), ClearImageCacheDesc(defaultValue = "Images are cached by default. Changing the user agent might affect what you see. Clear the cache to resolve it."), RefreshAllLinksTitlesAndImages(
+        DeleteDuplicateLinksFromAllCollections(defaultValue = "Delete Duplicate Links"), DeleteDuplicateLinksFromAllCollectionsDesc(
+            defaultValue = "Removes all duplicate links from your local storage and the database connected via Linkora’s sync server."
+        ),
+        DeletedDuplicatedLinksSuccessfully(defaultValue = "Deleted Duplicate Links Successfully."), DeletedEntireDataPermanently(
+            defaultValue = "Deleted entire data permanently."
+        ),
+        ClearImageCache(
+            defaultValue = "Clear Image Cache"
+        ),
+        ClearImageCacheDesc(defaultValue = "Images are cached by default. Changing the user agent might affect what you see. Clear the cache to resolve it."), RefreshAllLinksTitlesAndImages(
             defaultValue = "Refresh Titles and Images of all links"
         ),
         RefreshAllLinksTitlesAndImagesDesc(defaultValue = "Manually entered titles will be replaced with detected titles."), RefreshingLinks(
@@ -360,13 +366,8 @@ object Localization {
         RetrievingLatestInformation(defaultValue = "Retrieving latest information, this may take sometime."), LinkoraOpenSourceAcknowledgement(
             defaultValue = "Linkora wouldn't be possible without the following open-source software, libraries."
         ),
-        UserAgent(defaultValue = "User Agent"), UserAgentDesc(defaultValue = "Detects images and titles from webpage meta tags. Detected data may vary based on the agent string used."),
-        LocalizationServerDesc(
-            defaultValue = "Linkora’s localization server lets you update strings without updating the app. By default, it uses Linkora’s server.\n" +
-                    "\n" +
-                    "You can switch to your own server if needed. Changes will reflect in Linkora’s network requests for language or string updates.\n" +
-                    "\n" +
-                    "Only change this if you’re sure about what you’re doing."
+        UserAgent(defaultValue = "User Agent"), UserAgentDesc(defaultValue = "Detects images and titles from webpage meta tags. Detected data may vary based on the agent string used."), LocalizationServerDesc(
+            defaultValue = "Linkora’s localization server lets you update strings without updating the app. By default, it uses Linkora’s server.\n" + "\n" + "You can switch to your own server if needed. Changes will reflect in Linkora’s network requests for language or string updates.\n" + "\n" + "Only change this if you’re sure about what you’re doing."
         ),
         LocalizationServer(defaultValue = "Localization Server"), PreparingToExportYourData(
             defaultValue = "Preparing to export your data..."
@@ -413,8 +414,9 @@ object Localization {
         MondsternAck(
             defaultValue = "Linkora app icon is painted by mondstern."
         ),
-        AckEndingText(defaultValue = "And, of course, the underlying libraries used by these also impact Linkora's behavior."),
-        LOLCATplOnDiscord(defaultValue = "LOLCATpl on Discord"),
+        AckEndingText(defaultValue = "And, of course, the underlying libraries used by these also impact Linkora's behavior."), LOLCATplOnDiscord(
+            defaultValue = "LOLCATpl on Discord"
+        ),
         MondsternOnDiscord(defaultValue = "mondstern on Pixelfed"), NoFoldersOrLinksFound(
             defaultValue = "No folders or links found. Please add some folders or links to get started!"
         ),
@@ -424,20 +426,24 @@ object Localization {
         NoFoldersFound(defaultValue = "No folders found. Add folders to get started."), ExportingDataToJSON(
             defaultValue = "Exporting Data to JSON..."
         ),
-        ExportingDataToHTML(defaultValue = "Exporting Data to HTML..."), ReadingFile(defaultValue = "Reading file..."),
-        SuccessfullyImportedTheData(defaultValue = "Successfully imported the data."),
+        ExportingDataToHTML(defaultValue = "Exporting Data to HTML..."), ReadingFile(defaultValue = "Reading file..."), SuccessfullyImportedTheData(
+            defaultValue = "Successfully imported the data."
+        ),
         SelectAValidFile(defaultValue = "Select a valid ${LinkoraPlaceHolder.First.value} File"), FileTypeNotSupportedOnDesktopImport(
             defaultValue = "${LinkoraPlaceHolder.First.value} files are not supported for importing, pick valid ${LinkoraPlaceHolder.Second.value} file."
         ),
-        NoFoldersInThePanel(defaultValue = "No folders in this panel. Add folders in this panel to get started."),
-        NoLinksFound(defaultValue = "No links found. Please add some links to get started!"),
-        NoRemoteLangPacks(defaultValue = "No remote language packs found. Load them from the server."),
-        StringsLocalizedStatus(defaultValue = "${LinkoraPlaceHolder.First.value}/${LinkoraPlaceHolder.Second.value} strings localized"),
+        NoFoldersInThePanel(defaultValue = "No folders in this panel. Add folders in this panel to get started."), NoLinksFound(
+            defaultValue = "No links found. Please add some links to get started!"
+        ),
+        NoRemoteLangPacks(defaultValue = "No remote language packs found. Load them from the server."), StringsLocalizedStatus(
+            defaultValue = "${LinkoraPlaceHolder.First.value}/${LinkoraPlaceHolder.Second.value} strings localized"
+        ),
         EnableNotifications(defaultValue = "Enable Notifications"), NotificationPermissionRequired(
             defaultValue = "Notification Permission Required"
         ),
-        NotificationPermissionDesc(defaultValue = "Linkora requires notification permission to display the progress of data syncing, including link refreshes."),
-        NoPanelsFound(defaultValue = "No panels available. Create panels and add respective folders to organize by projects, research, tasks, events, or any other category."),
+        NotificationPermissionDesc(defaultValue = "Linkora requires notification permission to display the progress of data syncing, including link refreshes."), NoPanelsFound(
+            defaultValue = "No panels available. Create panels and add respective folders to organize by projects, research, tasks, events, or any other category."
+        ),
         SearchInLinkora(defaultValue = "Search Linkora: Browse through all your saved links and folders."), NoSearchResults(
             defaultValue = "Nothing matched your search. Remember, you can search both by title and note. Give it another try!"
         ),
@@ -450,8 +456,9 @@ object Localization {
         InitiateManualSyncDesc(defaultValue = "Pending queue items will be force-pushed, while non-synced server items will be pulled."), InitiateManualSyncDescAlt(
             defaultValue = "Pending items will be pushed, and unsynced data from the server will be pulled."
         ),
-        SyncingDataLabel(defaultValue = "Syncing Data..."), RemoteDataDeletionFailure(defaultValue = "The data from the remote database could not be deleted."),
-        DeleteEverythingFromRemoteDatabaseLabel(defaultValue = "Delete all data from the remote database as well"),
+        SyncingDataLabel(defaultValue = "Syncing Data..."), RemoteDataDeletionFailure(defaultValue = "The data from the remote database could not be deleted."), DeleteEverythingFromRemoteDatabaseLabel(
+            defaultValue = "Delete all data from the remote database as well"
+        ),
         ProvideAValidFileLocation(defaultValue = "Provide a valid file location"), ImportMethodLabel(
             defaultValue = "Import Method : "
         ),

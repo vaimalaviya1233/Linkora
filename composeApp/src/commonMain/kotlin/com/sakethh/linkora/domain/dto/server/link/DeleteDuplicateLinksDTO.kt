@@ -1,13 +1,12 @@
-package com.sakethh.linkora.domain.dto.server.panel
+package com.sakethh.linkora.domain.dto.server.link
 
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.dto.server.Correlation
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DeleteAPanelFromAFolderDTO(
-    val panelId: Long,
-    val folderID: Long,
+data class DeleteDuplicateLinksDTO(
+    val linkIds: List<Long>,
     val eventTimestamp: Long,
     val correlation: Correlation = AppPreferences.getCorrelation()
 )

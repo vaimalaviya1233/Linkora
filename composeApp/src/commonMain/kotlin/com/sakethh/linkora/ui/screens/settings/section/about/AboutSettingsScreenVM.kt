@@ -2,7 +2,6 @@ package com.sakethh.linkora.ui.screens.settings.section.about
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.LinkSaveConfig
@@ -20,22 +19,16 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class AboutSettingsScreenVM(
-    private val localLinksRepo: LocalLinksRepo,
-    private val gitHubReleasesRepo: GitHubReleasesRepo
+    private val localLinksRepo: LocalLinksRepo, private val gitHubReleasesRepo: GitHubReleasesRepo
 ) : ViewModel() {
 
 
     fun addANewLinkToHistory(link: Link) {
         viewModelScope.launch {
             localLinksRepo.addANewLink(
-                link = Link(
+                link = link.copy(
                     linkType = LinkType.HISTORY_LINK,
-                    title = link.title,
-                    url = link.url,
-                    imgURL = link.imgURL,
-                    note = link.note,
-                    userAgent = link.userAgent ?: AppPreferences.primaryJsoupUserAgent.value,
-                    idOfLinkedFolder = null
+                    idOfLinkedFolder = null,
                 ), linkSaveConfig = LinkSaveConfig(
                     forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                 )

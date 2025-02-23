@@ -74,4 +74,8 @@ interface LocalLinksRepo {
 
     suspend fun getLatestId(): Long
     suspend fun getUnSyncedLinks(): List<Link>
+    suspend fun changeIdOfALink(existingId: Long, newId: Long)
+    suspend fun doesLinkExist(linkType: LinkType, url: String): Boolean
+    suspend fun deleteDuplicateLinks(viaSocket: Boolean = false): Flow<Result<Unit>>
+    suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>>
 }

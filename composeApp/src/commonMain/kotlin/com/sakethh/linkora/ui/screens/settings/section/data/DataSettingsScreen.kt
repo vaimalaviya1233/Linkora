@@ -2,6 +2,7 @@ package com.sakethh.linkora.ui.screens.settings.section.data
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Html
 import androidx.compose.material.icons.filled.Refresh
@@ -53,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.TextStyle
@@ -140,6 +143,9 @@ fun DataSettingsScreen() {
     }
     val selectedImportFormat = rememberSaveable {
         mutableStateOf(ImportFileType.JSON.name)
+    }
+    val showDuplicateDeleteDialogBox = rememberSaveable {
+        mutableStateOf(false)
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
@@ -382,8 +388,7 @@ fun DataSettingsScreen() {
                                 }
                             },
                             icon = Icons.Default.WbCloudy,
-                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) }
-                        )
+                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
                     )
 
                 }
@@ -410,14 +415,40 @@ fun DataSettingsScreen() {
                                     },
                                     onCompletion = {
                                         isForcePushAndPullProgressUIVisible.value = false
-                                    }
-                                )
+                                    })
                             },
                             icon = Icons.Default.Sync,
-                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) }
-                        )
+                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
                     )
                 }
+            }
+
+            item {
+                HorizontalDivider(
+                    Modifier.padding(
+                        start = 15.dp,
+                        end = 15.dp,
+                        bottom = 30.dp,
+                    ), color = DividerDefaults.color.copy(0.5f)
+                )
+                SettingComponent(
+                    SettingComponentParam(
+                        isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                        title = Localization.rememberLocalizedString(Localization.Key.DeleteDuplicateLinksFromAllCollections),
+                        doesDescriptionExists = true,
+                        description = Localization.rememberLocalizedString(Localization.Key.DeleteDuplicateLinksFromAllCollectionsDesc),
+                        isSwitchNeeded = false,
+                        isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
+                        onSwitchStateChange = {
+                            dataSettingsScreenVM.deleteDuplicates(onStart = {
+                                showDuplicateDeleteDialogBox.value = true
+                            }, onCompletion = {
+                                showDuplicateDeleteDialogBox.value = false
+                            })
+                        },
+                        icon = Icons.Default.Delete,
+                        shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
+                )
             }
 
             item {
@@ -534,19 +565,14 @@ fun DataSettingsScreen() {
                             )
                             if (DataSettingsScreenVM.refreshLinksState.value.currentIteration != 0) {
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 15.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(start = 15.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     LinearProgressIndicator(
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.85f),
-                                        progress = {
+                                        modifier = Modifier.fillMaxWidth(0.85f), progress = {
                                             DataSettingsScreenVM.refreshLinksState.value.currentIteration.toFloat() / DataSettingsScreenVM.totalLinksForRefresh.value
-                                        }
-                                    )
+                                        })
                                     IconButton(onClick = {
                                         dataSettingsScreenVM.cancelRefreshingAllLinks()
                                     }) {
@@ -568,8 +594,7 @@ fun DataSettingsScreen() {
                                     ),
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier.padding(
-                                    start = 15.dp,
-                                    end = 15.dp
+                                    start = 15.dp, end = 15.dp
                                 ),
                                 lineHeight = 18.sp
                             )
@@ -620,7 +645,9 @@ fun DataSettingsScreen() {
         }, confirmButton = {
             Button(modifier = Modifier.fillMaxWidth(), onClick = {
                 dataSettingsScreenVM.importDataFromAFile(
-                    importFileType = ImportFileType.valueOf(selectedImportFormat.value),
+                    importFileType = ImportFileType.valueOf(
+                    selectedImportFormat.value
+                ),
                     onStart = {
                         showFileLocationPickerDialog.value = false
                         isImportExportProgressUIVisible.value = true
@@ -649,12 +676,12 @@ fun DataSettingsScreen() {
         }, text = {
             OutlinedTextField(
                 label = {
-                    Text(
-                        text = Localization.Key.FileLocationLabel.rememberLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1
-                    )
-                },
+                Text(
+                    text = Localization.Key.FileLocationLabel.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1
+                )
+            },
                 value = fileLocation.value,
                 onValueChange = {
                     fileLocation.value = it
@@ -677,17 +704,21 @@ fun DataSettingsScreen() {
         navController = navController
     )
     LogsScreen(
-        isVisible = isImportExportProgressUIVisible, onCancel = {
+        isVisible = isImportExportProgressUIVisible,
+        onCancel = {
             dataSettingsScreenVM.cancelImportExportJob()
-        }, logs = dataSettingsScreenVM.importExportProgressLogs,
+        },
+        logs = dataSettingsScreenVM.importExportProgressLogs,
         operationTitle = dataOperationTitle.value,
         operationDesc = Localization.Key.ImportExportScreenTopAppBarDesc.rememberLocalizedString()
     )
     LogsScreen(
-        isVisible = isForcePushAndPullProgressUIVisible, onCancel = {
+        isVisible = isForcePushAndPullProgressUIVisible,
+        onCancel = {
             serverManagementViewModel.cancelServerConnectionAndSync(removeConnection = false)
             isForcePushAndPullProgressUIVisible.value = false
-        }, logs = serverManagementViewModel.dataSyncLogs,
+        },
+        logs = serverManagementViewModel.dataSyncLogs,
         operationTitle = Localization.Key.SyncingDataLabel.rememberLocalizedString(),
         operationDesc = Localization.Key.InitiateManualSyncDescAlt.rememberLocalizedString()
     )
@@ -697,10 +728,27 @@ fun DataSettingsScreen() {
             deleteDialogBoxType = DeleteDialogBoxType.REMOVE_ENTIRE_DATA,
             onDeleteClick = { onCompletion, deleteEverythingFromRemote ->
                 dataSettingsScreenVM.deleteEntireDatabase(deleteEverythingFromRemote, onCompletion)
+            })
+    )
+    if (showDuplicateDeleteDialogBox.value) {
+        AlertDialog(onDismissRequest = {}, content = {
+            Column(
+                modifier = Modifier.clip(AlertDialogDefaults.shape)
+                    .background(AlertDialogDefaults.containerColor).padding(15.dp),
+                verticalArrangement = Arrangement.spacedBy(15.dp)
+            ) {
+                Text(
+                    text = "Deleting Duplicates...",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = 18.sp
+                )
+                LinearProgressIndicator()
+                Spacer(Modifier)
             }
-        ))
+        })
+    }
     PlatformSpecificBackHandler {
-        if (isImportExportProgressUIVisible.value) {
+        if (isImportExportProgressUIVisible.value || showDuplicateDeleteDialogBox.value || shouldDeleteEntireDialogBoxAppear.value) {
             return@PlatformSpecificBackHandler
         } else {
             navController.navigateUp()
