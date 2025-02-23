@@ -9,5 +9,8 @@ data class FolderComponentParam(
     val onLongClick: () -> Unit,
     val onMoreIconClick: () -> Unit,
     val isCurrentlyInDetailsView: MutableState<Boolean>,
-    val showMoreIcon: MutableState<Boolean>
+    val showMoreIcon: MutableState<Boolean>,
+    val isSelectedForSelection: MutableState<Boolean>,
+    val showCheckBox: MutableState<Boolean>,
+    val onCheckBoxChanged: (Boolean) -> Unit
 )

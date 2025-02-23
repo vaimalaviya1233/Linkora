@@ -79,6 +79,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
+import com.sakethh.linkora.common.utils.defaultFolderIds
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.inRootScreen
 import com.sakethh.linkora.common.utils.initializeIfServerConfigured
@@ -432,104 +433,110 @@ fun App(
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
-                                        text = "Selected ${CollectionsScreenVM.selectedFolderViaLongClick.size} folders",
+                                        text = "Selected ${CollectionsScreenVM.selectedFoldersViaLongClick.size} folders",
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                 }
                             }
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "Actions",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(start = 15.dp)
-                                )
+                            val showPasteButton =
+                                appVM.transferActionType.value != TransferActionType.NONE && selectedAndInRoot.value.not() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
+                            if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds()).not()) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = Modifier.animateContentSize()
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    if (selectedAndInRoot.value || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
-                                        return@Row
-                                    }
-                                    if (appVM.transferActionType.value != TransferActionType.NONE) {
-                                        IconButton(onClick = {
-                                            if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder == null) {
-                                                return@IconButton
-                                            }
-                                            if (appVM.transferActionType.value == TransferActionType.COPY) {
-                                                appVM.copySelectedItems(
-                                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
-                                                    onStart = {
-                                                        showLoadingProgressBarOnTransferAction.value =
-                                                            true
-                                                    },
-                                                    onCompletion = {
-                                                        showLoadingProgressBarOnTransferAction.value =
-                                                            false
-                                                    })
-                                            } else {
-                                                appVM.moveSelectedItems(
-                                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
-                                                    onStart = {
-                                                        showLoadingProgressBarOnTransferAction.value =
-                                                            true
-                                                    },
-                                                    onCompletion = {
-                                                        showLoadingProgressBarOnTransferAction.value =
-                                                            false
-                                                    })
-                                            }
-                                        }, modifier = Modifier.padding(end = 6.5.dp)) {
-                                            Icon(
-                                                imageVector = Icons.Default.ContentPaste,
-                                                contentDescription = null
-                                            )
-                                        }
-                                        return@Row
-                                    }
-                                    IconButton(onClick = {
-                                        coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = null
+                                    if ((appVM.transferActionType.value == TransferActionType.NONE && showPasteButton.not()) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
+                                        Text(
+                                            text = "Actions",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(start = 15.dp)
                                         )
                                     }
-                                    if (CollectionsScreenVM.selectedLinksViaLongClick.map { it.linkType }
-                                            .contains(
-                                                LinkType.ARCHIVE_LINK
-                                            )
-                                            .not() || CollectionsScreenVM.selectedFolderViaLongClick.map { it.isArchived }
-                                            .contains(false)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.animateContentSize()
+                                    ) {
+                                        if (showPasteButton) {
+                                            IconButton(onClick = {
+                                                if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder == null) {
+                                                    return@IconButton
+                                                }
+                                                if (appVM.transferActionType.value == TransferActionType.COPY) {
+                                                    appVM.copySelectedItems(
+                                                        folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                                        onStart = {
+                                                            showLoadingProgressBarOnTransferAction.value =
+                                                                true
+                                                        },
+                                                        onCompletion = {
+                                                            showLoadingProgressBarOnTransferAction.value =
+                                                                false
+                                                        })
+                                                } else {
+                                                    appVM.moveSelectedItems(
+                                                        folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                                        onStart = {
+                                                            showLoadingProgressBarOnTransferAction.value =
+                                                                true
+                                                        },
+                                                        onCompletion = {
+                                                            showLoadingProgressBarOnTransferAction.value =
+                                                                false
+                                                        })
+                                                }
+                                            }, modifier = Modifier.padding(end = 6.5.dp)) {
+                                                Icon(
+                                                    imageVector = Icons.Default.ContentPaste,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                            return@Row
+                                        }
+                                        if (appVM.transferActionType.value != TransferActionType.NONE) {
+                                            return@Row
+                                        }
                                         IconButton(onClick = {
-                                            collectionsScreenVM.archiveSelectedItems()
+                                            coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
                                         }) {
                                             Icon(
-                                                imageVector = Icons.Default.Archive,
+                                                imageVector = Icons.Default.Delete,
                                                 contentDescription = null
                                             )
                                         }
-                                    }
-                                    IconButton(onClick = {
-                                        appVM.transferActionType.value = TransferActionType.COPY
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.CopyAll,
-                                            contentDescription = null
-                                        )
-                                    }
-                                    IconButton(onClick = {
-                                        appVM.transferActionType.value = TransferActionType.MOVE
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.DriveFileMove,
-                                            contentDescription = null
-                                        )
+                                        if (CollectionsScreenVM.selectedLinksViaLongClick.map { it.linkType }
+                                                .contains(
+                                                    LinkType.ARCHIVE_LINK
+                                                )
+                                                .not() || CollectionsScreenVM.selectedFoldersViaLongClick.map { it.isArchived }
+                                                .contains(false)) {
+                                            IconButton(onClick = {
+                                                collectionsScreenVM.archiveSelectedItems()
+                                            }) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Archive,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                        IconButton(onClick = {
+                                            appVM.transferActionType.value = TransferActionType.COPY
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.CopyAll,
+                                                contentDescription = null
+                                            )
+                                        }
+                                        IconButton(onClick = {
+                                            appVM.transferActionType.value = TransferActionType.MOVE
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.DriveFileMove,
+                                                contentDescription = null
+                                            )
+                                        }
                                     }
                                 }
                             }

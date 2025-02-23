@@ -86,14 +86,38 @@ fun CollectionLayoutManager(
         FolderComponentParam(
             folder = it,
             onClick = { ->
+                if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(it)) {
+                    return@FolderComponentParam
+                }
                 onFolderClick(it)
             },
-            onLongClick = { -> },
+            onLongClick = { ->
+                if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
+                    CollectionsScreenVM.isSelectionEnabled.value = true
+                    CollectionsScreenVM.selectedFoldersViaLongClick.add(it)
+                }
+            },
             onMoreIconClick = { ->
                 folderMoreIconClick(it)
             },
             isCurrentlyInDetailsView = mutableStateOf(isCurrentlyInDetailsView(it)),
-            showMoreIcon = mutableStateOf(true)
+            showMoreIcon = mutableStateOf(true),
+            isSelectedForSelection =
+                mutableStateOf(
+                    CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                        it
+                    )
+                ),
+            showCheckBox = CollectionsScreenVM.isSelectionEnabled,
+            onCheckBoxChanged = { bool ->
+                if (bool) {
+                    CollectionsScreenVM.selectedFoldersViaLongClick.add(it)
+                } else {
+                    CollectionsScreenVM.selectedFoldersViaLongClick.remove(
+                        it
+                    )
+                }
+            }
         )
     }
 

@@ -262,6 +262,9 @@ fun CollectionsScreen(
                         FolderComponentParam(
                             folder = folder,
                             onClick = { ->
+                                if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(folder)) {
+                                    return@FolderComponentParam
+                                }
                                 collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                                     CollectionDetailPaneInfo(
                                         currentFolder = folder, isAnyCollectionSelected = true
@@ -271,7 +274,12 @@ fun CollectionsScreen(
                                     Navigation.Collection.CollectionDetailPane
                                 )
                             },
-                            onLongClick = { -> },
+                            onLongClick = { ->
+                                if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
+                                    CollectionsScreenVM.isSelectionEnabled.value = true
+                                    CollectionsScreenVM.selectedFoldersViaLongClick.add(folder)
+                                }
+                            },
                             onMoreIconClick = { ->
                                 coroutineScope.pushUIEvent(
                                     UIEvent.Type.ShowMenuBtmSheetUI(
@@ -286,6 +294,26 @@ fun CollectionsScreen(
                             },
                             showMoreIcon = rememberSaveable {
                                 mutableStateOf(true)
+                            },
+                            isSelectedForSelection = rememberSaveable(
+                                CollectionsScreenVM.isSelectionEnabled.value,
+                                CollectionsScreenVM.selectedFoldersViaLongClick.size
+                            ) {
+                                mutableStateOf(
+                                    CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                        folder
+                                    )
+                                )
+                            },
+                            showCheckBox = CollectionsScreenVM.isSelectionEnabled,
+                            onCheckBoxChanged = { bool ->
+                                if (bool) {
+                                    CollectionsScreenVM.selectedFoldersViaLongClick.add(folder)
+                                } else {
+                                    CollectionsScreenVM.selectedFoldersViaLongClick.remove(
+                                        folder
+                                    )
+                                }
                             })
                     )
                 }

@@ -69,13 +69,13 @@ open class CollectionsScreenVM(
         }
 
         val selectedLinksViaLongClick = mutableStateListOf<Link>()
-        val selectedFolderViaLongClick = mutableStateListOf<Folder>()
+        val selectedFoldersViaLongClick = mutableStateListOf<Folder>()
         val isSelectionEnabled = mutableStateOf(false)
 
         fun clearAllSelections() {
             isSelectionEnabled.value = false
             selectedLinksViaLongClick.clear()
-            selectedFolderViaLongClick.clear()
+            selectedFoldersViaLongClick.clear()
         }
     }
 
@@ -86,7 +86,7 @@ open class CollectionsScreenVM(
                     selectedLinksViaLongClick.toList().map { it.localId }).collect()
             }, async {
                 localFoldersRepo.markMultipleFoldersAsArchive(
-                    selectedFolderViaLongClick.toList().map { it.localId }).collect()
+                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
             })
         }.invokeOnCompletion {
             clearAllSelections()
@@ -100,7 +100,7 @@ open class CollectionsScreenVM(
                     selectedLinksViaLongClick.toList().map { it.localId }).collect()
             }, async {
                 localFoldersRepo.deleteMultipleFolders(
-                    selectedFolderViaLongClick.toList().map { it.localId }).collect()
+                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
             })
         }.invokeOnCompletion {
             clearAllSelections()

@@ -684,9 +684,7 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun moveLinks(
-        folderId: Long?,
-        linkType: LinkType,
-        linkIds: List<Long>
+        folderId: Long?, linkType: LinkType, linkIds: List<Long>
     ): Flow<Result<Unit>> {
         return wrappedResultFlow {
             linksDao.moveLinks(folderId, linkType, linkIds)

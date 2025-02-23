@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,8 +38,11 @@ import com.sakethh.platform
 @Composable
 fun FolderComponent(folderComponentParam: FolderComponentParam) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().then(
+            if (folderComponentParam.isSelectedForSelection.value) Modifier.background(
+                MaterialTheme.colorScheme.primary.copy(0.25f)
+            ) else Modifier
+        )
             .then(
                 if (platform() is Platform.Android.Mobile) Modifier else Modifier.background(
                     if (folderComponentParam.isCurrentlyInDetailsView.value) MaterialTheme.colorScheme.primary.copy(
@@ -62,13 +66,19 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                 .pulsateEffect()
                 .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Folder,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(20.dp)
-                    .size(28.dp)
-            )
+            if (folderComponentParam.showCheckBox.value) {
+                Checkbox(
+                    checked = folderComponentParam.isSelectedForSelection.value, onCheckedChange = {
+                        folderComponentParam.onCheckBoxChanged(it)
+                    }, modifier = Modifier.padding(20.dp).size(28.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.Folder,
+                    contentDescription = null,
+                    modifier = Modifier.padding(20.dp).size(28.dp)
+                )
+            }
             Column(
                 modifier = Modifier
                     .fillMaxWidth(if (folderComponentParam.showMoreIcon.value) 0.80f else 1f),
@@ -104,7 +114,7 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                     .padding(end = if (platform() == Platform.Android.Mobile) 15.dp else 0.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                if (folderComponentParam.showMoreIcon.value) {
+                if (folderComponentParam.showMoreIcon.value && folderComponentParam.showCheckBox.value.not()) {
                     IconButton(onClick = { folderComponentParam.onMoreIconClick() }) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
