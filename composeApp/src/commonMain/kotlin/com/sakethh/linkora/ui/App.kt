@@ -2,8 +2,10 @@ package com.sakethh.linkora.ui
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Folder
@@ -31,6 +34,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -65,17 +69,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.inRootScreen
 import com.sakethh.linkora.common.utils.initializeIfServerConfigured
 import com.sakethh.linkora.common.utils.isNotNull
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
@@ -98,6 +106,7 @@ import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetUI
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
+import com.sakethh.linkora.ui.domain.TransferActionType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionDetailPane
@@ -124,6 +133,7 @@ import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -136,7 +146,9 @@ fun App(
         AppVM(
             remoteSyncRepo = DependencyContainer.remoteSyncRepo.value,
             preferencesRepository = DependencyContainer.preferencesRepo.value,
-            networkRepo = DependencyContainer.networkRepo.value
+            networkRepo = DependencyContainer.networkRepo.value,
+            linksRepo = DependencyContainer.localLinksRepo.value,
+            foldersRepo = DependencyContainer.localFoldersRepo.value
         )
     })
     val snackbarHostState = remember {
@@ -275,12 +287,13 @@ fun App(
     val platform = LocalPlatform.current
     LaunchedEffect(
         key1 = currentBackStackEntryState.value,
-        key2 = CollectionsScreenVM.collectionDetailPaneInfo.value
+        key2 = CollectionsScreenVM.collectionDetailPaneInfo.value,
+        key3 = CollectionsScreenVM.isSelectionEnabled.value
     ) {
         launch {
             if (rootRouteList.any {
                     currentBackStackEntryState.value?.destination?.hasRoute(it::class) == true
-                }) {
+                } && CollectionsScreenVM.isSelectionEnabled.value.not()) {
                 scaffoldSheetState.bottomSheetState.expand()
             } else {
                 scaffoldSheetState.bottomSheetState.hide()
@@ -370,21 +383,48 @@ fun App(
                 VerticalDivider()
             }
         }
+        val showLoadingProgressBarOnTransferAction = rememberSaveable {
+            mutableStateOf(false)
+        }
+        val selectedAndInRoot = rememberSaveable(inRootScreen, appVM.transferActionType.value) {
+            mutableStateOf((inRootScreen == true) && (appVM.transferActionType.value != TransferActionType.NONE))
+        }
         Scaffold(
             bottomBar = {
-                Box(modifier = Modifier.animateContentSize()){
+                Box(modifier = Modifier.animateContentSize()) {
                     if (CollectionsScreenVM.isSelectionEnabled.value) {
                         Column(
-                            modifier = Modifier.fillMaxWidth()
-                                .background(if(inRootScreen == true) BottomAppBarDefaults.containerColor else TopAppBarDefaults.topAppBarColors().containerColor)
+                            modifier = Modifier.fillMaxWidth().animateContentSize()
+                                .background(if (inRootScreen == true) BottomAppBarDefaults.containerColor else TopAppBarDefaults.topAppBarColors().containerColor)
                         ) {
                             HorizontalDivider()
                             Spacer(modifier = Modifier.height(5.dp))
+                            if (showLoadingProgressBarOnTransferAction.value) {
+                                Text(
+                                    text = if (appVM.transferActionType.value == TransferActionType.COPY) {
+                                        Localization.Key.Copying.rememberLocalizedString()
+                                    } else {
+                                        Localization.Key.Moving.rememberLocalizedString()
+                                    },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(
+                                        start = 15.dp, bottom = 10.dp, top = 5.dp
+                                    )
+                                )
+                                LinearProgressIndicator(
+                                    Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp)
+                                )
+                                Spacer(Modifier.bottomNavPaddingAcrossPlatforms())
+                                return@Column
+                            }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = {
                                     CollectionsScreenVM.clearAllSelections()
                                 }) {
-                                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                                    Icon(
+                                        imageVector = Icons.Default.Close, contentDescription = null
+                                    )
                                 }
                                 Column {
                                     Text(
@@ -397,25 +437,68 @@ fun App(
                                     )
                                 }
                             }
-                            Box(
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = "Actions",
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 15.dp)
+                                    modifier = Modifier.padding(start = 15.dp)
                                 )
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.align(
-                                        Alignment.CenterEnd
-                                    ).animateContentSize()
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.animateContentSize()
                                 ) {
+                                    if (selectedAndInRoot.value || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
+                                        return@Row
+                                    }
+                                    if (appVM.transferActionType.value != TransferActionType.NONE) {
+                                        IconButton(onClick = {
+                                            if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder == null) {
+                                                return@IconButton
+                                            }
+                                            if (appVM.transferActionType.value == TransferActionType.COPY) {
+                                                appVM.copySelectedItems(
+                                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                                    onStart = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            true
+                                                    },
+                                                    onCompletion = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            false
+                                                    })
+                                            } else {
+                                                appVM.moveSelectedItems(
+                                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                                    onStart = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            true
+                                                    },
+                                                    onCompletion = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            false
+                                                    })
+                                            }
+                                        }, modifier = Modifier.padding(end = 6.5.dp)) {
+                                            Icon(
+                                                imageVector = Icons.Default.ContentPaste,
+                                                contentDescription = null
+                                            )
+                                        }
+                                        return@Row
+                                    }
                                     IconButton(onClick = {
                                         coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
                                     }) {
-                                        Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null
+                                        )
                                     }
                                     if (CollectionsScreenVM.selectedLinksViaLongClick.map { it.linkType }
                                             .contains(
@@ -432,10 +515,17 @@ fun App(
                                             )
                                         }
                                     }
-                                    IconButton(onClick = {}) {
-                                        Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
+                                    IconButton(onClick = {
+                                        appVM.transferActionType.value = TransferActionType.COPY
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.CopyAll,
+                                            contentDescription = null
+                                        )
                                     }
-                                    IconButton(onClick = {}) {
+                                    IconButton(onClick = {
+                                        appVM.transferActionType.value = TransferActionType.MOVE
+                                    }) {
                                         Icon(
                                             imageVector = Icons.Outlined.DriveFileMove,
                                             contentDescription = null
@@ -443,11 +533,35 @@ fun App(
                                     }
                                 }
                             }
+                            if (appVM.transferActionType.value != TransferActionType.NONE) {
+                                Text(
+                                    text = if (appVM.transferActionType.value == TransferActionType.COPY) Localization.Key.NavigateAndCopyDesc.rememberLocalizedString() else Localization.Key.NavigateAndMoveDesc.rememberLocalizedString(),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(start = 15.dp, end = 15.dp)
+                                )
                         }
+                            if (selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID) {
+                                Button(
+                                    onClick = {
+                                        localNavController.navigate(Navigation.Root.CollectionsScreen)
+                                    },
+                                    modifier = Modifier.fillMaxWidth().padding(
+                                        start = 15.dp,
+                                        end = 15.dp,
+                                        top = 5.dp,
+                                        bottom = 5.dp
+                                    )
+                                ) {
+                                    Text(
+                                        text = "Navigate to Collections Screen",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+                            }
                     }
                 }
-            },
-            floatingActionButton = {
+                }
+            }, floatingActionButton = {
             if (showAddingLinkOrFoldersFAB.value && CollectionsScreenVM.isSelectionEnabled.value.not()) {
                 if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
                         Constants.SAVED_LINKS_ID,
@@ -609,10 +723,9 @@ fun App(
                         .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
                             shouldScreenTransparencyDecreasedBoxVisible.value = false
                             coroutineScope.launch {
-                                kotlinx.coroutines.awaitAll(async {
+                                awaitAll(async {
                                     rotationAnimation.animateTo(
-                                        -360f,
-                                        animationSpec = androidx.compose.animation.core.tween(300)
+                                        -360f, animationSpec = tween(300)
                                     )
                                 }, async { isMainFabRotated.value = false })
                             }.invokeOnCompletion {

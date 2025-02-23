@@ -462,6 +462,9 @@ object Localization {
         ProvideAValidFileLocation(defaultValue = "Provide a valid file location"), ImportMethodLabel(
             defaultValue = "Import Method : "
         ),
-        FileLocationLabel(defaultValue = "File Location"), FilePickerLabel(defaultValue = "File Picker")
+        FileLocationLabel(defaultValue = "File Location"), FilePickerLabel(defaultValue = "File Picker"),
+        NavigateAndCopyDesc(defaultValue = "Navigate to the folder where you want to copy the selected items and hit the paste button to copy them there."),
+        NavigateAndMoveDesc(defaultValue = "Navigate to the folder where you want to move the selected items and hit the paste button to move them there."),
+        Moving(defaultValue = "Moving..."), Copying(defaultValue = "Copying...")
     }
 }

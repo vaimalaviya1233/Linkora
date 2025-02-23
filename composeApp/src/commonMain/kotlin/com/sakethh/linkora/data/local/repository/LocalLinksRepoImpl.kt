@@ -307,24 +307,25 @@ class LocalLinksRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                if (remoteId != null){pendingSyncQueueRepo.addInQueue(
-                    PendingSyncQueue(
-                        operation = RemoteRoute.Link.DELETE_A_LINK.name,
-                        payload = Json.encodeToString(
-                            IDBasedDTO(
-                                remoteId, Instant.now().epochSecond
+                if (remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Link.DELETE_A_LINK.name,
+                            payload = Json.encodeToString(
+                                IDBasedDTO(
+                                    remoteId, Instant.now().epochSecond
+                                )
                             )
                         )
                     )
-                )}
+                }
             }) {
             linksDao.deleteALink(linkId)
         }
     }
 
     override suspend fun deleteMultipleLinks(
-        linkIds: List<Long>,
-        viaSocket: Boolean
+        linkIds: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         return wrappedResultFlow {
             linksDao.deleteMultipleLinks(linkIds)
@@ -679,6 +680,16 @@ class LocalLinksRepoImpl(
     override suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>> {
         return wrappedResultFlow {
             linksDao.deleteLinks(linksIds)
+        }
+    }
+
+    override suspend fun moveLinks(
+        folderId: Long?,
+        linkType: LinkType,
+        linkIds: List<Long>
+    ): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            linksDao.moveLinks(folderId, linkType, linkIds)
         }
     }
 }

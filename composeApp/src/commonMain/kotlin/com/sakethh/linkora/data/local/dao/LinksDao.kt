@@ -144,4 +144,9 @@ interface LinksDao {
 
     @Query("DELETE FROM links WHERE localId IN (:linkIds)")
     suspend fun deleteLinks(linkIds: List<Long>)
+
+    @Query("UPDATE links SET idOfLinkedFolder = :folderId, linkType = :linkType WHERE localId IN (:linkIds)")
+    suspend fun moveLinks(
+        folderId: Long?, linkType: com.sakethh.linkora.domain.LinkType, linkIds: List<Long>
+    )
 }

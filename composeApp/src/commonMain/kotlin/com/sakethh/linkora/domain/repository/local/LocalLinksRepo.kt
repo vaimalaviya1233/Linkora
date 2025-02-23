@@ -37,8 +37,7 @@ interface LocalLinksRepo {
 
     suspend fun deleteALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
     suspend fun deleteMultipleLinks(
-        linkIds: List<Long>,
-        viaSocket: Boolean = false
+        linkIds: List<Long>, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun archiveALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
@@ -78,4 +77,7 @@ interface LocalLinksRepo {
     suspend fun doesLinkExist(linkType: LinkType, url: String): Boolean
     suspend fun deleteDuplicateLinks(viaSocket: Boolean = false): Flow<Result<Unit>>
     suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>>
+    suspend fun moveLinks(
+        folderId: Long?, linkType: LinkType, linkIds: List<Long>
+    ): Flow<Result<Unit>>
 }
