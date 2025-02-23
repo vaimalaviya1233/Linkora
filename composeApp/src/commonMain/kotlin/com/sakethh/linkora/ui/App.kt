@@ -513,7 +513,7 @@ fun App(
                                                 .not() || CollectionsScreenVM.selectedFoldersViaLongClick.map { it.isArchived }
                                                 .contains(false)) {
                                             IconButton(onClick = {
-                                                collectionsScreenVM.archiveSelectedItems()
+                                                appVM.archiveSelectedItems()
                                             }) {
                                                 Icon(
                                                     imageVector = Icons.Default.Archive,
@@ -892,7 +892,7 @@ fun App(
                     } else DeleteDialogBoxType.LINK,
                     onDeleteClick = { onCompletion, _ ->
                         if (CollectionsScreenVM.isSelectionEnabled.value) {
-                            collectionsScreenVM.deleteSelectedItems(onCompletion)
+                            appVM.deleteSelectedItems(onCompletion)
                             return@DeleteDialogBoxParam
                         }
                         if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {

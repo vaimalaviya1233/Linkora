@@ -79,35 +79,6 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun archiveSelectedItems() {
-        viewModelScope.launch {
-            awaitAll(async {
-                localLinksRepo.archiveMultipleLinks(
-                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
-            }, async {
-                localFoldersRepo.markMultipleFoldersAsArchive(
-                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
-            })
-        }.invokeOnCompletion {
-            clearAllSelections()
-        }
-    }
-
-    fun deleteSelectedItems(onCompletion: () -> Unit) {
-        viewModelScope.launch {
-            awaitAll(async {
-                localLinksRepo.deleteMultipleLinks(
-                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
-            }, async {
-                localFoldersRepo.deleteMultipleFolders(
-                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
-            })
-        }.invokeOnCompletion {
-            clearAllSelections()
-            onCompletion()
-        }
-    }
-
     fun updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
         _collectionDetailPaneInfo.value = collectionDetailPaneInfo
 

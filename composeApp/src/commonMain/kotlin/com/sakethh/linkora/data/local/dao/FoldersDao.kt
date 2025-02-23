@@ -173,4 +173,7 @@ interface FoldersDao {
 
     @Query("SELECT * FROM folders WHERE remoteId IS NULL")
     suspend fun getUnSyncedFolders(): List<Folder>
+
+    @Query("UPDATE folders SET parentFolderId = :parentFolderId WHERE localId IN (:folderIDs)")
+    suspend fun moveFolders(parentFolderId: Long,folderIDs: List<Long>)
 }

@@ -545,4 +545,13 @@ class LocalFoldersRepoImpl(
     override suspend fun getUnSyncedFolders(): List<Folder> {
         return foldersDao.getUnSyncedFolders()
     }
+
+    override suspend fun moveFolders(
+        parentFolderId: Long,
+        folderIDs: List<Long>
+    ): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            foldersDao.moveFolders(parentFolderId, folderIDs)
+        }
+    }
 }

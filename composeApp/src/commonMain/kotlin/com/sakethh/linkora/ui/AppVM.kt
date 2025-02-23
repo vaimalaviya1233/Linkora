@@ -23,11 +23,16 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.domain.TransferActionType
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.clearAllSelections
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedFoldersViaLongClick
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedLinksViaLongClick
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -139,22 +144,31 @@ class AppVM(
 
     fun moveSelectedItems(folderId: Long, onStart: () -> Unit, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            linksRepo.moveLinks(
-                folderId = folderId, linkType = when (folderId) {
-                    Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
-                    Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
-                    Constants.ARCHIVE_ID -> LinkType.ARCHIVE_LINK
-                    else -> {
-                        LinkType.FOLDER_LINK
+            awaitAll(async {
+                linksRepo.moveLinks(
+                    folderId = folderId, linkType = when (folderId) {
+                        Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
+                        Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
+                        Constants.ARCHIVE_ID -> LinkType.ARCHIVE_LINK
+                        else -> {
+                            LinkType.FOLDER_LINK
+                        }
+                    }, linkIds = CollectionsScreenVM.selectedLinksViaLongClick.toList().map {
+                        it.localId
+                    }).collectLatest {
+                    it.onLoading {
+                        onStart()
                     }
-                }, linkIds = CollectionsScreenVM.selectedLinksViaLongClick.toList().map {
-                    it.localId
-                }).collectLatest {
-                it.onLoading {
-                    onStart()
+                    it.pushSnackbarOnFailure()
                 }
-                it.pushSnackbarOnFailure()
-            }
+            }, async {
+                foldersRepo.moveFolders(
+                    parentFolderId = folderId,
+                    folderIDs = selectedFoldersViaLongClick.toList().map { it.localId })
+                    .collectLatest {
+                        it.pushSnackbarOnFailure()
+                    }
+            })
         }.invokeOnCompletion {
             onCompletion()
             CollectionsScreenVM.clearAllSelections()
@@ -164,4 +178,34 @@ class AppVM(
     fun copySelectedItems(folderId: Long, onStart: () -> Unit, onCompletion: () -> Unit) {
 
     }
+
+    fun archiveSelectedItems() {
+        viewModelScope.launch {
+            awaitAll(async {
+                linksRepo.archiveMultipleLinks(
+                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
+            }, async {
+                foldersRepo.markMultipleFoldersAsArchive(
+                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
+            })
+        }.invokeOnCompletion {
+            clearAllSelections()
+        }
+    }
+
+    fun deleteSelectedItems(onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            awaitAll(async {
+                linksRepo.deleteMultipleLinks(
+                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
+            }, async {
+                foldersRepo.deleteMultipleFolders(
+                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
+            })
+        }.invokeOnCompletion {
+            clearAllSelections()
+            onCompletion()
+        }
+    }
+
 }
