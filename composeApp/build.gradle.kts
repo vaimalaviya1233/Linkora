@@ -114,6 +114,11 @@ android {
         "src/commonMain/resources",
         "src/androidMain/resources"
     )
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
 }
 
 dependencies {
