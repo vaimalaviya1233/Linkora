@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -83,7 +84,7 @@ class HomeScreenVM(
                 return@launch
             }
 
-            localPanelsRepo.getAllTheFoldersFromAPanel(panelId).collectLatest {
+            localPanelsRepo.getAllTheFoldersFromAPanel(panelId).cancellable().collectLatest {
                 _panelFolders.emit(it)
             }
         }
