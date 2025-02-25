@@ -79,7 +79,7 @@ fun MenuBtmSheetUI(
             Column {
                 if (platform is Platform.Android.Mobile) {
                     IndividualMenuComponent(
-                        onOptionClick = {
+                        onClick = {
                             coroutineScope.launch {
                                 if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                     menuBtmSheetParam.btmModalSheetState.hide()
@@ -98,7 +98,7 @@ fun MenuBtmSheetUI(
                 // TODO  if (TransferActions.currentTransferActionType.value != TransferActionType.NOTHING) return@Column
                 if (platform is Platform.Android.Mobile || menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetFolderEntries()) {
                     IndividualMenuComponent(
-                        onOptionClick = {
+                        onClick = {
                             coroutineScope.launch {
                                 if (menuBtmSheetParam.btmModalSheetState.isVisible) {
                                     menuBtmSheetParam.btmModalSheetState.hide()
@@ -114,7 +114,7 @@ fun MenuBtmSheetUI(
 
                     if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
                         IndividualMenuComponent(
-                            onOptionClick = {
+                            onClick = {
                                 menuBtmSheetParam.onRefreshClick()
                                 coroutineScope.launch {
                                     if (menuBtmSheetParam.btmModalSheetState.isVisible) {
@@ -132,7 +132,7 @@ fun MenuBtmSheetUI(
 
                 if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
                     IndividualMenuComponent(
-                        onOptionClick = {
+                        onClick = {
                             menuBtmSheetParam.onAddToImportantLinks?.let { it() }
                             coroutineScope.launch {
                                 if (menuBtmSheetParam.btmModalSheetState.isVisible) {
@@ -147,7 +147,7 @@ fun MenuBtmSheetUI(
                 }
 
                 IndividualMenuComponent(
-                    onOptionClick = {
+                    onClick = {
                         menuBtmSheetParam.onArchive()
                         coroutineScope.launch {
                             if (menuBtmSheetParam.btmModalSheetState.isVisible) {
@@ -166,7 +166,7 @@ fun MenuBtmSheetUI(
                     ) && menuBtmSheetParam.folder!!.value.note.isNotBlank()
                 ) {
                     IndividualMenuComponent(
-                        onOptionClick = {
+                        onClick = {
                             menuBtmSheetParam.onDeleteNote()
                             coroutineScope.launch {
                                 if (menuBtmSheetParam.btmModalSheetState.isVisible) {
@@ -206,7 +206,7 @@ fun MenuBtmSheetUI(
                         }*/
                 if (menuBtmSheetParam.menuBtmSheetFor != MenuBtmSheetType.Link.ImportantLink) {
                     IndividualMenuComponent(
-                        onOptionClick = {
+                        onClick = {
                             menuBtmSheetParam.onDelete()
                             coroutineScope.launch {
                                 if (menuBtmSheetParam.btmModalSheetState.isVisible) {

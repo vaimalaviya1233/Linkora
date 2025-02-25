@@ -23,6 +23,7 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -31,18 +32,18 @@ class SpecificPanelManagerScreenVM(
     private val preferencesRepository: PreferencesRepository,
     initData: Boolean = true
 ) : ViewModel() {
-    private val _rootFolders = MutableStateFlow(emptyList<Folder>())
-    val rootFolders = _rootFolders.asStateFlow()
+    private val _foldersToIncludeInPanel = MutableStateFlow(emptyList<Folder>())
+    val foldersToIncludeInPanel = _foldersToIncludeInPanel.asStateFlow()
 
-    private val _specificPanelFolders = MutableStateFlow(emptyList<PanelFolder>())
-    val specificPanelFolders = _specificPanelFolders.asStateFlow()
+    private val _foldersOfTheSelectedPanel = MutableStateFlow(emptyList<PanelFolder>())
+    val foldersOfTheSelectedPanel = _foldersOfTheSelectedPanel.asStateFlow()
 
     companion object {
-        private val _selectedPanelData = mutableStateOf(Panel(localId = 0L, panelName = ""))
-        val selectedPanelData = _selectedPanelData
+        private val _selectedPanel = mutableStateOf(Panel(localId = 0L, panelName = ""))
+        val selectedPanel = _selectedPanel
 
-        fun updateSelectedPanelData(panel: Panel) {
-            _selectedPanelData.value = panel
+        fun updateSelectedPanel(panel: Panel) {
+            _selectedPanel.value = panel
         }
     }
 
@@ -61,16 +62,16 @@ class SpecificPanelManagerScreenVM(
         specificPanelManagerScreenDataJob = viewModelScope.launch {
             foldersRepo.getAllFolders().collectLatest { result ->
                 result.onSuccess { success ->
-                    val rootFilteredFolders = success.data.filterNot { it.isArchived }
+                    val nonArchivedFolders = success.data.filterNot { it.isArchived }
 
-                    localPanelsRepo.getAllTheFoldersFromAPanel(_selectedPanelData.value.localId)
-                        .collectLatest { panelFolders ->
-                            val filteredRootFolders = rootFilteredFolders.filterNot { rootFolder ->
-                                panelFolders.any { it.folderName == rootFolder.name }
+                    localPanelsRepo.getAllTheFoldersFromAPanel(_selectedPanel.value.localId)
+                        .cancellable().collectLatest { panelFolders ->
+                        val filteredFoldersToIncludeInAPanel = nonArchivedFolders.filterNot { nonArchivedFolder ->
+                            panelFolders.any { it.folderId == nonArchivedFolder.localId }
                             }
 
-                            _specificPanelFolders.emit(panelFolders)
-                            _rootFolders.emit(filteredRootFolders)
+                        _foldersOfTheSelectedPanel.emit(panelFolders)
+                        _foldersToIncludeInPanel.emit(filteredFoldersToIncludeInAPanel)
                         }
                 }.pushSnackbarOnFailure()
             }

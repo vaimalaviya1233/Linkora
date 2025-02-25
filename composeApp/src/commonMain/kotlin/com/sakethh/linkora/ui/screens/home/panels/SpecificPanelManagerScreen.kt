@@ -61,9 +61,9 @@ fun SpecificPanelManagerScreen(
 ) {
     val navController = LocalNavController.current
     val foldersOfTheSelectedPanel =
-        specificPanelManagerScreenVM.specificPanelFolders.collectAsStateWithLifecycle()
+        specificPanelManagerScreenVM.foldersOfTheSelectedPanel.collectAsStateWithLifecycle()
 
-    val filteredRootFolders = specificPanelManagerScreenVM.rootFolders.collectAsStateWithLifecycle()
+    val foldersToIncludeInPanel = specificPanelManagerScreenVM.foldersToIncludeInPanel.collectAsStateWithLifecycle()
     val topAppBarState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         modifier = Modifier.padding(top = paddingValues.calculateTopPadding()).fillMaxSize(),
@@ -76,7 +76,7 @@ fun SpecificPanelManagerScreen(
                 }
             }, scrollBehavior = topAppBarState, title = {
                 Text(
-                    text = SpecificPanelManagerScreenVM.selectedPanelData.value.panelName,
+                    text = SpecificPanelManagerScreenVM.selectedPanel.value.panelName,
                     fontSize = 18.sp,
                     style = MaterialTheme.typography.titleMedium,
                 )
@@ -108,7 +108,7 @@ fun SpecificPanelManagerScreen(
                         contentDescription = ""
                     )
                     Text(
-                        text = SpecificPanelManagerScreenVM.selectedPanelData.value.panelName,
+                        text = SpecificPanelManagerScreenVM.selectedPanel.value.panelName,
                         style = MaterialTheme.typography.titleMedium, fontSize = 16.sp
                     )
                 }
@@ -131,7 +131,7 @@ fun SpecificPanelManagerScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().pulsateEffect().clickable(onClick = {
                             specificPanelManagerScreenVM.removeAFolderFromAPanel(
-                                panelId = SpecificPanelManagerScreenVM.selectedPanelData.value.localId,
+                                panelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
                                 folderId = folderItem.folderId
                             )
                         }, indication = null, interactionSource = remember {
@@ -148,7 +148,7 @@ fun SpecificPanelManagerScreen(
                     }
                 }
             }
-            if (filteredRootFolders.value.isNotEmpty()) {
+            if (foldersToIncludeInPanel.value.isNotEmpty()) {
                 item {
                     Spacer(modifier = Modifier.height(15.dp))
                     Text(
@@ -159,15 +159,15 @@ fun SpecificPanelManagerScreen(
                         modifier = Modifier.padding(start = 10.dp, end = 15.dp)
                     )
                 }
-                items(filteredRootFolders.value) { filteredRootFolder ->
+                items(foldersToIncludeInPanel.value) { folderToIncludeInPanel ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().pulsateEffect().clickable(onClick = {
                             specificPanelManagerScreenVM.addANewFolderInAPanel(
                                 PanelFolder(
-                                    folderId = filteredRootFolder.localId,
-                                    folderName = filteredRootFolder.name,
-                                    connectedPanelId = SpecificPanelManagerScreenVM.selectedPanelData.value.localId,
+                                    folderId = folderToIncludeInPanel.localId,
+                                    folderName = folderToIncludeInPanel.name,
+                                    connectedPanelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
                                     panelPosition = 0
                                 )
                             )
@@ -178,7 +178,7 @@ fun SpecificPanelManagerScreen(
                         Icon(imageVector = Icons.Default.Add, contentDescription = null)
                         Spacer(Modifier.width(5.dp))
                         Text(
-                            text = filteredRootFolder.name,
+                            text = folderToIncludeInPanel.name,
                             style = MaterialTheme.typography.titleSmall,
                             fontSize = 16.sp
                         )

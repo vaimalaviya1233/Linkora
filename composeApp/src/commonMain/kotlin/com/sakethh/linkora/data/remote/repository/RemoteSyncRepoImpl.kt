@@ -1187,6 +1187,6 @@ class RemoteSyncRepoImpl(
                     emit(Result.Failure(""))
                 }
             }
-        }
+        }.catchAsThrowableAndEmitFailure()
     }
 }

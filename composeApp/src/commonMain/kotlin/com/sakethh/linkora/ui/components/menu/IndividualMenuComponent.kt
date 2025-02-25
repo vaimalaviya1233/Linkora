@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -34,13 +33,12 @@ import com.sakethh.platform
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun IndividualMenuComponent(
-    onOptionClick: () -> Unit,
+    onClick: () -> Unit,
     elementName: String,
     elementImageVector: ImageVector,
     inPanelsScreen: Boolean = false,
     isSelected: Boolean = false,
     onRenameClick: () -> Unit = {},
-    onTuneIconClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {}
 ) {
     Row(
@@ -55,7 +53,7 @@ fun IndividualMenuComponent(
                     MutableInteractionSource()
                 }, indication = null,
                 onClick = {
-                    onOptionClick()
+                    onClick()
                 },
                 onLongClick = {
 
@@ -74,7 +72,7 @@ fun IndividualMenuComponent(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
-                    modifier = Modifier.padding(10.dp), onClick = { onOptionClick() },
+                    modifier = Modifier.padding(10.dp), onClick = { onClick() },
                     colors = IconButtonDefaults.filledTonalIconButtonColors()
                 ) {
                     Icon(imageVector = elementImageVector, contentDescription = null)
@@ -95,11 +93,6 @@ fun IndividualMenuComponent(
                             imageVector = Icons.Default.DriveFileRenameOutline,
                             contentDescription = null
                         )
-                    }
-                    if (platform() is Platform.Android.Mobile) {
-                        IconButton(onClick = onTuneIconClick) {
-                            Icon(imageVector = Icons.Default.Tune, contentDescription = null)
-                        }
                     }
 
                     IconButton(onClick = onDeleteClick) {

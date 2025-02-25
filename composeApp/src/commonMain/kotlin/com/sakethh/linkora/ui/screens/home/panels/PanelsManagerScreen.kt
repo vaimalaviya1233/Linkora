@@ -143,8 +143,8 @@ fun PanelsManagerScreen() {
                 }
                 items(panels.value.drop(1)) { panel ->
                     IndividualMenuComponent(
-                        onOptionClick = { ->
-                            SpecificPanelManagerScreenVM.updateSelectedPanelData(panel)
+                        onClick = { ->
+                            SpecificPanelManagerScreenVM.updateSelectedPanel(panel)
                             specificPanelManagerScreenVM.updateSpecificPanelManagerScreenData()
                             selectedPanelForDetailView.value = panel
                             if (platform is Platform.Android.Mobile) {
@@ -162,9 +162,6 @@ fun PanelsManagerScreen() {
                         onRenameClick = {
                             selectedPanelForDialogBoxes.value = panel
                             isRenameAPanelDialogBoxVisible.value = true
-                        },
-                        onTuneIconClick = {
-                            navController.navigate(Navigation.Home.SpecificPanelManagerScreen)
                         }
                     )
                 }
@@ -217,7 +214,7 @@ fun PanelsManagerScreen() {
             specificPanelManagerScreenVM.renameAPanel(
                 selectedPanelForDialogBoxes.value.localId, newPanelName, onCompletion = {
                     onCompletion()
-                    SpecificPanelManagerScreenVM.updateSelectedPanelData(
+                    SpecificPanelManagerScreenVM.updateSelectedPanel(
                         Panel(
                             selectedPanelForDialogBoxes.value.localId, newPanelName
                         )
