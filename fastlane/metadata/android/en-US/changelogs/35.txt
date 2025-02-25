@@ -1,0 +1,1 @@
+Fixed an issue to make sure the panel is registered correctly when adding folders.
