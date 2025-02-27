@@ -10,7 +10,7 @@ interface LocalFoldersRepo {
         folder: Folder,
         ignoreFolderAlreadyExistsException: Boolean,
         viaSocket: Boolean = false
-    ): Flow<Result<Unit>>
+    ): Flow<Result<Long>>
 
     suspend fun duplicateAFolder(actualFolderId: Long, parentFolderID: Long?): Flow<Result<Long>>
 
@@ -126,4 +126,5 @@ interface LocalFoldersRepo {
     suspend fun getLocalIdOfAFolder(remoteId: Long): Long?
     suspend fun getUnSyncedFolders(): List<Folder>
     suspend fun moveFolders(parentFolderId: Long, folderIDs: List<Long>): Flow<Result<Unit>>
+    suspend fun copyFolders(parentFolderId: Long, folders: List<Folder>): Flow<Result<Unit>>
 }

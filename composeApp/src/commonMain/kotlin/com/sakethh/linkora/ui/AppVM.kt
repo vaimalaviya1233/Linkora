@@ -179,11 +179,15 @@ class AppVM(
                         linkType = folderId.asLinkType(),
                         links = selectedLinksViaLongClick.toList()
                     ).collect()
-                },
+                }, async {
+                    foldersRepo.copyFolders(
+                        parentFolderId = folderId, folders = selectedFoldersViaLongClick.toList()
+                    ).collect()
+                }
             )
         }.invokeOnCompletion {
-            onCompletion()
             clearAllSelections()
+            onCompletion()
         }
     }
 

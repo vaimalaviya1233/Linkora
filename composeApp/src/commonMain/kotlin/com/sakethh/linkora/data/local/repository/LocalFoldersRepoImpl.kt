@@ -44,7 +44,7 @@ class LocalFoldersRepoImpl(
 
     override suspend fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean, viaSocket: Boolean
-    ): Flow<Result<Unit>> {
+    ): Flow<Result<Long>> {
         val newLocalId = foldersDao.getLastIDOfFoldersTable() + 1
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
@@ -558,6 +558,31 @@ class LocalFoldersRepoImpl(
     override suspend fun markFoldersAsRoot(folderIDs: List<Long>): Flow<Result<Unit>> {
         return wrappedResultFlow {
             foldersDao.markFoldersAsRoot(folderIDs)
+        }
+    }
+
+    override suspend fun copyFolders(
+        parentFolderId: Long, folders: List<Folder>
+    ): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            folders.forEach { folder ->
+                foldersDao.insertANewFolder(
+                    folder.copy(
+                        parentFolderId = parentFolderId, remoteId = null, localId = 0
+                    )
+                ).let { newFolderId ->
+                    localLinksRepo.addMultipleLinks(
+                        localLinksRepo.getLinksOfThisFolderAsList(
+                            folder.localId
+                        ).map {
+                            it.copy(idOfLinkedFolder = newFolderId, remoteId = null, localId = 0)
+                        })
+                    copyFolders(
+                        parentFolderId = newFolderId,
+                        folders = getChildFoldersOfThisParentIDAsList(folder.localId)
+                    ).collect()
+                }
+            }
         }
     }
 }
