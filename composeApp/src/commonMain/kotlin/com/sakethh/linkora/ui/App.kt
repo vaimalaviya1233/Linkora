@@ -440,7 +440,9 @@ fun App(
                             }
                             val showPasteButton =
                                 appVM.transferActionType.value != TransferActionType.NONE && selectedAndInRoot.value.not() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
-                            if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds()).not()) {
+                            if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds().dropWhile {
+                                    it == Constants.ARCHIVE_ID
+                                }).not()) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,

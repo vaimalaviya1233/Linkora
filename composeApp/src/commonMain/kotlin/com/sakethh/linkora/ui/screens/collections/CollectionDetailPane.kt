@@ -243,17 +243,11 @@ fun CollectionDetailPane(
                                             },
                                             showMoreIcon = rememberSaveable {
                                                 mutableStateOf(true)
-                                            },
-                                            isSelectedForSelection = rememberSaveable(
-                                                CollectionsScreenVM.isSelectionEnabled.value,
-                                                CollectionsScreenVM.selectedFoldersViaLongClick
-                                            ) {
-                                                mutableStateOf(
+                                            }, isSelectedForSelection = mutableStateOf(
                                                     CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
                                                         rootArchiveFolder
                                                     )
-                                                )
-                                            },
+                                            ),
                                             showCheckBox = CollectionsScreenVM.isSelectionEnabled,
                                             onCheckBoxChanged = { bool ->
                                                 if (bool) {
