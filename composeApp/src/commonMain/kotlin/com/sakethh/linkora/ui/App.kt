@@ -555,7 +555,32 @@ fun App(
                                     modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                                 )
                         }
-                            if (selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID) {
+                            val showNavigateToCollectionScreen =
+                                selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
+                            if (CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.selectedFoldersViaLongClick.any {
+                                    it.parentFolderId != null
+                                }) {
+                                Button(
+                                    onClick = {
+                                        appVM.markSelectedFoldersAsRoot(onStart = {
+                                            showLoadingProgressBarOnTransferAction.value = true
+                                        }, onCompletion = {
+                                            showLoadingProgressBarOnTransferAction.value = false
+                                        })
+                                    }, modifier = Modifier.fillMaxWidth().padding(
+                                        start = 15.dp,
+                                        end = 15.dp,
+                                        top = 5.dp,
+                                        bottom = if (showNavigateToCollectionScreen.not()) 5.dp else 0.dp
+                                    )
+                                ) {
+                                    Text(
+                                        text = "Mark selected folders as root",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+                            }
+                            if (showNavigateToCollectionScreen) {
                                 Button(
                                     onClick = {
                                         localNavController.navigate(Navigation.Root.CollectionsScreen)

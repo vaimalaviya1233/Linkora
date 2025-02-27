@@ -554,4 +554,10 @@ class LocalFoldersRepoImpl(
             foldersDao.moveFolders(parentFolderId, folderIDs)
         }
     }
+
+    override suspend fun markFoldersAsRoot(folderIDs: List<Long>): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            foldersDao.markFoldersAsRoot(folderIDs)
+        }
+    }
 }

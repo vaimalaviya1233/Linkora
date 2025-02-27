@@ -219,4 +219,15 @@ class AppVM(
         }
     }
 
+    fun markSelectedFoldersAsRoot(onStart: () -> Unit, onCompletion: () -> Unit) {
+        onStart()
+        viewModelScope.launch {
+            foldersRepo.markFoldersAsRoot(selectedFoldersViaLongClick.toList().map { it.localId })
+                .collect()
+        }.invokeOnCompletion {
+            clearAllSelections()
+            onCompletion()
+        }
+    }
+
 }

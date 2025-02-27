@@ -176,4 +176,7 @@ interface FoldersDao {
 
     @Query("UPDATE folders SET parentFolderId = :parentFolderId WHERE localId IN (:folderIDs)")
     suspend fun moveFolders(parentFolderId: Long,folderIDs: List<Long>)
+
+    @Query("UPDATE folders SET parentFolderId = NULL WHERE localId IN (:foldersIds)")
+    suspend fun markFoldersAsRoot(foldersIds: List<Long>)
 }

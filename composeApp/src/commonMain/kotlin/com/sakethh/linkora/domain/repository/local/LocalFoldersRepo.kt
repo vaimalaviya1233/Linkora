@@ -93,6 +93,8 @@ interface LocalFoldersRepo {
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
+    suspend fun markFoldersAsRoot(folderIDs: List<Long>): Flow<Result<Unit>>
+
     suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>>
 
     suspend fun updateLocalFolderData(folder: Folder): Flow<Result<Unit>>
