@@ -42,6 +42,7 @@ import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
@@ -56,6 +57,7 @@ import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -66,11 +68,13 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionDetailPane(
+    platform: Platform = platform(),
     collectionsScreenVM: CollectionsScreenVM = viewModel(factory = genericViewModelFactory {
         CollectionsScreenVM(
             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
             localLinksRepo = DependencyContainer.localLinksRepo.value,
-            loadRootFoldersOnInit = false,
+            loadNonArchivedRootFoldersOnInit = false,
+            loadArchivedRootFoldersOnInit = platform is Platform.Android.Mobile,
             collectionDetailPaneInfo = CollectionsScreenVM.collectionDetailPaneInfo.value
         )
     }),
@@ -81,7 +85,6 @@ fun CollectionDetailPane(
     val pagerState = rememberPagerState(pageCount = { 2 })
     val rootArchiveFolders = collectionsScreenVM.rootArchiveFolders.collectAsStateWithLifecycle()
     val currentlyInFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
-    val platform = platform()
     val navController = LocalNavController.current
     val localUriHandler = LocalUriHandler.current
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
@@ -186,11 +189,19 @@ fun CollectionDetailPane(
                                 },
                                 isCurrentlyInDetailsView = {
                                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
-                                })
+                                },
+                                emptyDataText = Localization.Key.NoArchiveLinksFound.getLocalizedString()
+                            )
                         }
 
                         1 -> {
                             LazyColumn(Modifier.fillMaxSize()) {
+                                if (rootArchiveFolders.value.isEmpty()) {
+                                    item {
+                                        DataEmptyScreen(text = Localization.Key.NoFoldersFoundInArchive.getLocalizedString())
+                                    }
+                                    return@LazyColumn
+                                }
                                 items(rootArchiveFolders.value) { rootArchiveFolder ->
                                     FolderComponent(
                                         FolderComponentParam(

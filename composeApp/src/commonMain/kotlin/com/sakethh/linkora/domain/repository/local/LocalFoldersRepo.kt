@@ -52,9 +52,9 @@ interface LocalFoldersRepo {
         targetParentId: Long?
     ): Flow<Result<Unit>>
 
-    suspend fun sortFolders(sortOption: String): Flow<Result<List<Folder>>>
+    suspend fun getRootFolders(sortOption: String): Flow<Result<List<Folder>>>
 
-    suspend fun sortFolders(
+    suspend fun getChildFolders(
         parentFolderId: Long,
         sortOption: String
     ): Flow<Result<List<Folder>>>

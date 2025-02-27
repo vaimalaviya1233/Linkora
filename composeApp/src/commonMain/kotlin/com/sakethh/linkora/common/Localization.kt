@@ -426,6 +426,7 @@ object Localization {
         NoFoldersFound(defaultValue = "No folders found. Add folders to get started."), ExportingDataToJSON(
             defaultValue = "Exporting Data to JSON..."
         ),
+        NoFoldersFoundInArchive(defaultValue = "No folders found."),
         ExportingDataToHTML(defaultValue = "Exporting Data to HTML..."), ReadingFile(defaultValue = "Reading file..."), SuccessfullyImportedTheData(
             defaultValue = "Successfully imported the data."
         ),
@@ -434,6 +435,9 @@ object Localization {
         ),
         NoFoldersInThePanel(defaultValue = "No folders in this panel. Add folders in this panel to get started."), NoLinksFound(
             defaultValue = "No links found. Please add some links to get started!"
+        ),
+        NoArchiveLinksFound(
+            defaultValue = "No links found."
         ),
         NoRemoteLangPacks(defaultValue = "No remote language packs found. Load them from the server."), StringsLocalizedStatus(
             defaultValue = "${LinkoraPlaceHolder.First.value}/${LinkoraPlaceHolder.Second.value} strings localized"

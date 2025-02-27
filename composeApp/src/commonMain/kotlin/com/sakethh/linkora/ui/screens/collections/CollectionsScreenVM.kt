@@ -30,13 +30,10 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -46,7 +43,8 @@ import kotlinx.coroutines.runBlocking
 open class CollectionsScreenVM(
     private val localFoldersRepo: LocalFoldersRepo,
     private val localLinksRepo: LocalLinksRepo,
-    loadRootFoldersOnInit: Boolean = true,
+    loadNonArchivedRootFoldersOnInit: Boolean = true,
+    loadArchivedRootFoldersOnInit: Boolean = true,
     collectionDetailPaneInfo: CollectionDetailPaneInfo? = null
 ) : ViewModel() {
 
@@ -163,17 +161,6 @@ open class CollectionsScreenVM(
     private val _rootArchiveFolders = MutableStateFlow(emptyList<Folder>())
     val rootArchiveFolders = _rootArchiveFolders.asStateFlow()
 
-    private fun Flow<Result<List<Folder>>>.collectAndEmitRootFolders() {
-        viewModelScope.launch {
-            collectLatest { result ->
-                result.onSuccess { folders ->
-                    _rootArchiveFolders.emit(folders.data.filter { it.isArchived })
-                    _rootRegularFolders.emit(folders.data.filterNot { it.isArchived })
-                }.pushSnackbarOnFailure()
-            }
-        }
-    }
-
     private val triggerForFoldersSorting = mutableStateOf(false)
     private val triggerForLinksSorting = mutableStateOf(false)
 
@@ -186,18 +173,39 @@ open class CollectionsScreenVM(
     }
 
     init {
-        if (loadRootFoldersOnInit) {
-            combine(snapshotFlow {
-                AppPreferences.selectedSortingTypeType.value
-            }, snapshotFlow {
-                triggerForFoldersSorting.value
-            }) { sortingType, _ ->
-                localFoldersRepo.sortFolders(sortingType).collectAndEmitRootFolders()
-            }.launchIn(viewModelScope)
+        if (loadNonArchivedRootFoldersOnInit && loadArchivedRootFoldersOnInit) {
+            loadFolders { folders ->
+                _rootArchiveFolders.emit(folders.filter { it.isArchived })
+                _rootRegularFolders.emit(folders.filterNot { it.isArchived })
+            }
+        }
+        if (loadArchivedRootFoldersOnInit && loadNonArchivedRootFoldersOnInit.not()) {
+            loadFolders { folders ->
+                _rootArchiveFolders.emit(folders.filter { it.isArchived })
+            }
+        }
+        if (loadArchivedRootFoldersOnInit.not() && loadNonArchivedRootFoldersOnInit) {
+            loadFolders { folders ->
+                _rootRegularFolders.emit(folders.filterNot { it.isArchived })
+            }
         }
         if (collectionDetailPaneInfo.isNotNull()) {
             updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo!!)
         }
+    }
+
+    private fun loadFolders(init: suspend (folders: List<Folder>) -> Unit) {
+        combine(snapshotFlow {
+            AppPreferences.selectedSortingTypeType.value
+        }, snapshotFlow {
+            triggerForFoldersSorting.value
+        }) { sortingType, _ ->
+            localFoldersRepo.getRootFolders(sortingType).collectLatest { result ->
+                result.onSuccess { folders ->
+                    init(folders.data)
+                }.pushSnackbarOnFailure()
+            }
+        }.launchIn(viewModelScope)
     }
 
     private val _childFolders = MutableStateFlow(emptyList<Folder>())
@@ -229,7 +237,7 @@ open class CollectionsScreenVM(
             }) { sortingType, _ ->
                 sortingType
             }.collectLatest { sortingType ->
-                localFoldersRepo.sortFolders(parentFolderId, sortingType)
+                localFoldersRepo.getChildFolders(parentFolderId, sortingType)
                     .collectAndEmitChildFolders()
             }
         }

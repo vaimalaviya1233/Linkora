@@ -113,7 +113,8 @@ class IntentActivity : ComponentActivity() {
                         collectionsScreenVM = CollectionsScreenVM(
                             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
                             localLinksRepo = DependencyContainer.localLinksRepo.value,
-                            loadRootFoldersOnInit = true,
+                            loadNonArchivedRootFoldersOnInit = true,
+                            loadArchivedRootFoldersOnInit = false,
                             collectionDetailPaneInfo = null
                         ),
                         url = this@IntentActivity.intent?.getStringExtra(

@@ -33,7 +33,8 @@ class HomeScreenVM(
 ) : CollectionsScreenVM(
     localFoldersRepo = localFoldersRepo,
     localLinksRepo = localLinksRepo,
-    loadRootFoldersOnInit = false
+    loadNonArchivedRootFoldersOnInit = false,
+    loadArchivedRootFoldersOnInit = false
 ) {
     val currentPhaseOfTheDay = mutableStateOf("")
 

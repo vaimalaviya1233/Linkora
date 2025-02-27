@@ -2,6 +2,7 @@ package com.sakethh.linkora.domain
 
 import androidx.compose.runtime.Composable
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
@@ -35,6 +36,15 @@ fun <T> Flow<T>.mapToResultFlow(): Flow<Result<T>> {
     return this.map {
         Result.Success(it)
     }.catchAsThrowableAndEmitFailure()
+}
+
+fun Long.asLinkType() = when (this) {
+    Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
+    Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
+    Constants.ARCHIVE_ID -> LinkType.ARCHIVE_LINK
+    else -> {
+        LinkType.FOLDER_LINK
+    }
 }
 
 fun Link.asHistoryLinkWithoutId(): Link {

@@ -131,7 +131,7 @@ interface FoldersDao {
         CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
     """
     )
-    fun sortFolders(
+    fun getChildFolders(
         parentFolderId: Long,
         sortOption: String
     ): Flow<List<Folder>>
@@ -148,7 +148,7 @@ interface FoldersDao {
         CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
     """
     )
-    fun sortFolders(sortOption: String): Flow<List<Folder>>
+    fun getRootFolders(sortOption: String): Flow<List<Folder>>
 
     @Query(
         "SELECT * FROM folders \n" +

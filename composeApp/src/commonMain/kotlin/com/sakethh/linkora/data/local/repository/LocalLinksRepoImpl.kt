@@ -690,4 +690,23 @@ class LocalLinksRepoImpl(
             linksDao.moveLinks(folderId, linkType, linkIds)
         }
     }
+
+    override suspend fun copyLinks(
+        folderId: Long?,
+        linkType: LinkType,
+        links: List<Link>
+    ): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            links.map {
+                it.copy(
+                    idOfLinkedFolder = folderId,
+                    linkType = linkType,
+                    localId = 0,
+                    remoteId = null
+                )
+            }.let {
+                linksDao.addMultipleLinks(it)
+            }
+        }
+    }
 }

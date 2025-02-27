@@ -80,4 +80,8 @@ interface LocalLinksRepo {
     suspend fun moveLinks(
         folderId: Long?, linkType: LinkType, linkIds: List<Long>
     ): Flow<Result<Unit>>
+
+    suspend fun copyLinks(
+        folderId: Long?, linkType: LinkType, links: List<Link>
+    ): Flow<Result<Unit>>
 }

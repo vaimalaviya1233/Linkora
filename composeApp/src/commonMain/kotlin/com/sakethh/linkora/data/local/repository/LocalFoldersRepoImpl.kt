@@ -220,20 +220,20 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override suspend fun sortFolders(sortOption: String): Flow<Result<List<Folder>>> {
-        return foldersDao.sortFolders(sortOption).mapToResultFlow()
+    override suspend fun getRootFolders(sortOption: String): Flow<Result<List<Folder>>> {
+        return foldersDao.getRootFolders(sortOption).mapToResultFlow()
     }
 
-    override suspend fun sortFolders(
+    override suspend fun getChildFolders(
         parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Folder>>> {
-        return foldersDao.sortFolders(parentFolderId, sortOption).mapToResultFlow()
+        return foldersDao.getChildFolders(parentFolderId, sortOption).mapToResultFlow()
     }
 
     override fun sortFoldersAsNonResultFlow(
         parentFolderId: Long, sortOption: String
     ): Flow<List<Folder>> {
-        return foldersDao.sortFolders(parentFolderId, sortOption)
+        return foldersDao.getChildFolders(parentFolderId, sortOption)
     }
 
     override suspend fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<Result<List<Folder>>> {

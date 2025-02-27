@@ -7,12 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.DataSyncingNotificationService
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
-import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.asLinkType
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
@@ -146,14 +145,9 @@ class AppVM(
         viewModelScope.launch {
             awaitAll(async {
                 linksRepo.moveLinks(
-                    folderId = folderId, linkType = when (folderId) {
-                        Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
-                        Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
-                        Constants.ARCHIVE_ID -> LinkType.ARCHIVE_LINK
-                        else -> {
-                            LinkType.FOLDER_LINK
-                        }
-                    }, linkIds = CollectionsScreenVM.selectedLinksViaLongClick.toList().map {
+                    folderId = folderId,
+                    linkType = folderId.asLinkType(),
+                    linkIds = CollectionsScreenVM.selectedLinksViaLongClick.toList().map {
                         it.localId
                     }).collectLatest {
                     it.onLoading {
@@ -176,10 +170,25 @@ class AppVM(
     }
 
     fun copySelectedItems(folderId: Long, onStart: () -> Unit, onCompletion: () -> Unit) {
-
+        onStart()
+        viewModelScope.launch {
+            awaitAll(
+                async {
+                    linksRepo.copyLinks(
+                        folderId = folderId,
+                        linkType = folderId.asLinkType(),
+                        links = selectedLinksViaLongClick.toList()
+                    ).collect()
+                },
+            )
+        }.invokeOnCompletion {
+            onCompletion()
+            clearAllSelections()
+        }
     }
 
-    fun archiveSelectedItems() {
+    fun archiveSelectedItems(onStart: () -> Unit, onCompletion: () -> Unit) {
+        onStart()
         viewModelScope.launch {
             awaitAll(async {
                 linksRepo.archiveMultipleLinks(
@@ -189,11 +198,13 @@ class AppVM(
                     selectedFoldersViaLongClick.toList().map { it.localId }).collect()
             })
         }.invokeOnCompletion {
+            onCompletion()
             clearAllSelections()
         }
     }
 
-    fun deleteSelectedItems(onCompletion: () -> Unit) {
+    fun deleteSelectedItems(onStart: () -> Unit, onCompletion: () -> Unit) {
+        onStart()
         viewModelScope.launch {
             awaitAll(async {
                 linksRepo.deleteMultipleLinks(
