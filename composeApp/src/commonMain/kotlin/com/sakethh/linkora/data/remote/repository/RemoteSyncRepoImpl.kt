@@ -20,6 +20,7 @@ import com.sakethh.linkora.domain.dto.server.TombstoneDTO
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
+import com.sakethh.linkora.domain.dto.server.folder.MoveFoldersDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
@@ -442,8 +443,26 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
                         val markSelectedFoldersAsRootDTO =
                             Json.decodeFromString<MarkSelectedFoldersAsRootDTO>(queueItem.payload)
-                        remoteFoldersRepo.markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO)
+                        remoteFoldersRepo.markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO.run {
+                            copy(folderIds = this.folderIds.map {
+                                localFoldersRepo.getRemoteIdOfAFolder(it) ?: -45454
+                            })
+                        })
                             .removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
+
+                    RemoteRoute.Folder.MOVE_FOLDERS.name -> {
+                        val moveFoldersDTO =
+                            Json.decodeFromString<MoveFoldersDTO>(queueItem.payload)
+                        remoteFoldersRepo.moveFolders(moveFoldersDTO.run {
+                            copy(
+                                folderIds = this.folderIds.map {
+                                    localFoldersRepo.getRemoteIdOfAFolder(it) ?: -45454
+                                },
+                                newParentFolderId = localFoldersRepo.getRemoteIdOfAFolder(this.newParentFolderId)
+                                    ?: -45454
+                            )
+                        })
                     }
                 }
             }
@@ -623,6 +642,23 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+
+            RemoteRoute.Folder.MOVE_FOLDERS.name -> {
+                val moveFoldersDTO =
+                    Json.decodeFromJsonElement<MoveFoldersDTO>(deserializedWebSocketEvent.payload)
+
+                if (moveFoldersDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(moveFoldersDTO.eventTimestamp)
+                    return
+                }
+
+                localFoldersRepo.moveFolders(
+                    parentFolderId = localFoldersRepo.getLocalIdOfAFolder(moveFoldersDTO.newParentFolderId)
+                        ?: -45454, folderIDs = moveFoldersDTO.folderIds.map {
+                        localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                    }, viaSocket = true
+                ).collectAndUpdateTimestamp(moveFoldersDTO.eventTimestamp)
+            }
 
             RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
                 val markSelectedFoldersAsRootDTO =

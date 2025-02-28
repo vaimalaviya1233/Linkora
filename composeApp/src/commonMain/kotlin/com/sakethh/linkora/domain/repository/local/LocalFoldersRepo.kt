@@ -128,6 +128,10 @@ interface LocalFoldersRepo {
     suspend fun getRemoteIdOfAFolder(localId: Long): Long?
     suspend fun getLocalIdOfAFolder(remoteId: Long): Long?
     suspend fun getUnSyncedFolders(): List<Folder>
-    suspend fun moveFolders(parentFolderId: Long, folderIDs: List<Long>): Flow<Result<Unit>>
+    suspend fun moveFolders(
+        parentFolderId: Long,
+        folderIDs: List<Long>,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
     suspend fun copyFolders(parentFolderId: Long, folders: List<Folder>): Flow<Result<Unit>>
 }

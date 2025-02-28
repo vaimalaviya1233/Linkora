@@ -11,6 +11,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
+import com.sakethh.linkora.domain.dto.server.folder.MoveFoldersDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.linkoraPlaceHolders
@@ -548,10 +549,38 @@ class LocalFoldersRepoImpl(
     }
 
     override suspend fun moveFolders(
-        parentFolderId: Long,
-        folderIDs: List<Long>
+        parentFolderId: Long, folderIDs: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val eventTimestamp = Instant.now().epochSecond
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = viaSocket.not(),
+            remoteOperation = {
+                val remoteParentId = getRemoteIdOfAFolder(parentFolderId)
+                if (remoteParentId != null) {
+                    remoteFoldersRepo.moveFolders(MoveFoldersDTO(folderIds = folderIDs.map {
+                        getRemoteIdOfAFolder(it) ?: -45454
+                    }, newParentFolderId = remoteParentId, eventTimestamp = eventTimestamp))
+                } else {
+                    throw IllegalArgumentException()
+                }
+            },
+            remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Folder.MOVE_FOLDERS.name,
+                        payload = Json.encodeToString(
+                            MoveFoldersDTO(
+                                folderIds = folderIDs,
+                                newParentFolderId = parentFolderId,
+                                eventTimestamp = eventTimestamp
+                            )
+                        )
+                    )
+                )
+            }) {
             foldersDao.moveFolders(parentFolderId, folderIDs)
         }
     }
@@ -560,15 +589,16 @@ class LocalFoldersRepoImpl(
         folderIDs: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val eventTimestamp = Instant.now().epochSecond
-        val markSelectedFoldersAsRootDTO = MarkSelectedFoldersAsRootDTO(
-            folderIds = folderIDs.map {
-                getRemoteIdOfAFolder(it) ?: -45454
-            }, eventTimestamp = eventTimestamp
-        )
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                remoteFoldersRepo.markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO)
+                remoteFoldersRepo.markSelectedFoldersAsRoot(
+                    MarkSelectedFoldersAsRootDTO(
+                        folderIds = folderIDs.map {
+                            getRemoteIdOfAFolder(it) ?: -45454
+                        }, eventTimestamp = eventTimestamp
+                    )
+                )
             },
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
@@ -577,7 +607,11 @@ class LocalFoldersRepoImpl(
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name,
-                        payload = Json.encodeToString(markSelectedFoldersAsRootDTO)
+                        payload = Json.encodeToString(
+                            MarkSelectedFoldersAsRootDTO(
+                                folderIds = folderIDs, eventTimestamp = eventTimestamp
+                            )
+                        )
                     )
                 )
             }) {

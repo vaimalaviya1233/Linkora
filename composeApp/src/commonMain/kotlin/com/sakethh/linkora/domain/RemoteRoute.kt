@@ -12,7 +12,8 @@ sealed interface RemoteRoute {
         UPDATE_FOLDER_NAME,
         UPDATE_FOLDER_NOTE,
         DELETE_FOLDER_NOTE,
-        MARK_FOLDERS_AS_ROOT
+        MARK_FOLDERS_AS_ROOT,
+        MOVE_FOLDERS
     }
 
     enum class Panel : RemoteRoute {
