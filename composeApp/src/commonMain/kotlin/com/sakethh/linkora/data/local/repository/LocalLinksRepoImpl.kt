@@ -20,6 +20,7 @@ import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.asLinkDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
+import com.sakethh.linkora.domain.dto.server.link.MoveLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
@@ -684,9 +685,43 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun moveLinks(
-        folderId: Long?, linkType: LinkType, linkIds: List<Long>
+        folderId: Long?, linkType: LinkType, linkIds: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+        val eventTimestamp = Instant.now().epochSecond
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = viaSocket.not(),
+            remoteOperation = {
+                remoteLinksRepo.moveLinks(
+                    MoveLinksDTO(
+                        linkIds = linkIds.map {
+                            getRemoteIdOfLink(it) ?: throw IllegalArgumentException()
+                        },
+                        parentFolderId = if (folderId == null) null else foldersDao.getRemoteIdOfAFolder(
+                            folderId
+                        ),
+                        linkType = linkType,
+                        eventTimestamp = eventTimestamp
+                    )
+                )
+            },
+            remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Link.MOVE_LINKS.name,
+                        payload = Json.encodeToString(
+                            MoveLinksDTO(
+                                linkIds = linkIds,
+                                linkType = linkType,
+                                parentFolderId = folderId,
+                                eventTimestamp = eventTimestamp
+                            )
+                        )
+                    )
+                )
+            }) {
             linksDao.moveLinks(folderId, linkType, linkIds)
         }
     }

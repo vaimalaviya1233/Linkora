@@ -78,7 +78,7 @@ interface LocalLinksRepo {
     suspend fun deleteDuplicateLinks(viaSocket: Boolean = false): Flow<Result<Unit>>
     suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>>
     suspend fun moveLinks(
-        folderId: Long?, linkType: LinkType, linkIds: List<Long>
+        folderId: Long?, linkType: LinkType, linkIds: List<Long>, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun copyLinks(

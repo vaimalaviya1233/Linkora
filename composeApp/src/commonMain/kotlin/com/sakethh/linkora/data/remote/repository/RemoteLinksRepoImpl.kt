@@ -9,6 +9,7 @@ import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
+import com.sakethh.linkora.domain.dto.server.link.MoveLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
@@ -115,12 +116,22 @@ class RemoteLinksRepoImpl(
     }
 
     override suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Flow<Result<TimeStampBasedResponse>> {
-        return  postFlow(
+        return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
             body = deleteDuplicateLinksDTO
+        )
+    }
+
+    override suspend fun moveLinks(moveLinksDTO: MoveLinksDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.Link.MOVE_LINKS.name,
+            body = moveLinksDTO,
         )
     }
 }
