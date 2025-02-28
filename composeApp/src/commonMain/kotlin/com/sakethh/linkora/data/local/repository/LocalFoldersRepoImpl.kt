@@ -10,6 +10,7 @@ import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.linkoraPlaceHolders
@@ -555,8 +556,31 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override suspend fun markFoldersAsRoot(folderIDs: List<Long>): Flow<Result<Unit>> {
-        return wrappedResultFlow {
+    override suspend fun markFoldersAsRoot(
+        folderIDs: List<Long>, viaSocket: Boolean
+    ): Flow<Result<Unit>> {
+        val eventTimestamp = Instant.now().epochSecond
+        val markSelectedFoldersAsRootDTO = MarkSelectedFoldersAsRootDTO(
+            folderIds = folderIDs.map {
+                getRemoteIdOfAFolder(it) ?: -45454
+            }, eventTimestamp = eventTimestamp
+        )
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = viaSocket.not(),
+            remoteOperation = {
+                remoteFoldersRepo.markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO)
+            },
+            remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name,
+                        payload = Json.encodeToString(markSelectedFoldersAsRootDTO)
+                    )
+                )
+            }) {
             foldersDao.markFoldersAsRoot(folderIDs)
         }
     }

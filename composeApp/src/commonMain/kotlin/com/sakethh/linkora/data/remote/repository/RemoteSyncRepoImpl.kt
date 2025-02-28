@@ -19,6 +19,7 @@ import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.TombstoneDTO
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
+import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
@@ -437,6 +438,13 @@ class RemoteSyncRepoImpl(
                             send(Result.Loading(message = "Deleting duplicate links from remote repository"))
                         }.removeQueueItemAndSyncTimestamp(queueItem.id)
                     }
+
+                    RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
+                        val markSelectedFoldersAsRootDTO =
+                            Json.decodeFromString<MarkSelectedFoldersAsRootDTO>(queueItem.payload)
+                        remoteFoldersRepo.markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO)
+                            .removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
                 }
             }
             send(Result.Loading(message = "[SYNC] Completed pushing pending sync queue to server"))
@@ -615,6 +623,25 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+
+            RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
+                val markSelectedFoldersAsRootDTO =
+                    Json.decodeFromJsonElement<MarkSelectedFoldersAsRootDTO>(
+                        deserializedWebSocketEvent.payload
+                    )
+                if (markSelectedFoldersAsRootDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        markSelectedFoldersAsRootDTO.eventTimestamp
+                    )
+                    return
+                }
+                localFoldersRepo.markFoldersAsRoot(
+                    folderIDs = markSelectedFoldersAsRootDTO.folderIds.map {
+                        localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                    }, viaSocket = true
+                )
+                    .collectAndUpdateTimestamp(markSelectedFoldersAsRootDTO.eventTimestamp)
+            }
 
             RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name -> {
                 val deleteDuplicateLinksDTO =

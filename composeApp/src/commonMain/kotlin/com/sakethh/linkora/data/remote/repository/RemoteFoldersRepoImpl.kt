@@ -8,6 +8,7 @@ import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.ChangeParentFolderDTO
+import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
@@ -97,6 +98,16 @@ class RemoteFoldersRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
             body = idBasedDTO
+        )
+    }
+
+    override suspend fun markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO: MarkSelectedFoldersAsRootDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name,
+            body = markSelectedFoldersAsRootDTO
         )
     }
 }
