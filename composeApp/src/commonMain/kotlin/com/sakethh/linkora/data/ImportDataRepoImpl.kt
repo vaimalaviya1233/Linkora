@@ -2,7 +2,6 @@ package com.sakethh.linkora.data
 
 import com.sakethh.linkora.common.utils.LinkoraExports
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.common.utils.excludeLocalId
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.domain.LinkType
@@ -10,6 +9,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asJSONExportSchema
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.JSONExportSchema
+import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.model.legacy.LegacyExportSchema
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.PanelFolder
@@ -61,6 +61,16 @@ class ImportDataRepoImpl(
                 Json.decodeFromString<LegacyExportSchema>(rawImportString).asJSONExportSchema()
             } else rawImportString.run {
                 json.decodeFromString<JSONExportSchema>(this)
+            }.run {
+                JSONExportSchema(schemaVersion = schemaVersion, links = links.map {
+                    it.copy(remoteId = null, lastModified = 0)
+                }, folders = folders.map {
+                    it.copy(remoteId = null, lastModified = 0)
+                }, panels = PanelForJSONExportSchema(panels = panels.panels.map {
+                    it.copy(remoteId = null, lastModified = 0)
+                }, panelFolders = panels.panelFolders.map {
+                    it.copy(remoteId = null, lastModified = 0)
+                }))
             }
 
             send(
@@ -79,7 +89,7 @@ class ImportDataRepoImpl(
             val nonFolderLinkedLinks = deserializedData.links.filter {
                 it.linkType != LinkType.FOLDER_LINK
             }.map {
-                it.excludeLocalId()
+                it.copy(localId = 0)
             }
 
             send(Result.Loading(message = "Adding non-folder linked links to local repository."))
@@ -97,7 +107,7 @@ class ImportDataRepoImpl(
                 val updatedLinks = deserializedData.links.filter {
                     it.idOfLinkedFolder == currentFolder.localId && it.linkType == LinkType.FOLDER_LINK
                 }.map {
-                    it.excludeLocalId().copy(idOfLinkedFolder = latestFolderId)
+                    it.copy(localId = 0, idOfLinkedFolder = latestFolderId)
                 }
 
                 send(Result.Loading(message = "Inserting folder: ${currentFolder.name} with new ID=$latestFolderId"))

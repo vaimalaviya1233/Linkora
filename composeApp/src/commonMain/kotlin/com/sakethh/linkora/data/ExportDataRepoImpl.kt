@@ -65,11 +65,11 @@ class ExportDataRepoImpl(
 
                 val exportObject = JSONExportSchema(
                     schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
-                    links = links.map { it.copy(remoteId = null) },
-                    folders = folders.map { it.copy(remoteId = null) },
+                    links = links.map { it.copy(remoteId = null, lastModified = 0) },
+                    folders = folders.map { it.copy(remoteId = null, lastModified = 0) },
                     panels = PanelForJSONExportSchema(
-                        panels = panels.map { it.copy(remoteId = null) },
-                        panelFolders = panelFolders.map { it.copy(remoteId = null) }
+                        panels = panels.map { it.copy(remoteId = null, lastModified = 0) },
+                        panelFolders = panelFolders.map { it.copy(remoteId = null, lastModified = 0) }
                     ),
                 )
                 val requiredRawExportString = Json.encodeToString(exportObject)
