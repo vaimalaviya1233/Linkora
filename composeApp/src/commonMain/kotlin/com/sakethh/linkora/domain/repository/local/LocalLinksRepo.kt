@@ -82,6 +82,6 @@ interface LocalLinksRepo {
     ): Flow<Result<Unit>>
 
     suspend fun copyLinks(
-        folderId: Long?, linkType: LinkType, links: List<Link>
+        folderId: Long?, linkType: LinkType, links: List<Link>, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 }

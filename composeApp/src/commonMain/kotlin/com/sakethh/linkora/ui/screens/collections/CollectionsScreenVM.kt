@@ -294,6 +294,8 @@ open class CollectionsScreenVM(
                     onCompletion()
                 }.pushSnackbarOnFailure()
             }
+        }.invokeOnCompletion {
+            resetCollectionDetailPaneInfo()
         }
     }
 

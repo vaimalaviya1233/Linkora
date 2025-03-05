@@ -11,6 +11,7 @@ import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
+import com.sakethh.linkora.domain.CopyLinksDTO
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
@@ -687,18 +688,24 @@ class LocalLinksRepoImpl(
     override suspend fun moveLinks(
         folderId: Long?, linkType: LinkType, linkIds: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
+        return wrappedResultFlow {
+            linksDao.moveLinks(folderId, linkType, linkIds)
+        }
+    }
+
+    override suspend fun copyLinks(
+        folderId: Long?, linkType: LinkType, links: List<Link>, viaSocket: Boolean
+    ): Flow<Result<Unit>> {
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                remoteLinksRepo.moveLinks(
-                    MoveLinksDTO(
-                        linkIds = linkIds.map {
-                            getRemoteIdOfLink(it) ?: throw IllegalArgumentException()
+                remoteLinksRepo.copyLinks(
+                    CopyLinksDTO(
+                        linkIds = links.map {
+                            it.remoteId ?: throw IllegalArgumentException()
                         },
-                        parentFolderId = if (folderId == null) null else foldersDao.getRemoteIdOfAFolder(
-                            folderId
-                        ),
+                        parentFolderId = if (folderId == null) null else getRemoteIdOfLink(folderId),
                         linkType = linkType,
                         eventTimestamp = eventTimestamp
                     )
@@ -710,28 +717,17 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.MOVE_LINKS.name,
-                        payload = Json.encodeToString(
-                            MoveLinksDTO(
-                                linkIds = linkIds,
-                                linkType = linkType,
+                        operation = RemoteRoute.Link.COPY_LINKS.name, payload = Json.encodeToString(
+                            CopyLinksDTO(
+                                linkIds = links.map { it.localId },
                                 parentFolderId = folderId,
+                                linkType = linkType,
                                 eventTimestamp = eventTimestamp
                             )
                         )
                     )
                 )
             }) {
-            linksDao.moveLinks(folderId, linkType, linkIds)
-        }
-    }
-
-    override suspend fun copyLinks(
-        folderId: Long?,
-        linkType: LinkType,
-        links: List<Link>
-    ): Flow<Result<Unit>> {
-        return wrappedResultFlow {
             links.map {
                 it.copy(
                     idOfLinkedFolder = folderId,

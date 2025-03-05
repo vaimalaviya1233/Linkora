@@ -8,6 +8,7 @@ import com.sakethh.DataSyncingNotificationService
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.RemoteRoute
@@ -18,6 +19,7 @@ import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.NetworkRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.domain.TransferActionType
@@ -43,7 +45,8 @@ class AppVM(
     private val preferencesRepository: PreferencesRepository,
     private val networkRepo: NetworkRepo,
     private val linksRepo: LocalLinksRepo,
-    private val foldersRepo: LocalFoldersRepo
+    private val foldersRepo: LocalFoldersRepo,
+    private val localMultiActionRepo: LocalMultiActionRepo
 ) : ViewModel() {
 
     private val dataSyncingNotificationService = DataSyncingNotificationService()
@@ -194,13 +197,14 @@ class AppVM(
     fun archiveSelectedItems(onStart: () -> Unit, onCompletion: () -> Unit) {
         onStart()
         viewModelScope.launch {
-            awaitAll(async {
-                linksRepo.archiveMultipleLinks(
-                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
-            }, async {
-                foldersRepo.markMultipleFoldersAsArchive(
-                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
-            })
+            localMultiActionRepo.archiveMultipleItems(
+                linkIds = selectedLinksViaLongClick.toList().map { it.localId },
+                folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar("Archived successfully." + it.getRemoteOnlyFailureMsg()))
+                }
+                it.pushSnackbarOnFailure()
+            }
         }.invokeOnCompletion {
             onCompletion()
             clearAllSelections()

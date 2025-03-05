@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.postFlow
+import com.sakethh.linkora.domain.CopyLinksDTO
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -132,6 +133,16 @@ class RemoteLinksRepoImpl(
             authToken = authToken,
             endPoint = RemoteRoute.Link.MOVE_LINKS.name,
             body = moveLinksDTO,
+        )
+    }
+
+    override suspend fun copyLinks(copyLinksDTO: CopyLinksDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.Link.COPY_LINKS.name,
+            body = copyLinksDTO,
         )
     }
 }

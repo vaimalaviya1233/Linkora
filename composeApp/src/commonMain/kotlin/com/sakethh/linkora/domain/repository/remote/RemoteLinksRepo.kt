@@ -1,5 +1,6 @@
 package com.sakethh.linkora.domain.repository.remote
 
+import com.sakethh.linkora.domain.CopyLinksDTO
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
@@ -30,4 +31,5 @@ interface RemoteLinksRepo {
     suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun moveLinks(moveLinksDTO: MoveLinksDTO): Flow<Result<TimeStampBasedResponse>>
+    suspend fun copyLinks(copyLinksDTO: CopyLinksDTO): Flow<Result<TimeStampBasedResponse>>
 }

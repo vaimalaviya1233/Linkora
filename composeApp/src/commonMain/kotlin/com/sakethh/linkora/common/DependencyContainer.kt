@@ -8,12 +8,14 @@ import com.sakethh.linkora.data.ImportDataRepoImpl
 import com.sakethh.linkora.data.LocalizationRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
+import com.sakethh.linkora.data.local.repository.LocalMultiActionRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalPanelsRepoImpl
 import com.sakethh.linkora.data.local.repository.PendingSyncQueueRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.remote.repository.GitHubReleasesRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteLinksRepoImpl
+import com.sakethh.linkora.data.remote.repository.RemoteMultiActionRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemotePanelsRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteSyncRepoImpl
 import com.sakethh.linkoraDataStore
@@ -130,6 +132,24 @@ object DependencyContainer {
             localLinksRepo.value, localFoldersRepo.value, localPanelsRepo.value, canPushToServer = {
                 AppPreferences.canPushToServer()
             }, remoteSyncRepo = remoteSyncRepo.value
+        )
+    }
+
+    private val remoteMultiActionRepo = lazy {
+        RemoteMultiActionRepoImpl(httpClient = Network.client, baseUrl = {
+            AppPreferences.serverBaseUrl.value
+        }, authToken = {
+            AppPreferences.serverSecurityToken.value
+        })
+    }
+
+    val localMultiActionRepo = lazy {
+        LocalMultiActionRepoImpl(
+            linksDao = localDatabase?.linksDao!!,
+            foldersDao = localDatabase?.foldersDao!!,
+            preferencesRepository = preferencesRepo.value,
+            remoteMultiActionRepo = remoteMultiActionRepo.value,
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value
         )
     }
 }

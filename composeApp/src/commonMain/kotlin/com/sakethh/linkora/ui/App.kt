@@ -149,7 +149,8 @@ fun App(
             preferencesRepository = DependencyContainer.preferencesRepo.value,
             networkRepo = DependencyContainer.networkRepo.value,
             linksRepo = DependencyContainer.localLinksRepo.value,
-            foldersRepo = DependencyContainer.localFoldersRepo.value
+            foldersRepo = DependencyContainer.localFoldersRepo.value,
+            localMultiActionRepo = DependencyContainer.localMultiActionRepo.value
         )
     })
     val snackbarHostState = remember {
@@ -439,7 +440,7 @@ fun App(
                                 }
                             }
                             val showPasteButton =
-                                appVM.transferActionType.value != TransferActionType.NONE && selectedAndInRoot.value.not() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
+                                appVM.transferActionType.value != TransferActionType.NONE && (selectedAndInRoot.value.not() || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder != null) && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
                             if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds().dropWhile {
                                     it == Constants.ARCHIVE_ID
                                 }).not()) {
