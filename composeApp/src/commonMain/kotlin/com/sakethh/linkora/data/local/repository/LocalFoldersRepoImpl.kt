@@ -510,7 +510,9 @@ class LocalFoldersRepoImpl(
         viaSocket: Boolean
     ): Flow<Result<Unit>> {
         return wrappedResultFlow {
-            foldersDao.deleteMultipleFolders(folderIDs)
+            folderIDs.forEach {
+                deleteAFolder(it, viaSocket = true).collect()
+            }
         }
     }
 

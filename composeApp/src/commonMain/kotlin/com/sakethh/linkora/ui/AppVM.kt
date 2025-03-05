@@ -214,13 +214,14 @@ class AppVM(
     fun deleteSelectedItems(onStart: () -> Unit, onCompletion: () -> Unit) {
         onStart()
         viewModelScope.launch {
-            awaitAll(async {
-                linksRepo.deleteMultipleLinks(
-                    selectedLinksViaLongClick.toList().map { it.localId }).collect()
-            }, async {
-                foldersRepo.deleteMultipleFolders(
-                    selectedFoldersViaLongClick.toList().map { it.localId }).collect()
-            })
+            localMultiActionRepo.deleteMultipleItems(
+                linkIds = selectedLinksViaLongClick.toList().map { it.localId },
+                folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar("Deleted successfully." + it.getRemoteOnlyFailureMsg()))
+                }
+                it.pushSnackbarOnFailure()
+            }
         }.invokeOnCompletion {
             clearAllSelections()
             onCompletion()

@@ -149,7 +149,8 @@ object DependencyContainer {
             foldersDao = localDatabase?.foldersDao!!,
             preferencesRepository = preferencesRepo.value,
             remoteMultiActionRepo = remoteMultiActionRepo.value,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value
+            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
+            localFoldersRepo = localFoldersRepo.value
         )
     }
 }

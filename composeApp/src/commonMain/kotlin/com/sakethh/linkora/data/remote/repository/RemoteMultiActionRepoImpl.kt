@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.postFlow
+import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
@@ -21,6 +22,16 @@ class RemoteMultiActionRepoImpl(
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name,
             body = archiveMultipleItemsDTO
+        )
+    }
+
+    override suspend fun deleteMultipleItems(deleteMultipleItemsDTO: DeleteMultipleItemsDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
+            body = deleteMultipleItemsDTO
         )
     }
 }
