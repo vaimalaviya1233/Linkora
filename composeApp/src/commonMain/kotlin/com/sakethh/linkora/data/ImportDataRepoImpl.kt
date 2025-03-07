@@ -20,6 +20,7 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -99,34 +100,67 @@ class ImportDataRepoImpl(
             send(Result.Loading(message = "Retrieved latest folder ID: $latestFolderId"))
             val updatedPanelFolders = mutableListOf<PanelFolder>()
 
-            deserializedData.folders.forEach { currentFolder ->
-                ++latestFolderId
-                send(Result.Loading(message = "Assigned new ID=$latestFolderId to folder: ${currentFolder.name}"))
+            deserializedData.folders.filter {
+                it.parentFolderId == null
+            }.forEach { currentFolder ->
+                val newParentFolderId = ++latestFolderId
 
-                send(Result.Loading(message = "Updating links for folder: ${currentFolder.name} with new ID=$latestFolderId"))
-                val updatedLinks = deserializedData.links.filter {
-                    it.idOfLinkedFolder == currentFolder.localId && it.linkType == LinkType.FOLDER_LINK
-                }.map {
-                    it.copy(localId = 0, idOfLinkedFolder = latestFolderId)
-                }
-
-                send(Result.Loading(message = "Inserting folder: ${currentFolder.name} with new ID=$latestFolderId"))
                 localFoldersRepo.insertANewFolder(
-                    currentFolder.copy(localId = latestFolderId),
-                    ignoreFolderAlreadyExistsException = true
+                    currentFolder.copy(localId = newParentFolderId),
+                    ignoreFolderAlreadyExistsException = true,
+                    viaSocket = true
                 ).collectLatest { it ->
                     it.onFailure {
                         throw Throwable(it)
                     }
                 }
 
-                send(Result.Loading(message = "Adding folder links for: ${currentFolder.name}"))
+                suspend fun insertChildFolders(childFolders: List<Folder>, parentFolderId: Long) {
+                    childFolders.forEach { childFolder ->
+                        val newChildFolderId = ++latestFolderId
+                        localFoldersRepo.insertANewFolder(
+                            childFolder.copy(
+                                localId = newChildFolderId, parentFolderId = parentFolderId
+                            ), ignoreFolderAlreadyExistsException = true, viaSocket = true
+                        ).collectLatest { it ->
+                            it.onFailure {
+                                throw Throwable(it)
+                            }
+                        }
+
+                        val updatedLinks = deserializedData.links.filter {
+                            it.idOfLinkedFolder == childFolder.localId && it.linkType == LinkType.FOLDER_LINK
+                        }.map {
+                            it.copy(localId = 0, idOfLinkedFolder = newChildFolderId)
+                        }
+
+                        localLinksRepo.addMultipleLinks(updatedLinks)
+
+                        updatedPanelFolders.addAll(deserializedData.panels.panelFolders.filter {
+                            it.folderId == childFolder.localId
+                        }.map { it.copy(folderId = newChildFolderId) })
+
+                        insertChildFolders(deserializedData.folders.filter {
+                            it.parentFolderId == childFolder.localId
+                        }, newChildFolderId)
+                    }
+                }
+
+                insertChildFolders(deserializedData.folders.filter {
+                    it.parentFolderId == currentFolder.localId
+                }, newParentFolderId)
+
+                val updatedLinks = deserializedData.links.filter {
+                    it.idOfLinkedFolder == currentFolder.localId && it.linkType == LinkType.FOLDER_LINK
+                }.map {
+                    it.copy(localId = 0, idOfLinkedFolder = newParentFolderId)
+                }
+
                 localLinksRepo.addMultipleLinks(updatedLinks)
 
-                send(Result.Loading(message = "Updating panel folders for folder: ${currentFolder.name}"))
                 updatedPanelFolders.addAll(deserializedData.panels.panelFolders.filter {
                     it.folderId == currentFolder.localId
-                }.map { it.copy(folderId = latestFolderId) })
+                }.map { it.copy(folderId = newParentFolderId) })
             }
 
             var latestPanelId = localPanelsRepo.getLatestPanelID()
@@ -184,7 +218,6 @@ class ImportDataRepoImpl(
 
     private suspend fun <T> SendChannel<Result<T>>.retrieveDataFromHTML(element: Element?) {
         if (element.isNull()) {
-            send(Result.Loading(message = "Element is null, returning."))
             send(Result.Loading(message = "No HTML element to process"))
             return
         }
@@ -263,8 +296,6 @@ class ImportDataRepoImpl(
                                 ), ignoreFolderAlreadyExistsException = true
                             ).collect()
                             foldersIdStackForRetrievingDataFromHTML.push(localFoldersRepo.getLatestFoldersTableID())
-                        } else {
-                            send(Result.Loading(message = "Folder exists, skipping creation"))
                         }
 
                         foldersNameStackForRetrievingDataFromHTML.push(folderName)
