@@ -5,6 +5,7 @@ import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
+import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.repository.remote.RemoteMultiActionRepo
 import io.ktor.client.HttpClient
@@ -32,6 +33,26 @@ class RemoteMultiActionRepoImpl(
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
             body = deleteMultipleItemsDTO
+        )
+    }
+
+    override suspend fun moveMultipleItems(moveItemsDTO: MoveItemsDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name,
+            body = moveItemsDTO
+        )
+    }
+
+    override suspend fun copyMultipleItems(copyItemsDTO: MoveItemsDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name,
+            body = copyItemsDTO
         )
     }
 }

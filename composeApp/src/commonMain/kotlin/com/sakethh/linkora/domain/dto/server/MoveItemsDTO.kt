@@ -1,12 +1,14 @@
-package com.sakethh.linkora.domain.dto.server.folder
+package com.sakethh.linkora.domain.dto.server
 
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.domain.dto.server.Correlation
+import com.sakethh.linkora.domain.LinkType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MoveFoldersDTO(
+data class MoveItemsDTO(
     val folderIds: List<Long>,
+    val linkIds: List<Long>,
+    val linkType: LinkType,
     val newParentFolderId: Long,
     val eventTimestamp: Long,
     val correlation: Correlation = AppPreferences.getCorrelation()

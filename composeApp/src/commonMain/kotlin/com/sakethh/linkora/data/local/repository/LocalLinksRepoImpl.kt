@@ -11,7 +11,6 @@ import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
-import com.sakethh.linkora.domain.CopyLinksDTO
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
@@ -21,7 +20,6 @@ import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.asLinkDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
-import com.sakethh.linkora.domain.dto.server.link.MoveLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
@@ -682,62 +680,6 @@ class LocalLinksRepoImpl(
     override suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>> {
         return wrappedResultFlow {
             linksDao.deleteLinks(linksIds)
-        }
-    }
-
-    override suspend fun moveLinks(
-        folderId: Long?, linkType: LinkType, linkIds: List<Long>, viaSocket: Boolean
-    ): Flow<Result<Unit>> {
-        return wrappedResultFlow {
-            linksDao.moveLinks(folderId, linkType, linkIds)
-        }
-    }
-
-    override suspend fun copyLinks(
-        folderId: Long?, linkType: LinkType, links: List<Link>, viaSocket: Boolean
-    ): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
-        return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(),
-            remoteOperation = {
-                remoteLinksRepo.copyLinks(
-                    CopyLinksDTO(
-                        linkIds = links.map {
-                            it.remoteId ?: throw IllegalArgumentException()
-                        },
-                        parentFolderId = if (folderId == null) null else getRemoteIdOfLink(folderId),
-                        linkType = linkType,
-                        eventTimestamp = eventTimestamp
-                    )
-                )
-            },
-            remoteOperationOnSuccess = {
-                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
-            },
-            onRemoteOperationFailure = {
-                pendingSyncQueueRepo.addInQueue(
-                    PendingSyncQueue(
-                        operation = RemoteRoute.Link.COPY_LINKS.name, payload = Json.encodeToString(
-                            CopyLinksDTO(
-                                linkIds = links.map { it.localId },
-                                parentFolderId = folderId,
-                                linkType = linkType,
-                                eventTimestamp = eventTimestamp
-                            )
-                        )
-                    )
-                )
-            }) {
-            links.map {
-                it.copy(
-                    idOfLinkedFolder = folderId,
-                    linkType = linkType,
-                    localId = 0,
-                    remoteId = null
-                )
-            }.let {
-                linksDao.addMultipleLinks(it)
-            }
         }
     }
 }

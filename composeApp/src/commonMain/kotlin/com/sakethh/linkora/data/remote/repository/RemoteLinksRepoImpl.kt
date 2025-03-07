@@ -1,7 +1,6 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.common.utils.postFlow
-import com.sakethh.linkora.domain.CopyLinksDTO
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -10,7 +9,6 @@ import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
-import com.sakethh.linkora.domain.dto.server.link.MoveLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
@@ -123,26 +121,6 @@ class RemoteLinksRepoImpl(
             authToken = authToken,
             endPoint = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
             body = deleteDuplicateLinksDTO
-        )
-    }
-
-    override suspend fun moveLinks(moveLinksDTO: MoveLinksDTO): Flow<Result<TimeStampBasedResponse>> {
-        return postFlow(
-            httpClient = httpClient,
-            baseUrl = baseUrl,
-            authToken = authToken,
-            endPoint = RemoteRoute.Link.MOVE_LINKS.name,
-            body = moveLinksDTO,
-        )
-    }
-
-    override suspend fun copyLinks(copyLinksDTO: CopyLinksDTO): Flow<Result<TimeStampBasedResponse>> {
-        return postFlow(
-            httpClient = httpClient,
-            baseUrl = baseUrl,
-            authToken = authToken,
-            endPoint = RemoteRoute.Link.COPY_LINKS.name,
-            body = copyLinksDTO,
         )
     }
 }

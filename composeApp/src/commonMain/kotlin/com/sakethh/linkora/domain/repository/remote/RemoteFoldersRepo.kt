@@ -7,7 +7,6 @@ import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
-import com.sakethh.linkora.domain.dto.server.folder.MoveFoldersDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +34,4 @@ interface RemoteFoldersRepo {
     suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
 
     suspend fun markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO: MarkSelectedFoldersAsRootDTO): Flow<Result<TimeStampBasedResponse>>
-    suspend fun moveFolders(moveFoldersDTO: MoveFoldersDTO): Flow<Result<TimeStampBasedResponse>>
-
 }

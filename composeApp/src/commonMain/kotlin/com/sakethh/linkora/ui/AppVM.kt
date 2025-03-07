@@ -32,8 +32,6 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -146,48 +144,36 @@ class AppVM(
 
     fun moveSelectedItems(folderId: Long, onStart: () -> Unit, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            awaitAll(async {
-                linksRepo.moveLinks(
-                    folderId = folderId,
-                    linkType = folderId.asLinkType(),
-                    linkIds = CollectionsScreenVM.selectedLinksViaLongClick.toList().map {
-                        it.localId
-                    }).collectLatest {
-                    it.onLoading {
-                        onStart()
-                    }
-                    it.pushSnackbarOnFailure()
+            localMultiActionRepo.moveMultipleItems(linkIds = selectedLinksViaLongClick.map {
+                it.localId
+            }, folderIds = selectedFoldersViaLongClick.map {
+                it.localId
+            }, linkType = folderId.asLinkType(), newParentFolderId = folderId).collectLatest {
+                it.onLoading {
+                    onStart()
                 }
-            }, async {
-                foldersRepo.moveFolders(
-                    parentFolderId = folderId,
-                    folderIDs = selectedFoldersViaLongClick.toList().map { it.localId })
-                    .collectLatest {
-                        it.pushSnackbarOnFailure()
-                    }
-            })
+                it.pushSnackbarOnFailure()
+            }
         }.invokeOnCompletion {
             onCompletion()
-            CollectionsScreenVM.clearAllSelections()
+            clearAllSelections()
         }
     }
 
     fun copySelectedItems(folderId: Long, onStart: () -> Unit, onCompletion: () -> Unit) {
         onStart()
         viewModelScope.launch {
-            awaitAll(
-                async {
-                    linksRepo.copyLinks(
-                        folderId = folderId,
-                        linkType = folderId.asLinkType(),
-                        links = selectedLinksViaLongClick.toList()
-                    ).collect()
-                }, async {
-                    foldersRepo.copyFolders(
-                        parentFolderId = folderId, folders = selectedFoldersViaLongClick.toList()
-                    ).collect()
+            localMultiActionRepo.copyMultipleItems(
+                links = selectedLinksViaLongClick.toList(),
+                folders = selectedFoldersViaLongClick.toList(),
+                linkType = folderId.asLinkType(),
+                newParentFolderId = folderId
+            ).collectLatest {
+                it.onLoading {
+                    onStart()
                 }
-            )
+                it.pushSnackbarOnFailure()
+            }
         }.invokeOnCompletion {
             clearAllSelections()
             onCompletion()

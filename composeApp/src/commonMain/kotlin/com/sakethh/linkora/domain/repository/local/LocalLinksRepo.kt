@@ -77,11 +77,4 @@ interface LocalLinksRepo {
     suspend fun doesLinkExist(linkType: LinkType, url: String): Boolean
     suspend fun deleteDuplicateLinks(viaSocket: Boolean = false): Flow<Result<Unit>>
     suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>>
-    suspend fun moveLinks(
-        folderId: Long?, linkType: LinkType, linkIds: List<Long>, viaSocket: Boolean = false
-    ): Flow<Result<Unit>>
-
-    suspend fun copyLinks(
-        folderId: Long?, linkType: LinkType, links: List<Link>, viaSocket: Boolean = false
-    ): Flow<Result<Unit>>
 }

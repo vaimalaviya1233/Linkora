@@ -20,13 +20,11 @@ import com.sakethh.linkora.domain.dto.server.TombstoneDTO
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
-import com.sakethh.linkora.domain.dto.server.folder.MoveFoldersDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
-import com.sakethh.linkora.domain.dto.server.link.MoveLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
@@ -451,34 +449,6 @@ class RemoteSyncRepoImpl(
                         })
                             .removeQueueItemAndSyncTimestamp(queueItem.id)
                     }
-
-                    RemoteRoute.Folder.MOVE_FOLDERS.name -> {
-                        val moveFoldersDTO =
-                            Json.decodeFromString<MoveFoldersDTO>(queueItem.payload)
-                        remoteFoldersRepo.moveFolders(moveFoldersDTO.run {
-                            copy(
-                                folderIds = this.folderIds.map {
-                                    localFoldersRepo.getRemoteIdOfAFolder(it) ?: -45454
-                                },
-                                newParentFolderId = localFoldersRepo.getRemoteIdOfAFolder(this.newParentFolderId)
-                                    ?: -45454
-                            )
-                        }).removeQueueItemAndSyncTimestamp(queueItem.id)
-                    }
-
-                    RemoteRoute.Link.MOVE_LINKS.name -> {
-                        val moveLinksDTO = Json.decodeFromString<MoveLinksDTO>(queueItem.payload)
-                        remoteLinksRepo.moveLinks(moveLinksDTO.run {
-                            copy(
-                                linkIds = this.linkIds.map {
-                                    localLinksRepo.getRemoteLinkId(it) ?: -45454
-                                },
-                                parentFolderId = if (this.parentFolderId == null) null else localFoldersRepo.getRemoteIdOfAFolder(
-                                    this.parentFolderId
-                                )
-                            )
-                        }).removeQueueItemAndSyncTimestamp(queueItem.id)
-                    }
                 }
             }
             send(Result.Loading(message = "[SYNC] Completed pushing pending sync queue to server"))
@@ -657,43 +627,6 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
-
-            RemoteRoute.Link.MOVE_LINKS.name -> {
-                val moveLinksDTO =
-                    Json.decodeFromJsonElement<MoveLinksDTO>(deserializedWebSocketEvent.payload)
-
-                if (moveLinksDTO.correlation.isSameAsCurrentClient()) {
-                    preferencesRepository.updateLastSyncedWithServerTimeStamp(moveLinksDTO.eventTimestamp)
-                    return
-                }
-
-                localLinksRepo.moveLinks(
-                    folderId = if (moveLinksDTO.parentFolderId == null) null else localFoldersRepo.getLocalIdOfAFolder(
-                        moveLinksDTO.parentFolderId
-                    ),
-                    linkType = moveLinksDTO.linkType,
-                    viaSocket = true,
-                    linkIds = moveLinksDTO.linkIds.map {
-                        localLinksRepo.getLocalLinkId(it) ?: -45454
-                    }).collectAndUpdateTimestamp(moveLinksDTO.eventTimestamp)
-            }
-
-            RemoteRoute.Folder.MOVE_FOLDERS.name -> {
-                val moveFoldersDTO =
-                    Json.decodeFromJsonElement<MoveFoldersDTO>(deserializedWebSocketEvent.payload)
-
-                if (moveFoldersDTO.correlation.isSameAsCurrentClient()) {
-                    preferencesRepository.updateLastSyncedWithServerTimeStamp(moveFoldersDTO.eventTimestamp)
-                    return
-                }
-
-                localFoldersRepo.moveFolders(
-                    parentFolderId = localFoldersRepo.getLocalIdOfAFolder(moveFoldersDTO.newParentFolderId)
-                        ?: -45454, folderIDs = moveFoldersDTO.folderIds.map {
-                        localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
-                    }, viaSocket = true
-                ).collectAndUpdateTimestamp(moveFoldersDTO.eventTimestamp)
-            }
 
             RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
                 val markSelectedFoldersAsRootDTO =
