@@ -149,4 +149,16 @@ interface LinksDao {
     suspend fun moveLinks(
         folderId: Long?, linkType: com.sakethh.linkora.domain.LinkType, linkIds: List<Long>
     )
+
+    @Query("SELECT localId FROM links WHERE lastModified = :eventTimestamp AND idOfLinkedFolder = :parentFolderId AND linkType = :linkType AND remoteId IS NULL")
+    suspend fun getIdsOfCopiedLinks(
+        eventTimestamp: Long,
+        parentFolderId: Long,
+        linkType: com.sakethh.linkora.domain.LinkType,
+    ): List<Long>
+
+    @Query("UPDATE links SET remoteId = :remoteId WHERE localId = :localId")
+    suspend fun updateRemoteLinkId(
+        localId: Long, remoteId: Long
+    )
 }
