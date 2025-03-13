@@ -9,7 +9,10 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
+import com.sakethh.linkora.domain.dto.server.CopyFolderDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
+import com.sakethh.linkora.domain.dto.server.CurrentFolder
+import com.sakethh.linkora.domain.dto.server.FolderLink
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.PendingSyncQueue
@@ -183,6 +186,7 @@ class LocalMultiActionRepoImpl(
         }
     }
 
+
     override suspend fun copyMultipleItems(
         links: List<Link>,
         folders: List<Folder>,
@@ -191,22 +195,18 @@ class LocalMultiActionRepoImpl(
         viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val eventTimeStamp = Instant.now().epochSecond
-        val remoteLinksIds = links.map { it.remoteId }
+
+        val copiedLinksIds = mutableMapOf<Long, Long>()
+
+        lateinit var copiedFolders: List<CopyFolderDTO>
+
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                val copiedLinksIds = linksDao.getIdsOfCopiedLinks(
-                    eventTimestamp = eventTimeStamp,
-                    parentFolderId = newParentFolderId,
-                    linkType = linkType
-                )
+                linkoraLog(copiedLinksIds.toMap())
                 remoteMultiActionRepo.copyMultipleItems(
                     CopyItemsDTO(
-                        folderIds = folders.associate {
-                            it.localId to (it.remoteId ?: -45454)
-                        }, linkIds = copiedLinksIds.mapIndexed { index, id ->
-                            id to (remoteLinksIds[index] ?: -45454)
-                        }.toMap(),
+                        folders = copiedFolders, linkIds = copiedLinksIds.toMap(),
                         linkType = linkType,
                         newParentFolderId = foldersDao.getRemoteIdOfAFolder(newParentFolderId)
                             ?: -45454,
@@ -217,6 +217,14 @@ class LocalMultiActionRepoImpl(
             remoteOperationOnSuccess = {
                 it.linkIds.forEach {
                     linksDao.updateRemoteLinkId(it.key, it.value)
+                }
+                it.folders.forEach {
+                    foldersDao.updateARemoteLinkId(
+                        it.currentFolder.localId, it.currentFolder.remoteId
+                    )
+                    it.links.forEach {
+                        linksDao.updateRemoteLinkId(it.localId, it.remoteId)
+                    }
                 }
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
@@ -232,35 +240,63 @@ class LocalMultiActionRepoImpl(
                             localId = 0, remoteId = null, lastModified = eventTimeStamp
                         )
                     }.let {
-                        linksDao.addMultipleLinks(it)
+                        linksDao.addMultipleLinks(it).forEachIndexed { index, id ->
+                            copiedLinksIds.put(id, links[index].remoteId ?: -45454)
+                        }
                     }
                 }, async {
-                    copyFolders(parentFolderId = newParentFolderId, folders = folders)
+                    copiedFolders = copyFolders(
+                        parentFolderId = newParentFolderId, folders = folders, eventTimeStamp
+                    )
                 })
             }
         }
     }
 
     private suspend fun copyFolders(
-        parentFolderId: Long, folders: List<Folder>
-    ) {
+        parentFolderId: Long, folders: List<Folder>, eventTimestamp: Long
+    ): List<CopyFolderDTO> {
+        val copiedFolders = mutableListOf<CopyFolderDTO>()
         folders.forEach { folder ->
             foldersDao.insertANewFolder(
                 folder.copy(
-                    parentFolderId = parentFolderId, remoteId = null, localId = 0
+                    parentFolderId = parentFolderId,
+                    remoteId = null,
+                    localId = 0,
+                    lastModified = eventTimestamp
                 )
             ).let { newFolderId ->
-                linksDao.addMultipleLinks(
-                    linksDao.getLinksOfThisFolderAsList(
-                        folder.localId
-                    ).map {
-                        it.copy(idOfLinkedFolder = newFolderId, remoteId = null, localId = 0)
-                    })
-                copyFolders(
-                    parentFolderId = newFolderId,
-                    folders = foldersDao.getChildFoldersOfThisParentIDAsAList(folder.localId)
+                val linksOfCurrentFolder = linksDao.getLinksOfThisFolderAsList(
+                    folder.localId
                 )
+                linksDao.addMultipleLinks(
+                    linksOfCurrentFolder.map {
+                        it.copy(
+                            idOfLinkedFolder = newFolderId,
+                            localId = 0,
+                            lastModified = eventTimestamp
+                        )
+                    }).let { linksIdsOfCopiedFolder ->
+                    copiedFolders.add(
+                        CopyFolderDTO(
+                            currentFolder = CurrentFolder(
+                                localId = newFolderId, remoteId = folder.remoteId ?: -45454
+                            ),
+                            links = linksIdsOfCopiedFolder.zip(linksOfCurrentFolder) { id, link ->
+                                FolderLink(
+                                    localId = id, remoteId = link.remoteId ?: -45454
+                                )
+                            },
+                            childFolders = copyFolders(
+                                parentFolderId = newFolderId,
+                                folders = foldersDao.getChildFoldersOfThisParentIDAsAList(folder.localId),
+                                eventTimestamp
+                            )
+                        )
+                    )
+                }
             }
         }
+        return copiedFolders
     }
 }

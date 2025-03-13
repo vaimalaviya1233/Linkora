@@ -179,4 +179,7 @@ interface FoldersDao {
 
     @Query("UPDATE folders SET parentFolderId = NULL WHERE localId IN (:foldersIds)")
     suspend fun markFoldersAsRoot(foldersIds: List<Long>)
+
+    @Query("UPDATE folders SET remoteId = :remoteId WHERE localId = :localId")
+    suspend fun updateARemoteLinkId(localId: Long, remoteId: Long)
 }

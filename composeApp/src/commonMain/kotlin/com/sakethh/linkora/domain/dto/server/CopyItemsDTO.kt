@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CopyItemsDTO(
-    val folderIds: Map<Long, Long>, // `key` belongs to this client, `value` belongs to server's db
+    val folders: List<CopyFolderDTO>,
     val linkIds: Map<Long, Long>,// `key` belongs to this client, `value` belongs to server's db
     val linkType: LinkType,
     val newParentFolderId: Long,
