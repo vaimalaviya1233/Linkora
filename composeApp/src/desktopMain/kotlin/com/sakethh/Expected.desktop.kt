@@ -63,8 +63,8 @@ actual val showDynamicThemingOption: Boolean = false
 actual suspend fun writeRawExportStringToFile(
     exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: () -> Unit
 ) {
-    val currentDir = System.getProperty("user.dir")
-    val exportsFolder = File(currentDir, "Exports")
+    val userHomeDir = System.getProperty("user.home")
+    val exportsFolder = File(userHomeDir, "Linkora/Exports")
 
     exportsFolder.exists().ifNot {
         exportsFolder.mkdir()
