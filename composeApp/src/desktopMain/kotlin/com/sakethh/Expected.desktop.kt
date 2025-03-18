@@ -64,10 +64,10 @@ actual suspend fun writeRawExportStringToFile(
     exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: () -> Unit
 ) {
     val userHomeDir = System.getProperty("user.home")
-    val exportsFolder = File(userHomeDir, "Linkora/Exports")
+    val exportsFolder = File(userHomeDir, "/Documents/Linkora/Exports")
 
     exportsFolder.exists().ifNot {
-        exportsFolder.mkdir()
+        exportsFolder.mkdirs()
     }
 
     val exportFileName = "LinkoraExport-${
