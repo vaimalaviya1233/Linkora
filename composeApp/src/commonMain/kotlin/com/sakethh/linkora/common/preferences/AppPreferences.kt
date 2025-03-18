@@ -322,6 +322,12 @@ object AppPreferences {
                     refreshLinksWorkerTag.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENT_WORK_MANAGER_WORK_UUID.name)
                     ) ?: refreshLinksWorkerTag.value
+                }, launch {
+                    shouldUseAmoledTheme.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = booleanPreferencesKey(
+                            AppPreferenceType.AMOLED_THEME_STATE.name
+                        )
+                    ) ?: shouldFollowAmoledTheme.value
                 },
                 launch {
                     preferencesRepository.readPreferenceValue(
