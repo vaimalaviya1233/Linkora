@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.Instant
+import kotlin.properties.Delegates
 
 class LocalPanelsRepoImpl(
     private val panelsDao: PanelsDao,
@@ -32,7 +33,7 @@ class LocalPanelsRepoImpl(
     private val preferencesRepository: PreferencesRepository
 ) : LocalPanelsRepo {
     override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Unit>> {
-        val newPanelId = panelsDao.getLatestPanelID() + 1
+        var newPanelId by Delegates.notNull<Long>()
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
@@ -65,7 +66,8 @@ class LocalPanelsRepoImpl(
                     )
                 )
             }) {
-            panelsDao.addaNewPanel(panel.copy(localId = newPanelId, lastModified = eventTimestamp))
+            newPanelId =
+                panelsDao.addaNewPanel(panel.copy(localId = 0, lastModified = eventTimestamp))
         }
     }
 
@@ -155,7 +157,7 @@ class LocalPanelsRepoImpl(
     override suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        val newPanelFolderId = panelsDao.getLatestPanelFolderID() + 1
+        var newPanelFolderId by Delegates.notNull<Long>()
         val remoteIdOfFolder = foldersDao.getRemoteIdOfAFolder(panelFolder.folderId)
         val remoteIdOfConnectedPanel = panelsDao.getRemoteIdOfPanel(panelFolder.connectedPanelId)
         val eventTimestamp = Instant.now().epochSecond
@@ -201,11 +203,12 @@ class LocalPanelsRepoImpl(
                     )
                 )
             }) {
-            panelsDao.addANewFolderInAPanel(
+            newPanelFolderId = panelsDao.addANewFolderInAPanel(
                 panelFolder.copy(
-                    localId = newPanelFolderId, lastModified = eventTimestamp
+                    localId = 0, lastModified = eventTimestamp
                 )
             )
+            newPanelFolderId
         }
     }
 

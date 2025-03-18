@@ -45,6 +45,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
 import java.time.Instant
+import kotlin.properties.Delegates
 
 class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
@@ -65,7 +66,7 @@ class LocalLinksRepoImpl(
         if (link.linkType == LinkType.HISTORY_LINK) {
             linksDao.deleteLinksFromHistory(link.url)
         }
-        val newLinkId = linksDao.getLatestId() + 1
+        var newLinkId by Delegates.notNull<Long>()
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
@@ -117,7 +118,7 @@ class LocalLinksRepoImpl(
                 link.url.isAValidLink().ifNot {
                     throw Link.Invalid()
                 }
-                linksDao.addANewLink(link.copy(localId = newLinkId, lastModified = eventTimestamp))
+                newLinkId = linksDao.addANewLink(link.copy(lastModified = eventTimestamp))
                 return@performLocalOperationWithRemoteSyncFlow
             }
             if (link.url.isATwitterUrl()) {
@@ -127,11 +128,11 @@ class LocalLinksRepoImpl(
                     link.url, link.userAgent ?: primaryUserAgent()
                 )
             }.let { scrapedLinkInfo ->
-                linksDao.addANewLink(
+                newLinkId = linksDao.addANewLink(
                     link.copy(
                         title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
                         imgURL = scrapedLinkInfo.imgUrl,
-                        localId = newLinkId,
+                        localId = 0,
                         mediaType = scrapedLinkInfo.mediaType,
                         lastModified = eventTimestamp
                     )

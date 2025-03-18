@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.Instant
+import kotlin.properties.Delegates
 
 class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
@@ -46,7 +47,7 @@ class LocalFoldersRepoImpl(
     override suspend fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean, viaSocket: Boolean
     ): Flow<Result<Long>> {
-        val newLocalId = foldersDao.getLastIDOfFoldersTable() + 1
+        var newLocalId by Delegates.notNull<Long>()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -104,7 +105,8 @@ class LocalFoldersRepoImpl(
                         }
                     }
                 }
-                foldersDao.insertANewFolder(folder.copy(localId = newLocalId))
+                newLocalId = foldersDao.insertANewFolder(folder.copy(localId = 0))
+                newLocalId
             })
     }
 

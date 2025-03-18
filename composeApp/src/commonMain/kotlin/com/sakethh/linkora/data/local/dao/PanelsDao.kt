@@ -17,7 +17,7 @@ interface PanelsDao {
     suspend fun getLatestPanelFolderID(): Long
 
     @Insert
-    suspend fun addaNewPanel(panel: Panel)
+    suspend fun addaNewPanel(panel: Panel): Long
 
     @Update
     suspend fun updateAPanel(panel: Panel)
@@ -50,7 +50,7 @@ interface PanelsDao {
     suspend fun deleteConnectedFoldersOfPanel(panelId: Long)
 
     @Insert
-    suspend fun addANewFolderInAPanel(panelFolder: PanelFolder)
+    suspend fun addANewFolderInAPanel(panelFolder: PanelFolder): Long
 
     @Query("DELETE FROM panel_folder WHERE connectedPanelId = :panelId AND folderId = :folderID ")
     suspend fun deleteAFolderFromAPanel(panelId: Long, folderID: Long)
