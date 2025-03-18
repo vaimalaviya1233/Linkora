@@ -45,7 +45,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
 import java.time.Instant
-import kotlin.properties.Delegates
 
 class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
@@ -66,47 +65,53 @@ class LocalLinksRepoImpl(
         if (link.linkType == LinkType.HISTORY_LINK) {
             linksDao.deleteLinksFromHistory(link.url)
         }
-        var newLinkId by Delegates.notNull<Long>()
+        var newLinkId: Long? = null
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             onRemoteOperationFailure = {
+                if (newLinkId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
                         payload = if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
                             Json.encodeToString(
-                                linksDao.getLink(newLinkId).copy(
+                                linksDao.getLink(newLinkId!!).copy(
                                     idOfLinkedFolder = link.idOfLinkedFolder,
                                     lastModified = eventTimestamp
-                                ).asAddLinkDTO().copy(offlineSyncItemId = newLinkId)
+                                ).asAddLinkDTO().copy(offlineSyncItemId = newLinkId!!)
                             )
                         } else {
                             Json.encodeToString(
-                                linksDao.getLink(newLinkId).copy(lastModified = eventTimestamp)
-                                    .asAddLinkDTO().copy(offlineSyncItemId = newLinkId)
+                                linksDao.getLink(newLinkId!!).copy(lastModified = eventTimestamp)
+                                    .asAddLinkDTO().copy(offlineSyncItemId = newLinkId!!)
                             )
                         }
                     )
                 )
             },
             remoteOperation = {
+                if (newLinkId == null) return@performLocalOperationWithRemoteSyncFlow emptyFlow()
+
                 if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
                     val remoteIdOfLinkedFolder =
                         foldersDao.getRemoteIdOfAFolder(link.idOfLinkedFolder)
                     remoteLinksRepo.addANewLink(
-                        linksDao.getLink(newLinkId).copy(
+                        linksDao.getLink(newLinkId!!).copy(
                             idOfLinkedFolder = remoteIdOfLinkedFolder, lastModified = eventTimestamp
                         ).asAddLinkDTO()
                     )
                 } else {
                     remoteLinksRepo.addANewLink(
-                        linksDao.getLink(newLinkId).copy(lastModified = eventTimestamp)
+                        linksDao.getLink(newLinkId!!).copy(lastModified = eventTimestamp)
                             .asAddLinkDTO()
                     )
                 }
             },
             remoteOperationOnSuccess = {
+                if (newLinkId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 linksDao.updateALink(
                     linksDao.getLink(newLinkId).copy(
                         remoteId = it.id, lastModified = it.timeStampBasedResponse.eventTimestamp
@@ -118,7 +123,8 @@ class LocalLinksRepoImpl(
                 link.url.isAValidLink().ifNot {
                     throw Link.Invalid()
                 }
-                newLinkId = linksDao.addANewLink(link.copy(lastModified = eventTimestamp))
+                newLinkId =
+                    linksDao.addANewLink(link.copy(lastModified = eventTimestamp, localId = 0))
                 return@performLocalOperationWithRemoteSyncFlow
             }
             if (link.url.isATwitterUrl()) {

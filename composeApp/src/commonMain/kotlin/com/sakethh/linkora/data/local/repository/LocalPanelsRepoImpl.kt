@@ -33,11 +33,13 @@ class LocalPanelsRepoImpl(
     private val preferencesRepository: PreferencesRepository
 ) : LocalPanelsRepo {
     override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Unit>> {
-        var newPanelId by Delegates.notNull<Long>()
+        var newPanelId: Long? = null
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
+                if (newPanelId == null) return@performLocalOperationWithRemoteSyncFlow emptyFlow()
+
                 remotePanelsRepo.addANewPanel(
                     AddANewPanelDTO(
                         panel.panelName, eventTimestamp = eventTimestamp
@@ -45,6 +47,8 @@ class LocalPanelsRepoImpl(
                 )
             },
             remoteOperationOnSuccess = {
+                if (newPanelId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 panelsDao.updateAPanel(
                     panelsDao.getPanel(newPanelId).copy(
                         remoteId = it.id, lastModified = it.timeStampBasedResponse.eventTimestamp
@@ -53,13 +57,15 @@ class LocalPanelsRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             },
             onRemoteOperationFailure = {
+                if (newPanelId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
                         payload = Json.encodeToString(
                             AddANewPanelDTO(
                                 panel.panelName,
-                                offlineSyncItemId = newPanelId,
+                                offlineSyncItemId = newPanelId!!,
                                 eventTimestamp = eventTimestamp
                             )
                         )
@@ -157,13 +163,15 @@ class LocalPanelsRepoImpl(
     override suspend fun addANewFolderInAPanel(
         panelFolder: PanelFolder, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        var newPanelFolderId by Delegates.notNull<Long>()
+        var newPanelFolderId: Long? = null
         val remoteIdOfFolder = foldersDao.getRemoteIdOfAFolder(panelFolder.folderId)
         val remoteIdOfConnectedPanel = panelsDao.getRemoteIdOfPanel(panelFolder.connectedPanelId)
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
+                if (newPanelFolderId == null) return@performLocalOperationWithRemoteSyncFlow emptyFlow()
+
                 if (remoteIdOfFolder != null && remoteIdOfConnectedPanel != null) {
                     remotePanelsRepo.addANewFolderInAPanel(
                         AddANewPanelFolderDTO(
@@ -179,6 +187,8 @@ class LocalPanelsRepoImpl(
                 }
             },
             remoteOperationOnSuccess = {
+                if (newPanelFolderId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 panelsDao.updateAPanelFolder(
                     panelsDao.getPanelFolder(newPanelFolderId).copy(
                         remoteId = it.id, lastModified = it.timeStampBasedResponse.eventTimestamp
@@ -187,6 +197,8 @@ class LocalPanelsRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             },
             onRemoteOperationFailure = {
+                if (newPanelFolderId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
@@ -196,7 +208,7 @@ class LocalPanelsRepoImpl(
                                 panelPosition = panelFolder.panelPosition,
                                 folderName = panelFolder.folderName,
                                 connectedPanelId = panelFolder.connectedPanelId,
-                                offlineSyncItemId = newPanelFolderId,
+                                offlineSyncItemId = newPanelFolderId!!,
                                 eventTimestamp = eventTimestamp
                             )
                         )

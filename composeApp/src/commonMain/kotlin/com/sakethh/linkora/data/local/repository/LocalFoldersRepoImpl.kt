@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.Instant
-import kotlin.properties.Delegates
 
 class LocalFoldersRepoImpl(
     private val foldersDao: FoldersDao,
@@ -47,10 +46,12 @@ class LocalFoldersRepoImpl(
     override suspend fun insertANewFolder(
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean, viaSocket: Boolean
     ): Flow<Result<Long>> {
-        var newLocalId by Delegates.notNull<Long>()
+        var newLocalId: Long? = null
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
+                if (newLocalId == null) return@performLocalOperationWithRemoteSyncFlow emptyFlow()
+
                 if (folder.parentFolderId != null) {
                     val remoteParentFolderId = getRemoteIdOfAFolder(folder.parentFolderId)
                     remoteFoldersRepo.createFolder(
@@ -61,18 +62,22 @@ class LocalFoldersRepoImpl(
                 }
             },
             remoteOperationOnSuccess = {
+                if (newLocalId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 foldersDao.updateAFolderData(
                     foldersDao.getThisFolderData(newLocalId).copy(remoteId = it.id)
                 )
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             },
             onRemoteOperationFailure = {
+                if (newLocalId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Folder.CREATE_FOLDER.name,
                         payload = Json.encodeToString(
                             folder.asAddFolderDTO().copy(
-                                offlineSyncItemId = newLocalId
+                                offlineSyncItemId = newLocalId!!
                             )
                         )
                     )
