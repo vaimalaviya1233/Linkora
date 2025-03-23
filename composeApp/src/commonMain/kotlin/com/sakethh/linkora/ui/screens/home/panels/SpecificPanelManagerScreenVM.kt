@@ -68,7 +68,9 @@ class SpecificPanelManagerScreenVM(
                         .cancellable().collectLatest { panelFolders ->
                         val filteredFoldersToIncludeInAPanel = nonArchivedFolders.filterNot { nonArchivedFolder ->
                             panelFolders.any { it.folderId == nonArchivedFolder.localId }
-                            }
+                        }.distinctBy {
+                            it.localId
+                        }
 
                         _foldersOfTheSelectedPanel.emit(panelFolders)
                         _foldersToIncludeInPanel.emit(filteredFoldersToIncludeInAPanel)

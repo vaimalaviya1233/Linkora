@@ -15,6 +15,7 @@ import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.TombstoneDTO
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
@@ -42,6 +43,7 @@ import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
@@ -84,7 +86,8 @@ class RemoteSyncRepoImpl(
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val remoteLinksRepo: RemoteLinksRepo,
     private val remotePanelsRepo: RemotePanelsRepo,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val localMultiActionRepo: LocalMultiActionRepo
 ) : RemoteSyncRepo {
     private val json = Json {
         this.ignoreUnknownKeys = true
@@ -627,6 +630,31 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+
+            RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name -> {
+                val moveItemsDTO =
+                    Json.decodeFromJsonElement<MoveItemsDTO>(deserializedWebSocketEvent.payload)
+
+                if (moveItemsDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        moveItemsDTO.eventTimestamp
+                    )
+                    return
+                }
+
+                localMultiActionRepo.moveMultipleItems(
+                    viaSocket = true,
+                    linkIds = moveItemsDTO.linkIds.map {
+                        localLinksRepo.getLocalLinkId(it) ?: -45454
+                    },
+                    folderIds = moveItemsDTO.folderIds.map {
+                        localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                    },
+                    linkType = moveItemsDTO.linkType,
+                    newParentFolderId = localFoldersRepo.getLocalIdOfAFolder(moveItemsDTO.newParentFolderId)
+                        ?: -45454
+                ).collectAndUpdateTimestamp(moveItemsDTO.eventTimestamp)
+            }
 
             RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
                 val markSelectedFoldersAsRootDTO =
