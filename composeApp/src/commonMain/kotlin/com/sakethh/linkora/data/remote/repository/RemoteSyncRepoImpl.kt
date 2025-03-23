@@ -1,10 +1,15 @@
 package com.sakethh.linkora.data.remote.repository
 
+import androidx.datastore.preferences.core.longPreferencesKey
 import com.sakethh.linkora.common.network.Network
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.asWebSocketUrl
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isSameAsCurrentClient
+import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.common.utils.postFlow
 import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
@@ -16,6 +21,7 @@ import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
+import com.sakethh.linkora.domain.dto.server.DeleteEverythingDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
@@ -60,7 +66,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -71,7 +76,8 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -632,6 +638,20 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+
+            RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name -> {
+                val deleteEverythingDTO =
+                    Json.decodeFromJsonElement<DeleteEverythingDTO>(deserializedWebSocketEvent.payload)
+                if (deleteEverythingDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        deleteEverythingDTO.eventTimestamp
+                    )
+                    return
+                }
+                deleteEverything(deleteOnRemote = false).collectAndUpdateTimestamp(
+                    deleteEverythingDTO.eventTimestamp
+                )
+            }
 
             RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name -> {
                 val deleteMultipleItemsDTO =
@@ -1276,18 +1296,41 @@ class RemoteSyncRepoImpl(
         pushPendingSyncQueueToServer().collect()
     }
 
-    override suspend fun deleteEverythingOnRemote(): Flow<Result<Unit>> {
-        return flow {
-            emit(Result.Loading())
-            Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name) {
-                bearerAuth(authToken())
-            }.status.let {
-                if (it.isSuccess()) {
-                    emit(Result.Success(Unit))
-                } else {
-                    emit(Result.Failure(""))
-                }
+    override suspend fun deleteEverything(deleteOnRemote: Boolean): Flow<Result<Unit>> {
+        return performLocalOperationWithRemoteSyncFlow<Unit, DeleteEverythingDTO>(performRemoteOperation = deleteOnRemote,
+            remoteOperation = {
+                postFlow(
+                    httpClient = Network.client,
+                    baseUrl = baseUrl,
+                    authToken = authToken,
+                    endPoint = RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name,
+                    body = DeleteEverythingDTO()
+                )
+            },
+            onRemoteOperationFailure = {
+                TODO()
+            },
+            remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+            }) {
+            supervisorScope {
+                listOf(launch {
+                    localLinksRepo.deleteAllLinks()
+                }, launch {
+                    localFoldersRepo.deleteAllFolders()
+                }, launch {
+                    localPanelsRepo.deleteAllPanels()
+                    preferencesRepository.changePreferenceValue(
+                        preferenceKey = longPreferencesKey(
+                            AppPreferenceType.LAST_SELECTED_PANEL_ID.name
+                        ), newValue = Constants.DEFAULT_PANELS_ID
+                    )
+                }, launch {
+                    localPanelsRepo.deleteAllPanelFolders()
+                }, launch {
+                    pendingSyncQueueRepo.deleteAllItems()
+                })
             }
-        }.catchAsThrowableAndEmitFailure()
+        }
     }
 }

@@ -185,31 +185,10 @@ class DataSettingsScreenVM(
     fun deleteEntireDatabase(deleteEverythingFromRemote: Boolean, onCompletion: () -> Unit) {
         var remoteOperationFailed: Boolean? = null
         viewModelScope.launch {
-            supervisorScope {
-                listOf(launch {
-                    linksRepo.deleteAllLinks()
-                }, launch {
-                    foldersRepo.deleteAllFolders()
-                }, launch {
-                    localPanelsRepo.deleteAllPanels()
-                    preferencesRepository.changePreferenceValue(
-                        preferenceKey = longPreferencesKey(
-                            AppPreferenceType.LAST_SELECTED_PANEL_ID.name
-                        ), newValue = Constants.DEFAULT_PANELS_ID
-                    )
-                }, launch {
-                    localPanelsRepo.deleteAllPanelFolders()
-                }, launch {
-                    pendingSyncQueueRepo.deleteAllItems()
-                }, launch {
-                    if (deleteEverythingFromRemote) {
-                        remoteSyncRepo.deleteEverythingOnRemote().collectLatest {
-                            it.onFailure {
-                                remoteOperationFailed = true
-                            }
-                        }
-                    }
-                })
+            remoteSyncRepo.deleteEverything(deleteOnRemote = deleteEverythingFromRemote).collectLatest {
+                it.onFailure {
+                    remoteOperationFailed = true
+                }
             }
         }.invokeOnCompletion {
             viewModelScope.launch {
