@@ -57,6 +57,7 @@ import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
+import com.sakethh.linkora.domain.repository.remote.RemoteMultiActionRepo
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import io.ktor.client.call.body
@@ -95,7 +96,8 @@ class RemoteSyncRepoImpl(
     private val remoteLinksRepo: RemoteLinksRepo,
     private val remotePanelsRepo: RemotePanelsRepo,
     private val preferencesRepository: PreferencesRepository,
-    private val localMultiActionRepo: LocalMultiActionRepo
+    private val localMultiActionRepo: LocalMultiActionRepo,
+    private val remoteMultiActionRepo: RemoteMultiActionRepo
 ) : RemoteSyncRepo {
     private val json = Json {
         this.ignoreUnknownKeys = true
@@ -149,6 +151,41 @@ class RemoteSyncRepoImpl(
                 send(Result.Loading(message = "[QUEUE] Processing queue item (ID: ${queueItem.id}, Operation: ${queueItem.operation})"))
 
                 when (queueItem.operation) {
+
+                    RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name -> {
+                        val deleteMultipleItemsDTO =
+                            Json.decodeFromString<DeleteMultipleItemsDTO>(queueItem.payload)
+                        remoteMultiActionRepo.deleteMultipleItems(deleteMultipleItemsDTO)
+                            .removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
+
+                    RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name -> {
+                        val archiveMultipleItemsDTO =
+                            Json.decodeFromString<ArchiveMultipleItemsDTO>(queueItem.payload)
+                        remoteMultiActionRepo.archiveMultipleItems(archiveMultipleItemsDTO.run {
+                            copy(linkIds = linkIds.map {
+                                localLinksRepo.getRemoteLinkId(it) ?: -45454
+                            }, folderIds = folderIds.map {
+                                localFoldersRepo.getRemoteIdOfAFolder(it) ?: -45454
+                            })
+                        }).removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
+
+                    RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name -> {
+                        val moveItemsDTO = Json.decodeFromString<MoveItemsDTO>(queueItem.payload)
+                        remoteMultiActionRepo.moveMultipleItems(moveItemsDTO.run {
+                            this.copy(
+                                folderIds = folderIds.map {
+                                localFoldersRepo.getRemoteIdOfAFolder(it) ?: -45454
+                            }, linkIds = linkIds.map {
+                                localLinksRepo.getRemoteLinkId(it) ?: -45454
+                            }, newParentFolderId = localFoldersRepo.getRemoteIdOfAFolder(
+                                newParentFolderId
+                            ) ?: -45454
+                            )
+                        }).removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
+
                     RemoteRoute.Folder.CREATE_FOLDER.name -> {
                         send(Result.Loading(message = "[FOLDER] Creating folder from queue item (ID: ${queueItem.id})"))
                         val addFolderDTO = Json.decodeFromString<AddFolderDTO>(queueItem.payload)
