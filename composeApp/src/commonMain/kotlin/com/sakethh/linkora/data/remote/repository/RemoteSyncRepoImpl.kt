@@ -13,6 +13,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
+import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
@@ -654,6 +655,24 @@ class RemoteSyncRepoImpl(
                     newParentFolderId = localFoldersRepo.getLocalIdOfAFolder(moveItemsDTO.newParentFolderId)
                         ?: -45454
                 ).collectAndUpdateTimestamp(moveItemsDTO.eventTimestamp)
+            }
+
+            RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name -> {
+                val archiveMoveItemsDTO =
+                    Json.decodeFromJsonElement<ArchiveMultipleItemsDTO>(deserializedWebSocketEvent.payload)
+
+                if (archiveMoveItemsDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        archiveMoveItemsDTO.eventTimestamp
+                    )
+                    return
+                }
+
+                localMultiActionRepo.archiveMultipleItems(linkIds = archiveMoveItemsDTO.linkIds.map {
+                    localLinksRepo.getLocalLinkId(it) ?: -45454
+                }, folderIds = archiveMoveItemsDTO.folderIds.map {
+                    localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                }, viaSocket = true).collectAndUpdateTimestamp(archiveMoveItemsDTO.eventTimestamp)
             }
 
             RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
