@@ -7,6 +7,7 @@ import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isSameAsCurrentClient
 import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.common.utils.wrappedResultFlow
+import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
@@ -631,6 +632,24 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+
+            RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name -> {
+                val deleteMultipleItemsDTO =
+                    Json.decodeFromJsonElement<DeleteMultipleItemsDTO>(deserializedWebSocketEvent.payload)
+
+                if (deleteMultipleItemsDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        deleteMultipleItemsDTO.eventTimestamp
+                    )
+                    return
+                }
+
+                localMultiActionRepo.deleteMultipleItems(linkIds = deleteMultipleItemsDTO.linkIds.map {
+                    localLinksRepo.getLocalLinkId(it) ?: -45454
+                }, folderIds = deleteMultipleItemsDTO.folderIds.map {
+                    localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                }, viaSocket = true).collectAndUpdateTimestamp(deleteMultipleItemsDTO.eventTimestamp)
+            }
 
             RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name -> {
                 val moveItemsDTO =
