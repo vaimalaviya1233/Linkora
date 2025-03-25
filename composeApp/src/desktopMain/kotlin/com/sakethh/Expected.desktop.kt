@@ -10,6 +10,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.RefreshAllLinksService
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.duplicate
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.isNotNull
@@ -95,19 +96,15 @@ actual suspend fun pickAValidFileForImporting(
             FileDialog.LOAD
         )
     fileDialog.isVisible = true
-    val chosenFile: File? = try {
-        File(fileDialog.directory, fileDialog.file)
-    } catch (e: Exception) {
-        null
-    }
-    return if (chosenFile.isNotNull() && chosenFile!!.extension == importFileType.name.lowercase()) {
+    val sourceFile = File(fileDialog.directory, fileDialog.file).duplicate()
+    return if (sourceFile.isNotNull() && sourceFile!!.extension == importFileType.name.lowercase()) {
         onStart()
-        chosenFile
-    } else if (chosenFile.isNotNull() && chosenFile!!.extension != importFileType.name.lowercase()) {
+        sourceFile
+    } else if (sourceFile.isNotNull() && sourceFile!!.extension != importFileType.name.lowercase()) {
         UIEvent.pushUIEvent(
             UIEvent.Type.ShowSnackbar(
                 Localization.Key.FileTypeNotSupportedOnDesktopImport.getLocalizedString()
-                    .replace(LinkoraPlaceHolder.First.value, chosenFile.extension)
+                    .replace(LinkoraPlaceHolder.First.value, sourceFile.extension)
                     .replace(LinkoraPlaceHolder.Second.value, importFileType.name)
             )
         )

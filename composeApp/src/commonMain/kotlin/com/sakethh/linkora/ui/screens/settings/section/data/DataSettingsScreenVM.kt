@@ -2,15 +2,13 @@ package com.sakethh.linkora.ui.screens.settings.section.data
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.cancelRefreshingLinks
 import com.sakethh.isAnyRefreshingScheduled
 import com.sakethh.isStorageAccessPermittedOnAndroid
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferenceType
-import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.duplicate
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.ifNot
@@ -43,7 +41,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -99,7 +96,7 @@ class DataSettingsScreenVM(
                         } else {
                             null
                         }
-                    }
+                    }?.duplicate()
                 } else {
                     pickAValidFileForImporting(importFileType, onStart = {
                         onStart()

@@ -29,8 +29,11 @@ import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 fun String?.ifNullOrBlank(string: () -> String): String {
     return if (this.isNullOrBlank()) {
@@ -236,4 +239,19 @@ suspend fun PreferencesRepository.updateLastSyncedWithServerTimeStamp(newValue: 
         preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name),
         newValue = newValue
     )
+}
+
+suspend fun File.duplicate(): File? = withContext(Dispatchers.IO) {
+    try {
+        val tempFile = File.createTempFile("temp_${nameWithoutExtension}", ".${extension}")
+        this@duplicate.inputStream().use { input ->
+            tempFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        tempFile
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
