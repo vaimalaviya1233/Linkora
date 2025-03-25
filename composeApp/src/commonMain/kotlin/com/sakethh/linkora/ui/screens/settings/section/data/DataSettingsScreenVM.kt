@@ -186,6 +186,9 @@ class DataSettingsScreenVM(
                 it.onFailure {
                     remoteOperationFailed = true
                 }
+                it.onSuccess {
+                    remoteOperationFailed = it.isRemoteExecutionSuccessful == false
+                }
             }
         }.invokeOnCompletion {
             viewModelScope.launch {

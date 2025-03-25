@@ -1344,9 +1344,6 @@ class RemoteSyncRepoImpl(
                     body = DeleteEverythingDTO()
                 )
             },
-            onRemoteOperationFailure = {
-                TODO()
-            },
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }) {
