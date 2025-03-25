@@ -20,7 +20,6 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
-import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -225,7 +224,6 @@ class ImportDataRepoImpl(
         // `element!!` is safe here because we've already checked `element.isNull()` and won't reach this point if it's null
 
         element!!.children().filter { child -> child.`is`("dt") }.forEach { filteredDtElement ->
-            send(Result.Loading(message = "Processing <dt> element: ${filteredDtElement.outerHtml()}"))
             filteredDtElement.children().forEach { filteredDtChildElement ->
                 when {
                     filteredDtChildElement.`is`("a") -> {
@@ -246,33 +244,41 @@ class ImportDataRepoImpl(
                             )
                         ) {
                             send(Result.Loading(message = "Link is part of (Important, History, Archived)"))
-                            localLinksRepo.addANewLink(
-                                link = Link(
-                                    linkType = when (foldersNameStackForRetrievingDataFromHTML.peek()) {
-                                        LinkoraExports.IMPORTANT_LINKS__LINKORA_EXPORT.name -> LinkType.IMPORTANT_LINK
-                                        LinkoraExports.HISTORY_LINKS__LINKORA_EXPORT.name -> LinkType.HISTORY_LINK
-                                        LinkoraExports.ARCHIVED_LINKS__LINKORA_EXPORT.name -> LinkType.ARCHIVE_LINK
-                                        else -> return
-                                    },
-                                    title = linkTitle,
-                                    url = linkAddress,
-                                    imgURL = "",
-                                    note = "",
-                                    idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
-                                ), linkSaveConfig = forceSaveWithoutRetrieving()
-                            ).collect()
+                            try {
+                                localLinksRepo.addANewLink(
+                                    link = Link(
+                                        linkType = when (foldersNameStackForRetrievingDataFromHTML.peek()) {
+                                            LinkoraExports.IMPORTANT_LINKS__LINKORA_EXPORT.name -> LinkType.IMPORTANT_LINK
+                                            LinkoraExports.HISTORY_LINKS__LINKORA_EXPORT.name -> LinkType.HISTORY_LINK
+                                            LinkoraExports.ARCHIVED_LINKS__LINKORA_EXPORT.name -> LinkType.ARCHIVE_LINK
+                                            else -> return
+                                        },
+                                        title = linkTitle,
+                                        url = linkAddress,
+                                        imgURL = "",
+                                        note = "",
+                                        idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
+                                    ), linkSaveConfig = forceSaveWithoutRetrieving()
+                                ).collect()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         } else {
                             send(Result.Loading(message = "Link is part of saved links or folder links"))
-                            localLinksRepo.addANewLink(
-                                link = Link(
-                                    linkType = if (parentFolderId == (-1).toLong()) LinkType.SAVED_LINK else LinkType.FOLDER_LINK,
-                                    title = linkTitle,
-                                    url = linkAddress,
-                                    imgURL = "",
-                                    note = "",
-                                    idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
-                                ), linkSaveConfig = forceSaveWithoutRetrieving()
-                            ).collect()
+                            try {
+                                localLinksRepo.addANewLink(
+                                    link = Link(
+                                        linkType = if (parentFolderId == (-1).toLong()) LinkType.SAVED_LINK else LinkType.FOLDER_LINK,
+                                        title = linkTitle,
+                                        url = linkAddress,
+                                        imgURL = "",
+                                        note = "",
+                                        idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
+                                    ), linkSaveConfig = forceSaveWithoutRetrieving()
+                                ).collect()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     }
 
@@ -287,14 +293,18 @@ class ImportDataRepoImpl(
 
                         if (!LinkoraExports.entries.map { it.name }.contains(folderName)) {
                             send(Result.Loading(message = "Folder does not exist, inserting new folder: $folderName"))
-                            localFoldersRepo.insertANewFolder(
-                                folder = Folder(
-                                    name = folderName.toString(),
-                                    note = "",
-                                    parentFolderId = if (parentFolder == (-1).toLong()) null else parentFolder,
-                                    isArchived = foldersNameStackForRetrievingDataFromHTML.isNotEmpty() && foldersNameStackForRetrievingDataFromHTML.peek() == LinkoraExports.ARCHIVED_FOLDERS__LINKORA_EXPORT.name
-                                ), ignoreFolderAlreadyExistsException = true
-                            ).collect()
+                            try {
+                                localFoldersRepo.insertANewFolder(
+                                    folder = Folder(
+                                        name = folderName.toString(),
+                                        note = "",
+                                        parentFolderId = if (parentFolder == (-1).toLong()) null else parentFolder,
+                                        isArchived = foldersNameStackForRetrievingDataFromHTML.isNotEmpty() && foldersNameStackForRetrievingDataFromHTML.peek() == LinkoraExports.ARCHIVED_FOLDERS__LINKORA_EXPORT.name
+                                    ), ignoreFolderAlreadyExistsException = true
+                                ).collect()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                             foldersIdStackForRetrievingDataFromHTML.push(localFoldersRepo.getLatestFoldersTableID())
                         }
 
