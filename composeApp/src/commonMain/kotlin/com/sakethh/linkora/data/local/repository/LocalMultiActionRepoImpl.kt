@@ -303,14 +303,8 @@ class LocalMultiActionRepoImpl(
 
 
     override suspend fun unArchiveMultipleItems(
-        links: List<Link>, folders: List<Folder>, viaSocket: Boolean
+        localLinkIds: List<Long>, localFolderIds: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        val localFolderIds = folders.map {
-            it.localId
-        }
-        val localLinkIds = links.map {
-            it.localId
-        }
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),

@@ -23,6 +23,7 @@ import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.DeleteEverythingDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
+import com.sakethh.linkora.domain.dto.server.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.TombstoneDTO
@@ -675,6 +676,24 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+
+            RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name -> {
+                val markItemsRegularDTO =
+                    Json.decodeFromJsonElement<MarkItemsRegularDTO>(deserializedWebSocketEvent.payload)
+                if (markItemsRegularDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        markItemsRegularDTO.eventTimestamp
+                    )
+                    return
+                }
+                localMultiActionRepo.unArchiveMultipleItems(
+                    linkIds = markItemsRegularDTO.linkIds.map {
+                        localLinksRepo.getLocalLinkId(it) ?: -45454
+                    }, folderIds = markItemsRegularDTO.foldersIds.map {
+                        localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                    }, viaSocket = true
+                ).collectAndUpdateTimestamp(markItemsRegularDTO.eventTimestamp)
+            }
 
             RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name -> {
                 val deleteEverythingDTO =

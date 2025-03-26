@@ -232,8 +232,9 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.unArchiveMultipleItems(
-                folders = selectedFoldersViaLongClick.filter { it.isArchived },
-                links = selectedLinksViaLongClick.filter { it.linkType == LinkType.ARCHIVE_LINK })
+                folderIds = selectedFoldersViaLongClick.filter { it.isArchived }.map { it.localId },
+                linkIds = selectedLinksViaLongClick.filter { it.linkType == LinkType.ARCHIVE_LINK }
+                    .map { it.localId })
                 .collect()
         }.invokeOnCompletion {
             clearAllSelections()
