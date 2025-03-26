@@ -325,7 +325,18 @@ class LocalMultiActionRepoImpl(
                 )
             },
             onRemoteOperationFailure = {
-
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name,
+                        payload = Json.encodeToString(
+                            MarkItemsRegularDTO(
+                                foldersIds = localFolderIds,
+                                linkIds = localLinkIds,
+                                eventTimestamp = eventTimestamp
+                            )
+                        )
+                    )
+                )
             }) {
             foldersDao.markMultipleFoldersAsRegular(
                 eventTimestamp = eventTimestamp,

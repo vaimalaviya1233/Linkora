@@ -153,6 +153,18 @@ class RemoteSyncRepoImpl(
 
                 when (queueItem.operation) {
 
+                    RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name -> {
+                        val markItemsRegularDTO =
+                            Json.decodeFromString<MarkItemsRegularDTO>(queueItem.payload)
+                        remoteMultiActionRepo.markItemsAsRegular(markItemsRegularDTO.run {
+                            copy(foldersIds = foldersIds.map {
+                                localFoldersRepo.getRemoteIdOfAFolder(it) ?: -45454
+                            }, linkIds = linkIds.map {
+                                localLinksRepo.getLocalLinkId(it) ?: -45454
+                            })
+                        }).removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
+
                     RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name -> {
                         val deleteMultipleItemsDTO =
                             Json.decodeFromString<DeleteMultipleItemsDTO>(queueItem.payload)
