@@ -89,8 +89,11 @@ interface FoldersDao {
     @Query("UPDATE folders SET isArchived = 1 WHERE localId=:folderID")
     suspend fun markFolderAsArchive(folderID: Long)
 
-    @Query("UPDATE folders SET isArchived = 1 WHERE localId in (:folderIDs)")
-    suspend fun markMultipleFoldersAsArchive(folderIDs: List<Long>)
+    @Query("UPDATE folders SET isArchived = 1, lastModified = :eventTimestamp WHERE localId in (:folderIDs)")
+    suspend fun markMultipleFoldersAsArchive(folderIDs: List<Long>, eventTimestamp: Long)
+
+    @Query("UPDATE folders SET isArchived = 0, lastModified = :eventTimestamp WHERE localId in (:folderIDs)")
+    suspend fun markMultipleFoldersAsRegular(folderIDs: List<Long>, eventTimestamp: Long)
 
     @Query("UPDATE folders SET isArchived = 0 WHERE localId=:folderID")
     suspend fun markFolderAsRegularFolder(folderID: Long)
@@ -104,6 +107,9 @@ interface FoldersDao {
 
     @Query("UPDATE folders SET lastModified =:timestamp WHERE localId =:localFolderID")
     suspend fun updateFolderTimestamp(timestamp: Long, localFolderID: Long)
+
+    @Query("UPDATE folders SET lastModified =:timestamp WHERE localId IN (:localFolderIDs)")
+    suspend fun updateFoldersTimestamp(timestamp: Long, localFolderIDs: List<Long>)
 
     @Query("UPDATE folders SET note = \"\" WHERE localId = :folderID")
     suspend fun deleteAFolderNote(folderID: Long)
@@ -174,8 +180,8 @@ interface FoldersDao {
     @Query("SELECT * FROM folders WHERE remoteId IS NULL")
     suspend fun getUnSyncedFolders(): List<Folder>
 
-    @Query("UPDATE folders SET parentFolderId = :parentFolderId WHERE localId IN (:folderIDs)")
-    suspend fun moveFolders(parentFolderId: Long,folderIDs: List<Long>)
+    @Query("UPDATE folders SET parentFolderId = :parentFolderId, lastModified = :eventTimestamp WHERE localId IN (:folderIDs)")
+    suspend fun moveFolders(parentFolderId: Long, folderIDs: List<Long>, eventTimestamp: Long)
 
     @Query("UPDATE folders SET parentFolderId = NULL WHERE localId IN (:foldersIds)")
     suspend fun markFoldersAsRoot(foldersIds: List<Long>)

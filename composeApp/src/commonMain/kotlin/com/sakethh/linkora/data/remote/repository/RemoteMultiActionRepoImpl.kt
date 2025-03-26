@@ -7,6 +7,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsResponseDTO
+import com.sakethh.linkora.domain.dto.server.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.repository.remote.RemoteMultiActionRepo
@@ -55,6 +56,16 @@ class RemoteMultiActionRepoImpl(
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name,
             body = copyItemsDTO
+        )
+    }
+
+    override suspend fun markItemsAsRegular(markItemsRegularDTO: MarkItemsRegularDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            httpClient = httpClient,
+            baseUrl = baseUrl,
+            authToken = authToken,
+            endPoint = RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name,
+            body = markItemsRegularDTO
         )
     }
 }

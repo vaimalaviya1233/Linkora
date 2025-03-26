@@ -348,15 +348,6 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    override suspend fun markMultipleFoldersAsArchive(
-        folderIDs: List<Long>,
-        viaSocket: Boolean
-    ): Flow<Result<Unit>> {
-        return performLocalOperationWithRemoteSyncFlow<Unit, Unit>(performRemoteOperation = false) {
-            foldersDao.markMultipleFoldersAsArchive(folderIDs)
-        }
-    }
-
     override suspend fun markFolderAsRegularFolder(
         folderID: Long, viaSocket: Boolean
     ): Flow<Result<Unit>> {

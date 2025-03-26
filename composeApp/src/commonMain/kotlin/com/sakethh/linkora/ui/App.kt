@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
@@ -509,12 +510,12 @@ fun App(
                                                 contentDescription = null
                                             )
                                         }
-                                        if (CollectionsScreenVM.selectedLinksViaLongClick.map { it.linkType }
-                                                .contains(
-                                                    LinkType.ARCHIVE_LINK
-                                                )
-                                                .not() || CollectionsScreenVM.selectedFoldersViaLongClick.map { it.isArchived }
-                                                .contains(false)) {
+                                        if (CollectionsScreenVM.selectedLinksViaLongClick.any {
+                                                it.linkType == LinkType.ARCHIVE_LINK
+                                            }
+                                                .not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
+                                                it.isArchived.not()
+                                            }) {
                                             IconButton(onClick = {
                                                 appVM.archiveSelectedItems(onStart = {
                                                     showLoadingProgressBarOnTransferAction.value =
@@ -526,6 +527,26 @@ fun App(
                                             }) {
                                                 Icon(
                                                     imageVector = Icons.Default.Archive,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                        if (CollectionsScreenVM.selectedFoldersViaLongClick.any {
+                                                it.isArchived
+                                            } || CollectionsScreenVM.selectedLinksViaLongClick.any {
+                                                it.linkType == LinkType.ARCHIVE_LINK
+                                            }) {
+                                            IconButton(onClick = {
+                                                appVM.markSelectedItemsAsRegular(onStart = {
+                                                    showLoadingProgressBarOnTransferAction.value =
+                                                        true
+                                                }, onCompletion = {
+                                                    showLoadingProgressBarOnTransferAction.value =
+                                                        false
+                                                })
+                                            }) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Unarchive,
                                                     contentDescription = null
                                                 )
                                             }

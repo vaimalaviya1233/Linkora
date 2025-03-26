@@ -29,4 +29,9 @@ interface LocalMultiActionRepo {
         newParentFolderId: Long,
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
+
+    suspend fun unArchiveMultipleItems(
+        links: List<Link>, folders: List<Folder>, viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
+
 }

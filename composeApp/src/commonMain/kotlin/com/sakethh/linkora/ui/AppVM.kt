@@ -11,6 +11,7 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.asLinkType
 import com.sakethh.linkora.domain.onFailure
@@ -184,8 +185,10 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.archiveMultipleItems(
-                linkIds = selectedLinksViaLongClick.toList().map { it.localId },
-                folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
+                linkIds = selectedLinksViaLongClick.filter { it.linkType != LinkType.ARCHIVE_LINK }
+                    .map { it.localId },
+                folderIds = selectedFoldersViaLongClick.filter { it.isArchived.not() }
+                    .map { it.localId }).collectLatest {
                 it.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar("Archived successfully." + it.getRemoteOnlyFailureMsg()))
                 }
@@ -225,4 +228,16 @@ class AppVM(
         }
     }
 
+    fun markSelectedItemsAsRegular(onStart: () -> Unit, onCompletion: () -> Unit) {
+        onStart()
+        viewModelScope.launch {
+            localMultiActionRepo.unArchiveMultipleItems(
+                folders = selectedFoldersViaLongClick.filter { it.isArchived },
+                links = selectedLinksViaLongClick.filter { it.linkType == LinkType.ARCHIVE_LINK })
+                .collect()
+        }.invokeOnCompletion {
+            clearAllSelections()
+            onCompletion()
+        }
+    }
 }

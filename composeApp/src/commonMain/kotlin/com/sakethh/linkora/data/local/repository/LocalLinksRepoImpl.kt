@@ -372,12 +372,6 @@ class LocalLinksRepoImpl(
         }
     }
 
-    override suspend fun archiveMultipleLinks(linksIDs: List<Long>): Flow<Result<Unit>> {
-        return wrappedResultFlow {
-            linksDao.archiveMultipleLinks(linksIDs)
-        }
-    }
-
     override suspend fun updateLinkNote(
         linkId: Long, newNote: String, viaSocket: Boolean
     ): Flow<Result<Unit>> {

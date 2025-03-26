@@ -41,7 +41,6 @@ interface LocalLinksRepo {
     ): Flow<Result<Unit>>
 
     suspend fun archiveALink(linkId: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
-    suspend fun archiveMultipleLinks(linksIDs: List<Long>): Flow<Result<Unit>>
     suspend fun updateLinkNote(
         linkId: Long, newNote: String, viaSocket: Boolean = false
     ): Flow<Result<Unit>>

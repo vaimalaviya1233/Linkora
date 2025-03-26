@@ -194,7 +194,7 @@ class DataSettingsScreenVM(
             viewModelScope.launch {
                 pushUIEvent(
                     UIEvent.Type.ShowSnackbar(
-                        if (remoteOperationFailed == null) Localization.Key.DeletedEntireDataPermanently.getLocalizedString()
+                        if (remoteOperationFailed == null || remoteOperationFailed == false) Localization.Key.DeletedEntireDataPermanently.getLocalizedString()
                         else Localization.Key.RemoteDataDeletionFailure.getLocalizedString()
                     )
                 )

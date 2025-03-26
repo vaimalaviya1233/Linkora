@@ -13,6 +13,7 @@ import com.sakethh.linkora.domain.dto.server.CopyFolderDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
 import com.sakethh.linkora.domain.dto.server.CurrentFolder
 import com.sakethh.linkora.domain.dto.server.FolderLink
+import com.sakethh.linkora.domain.dto.server.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.PendingSyncQueue
@@ -75,9 +76,9 @@ class LocalMultiActionRepoImpl(
             }) {
             coroutineScope {
                 awaitAll(async {
-                    linksDao.archiveMultipleLinks(linkIds)
+                    linksDao.archiveMultipleLinks(linkIds, eventTimestamp)
                 }, async {
-                    foldersDao.markMultipleFoldersAsArchive(folderIds)
+                    foldersDao.markMultipleFoldersAsArchive(folderIds, eventTimestamp)
                 })
             }
         }
@@ -178,9 +179,9 @@ class LocalMultiActionRepoImpl(
             }) {
             coroutineScope {
                 awaitAll(async {
-                    foldersDao.moveFolders(newParentFolderId, folderIds)
+                    foldersDao.moveFolders(newParentFolderId, folderIds, eventTimeStamp)
                 }, async {
-                    linksDao.moveLinks(newParentFolderId, linkType, linkIds)
+                    linksDao.moveLinks(newParentFolderId, linkType, linkIds, eventTimeStamp)
                 })
             }
         }
@@ -298,5 +299,45 @@ class LocalMultiActionRepoImpl(
             }
         }
         return copiedFolders
+    }
+
+
+    override suspend fun unArchiveMultipleItems(
+        links: List<Link>, folders: List<Folder>, viaSocket: Boolean
+    ): Flow<Result<Unit>> {
+        val localFolderIds = folders.map {
+            it.localId
+        }
+        val localLinkIds = links.map {
+            it.localId
+        }
+        val eventTimestamp = Instant.now().epochSecond
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = viaSocket.not(),
+            remoteOperation = {
+                remoteMultiActionRepo.markItemsAsRegular(MarkItemsRegularDTO(foldersIds = localFolderIds.map {
+                    foldersDao.getRemoteIdOfAFolder(it) ?: -45454
+                }, linkIds = localLinkIds.map {
+                    linksDao.getRemoteIdOfLocalLink(it) ?: -45454
+                }, eventTimestamp = eventTimestamp))
+            },
+            remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+                foldersDao.updateFoldersTimestamp(
+                    timestamp = it.eventTimestamp, localFolderIDs = localFolderIds
+                )
+                linksDao.updateLinksTimestamp(
+                    timestamp = it.eventTimestamp, localLinkIds = localLinkIds
+                )
+            },
+            onRemoteOperationFailure = {
+
+            }) {
+            foldersDao.markMultipleFoldersAsRegular(
+                eventTimestamp = eventTimestamp,
+                folderIDs = localFolderIds
+            )
+            linksDao.unarchiveLinks(linksIds = localLinkIds, eventTimestamp = eventTimestamp)
+        }
     }
 }

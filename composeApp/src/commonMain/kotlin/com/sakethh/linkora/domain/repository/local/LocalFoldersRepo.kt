@@ -82,11 +82,6 @@ interface LocalFoldersRepo {
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
-    suspend fun markMultipleFoldersAsArchive(
-        folderIDs: List<Long>,
-        viaSocket: Boolean = false
-    ): Flow<Result<Unit>>
-
 
     suspend fun markFolderAsRegularFolder(
         folderID: Long,

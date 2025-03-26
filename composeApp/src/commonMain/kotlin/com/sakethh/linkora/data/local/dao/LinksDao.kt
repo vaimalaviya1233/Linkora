@@ -26,8 +26,8 @@ interface LinksDao {
     @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE localId=:linkId")
     suspend fun archiveALink(linkId: Long)
 
-    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE localId IN (:linkIds)")
-    suspend fun archiveMultipleLinks(linkIds: List<Long>)
+    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}', lastModified = :eventTimestamp WHERE localId IN (:linkIds)")
+    suspend fun archiveMultipleLinks(linkIds: List<Long>, eventTimestamp: Long)
 
     @Query("DELETE FROM links WHERE localId = :linkId")
     suspend fun deleteALink(linkId: Long)
@@ -133,6 +133,9 @@ interface LinksDao {
     @Query("UPDATE links SET lastModified = :timestamp WHERE localId=:localLinkId")
     suspend fun updateLinkTimestamp(timestamp: Long, localLinkId: Long)
 
+    @Query("UPDATE links SET lastModified = :timestamp WHERE localId IN (:localLinkIds)")
+    suspend fun updateLinksTimestamp(timestamp: Long, localLinkIds: List<Long>)
+
     @Query("SELECT EXISTS(SELECT 1 FROM links WHERE linkType = :linkType AND url = :url)")
     suspend fun doesLinkExist(linkType: com.sakethh.linkora.domain.LinkType, url: String): Boolean
 
@@ -145,9 +148,12 @@ interface LinksDao {
     @Query("DELETE FROM links WHERE localId IN (:linkIds)")
     suspend fun deleteLinks(linkIds: List<Long>)
 
-    @Query("UPDATE links SET idOfLinkedFolder = :folderId, linkType = :linkType WHERE localId IN (:linkIds)")
+    @Query("UPDATE links SET idOfLinkedFolder = :folderId, linkType = :linkType, lastModified = :eventTimestamp WHERE localId IN (:linkIds)")
     suspend fun moveLinks(
-        folderId: Long?, linkType: com.sakethh.linkora.domain.LinkType, linkIds: List<Long>
+        folderId: Long?,
+        linkType: com.sakethh.linkora.domain.LinkType,
+        linkIds: List<Long>,
+        eventTimestamp: Long
     )
 
     @Query("SELECT localId FROM links WHERE lastModified = :eventTimestamp AND idOfLinkedFolder = :parentFolderId AND linkType = :linkType AND remoteId IS NULL")
@@ -161,4 +167,7 @@ interface LinksDao {
     suspend fun updateRemoteLinkId(
         localId: Long, remoteId: Long
     )
+
+    @Query("UPDATE links SET linkType = '${LinkType.SAVED_LINK}', lastModified = :eventTimestamp WHERE localId IN (:linksIds)")
+    suspend fun unarchiveLinks(linksIds: List<Long>, eventTimestamp: Long)
 }
