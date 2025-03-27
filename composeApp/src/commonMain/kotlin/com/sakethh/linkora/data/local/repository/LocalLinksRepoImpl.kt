@@ -515,7 +515,9 @@ class LocalLinksRepoImpl(
             remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.updateLink(
-                        linksDao.getLink(link.localId).asLinkDTO(id = remoteId)
+                        linksDao.getLink(link.localId).asLinkDTO(id = remoteId).run {
+                            copy(idOfLinkedFolder = foldersDao.getRemoteIdOfAFolder(idOfLinkedFolder ?: -45454))
+                        }
                     )
                 } else {
                     emptyFlow()
