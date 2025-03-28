@@ -2,11 +2,15 @@
 via a [self-hostable sync server](https://github.com/LinkoraApp/sync-server). Whether you need to
 save a quick link or manage them in detailed folders, Linkora gets it done.
 
+Check [this](https://github.com/LinkoraApp/Linkora/blob/master/CONTRIBUTING.md) to see how you can contribute to Linkora and improve it for everyone.  
+
 ## Download
 
 [<img src="https://github.com/user-attachments/assets/a50513b3-dbf8-48c1-bff8-1f4215fefbb9"
 alt="Get it on GitHub"
-height="80">](https://github.com/sakethpathike/Linkora/releases)
+height="80">](https://github.com/sakethpathike/Linkora/releases) [<img src="https://f-droid.org/badge/get-it-on.png"
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/com.sakethh.linkora)
 
 ## Features
 
