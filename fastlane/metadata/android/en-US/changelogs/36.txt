@@ -1,0 +1,4 @@
+- Added multi-selection for copying, moving, deleting, archiving, and unarchiving links/folders.
+- Archived folders now display correctly on mobile.
+- AMOLED theme loads as expected on launch if preferred.
+- Sync-server no longer breaks link-folder connections on link refresh. If affected, refresh all links from Data settings (Applies only if using sync-server).
