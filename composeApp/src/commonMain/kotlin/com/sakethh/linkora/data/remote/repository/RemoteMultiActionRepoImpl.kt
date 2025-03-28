@@ -6,7 +6,7 @@ import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
-import com.sakethh.linkora.domain.dto.server.CopyItemsResponseDTO
+import com.sakethh.linkora.domain.dto.server.CopyItemsHTTPResponseDTO
 import com.sakethh.linkora.domain.dto.server.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
@@ -49,7 +49,7 @@ class RemoteMultiActionRepoImpl(
         )
     }
 
-    override suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Flow<Result<CopyItemsResponseDTO>> {
+    override suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Flow<Result<CopyItemsHTTPResponseDTO>> {
         return postFlow(
             httpClient = httpClient,
             baseUrl = baseUrl,

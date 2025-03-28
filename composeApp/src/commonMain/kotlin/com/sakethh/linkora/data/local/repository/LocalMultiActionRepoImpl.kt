@@ -204,7 +204,6 @@ class LocalMultiActionRepoImpl(
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                linkoraLog(copiedLinksIds.toMap())
                 remoteMultiActionRepo.copyMultipleItems(
                     CopyItemsDTO(
                         folders = copiedFolders, linkIds = copiedLinksIds.toMap(),
@@ -230,7 +229,18 @@ class LocalMultiActionRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                // TODO
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name,
+                        payload = Json.encodeToString(CopyItemsDTO(
+                            folders = copiedFolders, linkIds = copiedLinksIds.toMap(),
+                            linkType = linkType,
+                            newParentFolderId = foldersDao.getRemoteIdOfAFolder(newParentFolderId)
+                                ?: -45454,
+                            eventTimestamp = eventTimeStamp
+                        ))
+                    )
+                )
             }) {
             coroutineScope {
                 awaitAll(async {

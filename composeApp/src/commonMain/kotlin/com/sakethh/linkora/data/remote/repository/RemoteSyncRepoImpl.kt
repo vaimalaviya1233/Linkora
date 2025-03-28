@@ -12,6 +12,8 @@ import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.common.utils.postFlow
 import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.common.utils.wrappedResultFlow
+import com.sakethh.linkora.data.local.dao.FoldersDao
+import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
@@ -20,6 +22,8 @@ import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
+import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
+import com.sakethh.linkora.domain.dto.server.CopyItemsSocketResponseDTO
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.dto.server.DeleteEverythingDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -98,7 +102,9 @@ class RemoteSyncRepoImpl(
     private val remotePanelsRepo: RemotePanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     private val localMultiActionRepo: LocalMultiActionRepo,
-    private val remoteMultiActionRepo: RemoteMultiActionRepo
+    private val remoteMultiActionRepo: RemoteMultiActionRepo,
+    private val linksDao: LinksDao,
+    private val foldersDao: FoldersDao
 ) : RemoteSyncRepo {
     private val json = Json {
         this.ignoreUnknownKeys = true
@@ -152,6 +158,27 @@ class RemoteSyncRepoImpl(
                 send(Result.Loading(message = "[QUEUE] Processing queue item (ID: ${queueItem.id}, Operation: ${queueItem.operation})"))
 
                 when (queueItem.operation) {
+
+                    RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name -> {
+                        val copiedFoldersDTO =
+                            Json.decodeFromString<CopyItemsDTO>(queueItem.payload)
+                        remoteMultiActionRepo.copyMultipleItems(copiedFoldersDTO).collect {
+                            it.onSuccess {
+                                it.data.linkIds.forEach {
+                                    linksDao.updateRemoteLinkId(it.key, it.value)
+                                }
+                                it.data.folders.forEach {
+                                    foldersDao.updateARemoteLinkId(
+                                        it.currentFolder.localId, it.currentFolder.remoteId
+                                    )
+                                    it.links.forEach {
+                                        linksDao.updateRemoteLinkId(it.localId, it.remoteId)
+                                    }
+                                }
+                                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.data.eventTimestamp)
+                            }
+                        }
+                    }
 
                     RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name -> {
                         val markItemsRegularDTO =
@@ -689,6 +716,21 @@ class RemoteSyncRepoImpl(
     ) {
         when (deserializedWebSocketEvent.operation) {
 
+            RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name -> {
+                val copyItemsSocketResponseDTO =
+                    Json.decodeFromJsonElement<CopyItemsSocketResponseDTO>(
+                        deserializedWebSocketEvent.payload
+                    )
+                if (copyItemsSocketResponseDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(
+                        copyItemsSocketResponseDTO.eventTimestamp
+                    )
+                    return
+                }
+                applyUpdatesFromRemote(copyItemsSocketResponseDTO.eventTimestamp - 1).collectAndUpdateTimestamp(
+                    copyItemsSocketResponseDTO.eventTimestamp
+                )
+            }
             RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name -> {
                 val markItemsRegularDTO =
                     Json.decodeFromJsonElement<MarkItemsRegularDTO>(deserializedWebSocketEvent.payload)
