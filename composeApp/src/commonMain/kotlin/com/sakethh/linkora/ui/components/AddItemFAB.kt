@@ -1,8 +1,13 @@
 package com.sakethh.linkora.ui.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -38,15 +43,19 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 data class AddItemFABParam @OptIn(ExperimentalMaterial3Api::class) constructor(
-    val newLinkBottomModalSheetState: SheetState,
-    val shouldBtmSheetForNewLinkAdditionBeEnabled: MutableState<Boolean>,
-    val shouldScreenTransparencyDecreasedBoxVisible: MutableState<Boolean>,
-    val shouldDialogForNewFolderAppear: MutableState<Boolean>,
-    val shouldDialogForNewLinkAppear: MutableState<Boolean>,
+    val showBtmSheetForNewLinkAddition: MutableState<Boolean>,
+    val isReducedTransparencyBoxVisible: MutableState<Boolean>,
+    val showDialogForNewFolder: MutableState<Boolean>,
+    val shouldShowAddLinkDialog: MutableState<Boolean>,
     val isMainFabRotated: MutableState<Boolean>,
     val rotationAnimation: Animatable<Float, AnimationVector1D>,
     val inASpecificScreen: Boolean
 )
+
+
+// There are a couple of things in this file I'd do differently if I was writing it now.
+// I mostly copy-pasted this during the KMP migration from Android-only, so it’s been some time since I wrote it.
+
 
 @Composable
 fun AddItemFab(
@@ -87,14 +96,12 @@ fun AddItemFab(
         ) {
             if (addItemFABParam.isMainFabRotated.value) {
                 AnimatedVisibility(
-                    visible = addItemFABParam.isMainFabRotated.value,
-                    enter = androidx.compose.animation.fadeIn(
-                        androidx.compose.animation.core.tween(
+                    visible = addItemFABParam.isMainFabRotated.value, enter = fadeIn(
+                        tween(
                             200
                         )
-                    ),
-                    exit = androidx.compose.animation.fadeOut(
-                        androidx.compose.animation.core.tween(
+                    ), exit = fadeOut(
+                        tween(
                             200
                         )
                     )
@@ -113,21 +120,24 @@ fun AddItemFab(
             AnimatedVisibility(
                 visible = addItemFABParam.isMainFabRotated.value,
                 enter = androidx.compose.animation.scaleIn(
-                    animationSpec = androidx.compose.animation.core.tween(
+                    animationSpec = tween(
                         300
                     )
                 ),
                 exit = androidx.compose.animation.scaleOut(
-                    androidx.compose.animation.core.tween(300)
+                    tween(300)
                 )
             ) {
                 FloatingActionButton(
                     modifier = Modifier.pulsateEffect(),
                     onClick = {
-                        addItemFABParam.shouldScreenTransparencyDecreasedBoxVisible.value =
+                        addItemFABParam.isReducedTransparencyBoxVisible.value =
                             false
-                        addItemFABParam.shouldDialogForNewFolderAppear.value = true
+                        addItemFABParam.showDialogForNewFolder.value = true
                         addItemFABParam.isMainFabRotated.value = false
+                        coroutineScope.launch {
+                            addItemFABParam.rotationAnimation.snapTo(-180f)
+                        }
                     }) {
                     Icon(
                         imageVector = Icons.Default.CreateNewFolder,
@@ -149,15 +159,13 @@ fun AddItemFab(
         ) {
             if (addItemFABParam.isMainFabRotated.value) {
                 AnimatedVisibility(
-                    visible = addItemFABParam.isMainFabRotated.value,
-                    enter = androidx.compose.animation.fadeIn(
-                        androidx.compose.animation.core.tween(
-                            200
+                    visible = addItemFABParam.isMainFabRotated.value, enter = fadeIn(
+                        tween(
+                            300
                         )
-                    ),
-                    exit = androidx.compose.animation.fadeOut(
-                        androidx.compose.animation.core.tween(
-                            200
+                    ), exit = fadeOut(
+                        tween(
+                            300
                         )
                     )
                 ) {
@@ -180,34 +188,35 @@ fun AddItemFab(
                     .pulsateEffect(),
                 onClick = {
                     if (addItemFABParam.isMainFabRotated.value) {
-                        addItemFABParam.shouldScreenTransparencyDecreasedBoxVisible.value =
+                        addItemFABParam.isReducedTransparencyBoxVisible.value =
                             false
-                        addItemFABParam.shouldDialogForNewLinkAppear.value = true
+                        addItemFABParam.shouldShowAddLinkDialog.value = true
                         addItemFABParam.isMainFabRotated.value = false
+                        coroutineScope.launch {
+                            addItemFABParam.rotationAnimation.snapTo(-180f)
+                        }
                     } else {
                         coroutineScope.launch {
                             kotlinx.coroutines.awaitAll(async {
                                 addItemFABParam.rotationAnimation.animateTo(
-                                    360f,
-                                    animationSpec = androidx.compose.animation.core.tween(300)
+                                    180f, animationSpec = tween(500)
                                 )
                             }, async {
-                                addItemFABParam.shouldScreenTransparencyDecreasedBoxVisible.value =
+                                addItemFABParam.isReducedTransparencyBoxVisible.value =
                                     true
                                 kotlinx.coroutines.delay(10L)
                                 addItemFABParam.isMainFabRotated.value = true
                             })
-                        }.invokeOnCompletion {
-                            coroutineScope.launch {
-                                addItemFABParam.rotationAnimation.snapTo(0f)
-                            }
                         }
                     }
                 }) {
-                Icon(
-                    imageVector = currentIconForMainFAB.value,
-                    contentDescription = null
-                )
+                AnimatedContent(targetState = currentIconForMainFAB.value, transitionSpec = {
+                    fadeIn(tween(500)) togetherWith fadeOut(tween(250))
+                }) {
+                    Icon(
+                        imageVector = it, contentDescription = null
+                    )
+                }
             }
         }
     }

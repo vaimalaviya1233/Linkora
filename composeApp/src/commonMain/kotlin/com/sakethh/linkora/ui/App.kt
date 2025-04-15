@@ -1,8 +1,11 @@
 package com.sakethh.linkora.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -157,10 +160,10 @@ fun App(
     val snackbarHostState = remember {
         SnackbarHostState()
     }
-    val shouldRenameDialogBoxBeVisible = rememberSaveable {
+    val showRenameDialogBox = rememberSaveable {
         mutableStateOf(false)
     }
-    val shouldDeleteDialogBoxBeVisible = rememberSaveable {
+    val showDeleteDialogBox = rememberSaveable {
         mutableStateOf(false)
     }
     val menuBtmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -186,7 +189,7 @@ fun App(
             )
         )
     }
-    val shouldMenuBtmModalSheetBeVisible = rememberSaveable {
+    val menuBtmModalSheetVisible = rememberSaveable {
         mutableStateOf(false)
     }
     val shouldShowAddLinkDialog = rememberSaveable {
@@ -195,7 +198,7 @@ fun App(
     val shouldShowNewFolderDialog = rememberSaveable {
         mutableStateOf(false)
     }
-    val shouldSortingBottomSheetAppear = rememberSaveable {
+    val sortingBottomSheetVisible = rememberSaveable {
         mutableStateOf(false)
     }
     val sortingBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -217,7 +220,7 @@ fun App(
 
                 is UIEvent.Type.ShowAddANewFolderDialogBox -> shouldShowNewFolderDialog.value = true
                 is UIEvent.Type.ShowAddANewLinkDialogBox -> shouldShowAddLinkDialog.value = true
-                is UIEvent.Type.ShowDeleteDialogBox -> shouldDeleteDialogBoxBeVisible.value = true
+                is UIEvent.Type.ShowDeleteDialogBox -> showDeleteDialogBox.value = true
 
                 is UIEvent.Type.ShowMenuBtmSheetUI -> {
                     menuBtmSheetFor.value = eventType.menuBtmSheetFor
@@ -231,16 +234,16 @@ fun App(
                         menuBtmSheetVM.updateArchiveLinkInfo(eventType.selectedLinkForMenuBtmSheet.url)
                         selectedLinkForMenuBtmSheet.value = eventType.selectedLinkForMenuBtmSheet
                     }
-                    shouldMenuBtmModalSheetBeVisible.value = true
+                    menuBtmModalSheetVisible.value = true
                     this.launch {
                         menuBtmModalSheetState.show()
                     }
                 }
 
-                is UIEvent.Type.ShowRenameDialogBox -> shouldRenameDialogBoxBeVisible.value = true
+                is UIEvent.Type.ShowRenameDialogBox -> showRenameDialogBox.value = true
 
                 is UIEvent.Type.ShowSortingBtmSheetUI -> {
-                    shouldSortingBottomSheetAppear.value = true
+                    sortingBottomSheetVisible.value = true
                     this.launch {
                         sortingBtmSheetState.show()
                     }
@@ -269,7 +272,6 @@ fun App(
         rememberStandardBottomSheetState(skipHiddenState = false, initialValue = SheetValue.Hidden)
     val scaffoldSheetState =
         rememberBottomSheetScaffoldState(bottomSheetState = standardBottomSheet)
-    val btmModalSheetStateForSavingLinks = rememberModalBottomSheetState()
 
     val isMainFabRotated = rememberSaveable {
         mutableStateOf(false)
@@ -277,10 +279,10 @@ fun App(
     val rotationAnimation = remember {
         Animatable(0f)
     }
-    val shouldScreenTransparencyDecreasedBoxVisible = rememberSaveable {
+    val isReducedTransparencyBoxVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    val shouldBtmSheetForNewLinkAdditionBeEnabled = rememberSaveable {
+    val showBtmSheetForNewLinkAddition = rememberSaveable {
         mutableStateOf(false)
     }
     val coroutineScope = rememberCoroutineScope()
@@ -647,11 +649,10 @@ fun App(
                 }
                 AddItemFab(
                     AddItemFABParam(
-                        newLinkBottomModalSheetState = btmModalSheetStateForSavingLinks,
-                        shouldBtmSheetForNewLinkAdditionBeEnabled = shouldBtmSheetForNewLinkAdditionBeEnabled,
-                        shouldScreenTransparencyDecreasedBoxVisible = shouldScreenTransparencyDecreasedBoxVisible,
-                        shouldDialogForNewFolderAppear = shouldShowNewFolderDialog,
-                        shouldDialogForNewLinkAppear = shouldShowAddLinkDialog,
+                        showBtmSheetForNewLinkAddition = showBtmSheetForNewLinkAddition,
+                        isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
+                        showDialogForNewFolder = shouldShowNewFolderDialog,
+                        shouldShowAddLinkDialog = shouldShowAddLinkDialog,
                         isMainFabRotated = isMainFabRotated,
                         rotationAnimation = rotationAnimation,
                         inASpecificScreen = false
@@ -779,21 +780,19 @@ fun App(
                 }
             }
 
-            if (shouldScreenTransparencyDecreasedBoxVisible.value) {
+            AnimatedVisibility(
+                visible = isReducedTransparencyBoxVisible.value, enter = fadeIn(), exit = fadeOut()
+            ) {
                 Box(
                     modifier = Modifier.fillMaxSize()
                         .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
-                            shouldScreenTransparencyDecreasedBoxVisible.value = false
+                            isReducedTransparencyBoxVisible.value = false
                             coroutineScope.launch {
                                 awaitAll(async {
                                     rotationAnimation.animateTo(
-                                        -360f, animationSpec = tween(300)
+                                        -180f, animationSpec = tween(500)
                                     )
                                 }, async { isMainFabRotated.value = false })
-                            }.invokeOnCompletion {
-                                coroutineScope.launch {
-                                    rotationAnimation.snapTo(0f)
-                                }
                             }
                         })
             }
@@ -833,13 +832,13 @@ fun App(
             MenuBtmSheetUI(
                 menuBtmSheetParam = MenuBtmSheetParam(
                     btmModalSheetState = menuBtmModalSheetState,
-                    shouldBtmModalSheetBeVisible = shouldMenuBtmModalSheetBeVisible,
+                    shouldBtmModalSheetBeVisible = menuBtmModalSheetVisible,
                     menuBtmSheetFor = menuBtmSheetFor.value,
                     onDelete = {
-                        shouldDeleteDialogBoxBeVisible.value = true
+                        showDeleteDialogBox.value = true
                     },
                     onRename = {
-                        shouldRenameDialogBoxBeVisible.value = true
+                        showRenameDialogBox.value = true
                     },
                     onArchive = {
                         initializeIfServerConfigured {
@@ -852,7 +851,7 @@ fun App(
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
-                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                        menuBtmModalSheetVisible.value = false
                                     }
                                     collectionsScreenVM.triggerFoldersSorting()
                                 })
@@ -863,7 +862,7 @@ fun App(
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
-                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                        menuBtmModalSheetVisible.value = false
                                     }
                                     collectionsScreenVM.triggerLinksSorting()
                                 })
@@ -880,7 +879,7 @@ fun App(
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
-                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                        menuBtmModalSheetVisible.value = false
                                     }
                                 })
                         } else {
@@ -890,7 +889,7 @@ fun App(
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
-                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                        menuBtmModalSheetVisible.value = false
                                     }
                                 })
                         }
@@ -905,7 +904,7 @@ fun App(
                                 coroutineScope.launch {
                                     menuBtmModalSheetState.hide()
                                 }.invokeOnCompletion {
-                                    shouldMenuBtmModalSheetBeVisible.value = false
+                                    menuBtmModalSheetVisible.value = false
                                 }
                             })
                     },
@@ -926,7 +925,7 @@ fun App(
                                 coroutineScope.launch {
                                     menuBtmModalSheetState.hide()
                                 }.invokeOnCompletion {
-                                    shouldMenuBtmModalSheetBeVisible.value = false
+                                    menuBtmModalSheetVisible.value = false
                                 }
                             })
                     },
@@ -938,7 +937,7 @@ fun App(
             )
             DeleteDialogBox(
                 DeleteDialogBoxParam(
-                    shouldDeleteDialogBoxBeVisible,
+                    showDeleteDialogBox,
                     if (CollectionsScreenVM.isSelectionEnabled.value) DeleteDialogBoxType.SELECTED_DATA else if (menuBtmSheetFolderEntries().contains(
                             menuBtmSheetFor.value
                         )
@@ -956,7 +955,7 @@ fun App(
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
-                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                        menuBtmModalSheetVisible.value = false
                                     }
                                     collectionsScreenVM.triggerFoldersSorting()
                                     onCompletion()
@@ -967,7 +966,7 @@ fun App(
                                     coroutineScope.launch {
                                         menuBtmModalSheetState.hide()
                                     }.invokeOnCompletion {
-                                        shouldMenuBtmModalSheetBeVisible.value = false
+                                        menuBtmModalSheetVisible.value = false
                                     }
                                     collectionsScreenVM.triggerLinksSorting()
                                     onCompletion()
@@ -984,7 +983,7 @@ fun App(
                                 newNote = newNote,
                                 onCompletion = {
                                     onCompletion()
-                                    shouldRenameDialogBoxBeVisible.value = false
+                                    showRenameDialogBox.value = false
                                 })
                         } else {
                             collectionsScreenVM.updateLinkNote(
@@ -992,11 +991,11 @@ fun App(
                                 newNote = newNote,
                                 onCompletion = {
                                     onCompletion()
-                                    shouldRenameDialogBoxBeVisible.value = false
+                                    showRenameDialogBox.value = false
                                 })
                         }
                     },
-                    shouldDialogBoxAppear = shouldRenameDialogBoxBeVisible,
+                    shouldDialogBoxAppear = showRenameDialogBox,
                     existingFolderName = selectedFolderForMenuBtmSheet.value.name,
                     onBothTitleAndNoteChangeClick = { title, note, onCompletion ->
                         if (menuBtmSheetFor.value in menuBtmSheetFolderEntries()) {
@@ -1006,7 +1005,7 @@ fun App(
                                 pushSnackbarOnSuccess = false,
                                 onCompletion = {
                                     onCompletion()
-                                    shouldRenameDialogBoxBeVisible.value = false
+                                    showRenameDialogBox.value = false
                                 })
                             collectionsScreenVM.updateFolderName(
                                 folder = selectedFolderForMenuBtmSheet.value,
@@ -1015,7 +1014,7 @@ fun App(
                                 onCompletion = {
                                     onCompletion()
                                     collectionsScreenVM.triggerFoldersSorting()
-                                    shouldRenameDialogBoxBeVisible.value = false
+                                    showRenameDialogBox.value = false
                                 })
                         } else {
                             collectionsScreenVM.updateLinkNote(
@@ -1024,7 +1023,7 @@ fun App(
                                 pushSnackbarOnSuccess = false,
                                 onCompletion = {
                                     onCompletion()
-                                    shouldRenameDialogBoxBeVisible.value = false
+                                    showRenameDialogBox.value = false
                                 })
                             collectionsScreenVM.updateLinkTitle(
                                 linkId = selectedLinkForMenuBtmSheet.value.localId,
@@ -1032,13 +1031,13 @@ fun App(
                                 onCompletion = {
                                     onCompletion()
                                     collectionsScreenVM.triggerLinksSorting()
-                                    shouldRenameDialogBoxBeVisible.value = false
+                                    showRenameDialogBox.value = false
                                 })
                         }
                         coroutineScope.launch {
                             menuBtmModalSheetState.hide()
                         }.invokeOnCompletion {
-                            shouldMenuBtmModalSheetBeVisible.value = false
+                            menuBtmModalSheetVisible.value = false
                         }
                     },
                     existingTitle = if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) selectedFolderForMenuBtmSheet.value.name else selectedLinkForMenuBtmSheet.value.title,
@@ -1048,7 +1047,7 @@ fun App(
 
             SortingBottomSheetUI(
                 SortingBottomSheetParam(
-                    shouldBottomSheetBeVisible = shouldSortingBottomSheetAppear,
+                    shouldBottomSheetBeVisible = sortingBottomSheetVisible,
                     onSelected = { sortingPreferences, _, _ -> },
                     bottomModalSheetState = sortingBtmSheetState,
                     sortingBtmSheetType = SortingBtmSheetType.COLLECTIONS_SCREEN,
