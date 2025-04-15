@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.DatasetLinked
@@ -41,7 +42,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -127,13 +131,7 @@ fun CollectionsScreen(
                     )
                 }
                 item {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(
-                            top = 15.dp,
-                            start = 25.dp,
-                            end = if (platform() is Platform.Android.Mobile) 25.dp else 5.dp
-                        ), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                    )
+                    ItemDivider()
                 }
                 item {
                     DefaultFolderComponent(
@@ -221,21 +219,11 @@ fun CollectionsScreen(
                         },
                         isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID
                     )
+                }
 
-                }
-                item {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(
-                            start = 20.dp,
-                            top = 15.dp,
-                            bottom = 10.dp,
-                            end = if (platform() is Platform.Android.Mobile) 20.dp else 0.dp
-                        ), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                    )
-                }
                 item {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.padding(top = 15.dp).fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -379,4 +367,20 @@ private fun DefaultFolderComponent(
             )
         }
     }
+}
+
+@Composable
+fun ItemDivider(
+    colorOpacity: Float = 0.35f,
+    thickness: Dp = 1.5.dp,
+    paddingValues: PaddingValues = PaddingValues(
+        top = 15.dp, start = 25.dp, end = if (platform() is Platform.Android.Mobile) 25.dp else 5.dp
+    ),
+    color: Color = MaterialTheme.colorScheme.outline
+) {
+    HorizontalDivider(
+        modifier = Modifier.padding(
+            paddingValues
+        ).clip(RoundedCornerShape(25.dp)), thickness = thickness, color = color.copy(colorOpacity)
+    )
 }

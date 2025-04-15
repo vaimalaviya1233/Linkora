@@ -1,6 +1,9 @@
 package com.sakethh.linkora.ui.components.link
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -8,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +26,6 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ImageNotSupported
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +48,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
+import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.onShare
 
@@ -188,10 +192,16 @@ fun LinkListItemComposable(
                 }
             }
         }
-        HorizontalDivider(
-            modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outline.copy(0.25f)
-        )
+        AnimatedVisibility(
+            visible = linkUIComponentParam.isSelectionModeEnabled.value.not(),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            ItemDivider(
+                colorOpacity = 0.25f,
+                color = MaterialTheme.colorScheme.outline,
+                paddingValues = PaddingValues(top = 2.5.dp, bottom = 2.5.dp, end = 10.dp)
+            )
+        }
     }
 }

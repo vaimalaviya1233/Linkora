@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 
@@ -124,10 +125,10 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                 }
             }
         }
-        HorizontalDivider(
-            modifier = Modifier.padding(start = 25.dp, end = 25.dp),
-            thickness = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(0.25f)
+        ItemDivider(
+            colorOpacity = 0.25f,
+            thickness = 1.25.dp,
+            paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
         )
     }
 }
