@@ -626,39 +626,43 @@ fun App(
                 }
                 }
             }, floatingActionButton = {
-            if (showAddingLinkOrFoldersFAB.value && CollectionsScreenVM.isSelectionEnabled.value.not()) {
-                if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
-                        Constants.SAVED_LINKS_ID,
-                        Constants.IMPORTANT_LINKS_ID,
-                        Constants.ALL_LINKS_ID
-                    )
+                AnimatedVisibility(
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    visible = showAddingLinkOrFoldersFAB.value && CollectionsScreenVM.isSelectionEnabled.value.not()
                 ) {
-                    FloatingActionButton(
-                        modifier = Modifier.padding(
-                            bottom = if (platform() == Platform.Android.Mobile && rootRouteList.any {
-                                    currentRoute?.hasRoute(it::class) == true
-                                }) 82.dp else 0.dp
-                        ), onClick = {
-                            shouldShowAddLinkDialog.value = true
-                        }) {
-                        Icon(
-                            imageVector = Icons.Default.AddLink, contentDescription = null
+                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
+                            Constants.SAVED_LINKS_ID,
+                            Constants.IMPORTANT_LINKS_ID,
+                            Constants.ALL_LINKS_ID
                         )
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier.padding(
+                                bottom = if (platform() == Platform.Android.Mobile && rootRouteList.any {
+                                        currentRoute?.hasRoute(it::class) == true
+                                    }) 82.dp else 0.dp
+                            ), onClick = {
+                                shouldShowAddLinkDialog.value = true
+                            }) {
+                            Icon(
+                                imageVector = Icons.Default.AddLink, contentDescription = null
+                            )
+                        }
+                        return@AnimatedVisibility
                     }
-                    return@Scaffold
-                }
-                AddItemFab(
-                    AddItemFABParam(
-                        showBtmSheetForNewLinkAddition = showBtmSheetForNewLinkAddition,
-                        isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
-                        showDialogForNewFolder = shouldShowNewFolderDialog,
-                        shouldShowAddLinkDialog = shouldShowAddLinkDialog,
-                        isMainFabRotated = isMainFabRotated,
-                        rotationAnimation = rotationAnimation,
-                        inASpecificScreen = false
+                    AddItemFab(
+                        AddItemFABParam(
+                            showBtmSheetForNewLinkAddition = showBtmSheetForNewLinkAddition,
+                            isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
+                            showDialogForNewFolder = shouldShowNewFolderDialog,
+                            shouldShowAddLinkDialog = shouldShowAddLinkDialog,
+                            isMainFabRotated = isMainFabRotated,
+                            rotationAnimation = rotationAnimation,
+                            inASpecificScreen = false
+                        )
                     )
-                )
-            }
+                }
         }, snackbarHost = {
             SnackbarHost(snackbarHostState, snackbar = {
                 Snackbar(
