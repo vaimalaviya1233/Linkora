@@ -79,7 +79,7 @@ open class SettingsScreenViewModel(
                 doesDescriptionExists = true,
                 description = Localization.getLocalizedString(Localization.Key.ShowAssociatedImageInLinkMenuDesc),
                 isSwitchNeeded = true,
-                isSwitchEnabled = AppPreferences.showAssociatedImagesInLinkMenu,
+                isSwitchEnabled = AppPreferences.showAssociatedImageInLinkMenu,
                 isIconNeeded = mutableStateOf(true),
                 icon = Icons.Default.Image,
                 onSwitchStateChange = {
@@ -89,7 +89,7 @@ open class SettingsScreenViewModel(
                                 AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name
                             ), newValue = it
                         )
-                        AppPreferences.showAssociatedImagesInLinkMenu.value = it
+                        AppPreferences.showAssociatedImageInLinkMenu.value = it
                     }
                 })
         )

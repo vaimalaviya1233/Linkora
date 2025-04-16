@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -76,7 +77,6 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
@@ -341,7 +341,11 @@ fun HomeScreen() {
     }
     com.sakethh.PlatformSpecificBackHandler {
         homeScreenVM.viewModelScope.launch {
-            UIEvent.pushUIEvent(UIEvent.Type.MinimizeTheApp)
+            if (navController.currentBackStackEntry?.destination?.hasRoute(Navigation.Root.HomeScreen::class) == true) {
+                UIEvent.pushUIEvent(UIEvent.Type.MinimizeTheApp)
+            } else {
+                navController.navigateUp()
+            }
         }
     }
 }

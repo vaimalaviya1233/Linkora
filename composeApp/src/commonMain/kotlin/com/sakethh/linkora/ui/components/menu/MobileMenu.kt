@@ -6,6 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,6 +50,7 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.ui.components.CoilImage
+import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.fadedEdges
@@ -73,7 +75,7 @@ fun MobileMenu(
     ) {
         if (menuBtmSheetLinkEntries().contains(
                 menuBtmSheetParam.menuBtmSheetFor
-            ) && menuBtmSheetParam.link!!.value.imgURL.isNotEmpty() && AppPreferences.showAssociatedImagesInLinkMenu.value
+            ) && menuBtmSheetParam.link!!.value.imgURL.isNotEmpty() && AppPreferences.showAssociatedImageInLinkMenu.value
         ) {
             Box(
                 modifier = Modifier.fillMaxWidth()
@@ -121,44 +123,39 @@ fun MobileMenu(
                 color = MaterialTheme.colorScheme.outline.copy(0.1f)
             )
             Spacer(Modifier.height(5.dp))
-        }
-        if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) {
-            Row(
-                modifier = Modifier.combinedClickable(interactionSource = remember {
-                    MutableInteractionSource()
-                }, indication = null, onClick = {
-                    localClipBoardManager.setText(AnnotatedString(if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) menuBtmSheetParam.folder!!.value.name else menuBtmSheetParam.link!!.value.title))
+        } else {
+            MenuNonImageHeader(
+                onClick = {
+                    localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.link.value.title))
                     coroutineScope.pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
                         )
                     )
-                }).pulsateEffect().fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.Folder else Icons.Outlined.Link,
-                    null,
-                    modifier = Modifier.padding(20.dp).size(28.dp)
-                )
+                },
+                menuBtmSheetType = MenuBtmSheetType.Link.FolderLink,
+                text = menuBtmSheetParam.link!!.value.title.toString()
+            )
+            ItemDivider(
+                colorOpacity = 0.25f, paddingValues = PaddingValues(start = 15.dp, end = 15.dp)
+            )
+        }
 
-                Text(
-                    text = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) menuBtmSheetParam.folder!!.value.name else menuBtmSheetParam.link!!.value.title,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(
-                        end = 20.dp
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp
-                )
-            }
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 25.dp, end = 25.dp),
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(0.25f)
+        if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) {
+            MenuNonImageHeader(
+                onClick = {
+                    localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.folder.value.name))
+                    coroutineScope.pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
+                        )
+                    )
+                },
+                menuBtmSheetType = MenuBtmSheetType.Folder.RegularFolder,
+                text = menuBtmSheetParam.folder!!.value.name.toString()
+            )
+            ItemDivider(
+                colorOpacity = 0.25f, paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
             )
             Spacer(Modifier.height(5.dp))
         }
@@ -216,5 +213,35 @@ fun MobileMenu(
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
+    }
+}
+
+@ExperimentalFoundationApi
+@Composable
+fun MenuNonImageHeader(onClick: () -> Unit, menuBtmSheetType: MenuBtmSheetType, text: String) {
+    Row(
+        modifier = Modifier.combinedClickable(interactionSource = remember {
+            MutableInteractionSource()
+        }, indication = null, onClick = onClick).pulsateEffect().fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = if (menuBtmSheetType == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.Folder else Icons.Outlined.Link,
+            null,
+            modifier = Modifier.padding(20.dp).size(28.dp)
+        )
+
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(
+                end = 20.dp
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            lineHeight = 20.sp
+        )
     }
 }

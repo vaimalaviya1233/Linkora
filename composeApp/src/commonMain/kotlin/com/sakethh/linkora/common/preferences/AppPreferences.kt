@@ -31,7 +31,7 @@ object AppPreferences {
 
     val isInAppWebTabEnabled = mutableStateOf(true)
     val isAutoDetectTitleForLinksEnabled = mutableStateOf(false)
-    val showAssociatedImagesInLinkMenu = mutableStateOf(false)
+    val showAssociatedImageInLinkMenu = mutableStateOf(false)
     val isBtmSheetEnabledForSavingLinks = mutableStateOf(false)
     val isHomeScreenEnabled = mutableStateOf(true)
     val isSendCrashReportsEnabled = mutableStateOf(true)
@@ -213,7 +213,7 @@ object AppPreferences {
                     ) ?: SortingType.NEW_TO_OLD.name
                 },
                 launch {
-                    showAssociatedImagesInLinkMenu.value =
+                    showAssociatedImageInLinkMenu.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name),
 
