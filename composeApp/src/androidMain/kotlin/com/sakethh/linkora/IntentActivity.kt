@@ -58,7 +58,7 @@ class IntentActivity : ComponentActivity() {
                     }
                 }
                 LaunchedEffect(Unit) {
-                    UIEvent.uiEventsReadOnlyChannel.collectLatest {
+                    UIEvent.uiEvents.collectLatest {
                         if (it is UIEvent.Type.ShowSnackbar) {
                             // Toast isn't supposed to show, but as soon as `shouldUIBeVisible` isn't true, the snackbar won't show either
                             // toast stays on the UI for a while, no matter what happens with the clearance

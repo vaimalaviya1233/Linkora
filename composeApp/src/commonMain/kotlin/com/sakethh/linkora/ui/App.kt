@@ -137,8 +137,6 @@ import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -212,7 +210,7 @@ fun App(
     })
 
     LaunchedEffect(Unit) {
-        UIEvent.uiEventsReadOnlyChannel.collectLatest { eventType ->
+        UIEvent.uiEvents.collectLatest { eventType ->
             when (eventType) {
                 is UIEvent.Type.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(message = eventType.message)
@@ -248,6 +246,7 @@ fun App(
                         sortingBtmSheetState.show()
                     }
                 }
+                else -> Unit
             }
         }
     }
@@ -273,9 +272,6 @@ fun App(
     val scaffoldSheetState =
         rememberBottomSheetScaffoldState(bottomSheetState = standardBottomSheet)
 
-    val isMainFabRotated = rememberSaveable {
-        mutableStateOf(false)
-    }
     val rotationAnimation = remember {
         Animatable(0f)
     }
@@ -322,6 +318,14 @@ fun App(
             ).any {
                 currentBackStackEntryState.value?.destination?.hasRoute(it::class) == true
             } && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ARCHIVE_ID
+        }
+    }
+    LaunchedEffect(AppVM.isMainFabRotated.value) {
+        if (AppVM.isMainFabRotated.value.not()) {
+            isReducedTransparencyBoxVisible.value = false
+            rotationAnimation.animateTo(
+                -180f, animationSpec = tween(500)
+            )
         }
     }
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
@@ -657,7 +661,7 @@ fun App(
                             isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
                             showDialogForNewFolder = shouldShowNewFolderDialog,
                             shouldShowAddLinkDialog = shouldShowAddLinkDialog,
-                            isMainFabRotated = isMainFabRotated,
+                            isMainFabRotated = AppVM.isMainFabRotated,
                             rotationAnimation = rotationAnimation,
                             inASpecificScreen = false
                         )
@@ -790,14 +794,7 @@ fun App(
                 Box(
                     modifier = Modifier.fillMaxSize()
                         .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
-                            isReducedTransparencyBoxVisible.value = false
-                            coroutineScope.launch {
-                                awaitAll(async {
-                                    rotationAnimation.animateTo(
-                                        -180f, animationSpec = tween(500)
-                                    )
-                                }, async { isMainFabRotated.value = false })
-                            }
+                            AppVM.isMainFabRotated.value = false
                         })
             }
             AddANewLinkDialogBox(

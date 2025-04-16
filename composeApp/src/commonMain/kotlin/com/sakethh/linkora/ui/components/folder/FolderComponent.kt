@@ -1,5 +1,9 @@
 package com.sakethh.linkora.ui.components.folder
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -50,7 +54,7 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                         0.25f
                     ) else Color.Transparent
                 )
-            )
+            ).animateContentSize()
     ) {
         Row(
             modifier = Modifier
@@ -125,10 +129,16 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                 }
             }
         }
-        ItemDivider(
-            colorOpacity = 0.25f,
-            thickness = 1.25.dp,
-            paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
-        )
+        AnimatedVisibility(
+            visible = folderComponentParam.showCheckBox.value.not(),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            ItemDivider(
+                colorOpacity = 0.25f,
+                thickness = 1.25.dp,
+                paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
+            )
+        }
     }
 }

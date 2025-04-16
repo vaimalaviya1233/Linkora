@@ -30,12 +30,16 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedLinksViaLongClick
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
@@ -141,6 +145,8 @@ class AppVM(
                 }
             }
         }
+
+        val isMainFabRotated = mutableStateOf(false)
     }
 
     fun moveSelectedItems(folderId: Long, onStart: () -> Unit, onCompletion: () -> Unit) {

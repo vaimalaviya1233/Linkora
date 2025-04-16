@@ -1,5 +1,6 @@
 package com.sakethh.linkora
 
+import android.app.Activity
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -41,11 +42,13 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.AndroidUIEvent.pushUIEvent
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,38 +94,50 @@ class MainActivity : ComponentActivity() {
                         )
                     )
                 }
+            val localContext = LocalContext.current as Activity
             LaunchedEffect(Unit) {
-                AndroidUIEvent.androidUIEventChannel.collectLatest {
-                    when (it) {
-                        is AndroidUIEvent.Type.ShowRuntimePermissionForStorage -> {
-                            pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
-                            storageRuntimePermission.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                launch {
+                    UIEvent.uiEvents.collectLatest {
+                        if (it is UIEvent.Type.MinimizeTheApp) {
+                            localContext.moveTaskToBack(true)
                         }
+                    }
+                }
 
-                        is AndroidUIEvent.Type.StoragePermissionGrantedForAndBelowQ -> {
-                            it.isGranted.ifNot {
-                                pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
-                            }.ifTrue {
-                                pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.PermissionGranted.getLocalizedString()))
+                launch {
+                    AndroidUIEvent.androidUIEventChannel.collectLatest {
+                        when (it) {
+                            is AndroidUIEvent.Type.ShowRuntimePermissionForStorage -> {
+                                pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
+                                storageRuntimePermission.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                             }
-                        }
 
-                        is AndroidUIEvent.Type.ImportAFile -> {
-                            activityResultLauncher.launch(it.fileType)
-                        }
-
-                        is AndroidUIEvent.Type.ShowRuntimePermissionForNotifications -> {
-                            if (Build.VERSION.SDK_INT > 32) {
-                                isNotificationPermissionDialogVisible.value = true
+                            is AndroidUIEvent.Type.StoragePermissionGrantedForAndBelowQ -> {
+                                it.isGranted.ifNot {
+                                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
+                                }.ifTrue {
+                                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.PermissionGranted.getLocalizedString()))
+                                }
                             }
-                        }
 
-                        is AndroidUIEvent.Type.NotificationPermissionState -> {
-                            it.isGranted.ifNot {
-                                pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.NotificationPermissionIsRequired.getLocalizedString()))
+                            is AndroidUIEvent.Type.ImportAFile -> {
+                                activityResultLauncher.launch(it.fileType)
                             }
+
+                            is AndroidUIEvent.Type.ShowRuntimePermissionForNotifications -> {
+                                if (Build.VERSION.SDK_INT > 32) {
+                                    isNotificationPermissionDialogVisible.value = true
+                                }
+                            }
+
+                            is AndroidUIEvent.Type.NotificationPermissionState -> {
+                                it.isGranted.ifNot {
+                                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.NotificationPermissionIsRequired.getLocalizedString()))
+                                }
+                            }
+
+                            else -> {}
                         }
-                        else -> {}
                     }
                 }
             }

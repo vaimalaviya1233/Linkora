@@ -50,7 +50,7 @@ expect suspend fun isAnyRefreshingScheduled(): Flow<Boolean?>
 expect fun cancelRefreshingLinks()
 
 @Composable
-expect fun PlatformSpecificBackHandler(init: () -> Unit)
+expect fun PlatformSpecificBackHandler(init: () -> Unit = {})
 
 expect suspend fun permittedToShowNotification(): Boolean
 

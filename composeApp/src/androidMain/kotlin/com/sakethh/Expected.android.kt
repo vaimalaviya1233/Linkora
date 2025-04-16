@@ -43,6 +43,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
@@ -203,7 +204,13 @@ actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
 }
 
 @Composable
-actual fun PlatformSpecificBackHandler(init: () -> Unit) = BackHandler(onBack = init)
+actual fun PlatformSpecificBackHandler(init: () -> Unit) = BackHandler(onBack = {
+    if (AppVM.isMainFabRotated.value) {
+        AppVM.isMainFabRotated.value = false
+    } else {
+        init()
+    }
+})
 
 actual suspend fun permittedToShowNotification(): Boolean {
     return if (Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
