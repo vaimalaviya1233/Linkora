@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,9 +30,10 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,26 +81,28 @@ fun CollectionsScreen(
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val platform = LocalPlatform.current
+    val topAppBarScrollState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         topBar = {
-            Column {
-                TopAppBar(actions = {}, navigationIcon = {}, title = {
+            MediumTopAppBar(
+                colors = TopAppBarDefaults.mediumTopAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
+                scrollBehavior = topAppBarScrollState,
+                title = {
                     Text(
                         text = Navigation.Root.CollectionsScreen.toString(),
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleLarge,
-                        fontSize = 18.sp
+                        fontSize = 22.sp
                     )
                 })
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.25f))
-            }
         }) { padding ->
         Row(modifier = Modifier.padding(padding).fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.fillMaxHeight()
                     .fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.4f)
+                    .nestedScroll(topAppBarScrollState.nestedScrollConnection)
             ) {
                 item {
                     DefaultFolderComponent(
@@ -343,8 +346,7 @@ private fun DefaultFolderComponent(
 ) {
     Card(
         modifier = Modifier.padding(
-            end = if (platform() == Platform.Android.Mobile) 20.dp else 0.dp,
-            start = 20.dp,
+            end = if (platform() == Platform.Android.Mobile) 15.dp else 0.dp, start = 15.dp,
             top = 15.dp
         ).wrapContentHeight().fillMaxWidth().clickable(interactionSource = remember {
             MutableInteractionSource()
@@ -374,7 +376,7 @@ fun ItemDivider(
     colorOpacity: Float = 0.35f,
     thickness: Dp = 1.5.dp,
     paddingValues: PaddingValues = PaddingValues(
-        top = 15.dp, start = 25.dp, end = if (platform() is Platform.Android.Mobile) 25.dp else 5.dp
+        top = 15.dp, start = 20.dp, end = if (platform() is Platform.Android.Mobile) 20.dp else 5.dp
     ),
     color: Color = MaterialTheme.colorScheme.outline
 ) {

@@ -39,12 +39,15 @@ fun SettingsScreen() {
     val topAppBarScrollState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(topBar = {
         Column {
-            LargeTopAppBar(scrollBehavior = topAppBarScrollState, title = {
+            LargeTopAppBar(
+                colors = TopAppBarDefaults.largeTopAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
+                scrollBehavior = topAppBarScrollState,
+                title = {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.Settings),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge,
-                    fontSize = 24.sp
+                    fontSize = 22.sp
                 )
             })
         }

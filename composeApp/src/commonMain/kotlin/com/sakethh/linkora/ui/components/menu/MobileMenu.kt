@@ -123,7 +123,11 @@ fun MobileMenu(
                 color = MaterialTheme.colorScheme.outline.copy(0.1f)
             )
             Spacer(Modifier.height(5.dp))
-        } else {
+        }
+        if (menuBtmSheetLinkEntries().contains(
+                menuBtmSheetParam.menuBtmSheetFor
+            ) && menuBtmSheetParam.link!!.value.imgURL.isEmpty()
+        ) {
             MenuNonImageHeader(
                 onClick = {
                     localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.link.value.title))
@@ -134,7 +138,7 @@ fun MobileMenu(
                     )
                 },
                 menuBtmSheetType = MenuBtmSheetType.Link.FolderLink,
-                text = menuBtmSheetParam.link!!.value.title.toString()
+                text = menuBtmSheetParam.link.value.title.toString()
             )
             ItemDivider(
                 colorOpacity = 0.25f, paddingValues = PaddingValues(start = 15.dp, end = 15.dp)
