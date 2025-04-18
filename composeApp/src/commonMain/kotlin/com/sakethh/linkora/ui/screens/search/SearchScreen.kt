@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.search
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -69,23 +70,29 @@ fun SearchScreen() {
     val coroutineScope = rememberCoroutineScope()
     val localUriHandler = LocalUriHandler.current
     val navController = LocalNavController.current
+    val searchBarPadding =
+        animateDpAsState(if (searchScreenVM.isSearchActive.value.not()) 15.dp else 0.dp)
     Column(modifier = Modifier.fillMaxSize()) {
         ProvideTextStyle(MaterialTheme.typography.titleSmall) {
             SearchBar(
-                query = searchScreenVM.searchQuery.value, onQueryChange = {
+                query = searchScreenVM.searchQuery.value,
+                onQueryChange = {
                     searchScreenVM.updateSearchQuery(it)
-                }, leadingIcon = {
+                },
+                leadingIcon = {
                     Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                }, placeholder = {
+                },
+                placeholder = {
                     Text(
                         text = Localization.Key.SearchTitlesToFindLinksAndFolders.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.basicMarquee(),
                         maxLines = 1
                     )
-                }, modifier = Modifier.animateContentSize().padding(
-                    if (searchScreenVM.isSearchActive.value.not()) 15.dp else 0.dp
-                ).fillMaxWidth().wrapContentHeight(), trailingIcon = {
+                },
+                modifier = Modifier.animateContentSize().padding(searchBarPadding.value)
+                    .fillMaxWidth().wrapContentHeight(),
+                trailingIcon = {
                     Row {
                         if (searchScreenVM.isSearchActive.value) {
                             SortingIconButton()
@@ -100,9 +107,12 @@ fun SearchScreen() {
                             }
                         }
                     }
-                }, onSearch = {
+                },
+                onSearch = {
 
-                }, active = searchScreenVM.isSearchActive.value, onActiveChange = {
+                },
+                active = searchScreenVM.isSearchActive.value,
+                onActiveChange = {
                     searchScreenVM.updateSearchActiveState(it)
                 }) {
                 if (searchScreenVM.searchQuery.value.isBlank()) {
