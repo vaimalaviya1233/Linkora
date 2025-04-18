@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.PresentToAll
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -12,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import kotlinx.coroutines.launch
@@ -20,79 +22,106 @@ open class SettingsScreenViewModel(
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
-    fun generalSection(): List<SettingComponentParam> {
-        return listOf(
-            SettingComponentParam(
-                title = Localization.getLocalizedString(Localization.Key.AutoDetectTitle),
-                doesDescriptionExists = true,
-                description = Localization.getLocalizedString(Localization.Key.AutoDetectTitleDesc),
-                isSwitchNeeded = true,
-                isSwitchEnabled = AppPreferences.isAutoDetectTitleForLinksEnabled,
-                isIconNeeded = mutableStateOf(true),
-                icon = Icons.Default.Search,
-                onSwitchStateChange = {
-                    viewModelScope.launch {
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name
-                            ), newValue = it
-                        )
-                        AppPreferences.isAutoDetectTitleForLinksEnabled.value = it
+    fun generalSection(platform: Platform): List<SettingComponentParam> {
+        return buildList {
+            this.addAll(
+                listOf(
+                    SettingComponentParam(
+                        title = Localization.getLocalizedString(Localization.Key.AutoDetectTitle),
+                        doesDescriptionExists = true,
+                        description = Localization.getLocalizedString(Localization.Key.AutoDetectTitleDesc),
+                        isSwitchNeeded = true,
+                        isSwitchEnabled = AppPreferences.isAutoDetectTitleForLinksEnabled,
+                        isIconNeeded = mutableStateOf(true),
+                        icon = Icons.Default.Search,
+                        onSwitchStateChange = {
+                            viewModelScope.launch {
+                                changeSettingPreferenceValue(
+                                    preferenceKey = booleanPreferencesKey(
+                                        AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name
+                                    ), newValue = it
+                                )
+                                AppPreferences.isAutoDetectTitleForLinksEnabled.value = it
 
-                        if (it) {
-                            changeSettingPreferenceValue(
-                                preferenceKey = booleanPreferencesKey(
-                                    AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name
-                                ), newValue = false
-                            )
-                            AppPreferences.forceSaveWithoutFetchingAnyMetaData.value = false
-                        }
-                    }
-                }), SettingComponentParam(
-                title = Localization.getLocalizedString(Localization.Key.ForceSaveWithoutRetrievingMetadata),
-                doesDescriptionExists = true,
-                description = Localization.getLocalizedString(Localization.Key.ForceSaveWithoutRetrievingMetadataDesc),
-                isSwitchNeeded = true,
-                isSwitchEnabled = AppPreferences.forceSaveWithoutFetchingAnyMetaData,
-                isIconNeeded = mutableStateOf(true),
-                icon = Icons.Default.PublicOff,
-                onSwitchStateChange = {
-                    viewModelScope.launch {
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name
-                            ), newValue = it
-                        )
-                        AppPreferences.forceSaveWithoutFetchingAnyMetaData.value = it
+                                if (it) {
+                                    changeSettingPreferenceValue(
+                                        preferenceKey = booleanPreferencesKey(
+                                            AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name
+                                        ), newValue = false
+                                    )
+                                    AppPreferences.forceSaveWithoutFetchingAnyMetaData.value = false
+                                }
+                            }
+                        }), SettingComponentParam(
+                        title = Localization.getLocalizedString(Localization.Key.ForceSaveWithoutRetrievingMetadata),
+                        doesDescriptionExists = true,
+                        description = Localization.getLocalizedString(Localization.Key.ForceSaveWithoutRetrievingMetadataDesc),
+                        isSwitchNeeded = true,
+                        isSwitchEnabled = AppPreferences.forceSaveWithoutFetchingAnyMetaData,
+                        isIconNeeded = mutableStateOf(true),
+                        icon = Icons.Default.PublicOff,
+                        onSwitchStateChange = {
+                            viewModelScope.launch {
+                                changeSettingPreferenceValue(
+                                    preferenceKey = booleanPreferencesKey(
+                                        AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name
+                                    ), newValue = it
+                                )
+                                AppPreferences.forceSaveWithoutFetchingAnyMetaData.value = it
 
-                        if (it) {
-                            changeSettingPreferenceValue(
-                                preferenceKey = booleanPreferencesKey(
-                                    AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name
-                                ), newValue = false
-                            )
-                            AppPreferences.isAutoDetectTitleForLinksEnabled.value = false
-                        }
-                    }
-                }), SettingComponentParam(
-                title = Localization.getLocalizedString(Localization.Key.ShowAssociatedImageInLinkMenu),
-                doesDescriptionExists = true,
-                description = Localization.getLocalizedString(Localization.Key.ShowAssociatedImageInLinkMenuDesc),
-                isSwitchNeeded = true,
-                isSwitchEnabled = AppPreferences.showAssociatedImageInLinkMenu,
-                isIconNeeded = mutableStateOf(true),
-                icon = Icons.Default.Image,
-                onSwitchStateChange = {
-                    viewModelScope.launch {
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name
-                            ), newValue = it
-                        )
-                        AppPreferences.showAssociatedImageInLinkMenu.value = it
-                    }
-                })
-        )
+                                if (it) {
+                                    changeSettingPreferenceValue(
+                                        preferenceKey = booleanPreferencesKey(
+                                            AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name
+                                        ), newValue = false
+                                    )
+                                    AppPreferences.isAutoDetectTitleForLinksEnabled.value = false
+                                }
+                            }
+                        })
+                )
+            )
+
+            if (platform == Platform.Android.Mobile) {
+                add(
+                    SettingComponentParam(
+                        title = Localization.getLocalizedString(Localization.Key.ShowAssociatedImageInLinkMenu),
+                        doesDescriptionExists = true,
+                        description = Localization.getLocalizedString(Localization.Key.ShowAssociatedImageInLinkMenuDesc),
+                        isSwitchNeeded = true,
+                        isSwitchEnabled = AppPreferences.showAssociatedImageInLinkMenu,
+                        isIconNeeded = mutableStateOf(true),
+                        icon = Icons.Default.Image,
+                        onSwitchStateChange = {
+                            viewModelScope.launch {
+                                changeSettingPreferenceValue(
+                                    preferenceKey = booleanPreferencesKey(
+                                        AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name
+                                    ), newValue = it
+                                )
+                                AppPreferences.showAssociatedImageInLinkMenu.value = it
+                            }
+                        })
+                )
+            }
+
+            add(
+                SettingComponentParam(
+                    title = "Show Onboarding Slides",
+                    doesDescriptionExists = false,
+                    description = "",
+                    isSwitchNeeded = false,
+                    isSwitchEnabled = mutableStateOf(false),
+                    onSwitchStateChange = {
+
+                    },
+                    onAcknowledgmentClick = { uriHandler ->
+                    },
+                    icon = Icons.Outlined.PresentToAll,
+                    isIconNeeded = mutableStateOf(true),
+                )
+            )
+        }
     }
 
     fun acknowledgementSection(): List<SettingComponentParam> {

@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VideoLabel
-import androidx.compose.material.icons.outlined.PresentToAll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,8 +61,8 @@ fun GeneralSettingsScreen() {
     val showInitialNavigationChangerDialogBox = rememberSaveable {
         mutableStateOf(false)
     }
-    val generalSectionData = settingsScreenViewModel.generalSection()
     val platform = platform()
+    val generalSectionData = settingsScreenViewModel.generalSection(platform)
     val isLinkoraTopAppBarEnabled = rememberSaveable {
         mutableStateOf(AppPreferences.useLinkoraTopDecoratorOnDesktop.value)
     }
@@ -72,12 +71,9 @@ fun GeneralSettingsScreen() {
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize().padding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(30.dp)
+                .navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {
                 Spacer(Modifier)
@@ -96,8 +92,7 @@ fun GeneralSettingsScreen() {
                                 settingsScreenViewModel.changeSettingPreferenceValue(
                                     preferenceKey = booleanPreferencesKey(
                                         AppPreferenceType.DESKTOP_TOP_DECORATOR.name
-                                    ),
-                                    newValue = it
+                                    ), newValue = it
                                 )
                             },
                             isIconNeeded = mutableStateOf(true),
@@ -107,27 +102,11 @@ fun GeneralSettingsScreen() {
                 }
             }
             itemsIndexed(generalSectionData) { index, setting ->
-                if (generalSectionData.lastIndex == index && platform() !is Platform.Android.Mobile) {
-                    return@itemsIndexed
-                }
-                SettingComponent(setting)
-            }
-            item {
                 SettingComponent(
-                    SettingComponentParam(
-                        title = "Show Onboarding Slides",
-                        doesDescriptionExists = false,
-                        description = Localization.Key.InitialScreenOnLaunchDesc.rememberLocalizedString(),
-                        isSwitchNeeded = false,
-                        isSwitchEnabled = mutableStateOf(false),
+                    if (index == generalSectionData.lastIndex) setting.copy(
                         onSwitchStateChange = {
                             navController.navigate(Navigation.Root.OnboardingSlidesScreen)
-                        },
-                        onAcknowledgmentClick = { uriHandler ->
-                        },
-                        icon = Icons.Outlined.PresentToAll,
-                        isIconNeeded = mutableStateOf(true),
-                    )
+                        }) else setting
                 )
             }
             item {
@@ -173,20 +152,15 @@ fun GeneralSettingsScreen() {
                     Navigation.Root.CollectionsScreen
                 ).forEach {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 5.dp, bottom = 5.dp)
+                        modifier = Modifier.fillMaxWidth().padding(top = 5.dp, bottom = 5.dp)
                             .clickable(onClick = {
                                 currentlySelectedRoute.value = it.toString()
                             }, indication = null, interactionSource = remember {
                                 MutableInteractionSource()
-                            })
-                            .pulsateEffect(),
-                        verticalAlignment = Alignment.CenterVertically
+                            }).pulsateEffect(), verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = currentlySelectedRoute.value == it.toString(),
-                            onClick = {
+                            selected = currentlySelectedRoute.value == it.toString(), onClick = {
                                 currentlySelectedRoute.value = it.toString()
                             })
                         Text(
