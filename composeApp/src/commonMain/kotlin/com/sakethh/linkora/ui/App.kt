@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Archive
@@ -48,6 +49,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
@@ -72,6 +74,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -372,7 +375,8 @@ fun App(
                                     Text(
                                         text = navRouteItem.toString(),
                                         style = MaterialTheme.typography.titleSmall,
-                                        maxLines = 1
+                                        maxLines = 1,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                     )
                                 })
                         }
@@ -691,7 +695,13 @@ fun App(
                             if (appVM.isPerformingStartupSync.value) {
                                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                             }
-                            NavigationBar {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .windowInsetsPadding(NavigationBarDefaults.windowInsets)
+                                    .background(NavigationBarDefaults.containerColor),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
                                 rootRouteList.forEach { navRouteItem ->
                                     val isSelected =
                                         currentRoute?.hasRoute(navRouteItem::class) == true
@@ -724,7 +734,8 @@ fun App(
                                         Text(
                                             text = navRouteItem.toString(),
                                             style = MaterialTheme.typography.titleSmall,
-                                            maxLines = 1
+                                            maxLines = 1,
+                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                         )
                                     })
                                 }
