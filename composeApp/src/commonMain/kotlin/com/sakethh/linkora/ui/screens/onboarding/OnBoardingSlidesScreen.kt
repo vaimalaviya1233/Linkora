@@ -107,6 +107,7 @@ fun OnBoardingSlidesScreen() {
                     visible = pagerState.currentPage != 0, enter = fadeIn(), exit = fadeOut()
                 ) {
                     FilledTonalButton(modifier = Modifier.pulsateEffect(), onClick = {
+                        if (pagerState.isScrollInProgress) return@FilledTonalButton
                         coroutineScope.launch {
                             try {
                                 pagerState.animateScrollToPage(
@@ -128,6 +129,7 @@ fun OnBoardingSlidesScreen() {
                         }
                         return@Button
                     }
+                    if (pagerState.isScrollInProgress) return@Button
                     coroutineScope.launch {
                         try {
                             pagerState.animateScrollToPage(
