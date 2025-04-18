@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import coil3.PlatformContext
@@ -16,14 +17,14 @@ fun CoilImage(
     modifier: Modifier, imgURL: String, userAgent: String,
     contentScale: ContentScale = ContentScale.Crop,
     platformContext: PlatformContext = LocalPlatformContext.current,
-    contentDescription: String? = null
+    contentDescription: String? = null,
+    alignment: Alignment = Alignment.Center
 ) {
     AsyncImage(
         model = ImageRequest.Builder(platformContext).data(imgURL)
             .httpHeaders(headers = NetworkHeaders.Builder().add("User-Agent", userAgent).build())
             .crossfade(true).build(),
         contentDescription = contentDescription,
-        modifier = modifier,
-        contentScale = contentScale
+        modifier = modifier, contentScale = contentScale, alignment = alignment
     )
 }

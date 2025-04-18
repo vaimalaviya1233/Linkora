@@ -120,6 +120,8 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.HomeScreen
 import com.sakethh.linkora.ui.screens.home.panels.PanelsManagerScreen
 import com.sakethh.linkora.ui.screens.home.panels.SpecificPanelManagerScreen
+import com.sakethh.linkora.ui.screens.onboarding.OnBoardingSlidesScreen
+import com.sakethh.linkora.ui.screens.onboarding.OnboardingIntroScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.AcknowledgementSettingsScreen
@@ -733,7 +735,7 @@ fun App(
                 }) {
                 NavHost(
                     navController = localNavController,
-                    startDestination = Navigation.Root.HomeScreen
+                    startDestination = Navigation.Root.OnBoardingIntroScreen
                 ) {
                     composable<Navigation.Root.HomeScreen> {
                         HomeScreen()
@@ -784,6 +786,12 @@ fun App(
                     }
                     composable<Navigation.Settings.AdvancedSettingsScreen> {
                         AdvancedSettingsScreen()
+                    }
+                    composable<Navigation.Root.OnBoardingIntroScreen> {
+                        OnboardingIntroScreen()
+                    }
+                    composable<Navigation.OnBoarding.SlidesScreen> {
+                        OnBoardingSlidesScreen()
                     }
                 }
             }

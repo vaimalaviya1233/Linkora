@@ -57,7 +57,8 @@ import com.sakethh.onShare
 fun LinkListItemComposable(
     linkUIComponentParam: LinkUIComponentParam,
     forTitleOnlyView: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    imageAlignment: Alignment = Alignment.Center
 ) {
     val localClipBoardManager = LocalClipboardManager.current
     LocalUriHandler.current
@@ -98,7 +99,8 @@ fun LinkListItemComposable(
                             .clip(RoundedCornerShape(15.dp)),
                         imgURL = linkUIComponentParam.link.imgURL,
                         userAgent = linkUIComponentParam.link.userAgent
-                            ?: AppPreferences.primaryJsoupUserAgent.value
+                            ?: AppPreferences.primaryJsoupUserAgent.value,
+                        alignment = imageAlignment
                     )
                 } else {
                     Box(

@@ -8,6 +8,10 @@ sealed interface Navigation {
 
     @Serializable
     sealed interface Root {
+
+        @Serializable
+        data object OnBoardingIntroScreen : Navigation
+
         @Serializable
         data object HomeScreen : Navigation {
             override fun toString(): String =
@@ -33,6 +37,11 @@ sealed interface Navigation {
         }
     }
 
+    @Serializable
+    sealed interface OnBoarding : Navigation {
+        @Serializable
+        data object SlidesScreen : OnBoarding
+    }
 
     @Serializable
     sealed interface Settings : Navigation {
