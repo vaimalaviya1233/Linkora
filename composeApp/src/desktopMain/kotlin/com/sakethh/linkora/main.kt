@@ -3,7 +3,6 @@ package com.sakethh.linkora
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,6 +53,7 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.showFollowSystemThemeOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -85,11 +85,7 @@ suspend fun main() {
             ) {
                 LinkoraTheme(
                     typography = DesktopTypography,
-                    colorScheme = if (AppPreferences.shouldFollowSystemTheme.value) {
-                        if (isSystemInDarkTheme()) DarkColors else LightColors
-                    } else {
-                        if (AppPreferences.shouldUseForceDarkTheme.value) DarkColors else LightColors
-                    }
+                    colorScheme = if (AppPreferences.shouldUseForceDarkTheme.value || (showFollowSystemThemeOption.not())) DarkColors else LightColors
                 ) {
                     Scaffold(
                         topBar = {

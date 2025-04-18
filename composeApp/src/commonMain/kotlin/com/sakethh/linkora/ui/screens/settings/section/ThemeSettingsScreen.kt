@@ -55,7 +55,7 @@ fun ThemeSettingsScreen() {
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            if (showFollowSystemThemeOption && !AppPreferences.shouldUseForceDarkTheme.value) {
+            if (platform is Platform.Android && showFollowSystemThemeOption && !AppPreferences.shouldUseForceDarkTheme.value) {
                 item(key = Localization.Key.FollowSystemTheme.defaultValue) {
                     SettingComponent(
                         SettingComponentParam(
@@ -78,7 +78,7 @@ fun ThemeSettingsScreen() {
                     )
                 }
             }
-            if (!AppPreferences.shouldFollowSystemTheme.value) {
+            if (!AppPreferences.shouldFollowSystemTheme.value || platform is Platform.Desktop) {
                 item(key = Localization.Key.UseDarkMode.defaultValue) {
                     SettingComponent(
                         SettingComponentParam(

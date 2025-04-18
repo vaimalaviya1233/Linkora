@@ -60,7 +60,7 @@ class AppVM(
 
     val transferActionType = mutableStateOf(TransferActionType.NONE)
     val startDestination: MutableState<Navigation.Root> = mutableStateOf(Navigation.Root.HomeScreen)
-
+    val onBoardingCompleted = mutableStateOf(false)
 
     init {
 
@@ -75,6 +75,7 @@ class AppVM(
             ) {
                 Navigation.Root.OnboardingSlidesScreen
             } else {
+                onBoardingCompleted.value = true
                 Navigation.Root.HomeScreen
             }
         }
@@ -152,6 +153,8 @@ class AppVM(
                     AppPreferenceType.SHOULD_SHOW_ONBOARDING.name
                 ), newValue = false
             )
+        }.invokeOnCompletion {
+            onBoardingCompleted.value = true
         }
     }
 

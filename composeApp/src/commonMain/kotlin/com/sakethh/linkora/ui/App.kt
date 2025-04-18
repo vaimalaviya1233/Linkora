@@ -334,7 +334,7 @@ fun App(
         }
     }
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
-        if (platform() == Platform.Desktop || platform() == Platform.Android.Tablet) {
+        if (appVM.onBoardingCompleted.value && (platform() == Platform.Desktop || platform() == Platform.Android.Tablet)) {
             Row {
                 Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                     Column(
