@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VideoLabel
+import androidx.compose.material.icons.outlined.PresentToAll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -111,25 +112,24 @@ fun GeneralSettingsScreen() {
                 }
                 SettingComponent(setting)
             }
-            /* item {
-                 SettingComponent(
-                     SettingComponentParam(
-                         title = Localization.Key.InitialScreenOnLaunch.rememberLocalizedString(),
-                         doesDescriptionExists = true,
-                         description = Localization.Key.InitialScreenOnLaunchDesc.rememberLocalizedString(),
-                         isSwitchNeeded = false,
-                         isSwitchEnabled = mutableStateOf(false),
-                         onSwitchStateChange = {
-                             showInitialNavigationChangerDialogBox.value = true
-                         },
-                         onAcknowledgmentClick = { uriHandler: UriHandler ->
-                             showInitialNavigationChangerDialogBox.value = true
-                         },
-                         icon = Icons.AutoMirrored.Filled.Launch,
-                         isIconNeeded = mutableStateOf(true),
-                     )
-                 )
-             }*/
+            item {
+                SettingComponent(
+                    SettingComponentParam(
+                        title = "Show OnBoarding Slides",
+                        doesDescriptionExists = false,
+                        description = Localization.Key.InitialScreenOnLaunchDesc.rememberLocalizedString(),
+                        isSwitchNeeded = false,
+                        isSwitchEnabled = mutableStateOf(false),
+                        onSwitchStateChange = {
+                            navController.navigate(Navigation.Root.OnBoardingSlidesScreen)
+                        },
+                        onAcknowledgmentClick = { uriHandler ->
+                        },
+                        icon = Icons.Outlined.PresentToAll,
+                        isIconNeeded = mutableStateOf(true),
+                    )
+                )
+            }
             item {
                 Spacer(modifier = Modifier.height(100.dp))
             }
