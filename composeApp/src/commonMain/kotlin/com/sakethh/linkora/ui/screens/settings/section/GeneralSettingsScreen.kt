@@ -115,13 +115,13 @@ fun GeneralSettingsScreen() {
             item {
                 SettingComponent(
                     SettingComponentParam(
-                        title = "Show OnBoarding Slides",
+                        title = "Show Onboarding Slides",
                         doesDescriptionExists = false,
                         description = Localization.Key.InitialScreenOnLaunchDesc.rememberLocalizedString(),
                         isSwitchNeeded = false,
                         isSwitchEnabled = mutableStateOf(false),
                         onSwitchStateChange = {
-                            navController.navigate(Navigation.Root.OnBoardingSlidesScreen)
+                            navController.navigate(Navigation.Root.OnboardingSlidesScreen)
                         },
                         onAcknowledgmentClick = { uriHandler ->
                         },

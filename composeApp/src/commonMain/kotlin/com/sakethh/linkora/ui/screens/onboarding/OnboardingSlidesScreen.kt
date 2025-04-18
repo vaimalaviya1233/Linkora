@@ -67,27 +67,27 @@ import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
-private data class OnBoardingSlide(val screen: @Composable () -> Unit)
+private data class OnboardingSlide(val screen: @Composable () -> Unit)
 
 @Composable
-fun OnBoardingSlidesScreen() {
+fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
     val pagerState = rememberPagerState { 4 }
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val slides = remember {
         listOf(
-            OnBoardingSlide({
+            OnboardingSlide {
                 Slide1()
-            }),
-            OnBoardingSlide({
+            },
+            OnboardingSlide {
                 Slide2()
-            }),
-            OnBoardingSlide({
+            },
+            OnboardingSlide {
                 Slide3()
-            }),
-            OnBoardingSlide({
+            },
+            OnboardingSlide {
                 Slide4()
-            })
+            }
         )
     }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -124,7 +124,8 @@ fun OnBoardingSlidesScreen() {
                 Spacer(Modifier.width(15.dp))
                 Button(modifier = Modifier.pulsateEffect(), onClick = {
                     if (pagerState.currentPage == pagerState.pageCount - 1) {
-                        navController.navigate(Navigation.Root.HomeScreen){
+                        onOnboardingComplete()
+                        navController.navigate(Navigation.Root.HomeScreen) {
                             popUpTo(0)
                         }
                         return@Button

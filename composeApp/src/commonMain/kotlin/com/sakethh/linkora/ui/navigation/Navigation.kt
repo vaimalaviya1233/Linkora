@@ -10,28 +10,28 @@ sealed interface Navigation {
     sealed interface Root {
 
         @Serializable
-        data object OnBoardingSlidesScreen : Root
+        data object OnboardingSlidesScreen : Root
 
         @Serializable
-        data object HomeScreen : Navigation {
+        data object HomeScreen : Root {
             override fun toString(): String =
                 Localization.getLocalizedString(Localization.Key.Home)
         }
 
         @Serializable
-        data object SearchScreen : Navigation {
+        data object SearchScreen : Root {
             override fun toString(): String =
                 Localization.getLocalizedString(Localization.Key.Search)
         }
 
         @Serializable
-        data object CollectionsScreen : Navigation {
+        data object CollectionsScreen : Root {
             override fun toString(): String =
                 Localization.getLocalizedString(Localization.Key.Collections)
         }
 
         @Serializable
-        data object SettingsScreen : Settings {
+        data object SettingsScreen : Root {
             override fun toString(): String =
                 Localization.getLocalizedString(Localization.Key.Settings)
         }

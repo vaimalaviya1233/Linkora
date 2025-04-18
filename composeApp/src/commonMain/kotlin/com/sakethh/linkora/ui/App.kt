@@ -48,7 +48,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRailItem
@@ -123,7 +122,7 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.HomeScreen
 import com.sakethh.linkora.ui.screens.home.panels.PanelsManagerScreen
 import com.sakethh.linkora.ui.screens.home.panels.SpecificPanelManagerScreen
-import com.sakethh.linkora.ui.screens.onboarding.OnBoardingSlidesScreen
+import com.sakethh.linkora.ui.screens.onboarding.OnboardingSlidesScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.AcknowledgementSettingsScreen
@@ -156,7 +155,8 @@ fun App(
             networkRepo = DependencyContainer.networkRepo.value,
             linksRepo = DependencyContainer.localLinksRepo.value,
             foldersRepo = DependencyContainer.localFoldersRepo.value,
-            localMultiActionRepo = DependencyContainer.localMultiActionRepo.value
+            localMultiActionRepo = DependencyContainer.localMultiActionRepo.value,
+            localPanelsRepo = DependencyContainer.localPanelsRepo.value
         )
     })
     val snackbarHostState = remember {
@@ -690,7 +690,7 @@ fun App(
                 sheetSwipeEnabled = false,
                 sheetShape = RectangleShape,
                 sheetContent = {
-                    if (platform() == Platform.Android.Mobile) {
+                    if (platform == Platform.Android.Mobile) {
                         Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
                             if (appVM.isPerformingStartupSync.value) {
                                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -746,7 +746,7 @@ fun App(
                 }) {
                 NavHost(
                     navController = localNavController,
-                    startDestination = Navigation.Root.OnBoardingSlidesScreen
+                    startDestination = appVM.startDestination.value
                 ) {
                     composable<Navigation.Root.HomeScreen> {
                         HomeScreen()
@@ -798,8 +798,10 @@ fun App(
                     composable<Navigation.Settings.AdvancedSettingsScreen> {
                         AdvancedSettingsScreen()
                     }
-                    composable<Navigation.Root.OnBoardingSlidesScreen> {
-                        OnBoardingSlidesScreen()
+                    composable<Navigation.Root.OnboardingSlidesScreen> {
+                        OnboardingSlidesScreen(onOnboardingComplete = {
+                            appVM.markOnboardingComplete()
+                        })
                     }
                 }
             }

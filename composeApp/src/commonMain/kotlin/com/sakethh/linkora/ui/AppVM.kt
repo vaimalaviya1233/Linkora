@@ -1,11 +1,14 @@
 package com.sakethh.linkora.ui
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.DataSyncingNotificationService
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
@@ -21,27 +24,26 @@ import com.sakethh.linkora.domain.repository.NetworkRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.domain.TransferActionType
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.clearAllSelections
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedFoldersViaLongClick
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedLinksViaLongClick
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class AppVM(
     private val remoteSyncRepo: RemoteSyncRepo,
@@ -49,15 +51,33 @@ class AppVM(
     private val networkRepo: NetworkRepo,
     private val linksRepo: LocalLinksRepo,
     private val foldersRepo: LocalFoldersRepo,
-    private val localMultiActionRepo: LocalMultiActionRepo
+    private val localMultiActionRepo: LocalMultiActionRepo,
+    private val localPanelsRepo: LocalPanelsRepo
 ) : ViewModel() {
 
     private val dataSyncingNotificationService = DataSyncingNotificationService()
     val isPerformingStartupSync = mutableStateOf(false)
 
     val transferActionType = mutableStateOf(TransferActionType.NONE)
+    val startDestination: MutableState<Navigation.Root> = mutableStateOf(Navigation.Root.HomeScreen)
+
 
     init {
+
+        runBlocking {
+            startDestination.value = if (
+                preferencesRepository.readPreferenceValue(
+                    booleanPreferencesKey(
+                        AppPreferenceType.SHOULD_SHOW_ONBOARDING.name
+                    )
+                ) != false
+                && (linksRepo.getAllLinks().size + foldersRepo.getAllFoldersAsList().size + localPanelsRepo.getAllThePanelsAsAList().size) == 0
+            ) {
+                Navigation.Root.OnboardingSlidesScreen
+            } else {
+                Navigation.Root.HomeScreen
+            }
+        }
 
         viewModelScope.launch {
             snapshotFlow {
@@ -122,6 +142,16 @@ class AppVM(
         }.invokeOnCompletion {
             isPerformingStartupSync.value = false
             dataSyncingNotificationService.clearNotification()
+        }
+    }
+
+    fun markOnboardingComplete() {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = booleanPreferencesKey(
+                    AppPreferenceType.SHOULD_SHOW_ONBOARDING.name
+                ), newValue = false
+            )
         }
     }
 
