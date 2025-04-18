@@ -10,7 +10,7 @@ sealed interface Navigation {
     sealed interface Root {
 
         @Serializable
-        data object OnBoardingIntroScreen : Navigation
+        data object OnBoardingSlidesScreen : Root
 
         @Serializable
         data object HomeScreen : Navigation {
@@ -35,12 +35,6 @@ sealed interface Navigation {
             override fun toString(): String =
                 Localization.getLocalizedString(Localization.Key.Settings)
         }
-    }
-
-    @Serializable
-    sealed interface OnBoarding : Navigation {
-        @Serializable
-        data object SlidesScreen : OnBoarding
     }
 
     @Serializable

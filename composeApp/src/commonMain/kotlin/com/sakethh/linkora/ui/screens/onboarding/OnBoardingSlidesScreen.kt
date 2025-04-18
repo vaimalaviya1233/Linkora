@@ -1,13 +1,16 @@
 package com.sakethh.linkora.ui.screens.onboarding
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.common.Localization
@@ -52,11 +56,14 @@ import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
+import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
@@ -64,8 +71,9 @@ private data class OnBoardingSlide(val screen: @Composable () -> Unit)
 
 @Composable
 fun OnBoardingSlidesScreen() {
-    val pagerState = rememberPagerState { 5 }
+    val pagerState = rememberPagerState { 4 }
     val coroutineScope = rememberCoroutineScope()
+    val navController = LocalNavController.current
     val slides = remember {
         listOf(
             OnBoardingSlide({
@@ -78,11 +86,8 @@ fun OnBoardingSlidesScreen() {
                 Slide3()
             }),
             OnBoardingSlide({
-                Slide1()
-            }),
-            OnBoardingSlide({
-                Slide1()
-            }),
+                Slide4()
+            })
         )
     }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -117,6 +122,12 @@ fun OnBoardingSlidesScreen() {
                 }
                 Spacer(Modifier.width(15.dp))
                 Button(modifier = Modifier.pulsateEffect(), onClick = {
+                    if (pagerState.currentPage == pagerState.pageCount - 1) {
+                        navController.navigate(Navigation.Root.HomeScreen){
+                            popUpTo(0)
+                        }
+                        return@Button
+                    }
                     coroutineScope.launch {
                         try {
                             pagerState.animateScrollToPage(
@@ -127,7 +138,18 @@ fun OnBoardingSlidesScreen() {
                         }
                     }
                 }) {
-                    Text(text = "Next Page", style = MaterialTheme.typography.titleLarge)
+                    val text = rememberSaveable(pagerState.currentPage) {
+                        if (pagerState.currentPage == pagerState.pageCount - 1) {
+                            "Done"
+                        } else {
+                            "Next Page"
+                        }
+                    }
+                    AnimatedContent(text, transitionSpec = {
+                        fadeIn() togetherWith fadeOut()
+                    }) {
+                        Text(text = it, style = MaterialTheme.typography.titleLarge)
+                    }
                 }
             }
         }
@@ -156,12 +178,18 @@ private fun Slide1() {
         Spacer(modifier = Modifier.height(25.dp))
         Text(
             text = "Welcome to",
-            style = MaterialTheme.typography.titleMedium,
-            fontSize = 20.sp,
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 12.sp,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.SemiBold
         )
         SlideTitle(Localization.Key.Linkora.rememberLocalizedString())
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(
+            text = "Linkora keeps your links private.\nSync and organize—nothing leaves your device unless you set up your own server.\nNo tracking, no cloud.",
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 18.sp,
+        )
         Spacer(modifier = Modifier.height(15.dp))
         SlideDesc("Swipe through or hit Next to discover Linkora's features.")
         Spacer(modifier = Modifier.height(75.dp))
@@ -169,11 +197,11 @@ private fun Slide1() {
 }
 
 @Composable
-private fun SlideTitle(string: String, modifier: Modifier = Modifier) {
+private fun SlideTitle(string: String, modifier: Modifier = Modifier, fontSize: TextUnit = 24.sp) {
     Text(
         text = string,
         style = MaterialTheme.typography.titleLarge,
-        fontSize = 38.sp,
+        fontSize = fontSize,
         color = MaterialTheme.colorScheme.primary,
         modifier = modifier
     )
@@ -464,5 +492,46 @@ private fun Slide3() {
             string = "Add any of your folders to a Panel for quick access from the Home screen. Oh, and yep — Linkora supports subfolders too."
         )
         Spacer(modifier = Modifier.height(75.dp))
+    }
+}
+
+@Composable
+private fun Slide4() {
+    Column(
+        modifier = Modifier.padding(start = 15.dp, end = 15.dp, bottom = 75.dp).fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        SlideTitle(string = "Wait,\nThere's More.")
+        Spacer(Modifier.height(5.dp))
+        listOf(
+            "Search, sort, auto title and image detection (when available).",
+            "Export/import in JSON or HTML.",
+            "Sync with your own server if you want.",
+            "Opened links are saved in history — even if the original link is deleted.",
+            "Supports different layout settings.",
+            "Dynamic Material theming (if supported by your device).",
+            "OLED theme included for Android devices.",
+            "Localization with a central server — language updates without app updates.",
+            "No ads, no paywalls, free as in freedom.",
+            "Just simple, solid bookmarking."
+        ).forEach {
+            key(it) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(text = Typography.bullet.toString())
+                    Spacer(modifier = Modifier.width(5.dp))
+                    SlideDesc(
+                        string = it
+                    )
+                }
+            }
+        }
+        ItemDivider(
+            paddingValues = PaddingValues(top = 15.dp, bottom = 15.dp),
+            colorOpacity = 0.95f,
+            thickness = 2.dp
+        )
+        SlideTitle(string = "Open. Local First. Yours.")
+        Spacer(Modifier.height(5.dp))
+        SlideDesc(string = "Linkora is open-source under the MIT license — now available on desktop too.")
     }
 }
