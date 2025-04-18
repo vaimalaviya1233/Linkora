@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,11 +46,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
@@ -94,7 +97,18 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
         HorizontalPager(
             state = pagerState, modifier = Modifier.fillMaxSize()
         ) {
-            slides[it].screen()
+            Box(
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface).fillMaxSize()
+                    .graphicsLayer {
+                        val pageOffset =
+                            (pagerState.currentPage - it) + pagerState.currentPageOffsetFraction
+                        val scale = lerp(1f, 2f, pageOffset)
+                        scaleX = scale
+                        scaleY = scale
+                    }
+            ) {
+                slides[it].screen()
+            }
         }
         Box(
             modifier = Modifier.fillMaxWidth().align(Alignment.BottomEnd),
