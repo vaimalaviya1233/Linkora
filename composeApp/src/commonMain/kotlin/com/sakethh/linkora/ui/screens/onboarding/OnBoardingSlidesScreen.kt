@@ -14,15 +14,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -67,7 +75,7 @@ fun OnBoardingSlidesScreen() {
                 Slide2()
             }),
             OnBoardingSlide({
-                Slide1()
+                Slide3()
             }),
             OnBoardingSlide({
                 Slide1()
@@ -129,8 +137,7 @@ fun OnBoardingSlidesScreen() {
 @Composable
 private fun Slide1() {
     Column(
-        modifier = Modifier.padding(15.dp).fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(15.dp).fillMaxSize(), verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.Start
     ) {
         CoilImage(
@@ -157,6 +164,7 @@ private fun Slide1() {
         SlideTitle(Localization.Key.Linkora.rememberLocalizedString())
         Spacer(modifier = Modifier.height(15.dp))
         SlideDesc("Swipe through or hit Next to discover Linkora's features.")
+        Spacer(modifier = Modifier.height(75.dp))
     }
 }
 
@@ -185,71 +193,15 @@ private fun SlideDesc(string: String, modifier: Modifier = Modifier) {
 @Composable
 private fun Slide2() {
     val localUriHandler = LocalUriHandler.current
-    val sampleList = remember {
-        listOf(
-            LinkUIComponentParam(
-                link = Link(
-                    title = "Red Dead Redemption 2 - Rockstar Games",
-                    baseURL = "rockstargames.com",
-                    imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/downloads/buddyiconsconavatars/rdr2_officialart1_256x256.jpg",
-                    url = "https://www.rockstargames.com/reddeadredemption2",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "",
-                    idOfLinkedFolder = null
-                ),
-                onMoreIconClick = { -> },
-                onLinkClick = { ->
-                    localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
-                },
-                onForceOpenInExternalBrowserClicked = { -> },
-                isSelectionModeEnabled = mutableStateOf(false),
-                isItemSelected = mutableStateOf(false),
-                onLongClick = { -> },
-            ), LinkUIComponentParam(
-                link = Link(
-                    title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
-                    baseURL = "store.epicgames.com",
-                    imgURL = listOf(
-                        "https://pbs.twimg.com/media/FUPM2TrWYAAQsXm?format=jpg",
-                        "https://pbs.twimg.com/media/FLJx9epWYAADM0O?format=jpg",
-                        "https://pbs.twimg.com/media/FAdLIY8WUAEgLRM?format=jpg",
-                        "https://pbs.twimg.com/media/ETUI-RDWsAE2UYR?format=jpg",
-                        "https://pbs.twimg.com/media/ET9J7vTWsAYVtvG?format=jpg",
-                        "https://pbs.twimg.com/media/GRo2CKkWUAEsdEl?format=jpg",
-                        "https://pbs.twimg.com/media/FezZxQYWQAQ4K3f?format=jpg",
-                        "https://pbs.twimg.com/media/FezaHWkX0AIWvvU?format=jpg",
-                        "https://i.redd.it/qoa6gk4ii8571.jpg",
-                        "https://i.redd.it/8psapajhi8571.jpg"
-                    ).random(),
-                    url = "https://store.epicgames.com/en-US/p/a-plague-tale-requiem",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "",
-                    idOfLinkedFolder = null
-                ),
-                onMoreIconClick = { -> },
-                onLinkClick = { ->
-                    localUriHandler.openUri("https://store.epicgames.com/en-US/p/a-plague-tale-requiem")
-                },
-                onForceOpenInExternalBrowserClicked = { -> },
-                isSelectionModeEnabled = mutableStateOf(false),
-                isItemSelected = mutableStateOf(false),
-                onLongClick = { -> },
-            )
-        )
-    }
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxWidth().align(Alignment.Center)) {
+        Column(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)) {
             FolderComponent(
                 FolderComponentParam(
                     folder = Folder(
-                    name = "Inspiration & Ideas",
-                    note = "cool stuff i might use later",
-                    parentFolderId = null
-                ),
+                        name = "Inspiration & Ideas",
+                        note = "cool stuff i might use later",
+                        parentFolderId = null
+                    ),
                     onClick = {},
                     onLongClick = {},
                     onMoreIconClick = {},
@@ -267,22 +219,239 @@ private fun Slide2() {
                     },
                     onCheckBoxChanged = {})
             )
-            sampleList.forEach {
-                key(it.link.url) {
-                    LinkListItemComposable(
-                        linkUIComponentParam = it,
-                        forTitleOnlyView = false,
-                        imageAlignment = Alignment.TopCenter
-                    )
-                }
-            }
+            FolderComponent(
+                FolderComponentParam(
+                    folder = Folder(
+                        name = "Explainers",
+                        note = "in-depth articles or breakdowns",
+                        parentFolderId = null
+                    ),
+                    onClick = {},
+                    onLongClick = {},
+                    onMoreIconClick = {},
+                    isCurrentlyInDetailsView = rememberSaveable {
+                        mutableStateOf(false)
+                    },
+                    showMoreIcon = rememberSaveable {
+                        mutableStateOf(true)
+                    },
+                    isSelectedForSelection = rememberSaveable {
+                        mutableStateOf(false)
+                    },
+                    showCheckBox = rememberSaveable {
+                        mutableStateOf(false)
+                    },
+                    onCheckBoxChanged = {})
+            )
+            LinkListItemComposable(
+                linkUIComponentParam = LinkUIComponentParam(
+                    link = Link(
+                        title = "Red Dead Redemption 2 - Rockstar Games",
+                        baseURL = "rockstargames.com",
+                        imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/downloads/buddyiconsconavatars/rdr2_officialart1_256x256.jpg",
+                        url = "https://www.rockstargames.com/reddeadredemption2",
+                        userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                        linkType = LinkType.SAVED_LINK,
+                        localId = 0L,
+                        note = "",
+                        idOfLinkedFolder = null
+                    ),
+                    onMoreIconClick = { -> },
+                    onLinkClick = { ->
+                        localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
+                    },
+                    onForceOpenInExternalBrowserClicked = { -> },
+                    isSelectionModeEnabled = mutableStateOf(false),
+                    isItemSelected = mutableStateOf(false),
+                    onLongClick = { -> },
+                ), forTitleOnlyView = false
+            )
             Spacer(modifier = Modifier.height(5.dp))
             SlideTitle(string = "Folders &\nLinks.", modifier = Modifier.padding(start = 15.dp))
             Spacer(modifier = Modifier.height(5.dp))
             SlideDesc(
-                modifier = Modifier.padding(start = 15.dp, bottom = 15.dp),
+                modifier = Modifier.padding(start = 15.dp, bottom = 75.dp),
                 string = "Store links into folders, flag them as Important or Archived, or keep them in \"Saved Links\" — customize it your way."
             )
+        }
+    }
+}
+
+@Composable
+private fun Slide3() {
+    val pagerState = rememberPagerState { 2 }
+    val localUriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = Localization.Key.SelectedPanel.rememberLocalizedString(),
+            color = MaterialTheme.colorScheme.primary.copy(0.9f),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(start = 10.dp, bottom = 5.dp)
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.pulsateEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
+        ) {
+            Spacer(Modifier.width(5.dp))
+            FilledTonalIconButton(onClick = {
+
+            }, modifier = Modifier.size(22.dp)) {
+                Icon(imageVector = Icons.Default.ArrowDownward, contentDescription = null)
+            }
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = "Brainstorm Panel",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 20.sp,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
+        }
+        ScrollableTabRow(
+            modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage,
+            divider = {}
+        ) {
+            (0..1).forEach {
+                key(it) {
+                    Tab(selected = pagerState.currentPage == it, onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(it)
+                        }.start()
+                    }) {
+                        Text(
+                            text = if (it == 0) "Inspiration & Ideas" else "Reference Materials",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(15.dp),
+                            color = if (pagerState.currentPage == it) primaryContentColor else MaterialTheme.colorScheme.onSurface.copy(
+                                0.70f
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                when (it) {
+                    0 -> {
+                        FolderComponent(
+                            FolderComponentParam(
+                                folder = Folder(
+                                    name = "Cool Animations",
+                                    note = "snappy transitions and smooth stuff",
+                                    parentFolderId = null
+                                ),
+                                onClick = {},
+                                onLongClick = {},
+                                onMoreIconClick = {},
+                                isCurrentlyInDetailsView = rememberSaveable {
+                                    mutableStateOf(false)
+                                },
+                                showMoreIcon = rememberSaveable {
+                                    mutableStateOf(true)
+                                },
+                                isSelectedForSelection = rememberSaveable {
+                                    mutableStateOf(false)
+                                },
+                                showCheckBox = rememberSaveable {
+                                    mutableStateOf(false)
+                                },
+                                onCheckBoxChanged = {})
+                        )
+                        LinkListItemComposable(
+                            linkUIComponentParam = LinkUIComponentParam(
+                                link = Link(
+                                    title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
+                                    baseURL = "store.epicgames.com",
+                                    imgURL = remember {
+                                        listOf(
+                                            "https://pbs.twimg.com/media/FUPM2TrWYAAQsXm?format=jpg",
+                                            "https://pbs.twimg.com/media/FLJx9epWYAADM0O?format=jpg",
+                                            "https://pbs.twimg.com/media/FAdLIY8WUAEgLRM?format=jpg",
+                                            "https://pbs.twimg.com/media/ETUI-RDWsAE2UYR?format=jpg",
+                                            "https://pbs.twimg.com/media/ET9J7vTWsAYVtvG?format=jpg",
+                                            "https://pbs.twimg.com/media/GRo2CKkWUAEsdEl?format=jpg",
+                                            "https://pbs.twimg.com/media/FezZxQYWQAQ4K3f?format=jpg",
+                                            "https://pbs.twimg.com/media/FezaHWkX0AIWvvU?format=jpg",
+                                            "https://i.redd.it/qoa6gk4ii8571.jpg",
+                                            "https://i.redd.it/8psapajhi8571.jpg"
+                                        ).random()
+                                    },
+                                    url = "https://store.epicgames.com/en-US/p/a-plague-tale-requiem",
+                                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                                    linkType = LinkType.SAVED_LINK,
+                                    localId = 0L,
+                                    note = "",
+                                    idOfLinkedFolder = null
+                                ),
+                                onMoreIconClick = { -> },
+                                onLinkClick = { ->
+                                    localUriHandler.openUri("https://store.epicgames.com/en-US/p/a-plague-tale-requiem")
+                                },
+                                onForceOpenInExternalBrowserClicked = { -> },
+                                isSelectionModeEnabled = mutableStateOf(false),
+                                isItemSelected = mutableStateOf(false),
+                                onLongClick = { -> },
+                            ), forTitleOnlyView = false
+                        )
+                    }
+
+                    1 -> {
+                        FolderComponent(
+                            FolderComponentParam(
+                                folder = Folder(
+                                    name = "Code Snippets",
+                                    note = "reusable bits and tricks",
+                                    parentFolderId = null
+                                ),
+                                onClick = {},
+                                onLongClick = {},
+                                onMoreIconClick = {},
+                                isCurrentlyInDetailsView = rememberSaveable {
+                                    mutableStateOf(false)
+                                },
+                                showMoreIcon = rememberSaveable {
+                                    mutableStateOf(true)
+                                },
+                                isSelectedForSelection = rememberSaveable {
+                                    mutableStateOf(false)
+                                },
+                                showCheckBox = rememberSaveable {
+                                    mutableStateOf(false)
+                                },
+                                onCheckBoxChanged = {})
+                        )
+                        LinkListItemComposable(
+                            linkUIComponentParam = LinkUIComponentParam(
+                                link = Link(
+                                    title = "7 Features in Kotlin's Standard Library that You Might Have Overlooked",
+                                    baseURL = "youtube.com",
+                                    imgURL = "https://i.ytimg.com/vi/OFWMtmqocV8/maxresdefault.jpg",
+                                    url = "https://www.youtube.com/watch?v=OFWMtmqocV8",
+                                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                                    linkType = LinkType.SAVED_LINK,
+                                    localId = 0L,
+                                    note = "",
+                                    idOfLinkedFolder = null
+                                ),
+                                onMoreIconClick = { -> },
+                                onLinkClick = { ->
+                                    localUriHandler.openUri("https://www.youtube.com/watch?v=OFWMtmqocV8")
+                                },
+                                onForceOpenInExternalBrowserClicked = { -> },
+                                isSelectionModeEnabled = mutableStateOf(false),
+                                isItemSelected = mutableStateOf(false),
+                                onLongClick = { -> },
+                            ),
+                            forTitleOnlyView = false,
+                            imageAlignment = Alignment.TopCenter
+                        )
+                    }
+                }
+            }
         }
     }
 }
