@@ -282,7 +282,7 @@ private fun Slide3() {
     val pagerState = rememberPagerState { 2 }
     val localUriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
         Text(
             text = Localization.Key.SelectedPanel.rememberLocalizedString(),
             color = MaterialTheme.colorScheme.primary.copy(0.9f),
@@ -453,5 +453,16 @@ private fun Slide3() {
                 }
             }
         }
+        Spacer(modifier = Modifier.height(10.dp))
+        SlideTitle(
+            string = "Introducing Panels.",
+            modifier = Modifier.fillMaxWidth().padding(start = 15.dp)
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        SlideDesc(
+            modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp),
+            string = "Add any of your folders to a Panel for quick access from the Home screen. Oh, and yep — Linkora supports subfolders too."
+        )
+        Spacer(modifier = Modifier.height(75.dp))
     }
 }
