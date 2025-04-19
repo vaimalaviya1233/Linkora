@@ -71,6 +71,8 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,17 +120,18 @@ fun CollectionsScreen(
                                 ), isAnyCollectionSelected = true
                             )
                             if (platform is Platform.Android.Mobile) {
-                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                    collectionDetailPaneInfo
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
                                     Navigation.Collection.CollectionDetailPane
                                 )
-                                return@DefaultFolderComponent
+                            } else {
+                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                    collectionDetailPaneInfo
+                                )
                             }
-                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                collectionDetailPaneInfo
-                            )
                         },
                         isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID
                     )
@@ -150,17 +153,18 @@ fun CollectionsScreen(
                                 ), isAnyCollectionSelected = true
                             )
                             if (platform is Platform.Android.Mobile) {
-                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                    collectionDetailPaneInfo
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
                                     Navigation.Collection.CollectionDetailPane
                                 )
-                                return@DefaultFolderComponent
+                            } else {
+                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                    collectionDetailPaneInfo
+                                )
                             }
-                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                collectionDetailPaneInfo
-                            )
                         },
                         isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.SAVED_LINKS_ID
                     )
@@ -179,17 +183,18 @@ fun CollectionsScreen(
                                 ), isAnyCollectionSelected = true
                             )
                             if (platform is Platform.Android.Mobile) {
-                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                    collectionDetailPaneInfo
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
                                     Navigation.Collection.CollectionDetailPane
                                 )
-                                return@DefaultFolderComponent
+                            } else {
+                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                    collectionDetailPaneInfo
+                                )
                             }
-                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                collectionDetailPaneInfo
-                            )
                         },
                         isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
                     )
@@ -208,17 +213,18 @@ fun CollectionsScreen(
                                 ), isAnyCollectionSelected = true
                             )
                             if (platform is Platform.Android.Mobile) {
-                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                    collectionDetailPaneInfo
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
                                     Navigation.Collection.CollectionDetailPane
                                 )
-                                return@DefaultFolderComponent
+                            } else {
+                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                    collectionDetailPaneInfo
+                                )
                             }
-                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                collectionDetailPaneInfo
-                            )
                         },
                         isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID
                     )
@@ -256,14 +262,22 @@ fun CollectionsScreen(
                                 if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(folder)) {
                                     return@FolderComponentParam
                                 }
-                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                    CollectionDetailPaneInfo(
-                                        currentFolder = folder, isAnyCollectionSelected = true
+                                val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                    currentFolder = folder, isAnyCollectionSelected = true
+                                )
+                                if (platform is Platform.Android.Mobile) {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                        value = Json.encodeToString(collectionDetailPaneInfo)
                                     )
-                                )
-                                if (platform is Platform.Android.Mobile) navController.navigate(
-                                    Navigation.Collection.CollectionDetailPane
-                                )
+                                    navController.navigate(
+                                        Navigation.Collection.CollectionDetailPane
+                                    )
+                                } else {
+                                    collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                        collectionDetailPaneInfo
+                                    )
+                                }
                             },
                             onLongClick = { ->
                                 if (CollectionsScreenVM.isSelectionEnabled.value.not()) {

@@ -45,7 +45,7 @@ open class CollectionsScreenVM(
     private val localLinksRepo: LocalLinksRepo,
     loadNonArchivedRootFoldersOnInit: Boolean = true,
     loadArchivedRootFoldersOnInit: Boolean = true,
-    collectionDetailPaneInfo: CollectionDetailPaneInfo? = null
+    val collectionDetailPaneInfo: CollectionDetailPaneInfo? = null
 ) : ViewModel() {
 
     companion object {

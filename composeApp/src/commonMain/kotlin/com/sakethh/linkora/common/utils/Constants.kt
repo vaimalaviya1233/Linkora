@@ -17,6 +17,8 @@ object Constants {
     const val EXPORT_SCHEMA_VERSION = 12
 
     const val DATA_STORE_NAME = "linkoraDataStore.preferences_pb"
+
+    const val COLLECTION_INFO_SAVED_STATE_HANDLE_KEY = "parentFolderDetail"
 }
 
 object LinkType {

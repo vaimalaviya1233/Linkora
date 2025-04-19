@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
@@ -57,25 +58,40 @@ import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.platform
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionDetailPane(
     platform: Platform = platform(),
+    navController: NavController = LocalNavController.current,
     collectionsScreenVM: CollectionsScreenVM = viewModel(factory = genericViewModelFactory {
         CollectionsScreenVM(
             localFoldersRepo = DependencyContainer.localFoldersRepo.value,
             localLinksRepo = DependencyContainer.localLinksRepo.value,
             loadNonArchivedRootFoldersOnInit = false,
             loadArchivedRootFoldersOnInit = platform is Platform.Android.Mobile,
-            collectionDetailPaneInfo = CollectionsScreenVM.collectionDetailPaneInfo.value
+            collectionDetailPaneInfo = if (platform is Platform.Android.Mobile) navController.previousBackStackEntry?.savedStateHandle?.getStateFlow<String>(
+                Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                ""
+            )?.value?.run {
+                linkoraLog("Decoding the CollectionDetailPaneInfo")
+                Json.decodeFromString<CollectionDetailPaneInfo>(this).also {
+                    if (it.currentFolder != null) {
+                        CollectionsScreenVM.updateCollectionDetailPaneInfo(it)
+                    }
+                }
+            } else CollectionsScreenVM.collectionDetailPaneInfo.value
         )
     }),
 ) {
@@ -84,7 +100,8 @@ fun CollectionDetailPane(
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
     val rootArchiveFolders = collectionsScreenVM.rootArchiveFolders.collectAsStateWithLifecycle()
-    val currentlyInFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
+    val currentlyInFolder =
+        if (platform is Platform.Android.Mobile) collectionsScreenVM.collectionDetailPaneInfo?.currentFolder else CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
     val navController = LocalNavController.current
     val localUriHandler = LocalUriHandler.current
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
@@ -99,22 +116,35 @@ fun CollectionDetailPane(
                     }
                     if (currentlyInFolder?.parentFolderId.isNotNull()) {
                         currentlyInFolder?.parentFolderId as Long
-                        collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                            CollectionDetailPaneInfo(
-                                currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
-                                isAnyCollectionSelected = true
-                            )
+
+                        val parentFolderCollectionPane = CollectionDetailPaneInfo(
+                            currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
+                            isAnyCollectionSelected = true
                         )
+
+                        if (platform is Platform.Android.Mobile) {
+                            navController.currentBackStackEntry
+                                ?.savedStateHandle
+                                ?.set(
+                                    Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    Json.encodeToString(parentFolderCollectionPane)
+                                )
+                            navController.navigateUp()
+                        } else {
+                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                parentFolderCollectionPane
+                            )
+                        }
                     } else {
                         if (platform is Platform.Android.Mobile) {
                             navController.navigateUp()
-                            return@IconButton
-                        }
-                        collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                            CollectionDetailPaneInfo(
-                                currentFolder = null, isAnyCollectionSelected = false
+                        } else {
+                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                CollectionDetailPaneInfo(
+                                    currentFolder = null, isAnyCollectionSelected = false
+                                )
                             )
-                        )
+                        }
                     }
                 }) {
                     Icon(
@@ -213,12 +243,24 @@ fun CollectionDetailPane(
                                                 ) {
                                                     return@FolderComponentParam
                                                 }
-                                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                                val collectionDetailPaneInfo =
                                                     CollectionDetailPaneInfo(
                                                         currentFolder = rootArchiveFolder,
                                                         isAnyCollectionSelected = true
                                                     )
-                                                )
+                                                if (platform is Platform.Android.Mobile) {
+                                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                                        value = Json.encodeToString(
+                                                            collectionDetailPaneInfo
+                                                        )
+                                                    )
+                                                    navController.navigate(Navigation.Collection.CollectionDetailPane)
+                                                } else {
+                                                    collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                                        collectionDetailPaneInfo
+                                                    )
+                                                }
                                             },
                                             onLongClick = { ->
                                                 if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
@@ -244,9 +286,9 @@ fun CollectionDetailPane(
                                             showMoreIcon = rememberSaveable {
                                                 mutableStateOf(true)
                                             }, isSelectedForSelection = mutableStateOf(
-                                                    CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
-                                                        rootArchiveFolder
-                                                    )
+                                                CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                                    rootArchiveFolder
+                                                )
                                             ),
                                             showCheckBox = CollectionsScreenVM.isSelectionEnabled,
                                             onCheckBoxChanged = { bool ->
@@ -309,11 +351,23 @@ fun CollectionDetailPane(
                     )
                 },
                 onFolderClick = {
-                    collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                        CollectionDetailPaneInfo(
-                            currentFolder = it, isAnyCollectionSelected = true
-                        )
+                    val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                        currentFolder = it, isAnyCollectionSelected = true
                     )
+
+                    if (platform is Platform.Android.Mobile) {
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                            value = Json.encodeToString(
+                                collectionDetailPaneInfo
+                            )
+                        )
+                        navController.navigate(Navigation.Collection.CollectionDetailPane)
+                    } else {
+                        collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                            collectionDetailPaneInfo
+                        )
+                    }
                 },
                 onLinkClick = {
                     collectionsScreenVM.addANewLink(
@@ -335,22 +389,35 @@ fun CollectionDetailPane(
         }
         if (currentlyInFolder?.parentFolderId.isNotNull()) {
             currentlyInFolder?.parentFolderId as Long
-            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                CollectionDetailPaneInfo(
-                    currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
-                    isAnyCollectionSelected = true
-                )
+
+            val parentFolderCollectionPane = CollectionDetailPaneInfo(
+                currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
+                isAnyCollectionSelected = true
             )
+
+            if (platform is Platform.Android.Mobile) {
+                navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.set(
+                        Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                        Json.encodeToString(parentFolderCollectionPane)
+                    )
+                navController.navigateUp()
+            } else {
+                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                    parentFolderCollectionPane
+                )
+            }
         } else {
             if (platform is Platform.Android.Mobile) {
                 navController.navigateUp()
-                return@PlatformSpecificBackHandler
-            }
-            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                CollectionDetailPaneInfo(
-                    currentFolder = null, isAnyCollectionSelected = false
+            } else {
+                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                    CollectionDetailPaneInfo(
+                        currentFolder = null, isAnyCollectionSelected = false
+                    )
                 )
-            )
+            }
         }
     }
 }
