@@ -24,7 +24,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material3.Button
@@ -239,7 +241,10 @@ private fun SlideDesc(string: String, modifier: Modifier = Modifier) {
 private fun Slide2() {
     val localUriHandler = LocalUriHandler.current
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)) {
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState(1)).fillMaxWidth()
+                .align(Alignment.BottomCenter)
+        ) {
             FolderComponent(
                 FolderComponentParam(
                     folder = Folder(
@@ -310,6 +315,29 @@ private fun Slide2() {
                     isItemSelected = mutableStateOf(false),
                     onLongClick = { -> },
                 ), forTitleOnlyView = false
+            )
+            LinkListItemComposable(
+                linkUIComponentParam = LinkUIComponentParam(
+                    link = Link(
+                        title = "Nas | Spotify",
+                        baseURL = "open.spotify.com",
+                        imgURL = "https://ucarecdn.com/9b4d5145-a417-4ff9-a7e5-93a452a443c8/-/crop/974x818/26,197/-/preview/",
+                        url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
+                        userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                        linkType = LinkType.SAVED_LINK,
+                        localId = 0L,
+                        note = "",
+                        idOfLinkedFolder = null
+                    ),
+                    onForceOpenInExternalBrowserClicked = { -> },
+                    isSelectionModeEnabled = mutableStateOf(false),
+                    isItemSelected = mutableStateOf(false),
+                    onLongClick = { -> }, onMoreIconClick = { -> },
+                    onLinkClick = { ->
+                        localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
+                    },
+                ), forTitleOnlyView = false,
+                imageAlignment = Alignment.TopCenter
             )
             Spacer(modifier = Modifier.height(5.dp))
             SlideTitle(string = "Folders &\nLinks.", modifier = Modifier.padding(start = 15.dp))
