@@ -62,9 +62,11 @@ import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
@@ -79,6 +81,8 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,6 +110,7 @@ fun HomeScreen() {
         panelFolders.value.size
     })
     val localUriHandler = LocalUriHandler.current
+    val platform = LocalPlatform.current
     Scaffold(topBar = {
         Column(
             modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).animateContentSize()
@@ -259,10 +264,20 @@ fun HomeScreen() {
                                 navigatedWithFolderId = folder.localId
                             )
                         )
-                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                            collectionDetailPaneInfo
-                        )
-                        navController.navigate(Navigation.Collection.CollectionDetailPane)
+                        try {
+                            if (platform is Platform.Android.Mobile) {
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(collectionDetailPaneInfo)
+                                )
+                            } else {
+                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    collectionDetailPaneInfo
+                                )
+                            }
+                        } finally {
+                            navController.navigate(Navigation.Collection.CollectionDetailPane)
+                        }
                     },
                     linkMoreIconClick = {
                         coroutineScope.pushUIEvent(

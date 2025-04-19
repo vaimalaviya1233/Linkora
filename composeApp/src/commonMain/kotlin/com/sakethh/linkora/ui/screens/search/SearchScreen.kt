@@ -37,11 +37,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
@@ -54,6 +57,8 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +68,7 @@ fun SearchScreen() {
             DependencyContainer.localFoldersRepo.value, DependencyContainer.localLinksRepo.value
         )
     })
-
+    val platform = LocalPlatform.current
     val historyLinks = searchScreenVM.links.collectAsStateWithLifecycle()
     val searchQueryLinkResults = searchScreenVM.linkQueryResults.collectAsStateWithLifecycle()
     val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
@@ -165,10 +170,20 @@ fun SearchScreen() {
                                         navigatedWithFolderId = folder.localId
                                     )
                                 )
-                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                    collectionDetailPaneInfo
-                                )
-                                navController.navigate(Navigation.Collection.CollectionDetailPane)
+                                try {
+                                    if (platform is Platform.Android.Mobile) {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                            value = Json.encodeToString(collectionDetailPaneInfo)
+                                        )
+                                    } else {
+                                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                            collectionDetailPaneInfo
+                                        )
+                                    }
+                                } finally {
+                                    navController.navigate(Navigation.Collection.CollectionDetailPane)
+                                }
                             },
                             linkMoreIconClick = {
                                 coroutineScope.pushUIEvent(
