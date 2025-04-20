@@ -408,7 +408,7 @@ object Localization {
             defaultValue = "Linkora wouldn't be possible without the following open-source software, libraries."
         ),
         UserAgent(defaultValue = "User Agent"), UserAgentDesc(defaultValue = "Detects images and titles from webpage meta tags. Detected data may vary based on the agent string used."), LocalizationServerDesc(
-            defaultValue = "Linkora’s localization server lets you update strings without updating the app. By default, it uses Linkora’s server.\n" + "\n" + "You can switch to your own server if needed. Changes will reflect in Linkora’s network requests for language or string updates.\n" + "\n" + "Only change this if you’re sure about what you’re doing."
+            defaultValue = "Linkora’s localization server lets you update strings without updating the app. By default, it uses Linkora’s server.\n\nYou can switch to your own server if needed. Changes will reflect in Linkora’s network requests for language or string updates.\n\nOnly change this if you’re sure about what you’re doing."
         ),
         LocalizationServer(defaultValue = "Localization Server"), PreparingToExportYourData(
             defaultValue = "Preparing to export your data..."
