@@ -259,7 +259,9 @@ fun HomeScreen() {
                         val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                             currentFolder = folder,
                             isAnyCollectionSelected = true,
-                            searchNavigated = SearchNavigated(
+                        )
+                        CollectionsScreenVM.updateSearchNavigated(
+                            SearchNavigated(
                                 navigatedFromSearchScreen = true,
                                 navigatedWithFolderId = folder.localId
                             )

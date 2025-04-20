@@ -6,11 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CollectionDetailPaneInfo(
     val currentFolder: Folder?,
-    val isAnyCollectionSelected: Boolean,
-    val searchNavigated: SearchNavigated = SearchNavigated(
-        navigatedFromSearchScreen = false,
-        navigatedWithFolderId = -1
-    )
+    val isAnyCollectionSelected: Boolean
 )
 
 @Serializable

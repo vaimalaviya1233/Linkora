@@ -64,7 +64,6 @@ import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.platform
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -81,11 +80,10 @@ fun CollectionDetailPane(
             localLinksRepo = DependencyContainer.localLinksRepo.value,
             loadNonArchivedRootFoldersOnInit = false,
             loadArchivedRootFoldersOnInit = platform is Platform.Android.Mobile,
-            collectionDetailPaneInfo = if (platform is Platform.Android.Mobile) navController.previousBackStackEntry?.savedStateHandle?.getStateFlow<String>(
+            collectionDetailPaneInfo = if (platform is Platform.Android.Mobile) navController.previousBackStackEntry?.savedStateHandle?.get<String>(
                 Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                ""
-            )?.value?.run {
-                linkoraLog("Decoding the CollectionDetailPaneInfo")
+            ).run {
+                this as String
                 Json.decodeFromString<CollectionDetailPaneInfo>(this).also {
                     if (it.currentFolder != null) {
                         CollectionsScreenVM.updateCollectionDetailPaneInfo(it)
@@ -110,7 +108,8 @@ fun CollectionDetailPane(
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
-                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedWithFolderId) {
+                    if (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId) {
+                        CollectionsScreenVM.resetSearchNavigated()
                         navController.navigateUp()
                         return@IconButton
                     }
@@ -383,7 +382,8 @@ fun CollectionDetailPane(
         }
     }
     PlatformSpecificBackHandler {
-        if (CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.collectionDetailPaneInfo.value.searchNavigated.navigatedWithFolderId) {
+        if (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId) {
+            CollectionsScreenVM.resetSearchNavigated()
             navController.navigateUp()
             return@PlatformSpecificBackHandler
         }

@@ -164,8 +164,10 @@ fun SearchScreen() {
                             onFolderClick = { folder ->
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                     currentFolder = folder,
-                                    isAnyCollectionSelected = true,
-                                    searchNavigated = SearchNavigated(
+                                    isAnyCollectionSelected = true
+                                )
+                                CollectionsScreenVM.updateSearchNavigated(
+                                    SearchNavigated(
                                         navigatedFromSearchScreen = true,
                                         navigatedWithFolderId = folder.localId
                                     )

@@ -25,6 +25,7 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
+import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -55,6 +56,26 @@ open class CollectionsScreenVM(
             )
         )
         val collectionDetailPaneInfo = _collectionDetailPaneInfo
+
+        private val _searchNavigated = mutableStateOf(
+            SearchNavigated(
+                navigatedFromSearchScreen = false,
+                navigatedWithFolderId = -1
+            )
+        )
+
+        val searchNavigated = _searchNavigated
+
+        fun updateSearchNavigated(searchNavigated: SearchNavigated) {
+            _searchNavigated.value = searchNavigated
+        }
+
+        fun resetSearchNavigated() {
+            _searchNavigated.value = SearchNavigated(
+                navigatedFromSearchScreen = false,
+                navigatedWithFolderId = -1
+            )
+        }
 
         fun updateCollectionDetailPaneInfo(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
             _collectionDetailPaneInfo.value = collectionDetailPaneInfo
