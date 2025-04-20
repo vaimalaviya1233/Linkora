@@ -66,6 +66,7 @@ object Localization {
     }
 
     enum class Key(val defaultValue: String) {
+        /***** THE SACRED SCRAPING RITUAL BEGINS *****/
         Settings(defaultValue = "Settings"), Theme(defaultValue = "Theme"), General(defaultValue = "General"), Advanced(
             defaultValue = "Advanced"
         ),
@@ -510,5 +511,6 @@ object Localization {
         NavigateAndCopyDesc(defaultValue = "Navigate to the folder where you want to copy the selected items and hit the paste button to copy them there."),
         NavigateAndMoveDesc(defaultValue = "Navigate to the folder where you want to move the selected items and hit the paste button to move them there."),
         Moving(defaultValue = "Moving..."), Copying(defaultValue = "Copying...")
+        /*****  SCRAPING RITUAL COMPLETE  *****/
     }
 }
