@@ -91,6 +91,7 @@ import com.sakethh.linkora.common.utils.inRootScreen
 import com.sakethh.linkora.common.utils.initializeIfServerConfigured
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
@@ -443,11 +444,13 @@ fun App(
                                 }
                                 Column {
                                     Text(
-                                        text = "Selected ${CollectionsScreenVM.selectedLinksViaLongClick.size} links",
+                                        text = Localization.Key.SelectedLinksCount.rememberLocalizedString()
+                                            .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedLinksViaLongClick.size.toString()),
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
-                                        text = "Selected ${CollectionsScreenVM.selectedFoldersViaLongClick.size} folders",
+                                        text = Localization.Key.SelectedFoldersCount.rememberLocalizedString()
+                                            .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedFoldersViaLongClick.size.toString()),
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                 }
@@ -464,7 +467,7 @@ fun App(
                                 ) {
                                     if ((appVM.transferActionType.value == TransferActionType.NONE && showPasteButton.not()) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
                                         Text(
-                                            text = "Actions",
+                                            text = Localization.Key.MultiActionsLabel.rememberLocalizedString(),
                                             style = MaterialTheme.typography.titleSmall,
                                             color = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.padding(start = 15.dp)
@@ -609,7 +612,7 @@ fun App(
                                     )
                                 ) {
                                     Text(
-                                        text = "Mark selected folders as root",
+                                        text = Localization.Key.MarkSelectedFoldersAsRoot.rememberLocalizedString(),
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                 }
@@ -627,7 +630,7 @@ fun App(
                                     )
                                 ) {
                                     Text(
-                                        text = "Navigate to Collections Screen",
+                                        text = Localization.Key.NavigateToCollectionsScreen.rememberLocalizedString(),
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                 }

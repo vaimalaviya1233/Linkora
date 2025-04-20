@@ -107,7 +107,7 @@ open class SettingsScreenViewModel(
 
             add(
                 SettingComponentParam(
-                    title = "Show Onboarding Slides",
+                    title = Localization.getLocalizedString(Localization.Key.ShowOnboardingSlides),
                     doesDescriptionExists = false,
                     description = "",
                     isSwitchNeeded = false,

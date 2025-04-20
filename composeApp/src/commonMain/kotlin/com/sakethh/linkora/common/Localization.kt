@@ -93,7 +93,47 @@ object Localization {
         FolderLinks(defaultValue = "Folder Links"), Collections(defaultValue = "Collections"), LinkoraServerSetup(
             defaultValue = "Linkora Server Setup"
         ),
-        CollectionDetailPane(defaultValue = "Collection Detail Pane"), CreateANewFolder(defaultValue = "Create A New Folder"), CreateANewFolderIn(
+        ShowOnboardingSlides("Show Onboarding Slides"), CollectionDetailPane(defaultValue = "Collection Detail Pane"), CreateANewFolder(
+            defaultValue = "Create A New Folder"
+        ),
+        AppIntroSlide3PanelName("Brainstorm Panel"),
+        AppIntroSlide3Folder2Name("Reference Materials"),
+        AppIntroSlide3Folder2_1Name("Cool Animations"), AppIntroSlide3Folder2_1Note("snappy transitions and smooth stuff"),
+        AppIntroSlide3Folder3_1Name("Code Snippets"), AppIntroSlide3Folder3_1Note("reusable bits and tricks"),
+        AppIntroSlide3MainLabel("Introducing Panels."),
+        AppIntroSlide3MainLabelDesc("Add any of your folders to a Panel for quick access from the Home screen. Oh, and yep — Linkora supports subfolders too."),
+        AppIntroSlide4Label1("Wait,\nThere's More."),
+        AppIntroSlide4Label1Desc1("Search, sort, auto title and image detection (when available)."),
+        AppIntroSlide4Label1Desc2("Export/import in JSON or HTML."),
+        AppIntroSlide4Label1Desc3("Sync with your own server if you want."),
+        AppIntroSlide4Label1Desc4("Opened links are saved in history — even if the original link is deleted."),
+        AppIntroSlide4Label1Desc5("Supports different layout settings."),
+        AppIntroSlide4Label1Desc6("Dynamic Material theming (if supported by your device)."),
+        AppIntroSlide4Label1Desc7("OLED theme included for Android devices."),
+        AppIntroSlide4Label1Desc8("Localization with a central server — language updates without app updates."),
+        AppIntroSlide4Label1Desc9("No ads, no paywalls, free as in freedom."),
+        AppIntroSlide4Label1Desc10("Just simple, solid bookmarking."),
+        DeletingDuplicatesLabel("Deleting Duplicates..."),
+        SelectedLinksCount("Selected ${LinkoraPlaceHolder.First.value} links"),
+        SelectedFoldersCount("Selected ${LinkoraPlaceHolder.First.value} folders"),
+        MultiActionsLabel("Actions"),
+        MarkSelectedFoldersAsRoot("Mark selected folders as root"),
+        NavigateToCollectionsScreen("Navigate to Collections Screen"),
+        AppIntroSlide4Label2("Open. Local First. Yours."),
+        AppIntroSlide4Label2Desc("Linkora is open-source under the MIT license — now available on desktop too."),
+        PreviousPage("Previous page"), NextPage("Next page"), Done("Done"), AppIntroSlide2Folder1Name(
+            "Inspiration & Ideas"
+        ),
+        AppIntroSlide2Folder2Name("Explainers"), AppIntroSlide2Folder2Note("in-depth articles or breakdowns"), AppIntroSlide2MainLabelDesc(
+            "Store links into folders, flag them as Important or Archived, or keep them in \"Saved Links\" — customize it your way."
+        ),
+        AppIntroSlide2MainLabel("Folders &\nLinks."), AppIntroSlide2Folder1Note(
+            "cool stuff i might use later"
+        ),
+        AppIntroSlide1WelcomeToLabel("Welcome to"), AppIntroSlide1SwipeLabel("Swipe through or hit Next to discover Linkora's features."), AppIntroSlide1Label(
+            "Linkora keeps your links private.\nSync and organize—nothing leaves your device unless you set up your own server.\nNo tracking, no cloud."
+        ),
+        CreateANewFolderIn(
             defaultValue = "Create A New Folder In ${LinkoraPlaceHolder.First.value}"
         ),
         Create(defaultValue = "Create"), AddANewLink(defaultValue = "Add A New Link"), SavedLinks(

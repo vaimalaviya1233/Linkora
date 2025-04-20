@@ -646,8 +646,8 @@ fun DataSettingsScreen() {
             Button(modifier = Modifier.fillMaxWidth(), onClick = {
                 dataSettingsScreenVM.importDataFromAFile(
                     importFileType = ImportFileType.valueOf(
-                    selectedImportFormat.value
-                ),
+                        selectedImportFormat.value
+                    ),
                     onStart = {
                         showFileLocationPickerDialog.value = false
                         isImportExportProgressUIVisible.value = true
@@ -676,12 +676,12 @@ fun DataSettingsScreen() {
         }, text = {
             OutlinedTextField(
                 label = {
-                Text(
-                    text = Localization.Key.FileLocationLabel.rememberLocalizedString(),
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1
-                )
-            },
+                    Text(
+                        text = Localization.Key.FileLocationLabel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1
+                    )
+                },
                 value = fileLocation.value,
                 onValueChange = {
                     fileLocation.value = it
@@ -738,12 +738,11 @@ fun DataSettingsScreen() {
                 verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
                 Text(
-                    text = "Deleting Duplicates...",
+                    text = Localization.Key.DeletingDuplicatesLabel.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
                 )
                 LinearProgressIndicator()
-                Spacer(Modifier)
             }
         })
     }

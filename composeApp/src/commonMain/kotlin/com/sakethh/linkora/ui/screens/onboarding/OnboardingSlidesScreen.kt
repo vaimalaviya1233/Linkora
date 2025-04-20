@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
@@ -134,7 +135,10 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
                             }
                         }
                     }) {
-                        Text(text = "Previous Page", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = Localization.Key.PreviousPage.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     }
                 }
                 Spacer(Modifier.width(15.dp))
@@ -159,9 +163,9 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
                 }) {
                     val text = rememberSaveable(pagerState.currentPage) {
                         if (pagerState.currentPage == pagerState.pageCount - 1) {
-                            "Done"
+                            Localization.Key.Done.getLocalizedString()
                         } else {
-                            "Next Page"
+                            Localization.Key.NextPage.getLocalizedString()
                         }
                     }
                     AnimatedContent(text, transitionSpec = {
@@ -196,7 +200,7 @@ private fun Slide1() {
         )
         Spacer(modifier = Modifier.height(25.dp))
         Text(
-            text = "Welcome to",
+            text = Localization.Key.AppIntroSlide1WelcomeToLabel.rememberLocalizedString(),
             style = MaterialTheme.typography.titleSmall,
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.primary,
@@ -205,12 +209,12 @@ private fun Slide1() {
         SlideTitle(Localization.Key.Linkora.rememberLocalizedString())
         Spacer(modifier = Modifier.height(5.dp))
         Text(
-            text = "Linkora keeps your links private.\nSync and organize—nothing leaves your device unless you set up your own server.\nNo tracking, no cloud.",
+            text = Localization.Key.AppIntroSlide1Label.rememberLocalizedString(),
             style = MaterialTheme.typography.titleSmall,
             fontSize = 18.sp,
         )
         Spacer(modifier = Modifier.height(15.dp))
-        SlideDesc("Swipe through or hit Next to discover Linkora's features.")
+        SlideDesc(Localization.Key.AppIntroSlide1SwipeLabel.rememberLocalizedString())
         Spacer(modifier = Modifier.height(75.dp))
     }
 }
@@ -248,8 +252,8 @@ private fun Slide2() {
             FolderComponent(
                 FolderComponentParam(
                     folder = Folder(
-                        name = "Inspiration & Ideas",
-                        note = "cool stuff i might use later",
+                        name = Localization.Key.AppIntroSlide2Folder1Name.rememberLocalizedString(),
+                        note = Localization.Key.AppIntroSlide2Folder1Note.rememberLocalizedString(),
                         parentFolderId = null
                     ),
                     onClick = {},
@@ -272,8 +276,8 @@ private fun Slide2() {
             FolderComponent(
                 FolderComponentParam(
                     folder = Folder(
-                        name = "Explainers",
-                        note = "in-depth articles or breakdowns",
+                        name = Localization.Key.AppIntroSlide2Folder2Name.rememberLocalizedString(),
+                        note = Localization.Key.AppIntroSlide2Folder2Note.rememberLocalizedString(),
                         parentFolderId = null
                     ),
                     onClick = {},
@@ -340,11 +344,14 @@ private fun Slide2() {
                 imageAlignment = Alignment.TopCenter
             )
             Spacer(modifier = Modifier.height(5.dp))
-            SlideTitle(string = "Folders &\nLinks.", modifier = Modifier.padding(start = 15.dp))
+            SlideTitle(
+                string = Localization.Key.AppIntroSlide2MainLabel.rememberLocalizedString(),
+                modifier = Modifier.padding(start = 15.dp)
+            )
             Spacer(modifier = Modifier.height(5.dp))
             SlideDesc(
                 modifier = Modifier.padding(start = 15.dp, bottom = 75.dp),
-                string = "Store links into folders, flag them as Important or Archived, or keep them in \"Saved Links\" — customize it your way."
+                string = Localization.Key.AppIntroSlide2MainLabelDesc.rememberLocalizedString()
             )
         }
     }
@@ -375,7 +382,7 @@ private fun Slide3() {
             }
             Spacer(Modifier.width(10.dp))
             Text(
-                text = "Brainstorm Panel",
+                text = Localization.Key.AppIntroSlide3PanelName.rememberLocalizedString(),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleLarge,
                 fontSize = 20.sp,
@@ -394,7 +401,7 @@ private fun Slide3() {
                         }.start()
                     }) {
                         Text(
-                            text = if (it == 0) "Inspiration & Ideas" else "Reference Materials",
+                            text = if (it == 0) Localization.Key.AppIntroSlide2Folder1Name.rememberLocalizedString() else Localization.Key.AppIntroSlide3Folder2Name.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleLarge,
                             fontSize = 18.sp,
                             modifier = Modifier.padding(15.dp),
@@ -413,8 +420,8 @@ private fun Slide3() {
                         FolderComponent(
                             FolderComponentParam(
                                 folder = Folder(
-                                    name = "Cool Animations",
-                                    note = "snappy transitions and smooth stuff",
+                                    name = Localization.Key.AppIntroSlide3Folder2_1Name.rememberLocalizedString(),
+                                    note = Localization.Key.AppIntroSlide3Folder2_1Note.rememberLocalizedString(),
                                     parentFolderId = null
                                 ),
                                 onClick = {},
@@ -476,8 +483,8 @@ private fun Slide3() {
                         FolderComponent(
                             FolderComponentParam(
                                 folder = Folder(
-                                    name = "Code Snippets",
-                                    note = "reusable bits and tricks",
+                                    name = Localization.Key.AppIntroSlide3Folder3_1Name.rememberLocalizedString(),
+                                    note = Localization.Key.AppIntroSlide3Folder3_1Note.rememberLocalizedString(),
                                     parentFolderId = null
                                 ),
                                 onClick = {},
@@ -528,13 +535,13 @@ private fun Slide3() {
         }
         Spacer(modifier = Modifier.height(10.dp))
         SlideTitle(
-            string = "Introducing Panels.",
+            string = Localization.Key.AppIntroSlide3MainLabel.rememberLocalizedString(),
             modifier = Modifier.fillMaxWidth().padding(start = 15.dp)
         )
         Spacer(modifier = Modifier.height(5.dp))
         SlideDesc(
             modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp),
-            string = "Add any of your folders to a Panel for quick access from the Home screen. Oh, and yep — Linkora supports subfolders too."
+            string = Localization.Key.AppIntroSlide3MainLabelDesc.rememberLocalizedString()
         )
         Spacer(modifier = Modifier.height(75.dp))
     }
@@ -546,19 +553,19 @@ private fun Slide4() {
         modifier = Modifier.padding(start = 15.dp, end = 15.dp, bottom = 75.dp).fillMaxSize(),
         verticalArrangement = Arrangement.Bottom
     ) {
-        SlideTitle(string = "Wait,\nThere's More.")
+        SlideTitle(string = Localization.Key.AppIntroSlide4Label1.rememberLocalizedString())
         Spacer(Modifier.height(5.dp))
         listOf(
-            "Search, sort, auto title and image detection (when available).",
-            "Export/import in JSON or HTML.",
-            "Sync with your own server if you want.",
-            "Opened links are saved in history — even if the original link is deleted.",
-            "Supports different layout settings.",
-            "Dynamic Material theming (if supported by your device).",
-            "OLED theme included for Android devices.",
-            "Localization with a central server — language updates without app updates.",
-            "No ads, no paywalls, free as in freedom.",
-            "Just simple, solid bookmarking."
+            Localization.Key.AppIntroSlide4Label1Desc1.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc2.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc3.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc4.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc5.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc6.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc7.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc8.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc9.getLocalizedString(),
+            Localization.Key.AppIntroSlide4Label1Desc10.getLocalizedString()
         ).forEach {
             key(it) {
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -575,8 +582,8 @@ private fun Slide4() {
             colorOpacity = 0.95f,
             thickness = 2.dp
         )
-        SlideTitle(string = "Open. Local First. Yours.")
+        SlideTitle(string = Localization.Key.AppIntroSlide4Label2.rememberLocalizedString())
         Spacer(Modifier.height(5.dp))
-        SlideDesc(string = "Linkora is open-source under the MIT license — now available on desktop too.")
+        SlideDesc(string = Localization.Key.AppIntroSlide4Label2Desc.rememberLocalizedString())
     }
 }
