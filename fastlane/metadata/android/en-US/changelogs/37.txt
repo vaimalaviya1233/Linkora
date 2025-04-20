@@ -1,0 +1,3 @@
+- Lots of minor UI and animation improvements.
+- App will now remember if you've navigated to folders from search or home screen and will navigate back as expected.
+- Added onboarding for new users. You can manually check it from Settings → General → Show Onboarding Slides.
