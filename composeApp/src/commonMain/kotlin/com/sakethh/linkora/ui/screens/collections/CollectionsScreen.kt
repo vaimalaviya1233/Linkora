@@ -360,7 +360,8 @@ private fun DefaultFolderComponent(
 ) {
     Card(
         modifier = Modifier.padding(
-            end = if (platform() == Platform.Android.Mobile) 15.dp else 0.dp, start = 15.dp,
+            end = if (platform() == Platform.Android.Mobile) 15.dp else 0.dp,
+            start = 15.dp,
             top = 15.dp
         ).wrapContentHeight().fillMaxWidth().clickable(interactionSource = remember {
             MutableInteractionSource()

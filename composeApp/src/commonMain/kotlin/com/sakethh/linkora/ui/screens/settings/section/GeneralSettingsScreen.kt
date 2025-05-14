@@ -189,11 +189,6 @@ fun GeneralSettingsScreen() {
                 ).forEach {
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable(onClick = {
-                                settingsScreenViewModel.changeSettingPreferenceValue(
-                                    preferenceKey = stringPreferencesKey(
-                                        AppPreferenceType.INITIAL_ROUTE.name
-                                    ), newValue = it.toString()
-                                )
                                 currentlySelectedRoute.value = it.toString()
                             }, indication = null, interactionSource = remember {
                                 MutableInteractionSource()
@@ -201,11 +196,6 @@ fun GeneralSettingsScreen() {
                     ) {
                         RadioButton(
                             selected = currentlySelectedRoute.value == it.toString(), onClick = {
-                                settingsScreenViewModel.changeSettingPreferenceValue(
-                                    preferenceKey = stringPreferencesKey(
-                                        AppPreferenceType.INITIAL_ROUTE.name
-                                    ), newValue = it.toString()
-                                )
                                 currentlySelectedRoute.value = it.toString()
                             })
                         Text(
