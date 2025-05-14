@@ -65,18 +65,20 @@ class AppVM(
     init {
 
         runBlocking {
-            startDestination.value = if (
-                preferencesRepository.readPreferenceValue(
+            startDestination.value = if (preferencesRepository.readPreferenceValue(
                     booleanPreferencesKey(
                         AppPreferenceType.SHOULD_SHOW_ONBOARDING.name
                     )
-                ) != false
-                && (linksRepo.getAllLinks().size + foldersRepo.getAllFoldersAsList().size + localPanelsRepo.getAllThePanelsAsAList().size) == 0
+                ) != false && (linksRepo.getAllLinks().size + foldersRepo.getAllFoldersAsList().size + localPanelsRepo.getAllThePanelsAsAList().size) == 0
             ) {
                 Navigation.Root.OnboardingSlidesScreen
             } else {
                 onBoardingCompleted.value = true
-                Navigation.Root.HomeScreen
+                when (AppPreferences.startDestination.value) {
+                    Navigation.Root.HomeScreen.toString() -> Navigation.Root.HomeScreen
+                    Navigation.Root.SearchScreen.toString() -> Navigation.Root.SearchScreen
+                    else -> Navigation.Root.CollectionsScreen
+                }
             }
         }
 
@@ -225,7 +227,7 @@ class AppVM(
         viewModelScope.launch {
             localMultiActionRepo.archiveMultipleItems(
                 linkIds = selectedLinksViaLongClick.filter { it.linkType != LinkType.ARCHIVE_LINK }
-                    .map { it.localId },
+                .map { it.localId },
                 folderIds = selectedFoldersViaLongClick.filter { it.isArchived.not() }
                     .map { it.localId }).collectLatest {
                 it.onSuccess {
@@ -243,7 +245,8 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.deleteMultipleItems(
-                linkIds = selectedLinksViaLongClick.toList().map { it.localId },
+                linkIds = selectedLinksViaLongClick.toList()
+                .map { it.localId },
                 folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
                 it.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar("Deleted successfully." + it.getRemoteOnlyFailureMsg()))
@@ -271,10 +274,10 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.unArchiveMultipleItems(
-                folderIds = selectedFoldersViaLongClick.filter { it.isArchived }.map { it.localId },
+                folderIds = selectedFoldersViaLongClick.filter { it.isArchived }
+                .map { it.localId },
                 linkIds = selectedLinksViaLongClick.filter { it.linkType == LinkType.ARCHIVE_LINK }
-                    .map { it.localId })
-                .collect()
+                    .map { it.localId }).collect()
         }.invokeOnCompletion {
             clearAllSelections()
             onCompletion()

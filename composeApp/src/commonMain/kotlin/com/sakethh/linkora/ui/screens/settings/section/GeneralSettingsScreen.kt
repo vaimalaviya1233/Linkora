@@ -12,17 +12,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Start
 import androidx.compose.material.icons.filled.VideoLabel
+import androidx.compose.material.icons.outlined.PresentToAll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -101,12 +105,40 @@ fun GeneralSettingsScreen() {
                     )
                 }
             }
-            itemsIndexed(generalSectionData) { index, setting ->
+            items(generalSectionData) { setting ->
+                SettingComponent(setting)
+            }
+
+            item {
                 SettingComponent(
-                    if (index == generalSectionData.lastIndex) setting.copy(
+                    SettingComponentParam(
+                        title = Localization.Key.ChangeInitialRoute.rememberLocalizedString(),
+                        doesDescriptionExists = true,
+                        description = Localization.Key.ChangeInitialRouteDesc.rememberLocalizedString(),
+                        isSwitchNeeded = false,
+                        isSwitchEnabled = mutableStateOf(false),
+                        onSwitchStateChange = {
+                            showInitialNavigationChangerDialogBox.value = true
+                        },
+                        isIconNeeded = mutableStateOf(true),
+                        icon = Icons.Default.Start
+                    )
+                )
+            }
+            item {
+                SettingComponent(
+                    SettingComponentParam(
+                        title = Localization.getLocalizedString(Localization.Key.ShowOnboardingSlides),
+                        doesDescriptionExists = false,
+                        description = "",
+                        isSwitchNeeded = false,
+                        isSwitchEnabled = mutableStateOf(false),
                         onSwitchStateChange = {
                             navController.navigate(Navigation.Root.OnboardingSlidesScreen)
-                        }) else setting
+                        },
+                        icon = Icons.Outlined.PresentToAll,
+                        isIconNeeded = mutableStateOf(true),
+                    )
                 )
             }
             item {
@@ -118,6 +150,11 @@ fun GeneralSettingsScreen() {
         val currentlySelectedRoute = rememberSaveable {
             mutableStateOf(AppPreferences.startDestination.value)
         }
+        LaunchedEffect(Unit) {
+            settingsScreenViewModel.currInitialRoute {
+                currentlySelectedRoute.value = it
+            }
+        }
         AlertDialog(onDismissRequest = {
             showInitialNavigationChangerDialogBox.value = false
         }, confirmButton = {
@@ -127,12 +164,11 @@ fun GeneralSettingsScreen() {
                         AppPreferenceType.INITIAL_ROUTE.name
                     ), currentlySelectedRoute.value.toString()
                 )
-                AppPreferences.startDestination.value = currentlySelectedRoute.value
                 showInitialNavigationChangerDialogBox.value = false
             }, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = Localization.Key.Confirm.rememberLocalizedString(),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }, dismissButton = {
@@ -145,15 +181,19 @@ fun GeneralSettingsScreen() {
                 )
             }
         }, text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
                 listOf(
                     Navigation.Root.HomeScreen,
                     Navigation.Root.SearchScreen,
                     Navigation.Root.CollectionsScreen
                 ).forEach {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 5.dp, bottom = 5.dp)
-                            .clickable(onClick = {
+                        modifier = Modifier.fillMaxWidth().clickable(onClick = {
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    preferenceKey = stringPreferencesKey(
+                                        AppPreferenceType.INITIAL_ROUTE.name
+                                    ), newValue = it.toString()
+                                )
                                 currentlySelectedRoute.value = it.toString()
                             }, indication = null, interactionSource = remember {
                                 MutableInteractionSource()
@@ -161,11 +201,18 @@ fun GeneralSettingsScreen() {
                     ) {
                         RadioButton(
                             selected = currentlySelectedRoute.value == it.toString(), onClick = {
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    preferenceKey = stringPreferencesKey(
+                                        AppPreferenceType.INITIAL_ROUTE.name
+                                    ), newValue = it.toString()
+                                )
                                 currentlySelectedRoute.value = it.toString()
                             })
                         Text(
                             style = if (currentlySelectedRoute.value == it.toString()) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
-                            text = it.toString()
+                            text = it.toString(),
+                            color = if (currentlySelectedRoute.value == it.toString()) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                            fontSize = 16.sp
                         )
                     }
                 }
@@ -173,8 +220,8 @@ fun GeneralSettingsScreen() {
         }, title = {
             Text(
                 text = Localization.Key.SelectTheInitialScreen.rememberLocalizedString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontSize = 16.sp
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 24.sp
             )
         })
     }

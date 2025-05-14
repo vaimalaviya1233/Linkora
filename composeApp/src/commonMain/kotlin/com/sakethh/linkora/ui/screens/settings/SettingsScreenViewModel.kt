@@ -4,10 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.PresentToAll
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.common.Localization
@@ -16,6 +16,7 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.ui.navigation.Navigation
 import kotlinx.coroutines.launch
 
 open class SettingsScreenViewModel(
@@ -104,23 +105,6 @@ open class SettingsScreenViewModel(
                         })
                 )
             }
-
-            add(
-                SettingComponentParam(
-                    title = Localization.getLocalizedString(Localization.Key.ShowOnboardingSlides),
-                    doesDescriptionExists = false,
-                    description = "",
-                    isSwitchNeeded = false,
-                    isSwitchEnabled = mutableStateOf(false),
-                    onSwitchStateChange = {
-
-                    },
-                    onAcknowledgmentClick = { uriHandler ->
-                    },
-                    icon = Icons.Outlined.PresentToAll,
-                    isIconNeeded = mutableStateOf(true),
-                )
-            )
         }
     }
 
@@ -284,4 +268,14 @@ open class SettingsScreenViewModel(
             onCompletion()
         }
     }
+
+    fun currInitialRoute(init: (String) -> Unit) {
+        viewModelScope.launch {
+            (preferencesRepository.readPreferenceValue(stringPreferencesKey(AppPreferenceType.INITIAL_ROUTE.name))
+                ?: Navigation.Root.HomeScreen.toString()).let {
+                init(it)
+            }
+        }
+    }
+
 }
