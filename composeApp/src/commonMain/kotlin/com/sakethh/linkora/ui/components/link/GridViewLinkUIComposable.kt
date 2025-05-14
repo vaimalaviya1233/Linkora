@@ -52,8 +52,7 @@ fun GridViewLinkUIComponent(
     val colorScheme = MaterialTheme.colorScheme
 
     Column(
-        Modifier
-            .fillMaxWidth()
+        Modifier.fillMaxWidth()
             .then(if (!forStaggeredView) Modifier.wrapContentHeight() else Modifier)
             .combinedClickable(onClick = {
                 linkUIComponentParam.onLinkClick()
@@ -61,31 +60,22 @@ fun GridViewLinkUIComponent(
                 MutableInteractionSource()
             }, indication = null, onLongClick = {
                 linkUIComponentParam.onLongClick()
-            })
-            .pulsateEffect()
-            .padding(4.dp)
-            .clip(RoundedCornerShape(5.dp))
-            .then(
+            }).pulsateEffect().padding(4.dp).clip(RoundedCornerShape(5.dp)).then(
                 if (AppPreferences.enableBorderForNonListViews.value) Modifier.border(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.secondary.copy(0.5f),
                     shape = RoundedCornerShape(5.dp)
                 )
                 else Modifier
-            )
-            .then(
+            ).then(
                 if (linkUIComponentParam.isSelectionModeEnabled.value) Modifier.background(
                     colorScheme.primaryContainer
                 ) else Modifier
-            )
-            .animateContentSize()
-            .then(modifier)
+            ).animateContentSize().then(modifier)
     ) {
         if (linkUIComponentParam.isItemSelected.value) {
             Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
+                Modifier.fillMaxWidth().height(150.dp)
                     .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
@@ -94,13 +84,11 @@ fun GridViewLinkUIComponent(
         } else if (linkUIComponentParam.link.imgURL.trim().isNotBlank()) {
             Box(modifier = if (forStaggeredView) Modifier.fillMaxSize() else Modifier.height(150.dp)) {
                 CoilImage(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .then(
-                            if (AppPreferences.enableFadedEdgeForNonListViews.value) Modifier.fadedEdges(
-                                colorScheme
-                            ) else Modifier
-                        ),
+                    modifier = Modifier.fillMaxSize().then(
+                        if (AppPreferences.enableFadedEdgeForNonListViews.value) Modifier.fadedEdges(
+                            colorScheme
+                        ) else Modifier
+                    ),
                     imgURL = linkUIComponentParam.link.imgURL,
                     contentScale = if (linkUIComponentParam.link.imgURL.startsWith("https://pbs.twimg.com/profile_images/") || !AppPreferences.isShelfMinimizedInHomeScreen.value || !forStaggeredView) ContentScale.Crop else ContentScale.Fit,
                     userAgent = linkUIComponentParam.link.userAgent
@@ -112,16 +100,14 @@ fun GridViewLinkUIComponent(
                 ) {
                     Text(
                         text = MediaType.VIDEO.name,
-                        modifier = Modifier
-                            .padding(
-                                start = if (AppPreferences.enableBorderForNonListViews.value) 10.dp else 0.dp,
-                            )
-                            .padding(bottom = if (!AppPreferences.enableBaseURLForLinkViews.value && !AppPreferences.enableTitleForNonListViews.value) 10.dp else 0.dp)
+                        modifier = Modifier.padding(
+                            start = if (AppPreferences.enableBorderForNonListViews.value || AppPreferences.enableBorderForNonListViews.value.not()) 10.dp else 0.dp,
+                        )
+                            .padding(bottom = if (AppPreferences.enableBaseURLForLinkViews.value || (!AppPreferences.enableBaseURLForLinkViews.value && !AppPreferences.enableTitleForNonListViews.value)) 10.dp else 0.dp)
                             .background(
                                 color = MaterialTheme.colorScheme.secondary.copy(0.25f),
                                 shape = RoundedCornerShape(5.dp)
-                            )
-                            .padding(5.dp).align(Alignment.BottomStart),
+                            ).padding(5.dp).align(Alignment.BottomStart),
                         style = MaterialTheme.typography.titleLarge,
                         fontSize = 8.sp,
                         maxLines = 1,
@@ -132,13 +118,10 @@ fun GridViewLinkUIComponent(
                     Icon(
                         Icons.Default.MoreVert,
                         null,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .clip(RoundedCornerShape(topStart = 10.dp))
-                            .clickable {
+                        modifier = Modifier.align(Alignment.BottomEnd)
+                            .clip(RoundedCornerShape(topStart = 10.dp)).clickable {
                                 linkUIComponentParam.onMoreIconClick()
-                            }
-                            .padding(10.dp)
+                            }.padding(10.dp)
                     )
                 }
             }
@@ -153,33 +136,29 @@ fun GridViewLinkUIComponent(
                     bottom = if (linkUIComponentParam.isSelectionModeEnabled.value) 10.dp else 0.dp
                 ),
                 style = MaterialTheme.typography.titleSmall,
-                overflow = TextOverflow.Ellipsis, fontSize = 12.sp
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 12.sp
             )
         }
         if (!linkUIComponentParam.isSelectionModeEnabled.value && AppPreferences.enableBaseURLForLinkViews.value) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        top = 10.dp,
-                        bottom = 10.dp,
-                        end = if (AppPreferences.enableBorderForNonListViews.value) 5.dp else 0.dp
-                    )
+                modifier = Modifier.fillMaxWidth().padding(
+                    top = 10.dp,
+                    bottom = 10.dp,
+                    end = if (AppPreferences.enableBorderForNonListViews.value) 5.dp else 0.dp
+                )
             ) {
                 Box(Modifier.fillMaxWidth(0.75f)) {
                     Text(
                         text = linkUIComponentParam.link.url.baseUrl(throwOnException = false),
-                        modifier = Modifier
-                            .padding(
-                                start = if (AppPreferences.enableBorderForNonListViews.value) 10.dp else 0.dp,
-                            )
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(0.25f),
-                                shape = RoundedCornerShape(5.dp)
-                            )
-                            .padding(5.dp),
+                        modifier = Modifier.padding(
+                            start = if (AppPreferences.enableBorderForNonListViews.value) 10.dp else 0.dp,
+                        ).background(
+                            color = MaterialTheme.colorScheme.primary.copy(0.25f),
+                            shape = RoundedCornerShape(5.dp)
+                        ).padding(5.dp),
                         style = MaterialTheme.typography.titleLarge,
                         fontSize = 10.sp,
                         maxLines = 1,
@@ -187,22 +166,18 @@ fun GridViewLinkUIComponent(
                     )
                 }
                 Icon(
-                    Icons.Default.MoreVert, null, modifier = Modifier
-                        .clickable {
-                            linkUIComponentParam.onMoreIconClick()
-                        })
+                    Icons.Default.MoreVert, null, modifier = Modifier.clickable {
+                        linkUIComponentParam.onMoreIconClick()
+                    })
             }
         } else if (!AppPreferences.enableBaseURLForLinkViews.value && AppPreferences.enableTitleForNonListViews.value) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 Icon(
                     Icons.Default.MoreVert,
                     null,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(topStart = 10.dp))
-                        .clickable {
-                            linkUIComponentParam.onMoreIconClick()
-                        }
-                        .padding(10.dp)
+                    modifier = Modifier.clip(RoundedCornerShape(topStart = 10.dp)).clickable {
+                        linkUIComponentParam.onMoreIconClick()
+                    }.padding(10.dp)
                 )
             }
         }
