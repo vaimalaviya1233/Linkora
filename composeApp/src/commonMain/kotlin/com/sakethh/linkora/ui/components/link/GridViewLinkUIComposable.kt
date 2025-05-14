@@ -116,7 +116,7 @@ fun GridViewLinkUIComponent(
                             .padding(
                                 start = if (AppPreferences.enableBorderForNonListViews.value) 10.dp else 0.dp,
                             )
-                            .padding(bottom = if (!AppPreferences.enableBaseURLForNonListViews.value && !AppPreferences.enableTitleForNonListViews.value) 10.dp else 0.dp)
+                            .padding(bottom = if (!AppPreferences.enableBaseURLForLinkViews.value && !AppPreferences.enableTitleForNonListViews.value) 10.dp else 0.dp)
                             .background(
                                 color = MaterialTheme.colorScheme.secondary.copy(0.25f),
                                 shape = RoundedCornerShape(5.dp)
@@ -128,7 +128,7 @@ fun GridViewLinkUIComponent(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                if (!AppPreferences.enableBaseURLForNonListViews.value && !AppPreferences.enableTitleForNonListViews.value) {
+                if (!AppPreferences.enableBaseURLForLinkViews.value && !AppPreferences.enableTitleForNonListViews.value) {
                     Icon(
                         Icons.Default.MoreVert,
                         null,
@@ -156,7 +156,7 @@ fun GridViewLinkUIComponent(
                 overflow = TextOverflow.Ellipsis, fontSize = 12.sp
             )
         }
-        if (!linkUIComponentParam.isSelectionModeEnabled.value && AppPreferences.enableBaseURLForNonListViews.value) {
+        if (!linkUIComponentParam.isSelectionModeEnabled.value && AppPreferences.enableBaseURLForLinkViews.value) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -192,7 +192,7 @@ fun GridViewLinkUIComponent(
                             linkUIComponentParam.onMoreIconClick()
                         })
             }
-        } else if (!AppPreferences.enableBaseURLForNonListViews.value && AppPreferences.enableTitleForNonListViews.value) {
+        } else if (!AppPreferences.enableBaseURLForLinkViews.value && AppPreferences.enableTitleForNonListViews.value) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 Icon(
                     Icons.Default.MoreVert,

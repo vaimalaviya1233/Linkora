@@ -58,7 +58,7 @@ object AppPreferences {
     val currentlySelectedLinkLayout = mutableStateOf(Layout.REGULAR_LIST_VIEW.name)
     val enableBorderForNonListViews = mutableStateOf(true)
     val enableTitleForNonListViews = mutableStateOf(true)
-    val enableBaseURLForNonListViews = mutableStateOf(true)
+    val enableBaseURLForLinkViews = mutableStateOf(true)
     val enableFadedEdgeForNonListViews = mutableStateOf(true)
     val shouldFollowAmoledTheme = mutableStateOf(false)
     val forceSaveWithoutFetchingAnyMetaData = mutableStateOf(false)
@@ -272,11 +272,11 @@ object AppPreferences {
                             ) ?: enableTitleForNonListViews.value
                 },
                 launch {
-                    enableBaseURLForNonListViews.value =
+                    enableBaseURLForLinkViews.value =
                         preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.BASE_URL_VISIBILITY_FOR_NON_LIST_VIEWS.name),
 
-                            ) ?: enableBaseURLForNonListViews.value
+                            ) ?: enableBaseURLForLinkViews.value
                 },
                 launch {
                     enableFadedEdgeForNonListViews.value =

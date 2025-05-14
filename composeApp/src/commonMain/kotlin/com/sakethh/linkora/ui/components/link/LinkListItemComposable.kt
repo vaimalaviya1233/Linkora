@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -132,23 +133,27 @@ fun LinkListItemComposable(
                 }
             }
         }
-        Text(
-            modifier = Modifier.padding(
-                top = 15.dp,
-                end = 15.dp,
-                bottom = if (linkUIComponentParam.isSelectionModeEnabled.value) 15.dp else 0.dp
-            ).background(
-                color = MaterialTheme.colorScheme.primary.copy(0.1f),
-                shape = RoundedCornerShape(5.dp)
-            ).padding(5.dp),
-            text = linkUIComponentParam.link.baseURL.replace("www.", "").replace("http://", "")
-                .replace("https://", ""),
-            style = MaterialTheme.typography.titleLarge,
-            maxLines = 1,
-            textAlign = TextAlign.Start,
-            overflow = TextOverflow.Ellipsis,
-            fontSize = 12.sp
-        )
+        if (AppPreferences.enableBaseURLForLinkViews.value) {
+            Text(
+                modifier = Modifier.padding(
+                    top = 15.dp,
+                    end = 15.dp,
+                    bottom = if (linkUIComponentParam.isSelectionModeEnabled.value) 15.dp else 0.dp
+                ).background(
+                    color = MaterialTheme.colorScheme.primary.copy(0.1f),
+                    shape = RoundedCornerShape(5.dp)
+                ).padding(5.dp),
+                text = linkUIComponentParam.link.baseURL.replace("www.", "").replace("http://", "")
+                    .replace("https://", ""),
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                textAlign = TextAlign.Start,
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 12.sp
+            )
+        } else {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
         Row(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
             verticalAlignment = Alignment.CenterVertically
