@@ -68,6 +68,7 @@ object AppPreferences {
     val refreshLinksWorkerTag = mutableStateOf("52ae3f4a-d37f-4fdb-a6b6-4397b99ef1bd")
     val showVideoTagOnUIIfApplicable = mutableStateOf(true)
     val forceShuffleLinks = mutableStateOf(false)
+    val showNoteInListViewLayout = mutableStateOf(true)
 
     private var correlation = Correlation.generateRandomCorrelation()
 
@@ -301,6 +302,12 @@ object AppPreferences {
                         AppPreferenceType.FORCE_SHUFFLE_LINKS.name
                     )
                 ) == true
+            },launch {
+                showNoteInListViewLayout.value = preferencesRepository.readPreferenceValue(
+                    booleanPreferencesKey(
+                        AppPreferenceType.NOTE_VISIBILITY_IN_LIST_VIEWS.name
+                    )
+                ) != false
             }).joinAll()
         }
     }

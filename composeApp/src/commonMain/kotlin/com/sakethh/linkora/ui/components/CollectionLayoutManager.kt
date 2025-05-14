@@ -102,12 +102,11 @@ fun CollectionLayoutManager(
             },
             isCurrentlyInDetailsView = mutableStateOf(isCurrentlyInDetailsView(it)),
             showMoreIcon = mutableStateOf(true),
-            isSelectedForSelection =
-                mutableStateOf(
-                    CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
-                        it
-                    )
-                ),
+            isSelectedForSelection = mutableStateOf(
+                CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                    it
+                )
+            ),
             showCheckBox = CollectionsScreenVM.isSelectionEnabled,
             onCheckBoxChanged = { bool ->
                 if (bool) {
@@ -117,8 +116,7 @@ fun CollectionLayoutManager(
                         it
                     )
                 }
-            }
-        )
+            })
     }
 
     when (AppPreferences.currentlySelectedLinkLayout.value) {

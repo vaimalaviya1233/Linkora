@@ -262,6 +262,8 @@ object Localization {
         ),
         ShowTitle(defaultValue = "Show Title"), ShowBaseURL(defaultValue = "Show Base URL"), ShowBottomFadedEdge(
             defaultValue = "Show Bottom Faded Edge"
+        ),ShowNote(
+            defaultValue = "Show Note"
         ),
         ShowVideoTagOnUIIfApplicable(defaultValue = "Show Video Tag On UI If Applicable"), LinkLayoutSettings(
             defaultValue = "Link Layout Settings"

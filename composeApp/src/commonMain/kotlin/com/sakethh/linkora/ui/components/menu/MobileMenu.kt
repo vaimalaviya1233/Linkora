@@ -172,7 +172,7 @@ fun MobileMenu(
             if (note.isNotEmpty()) {
                 Text(
                     text = Localization.Key.SavedNote.rememberLocalizedString(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp,
                     modifier = Modifier.padding(20.dp)

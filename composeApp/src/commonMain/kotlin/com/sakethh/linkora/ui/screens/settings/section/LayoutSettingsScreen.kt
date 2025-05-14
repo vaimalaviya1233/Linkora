@@ -78,7 +78,7 @@ fun LayoutSettingsScreen() {
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
-                    note = "",
+                    note = "RDR2 is the epic tale of outlaw Arthur Morgan and the infamous Van der Linde gang, on the run across America at the dawn of the modern age.",
                     idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
@@ -110,7 +110,7 @@ fun LayoutSettingsScreen() {
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
-                    note = "",
+                    note = "The plague ravages the Kingdom of France. Amicia and her younger brother Hugo are pursued by the Inquisition through villages devastated by the disease.",
                     idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
@@ -130,7 +130,7 @@ fun LayoutSettingsScreen() {
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
-                    note = "",
+                    note = "As Lara Croft races to save the world from a Maya apocalypse, she must become the Tomb Raider she is destined to be.",
                     idOfLinkedFolder = null
                 ),
                 onMoreIconClick = { -> },
@@ -151,7 +151,7 @@ fun LayoutSettingsScreen() {
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
-                    note = "",
+                    note = "half man, half amazing.",
                     idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
@@ -200,47 +200,6 @@ fun LayoutSettingsScreen() {
                 onLongClick = { -> }, onMoreIconClick = { -> },
                 onLinkClick = { ->
                     localUriHandler.openUri("https://twitter.com/CatWorkers/status/1819121250226127061")
-                },
-            ),
-            LinkUIComponentParam(
-                link = Link(
-                    title = "MrMobile [Michael Fisher]",
-                    baseURL = "youtube.com",
-                    imgURL = "https://yt3.googleusercontent.com/Bf8B_79jyHxP6CVnjV5WKws93l9Vxlk0d7aPmcBygTBDKzgsGrpazdJRFUrfg1sUNlo8YX8rji8",
-                    url = "https://www.youtube.com/@TheMrMobile",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "",
-
-                    idOfLinkedFolder = null
-                ),
-                onForceOpenInExternalBrowserClicked = { -> },
-                isSelectionModeEnabled = mutableStateOf(false),
-                isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> },
-                onLinkClick = { ->
-                    localUriHandler.openUri("https://www.youtube.com/@TheMrMobile")
-                },
-            ),
-            LinkUIComponentParam(
-                link = Link(
-                    title = "Philipp Lackner - YouTube",
-                    baseURL = "youtube.com",
-                    imgURL = "https://yt3.googleusercontent.com/mhup7lzHh_c9b55z0edX65ReN9iJmTF2JU7vMGER9LTOora-NnXtvZdtn_vJmTvW6-y97z0Y=s900-c-k-c0x00ffffff-no-rj",
-                    url = "https://www.youtube.com/@PhilippLackner",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "",
-                    idOfLinkedFolder = null
-                ),
-                onForceOpenInExternalBrowserClicked = { -> },
-                isSelectionModeEnabled = mutableStateOf(false),
-                isItemSelected = mutableStateOf(false),
-                onLongClick = { -> }, onMoreIconClick = { -> },
-                onLinkClick = { ->
-                    localUriHandler.openUri("https://www.youtube.com/@PhilippLackner")
                 },
             ),
             LinkUIComponentParam(
@@ -415,6 +374,25 @@ fun LayoutSettingsScreen() {
                             },
                             title = Localization.Key.ShowBaseURL.getLocalizedString(),
                             isSwitchChecked = AppPreferences.enableBaseURLForLinkViews.value
+                        )
+                    }
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                    ) {
+                        LinkViewPreferenceSwitch(
+                            onClick = {
+                                AppPreferences.showNoteInListViewLayout.value =
+                                    !AppPreferences.showNoteInListViewLayout.value
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    preferenceKey = booleanPreferencesKey(AppPreferenceType.NOTE_VISIBILITY_IN_LIST_VIEWS.name),
+                                    newValue = AppPreferences.showNoteInListViewLayout.value
+                                )
+                            },
+                            title = Localization.Key.ShowNote.getLocalizedString(),
+                            isSwitchChecked = AppPreferences.showNoteInListViewLayout.value
                         )
                     }
                 }

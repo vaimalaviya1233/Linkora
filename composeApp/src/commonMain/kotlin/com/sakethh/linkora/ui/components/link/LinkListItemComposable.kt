@@ -91,7 +91,7 @@ fun LinkListItemComposable(
                 maxLines = 4,
                 lineHeight = 20.sp,
                 textAlign = TextAlign.Start,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             if (!linkUIComponentParam.isItemSelected.value && !forTitleOnlyView) {
                 if (linkUIComponentParam.link.imgURL.isNotEmpty()) {
@@ -133,6 +133,21 @@ fun LinkListItemComposable(
                 }
             }
         }
+        if (linkUIComponentParam.link.note.isNotBlank() && AppPreferences.showNoteInListViewLayout.value) {
+            Text(
+                modifier = Modifier.padding(
+                    end = 15.dp, top = 10.dp
+                ),
+                text = linkUIComponentParam.link.note,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 3,
+                textAlign = TextAlign.Start,
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.75f)
+            )
+        }
+
         if (AppPreferences.enableBaseURLForLinkViews.value) {
             Text(
                 modifier = Modifier.padding(
@@ -149,7 +164,7 @@ fun LinkListItemComposable(
                 maxLines = 1,
                 textAlign = TextAlign.Start,
                 overflow = TextOverflow.Ellipsis,
-                fontSize = 12.sp
+                 fontSize = 12.sp
             )
         } else {
             Spacer(modifier = Modifier.height(10.dp))

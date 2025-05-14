@@ -70,8 +70,8 @@ fun MenuBtmSheetUI(
         }
     }
     if (menuBtmSheetParam.shouldBtmModalSheetBeVisible.value) {
-        val isNoteBtnSelected = rememberSaveable {
-            mutableStateOf(false)
+        val isNoteBtnSelected = rememberSaveable(menuBtmSheetParam.showNote.value) {
+            mutableStateOf(menuBtmSheetParam.showNote.value)
         }
         val platform = platform()
         val localClipboard = LocalClipboardManager.current
@@ -339,8 +339,7 @@ fun MenuBtmSheetUI(
                             Icon(
                                 imageVector = Icons.Default.ContentCopy, contentDescription = null
                             )
-                        })
-                        /*NavigationBarItem(selected = true, onClick = {
+                        })/*NavigationBarItem(selected = true, onClick = {
                             menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
                         }, icon = {
                             Icon(
@@ -368,11 +367,13 @@ fun MenuBtmSheetUI(
                 }.invokeOnCompletion {
                     menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                 }
-            }, dragHandle = {
+            },
+            dragHandle = {
                 if (platform !is Platform.Android.Mobile) {
                     BottomSheetDefaults.DragHandle()
                 }
-            }, sheetState = menuBtmSheetParam.btmModalSheetState,
+            },
+            sheetState = menuBtmSheetParam.btmModalSheetState,
             shape = if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value && platform() is Platform.Android.Mobile) RectangleShape else BottomSheetDefaults.ExpandedShape
         ) {
             if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value) {
