@@ -6,6 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -28,14 +30,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
 import com.sakethh.linkora.ui.domain.SortingType
+import com.sakethh.linkora.ui.screens.collections.ItemDivider
+import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
@@ -88,7 +95,7 @@ fun SortingBottomSheetUI(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        androidx.compose.material3.Text(
+                        Text(
                             text = it.sortingName,
                             fontSize = 16.sp,
                             style = MaterialTheme.typography.titleSmall,
@@ -127,7 +134,7 @@ fun SortingBottomSheetUI(
             Column(
                 modifier = Modifier.animateContentSize()
             ) {
-                androidx.compose.material3.Text(
+                Text(
                     text = Localization.Key.SortBy.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
@@ -136,43 +143,9 @@ fun SortingBottomSheetUI(
                 )
                 if (sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN) {
                     Spacer(modifier = Modifier.height(10.dp))
-                }/*if ((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN || sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN) && sortingBottomSheetParam.shouldFoldersSelectionBeVisible.value) {
-                    FolderIndividualComponent(
-                        folderName = LocalizedStrings.folders.value,
-                        folderNote = "",
-                        onMoreIconClick = { },
-                        onFolderClick = {
-                            didAnyCheckBoxStateChanged.value = true
-                        },
-                        showMoreIcon = false,
-                        showCheckBoxInsteadOfMoreIcon = mutableStateOf(true),
-                        checkBoxState = {
-                            didAnyCheckBoxStateChanged.value = true
-                            foldersSortingSelectedState.value = it
-                        },
-                        isCheckBoxChecked = foldersSortingSelectedState
-                    )
                 }
-                if ((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN || sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN) && sortingBottomSheetParam.shouldLinksSelectionBeVisible.value) {
-                    FolderIndividualComponent(
-                        folderName = LocalizedStrings.links.value,
-                        folderNote = "",
-                        folderIcon = Icons.Default.Link,
-                        onMoreIconClick = { },
-                        onFolderClick = {
-                            didAnyCheckBoxStateChanged.value = true
-                        },
-                        showMoreIcon = false,
-                        showCheckBoxInsteadOfMoreIcon = mutableStateOf(true),
-                        checkBoxState = {
-                            linksSortingSelectedState.value = it
-                            didAnyCheckBoxStateChanged.value = true
-                        },
-                        isCheckBoxChecked = linksSortingSelectedState
-                    )
-                }*/
                 if (((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN && foldersSortingSelectedState.value) || (sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN && linksSortingSelectedState.value)) || ((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN && foldersSortingSelectedState.value) || sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN && linksSortingSelectedState.value)) {
-                    androidx.compose.material3.Text(
+                    Text(
                         text = Localization.Key.SortBy.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
@@ -184,6 +157,37 @@ fun SortingBottomSheetUI(
                 if (sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.REGULAR_FOLDER_SCREEN && sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN) {
                     sortByUI()
                 }
+                ItemDivider(
+                    paddingValues = PaddingValues(
+                        top = 10.dp, start = 15.dp, end = 15.dp, bottom = 18.dp
+                    )
+                )
+                SettingComponent(
+                    SettingComponentParam(
+                        title = Localization.Key.ForceShuffleLinks.rememberLocalizedString(),
+                        doesDescriptionExists = true,
+                        description = Localization.Key.ForceShuffleLinksDesc.rememberLocalizedString(),
+                        isSwitchNeeded = true,
+                        isSwitchEnabled = AppPreferences.forceShuffleLinks,
+                        onSwitchStateChange = {
+                            AppPreferences.forceShuffleLinks.value = it
+                            sortingBtmSheetVM.changeSettingPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(
+                                    AppPreferenceType.FORCE_SHUFFLE_LINKS.name
+                                ),
+                                newValue = AppPreferences.forceShuffleLinks.value,
+                                onCompletion = {
+                                    coroutineScope.launch {
+                                        sortingBottomSheetParam.bottomModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        sortingBottomSheetParam.shouldBottomSheetBeVisible.value =
+                                            false
+                                    }
+                                })
+                        },
+                        isIconNeeded = mutableStateOf(false)
+                    )
+                )
                 Spacer(
                     modifier = Modifier.navigationBarsPadding()
                 )

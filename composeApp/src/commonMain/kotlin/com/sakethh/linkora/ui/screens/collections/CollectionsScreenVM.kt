@@ -59,8 +59,7 @@ open class CollectionsScreenVM(
 
         private val _searchNavigated = mutableStateOf(
             SearchNavigated(
-                navigatedFromSearchScreen = false,
-                navigatedWithFolderId = -1
+                navigatedFromSearchScreen = false, navigatedWithFolderId = -1
             )
         )
 
@@ -72,8 +71,7 @@ open class CollectionsScreenVM(
 
         fun resetSearchNavigated() {
             _searchNavigated.value = SearchNavigated(
-                navigatedFromSearchScreen = false,
-                navigatedWithFolderId = -1
+                navigatedFromSearchScreen = false, navigatedWithFolderId = -1
             )
         }
 
@@ -153,13 +151,19 @@ open class CollectionsScreenVM(
     private fun updateFilterableAllLinks() {
         collectableLinksJob?.cancel()
         collectableLinksJob = viewModelScope.launch {
-            combine(snapshotFlow {
-                _appliedFiltersForAllLinks.toList()
-            }, snapshotFlow {
-                AppPreferences.selectedSortingTypeType.value
-            }) { appliedFilters, sortingType ->
-                appliedFilters to sortingType
-            }.collectLatest { (appliedFilters, sortingType) ->
+            combine(
+                snapshotFlow {
+                    _appliedFiltersForAllLinks.toList()
+                },
+                snapshotFlow {
+                    AppPreferences.selectedSortingTypeType.value
+                },
+                snapshotFlow {
+                    AppPreferences.forceShuffleLinks.value
+                },
+            ) { appliedFilters, sortingType, forceShuffleLinks ->
+                Triple(appliedFilters, sortingType, forceShuffleLinks)
+            }.collectLatest { (appliedFilters, sortingType, forceShuffleLinks) ->
                 _availableFiltersForAllLinks.clear()
                 localLinksRepo.sortAllLinks(sortingType).collectLatest {
                     it.onSuccess { result ->
@@ -168,7 +172,13 @@ open class CollectionsScreenVM(
                         val filteredResults = result.data.filter {
                             appliedFilters.isEmpty() || it.linkType in appliedFilters
                         }
-                        _links.emit(filteredResults)
+                        _links.apply {
+                            if (forceShuffleLinks) {
+                                emit(filteredResults.shuffled())
+                            } else {
+                                emit(filteredResults)
+                            }
+                        }
                     }
                     it.pushSnackbarOnFailure()
                 }
@@ -551,10 +561,20 @@ open class CollectionsScreenVM(
     }
 
     private suspend fun Flow<Result<List<Link>>>.collectAndEmitLinks() {
-        return this.cancellable().collectLatest {
-            it.onSuccess {
-                _links.emit(it.data)
-            }.pushSnackbarOnFailure()
+        return snapshotFlow {
+            AppPreferences.forceShuffleLinks.value
+        }.collectLatest { forceShuffleLinks ->
+            this.cancellable().collectLatest {
+                it.onSuccess {
+                    _links.apply {
+                        if (forceShuffleLinks) {
+                            emit(it.data.shuffled())
+                        } else {
+                            emit(it.data)
+                        }
+                    }
+                }.pushSnackbarOnFailure()
+            }
         }
     }
 

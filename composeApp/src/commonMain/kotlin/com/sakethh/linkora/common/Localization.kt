@@ -415,7 +415,7 @@ object Localization {
         ),
         CollectingLinksForExport(defaultValue = "Collecting links for export..."), CollectingFoldersForExport(
             defaultValue = "Collecting folders for export..."
-        ),
+        ),ForceShuffleLinks("Force Shuffle Links"),ForceShuffleLinksDesc("Forces a randomized link order, overriding the sorting type above. This applies only to links, not folders."),
         CollectingPanelsForExport(defaultValue = "Collecting panels for export..."), CollectingPanelFoldersForExport(
             defaultValue = "Collecting panel-folders for export..."
         ),

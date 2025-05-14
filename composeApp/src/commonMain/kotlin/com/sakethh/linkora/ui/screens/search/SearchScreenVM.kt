@@ -170,14 +170,28 @@ class SearchScreenVM(
 
     init {
         viewModelScope.launch {
-            snapshotFlow {
-                AppPreferences.selectedSortingTypeType.value
-            }.collectLatest {
-                localLinksRepo.getSortedLinks(linkType = LinkType.HISTORY_LINK, it).collectLatest {
-                    it.onSuccess {
-                        _links.emit(it.data)
-                    }.pushSnackbarOnFailure()
-                }
+            combine(
+                snapshotFlow {
+                    AppPreferences.selectedSortingTypeType.value
+                },
+                snapshotFlow {
+                    AppPreferences.forceShuffleLinks.value
+                },
+            ) { selectedSortingType, forceShuffleLinks ->
+                forceShuffleLinks to selectedSortingType
+            }.collectLatest { (forceShuffleLinks, selectedSortingType) ->
+                localLinksRepo.getSortedLinks(linkType = LinkType.HISTORY_LINK, selectedSortingType)
+                    .collectLatest {
+                        it.onSuccess {
+                            _links.apply {
+                                if (forceShuffleLinks) {
+                                    emit(it.data.shuffled())
+                                } else {
+                                    emit(it.data)
+                                }
+                            }
+                        }.pushSnackbarOnFailure()
+                    }
             }
         }
     }

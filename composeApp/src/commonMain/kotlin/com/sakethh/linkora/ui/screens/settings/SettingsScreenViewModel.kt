@@ -276,11 +276,12 @@ open class SettingsScreenViewModel(
     }
 
     fun <T> changeSettingPreferenceValue(
-        preferenceKey: Preferences.Key<T>,
-        newValue: T,
+        preferenceKey: Preferences.Key<T>, newValue: T, onCompletion: () -> Unit = {}
     ) {
         viewModelScope.launch {
             preferencesRepository.changePreferenceValue(preferenceKey, newValue)
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 }

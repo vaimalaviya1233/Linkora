@@ -187,9 +187,9 @@ fun HomeScreen() {
                 return@Scaffold
             }
             ScrollableTabRow(
-                modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage,
-                divider = {}
-            ) {
+                modifier = Modifier.fillMaxWidth(),
+                selectedTabIndex = pagerState.currentPage,
+                divider = {}) {
                 panelFolders.value.forEachIndexed { index, panelFolder ->
                     Tab(selected = pagerState.currentPage == index, onClick = {
                         coroutineScope.launch {
@@ -212,16 +212,16 @@ fun HomeScreen() {
             HorizontalPager(state = pagerState) { pageIndex ->
                 CollectionLayoutManager(
                     folders = if (panelFolders.value.map { it.folderId }
-                            .contains(Constants.SAVED_LINKS_ID)) {
+                        .contains(Constants.SAVED_LINKS_ID)) {
+                    emptyList()
+                } else {
+                    homeScreenVM.localFoldersRepo.sortFoldersAsNonResultFlow(
+                        panelFolders.value[pageIndex].folderId,
+                        AppPreferences.selectedSortingTypeType.value
+                    ).collectAsStateWithLifecycle(
                         emptyList()
-                    } else {
-                        homeScreenVM.localFoldersRepo.sortFoldersAsNonResultFlow(
-                            panelFolders.value[pageIndex].folderId,
-                            AppPreferences.selectedSortingTypeType.value
-                        ).collectAsStateWithLifecycle(
-                            emptyList()
-                        ).value
-                    },
+                    ).value
+                },
                     links = if (panelFolders.value.map { it.folderId }
                             .contains(Constants.SAVED_LINKS_ID)) {
                         when (pageIndex) {
@@ -229,14 +229,26 @@ fun HomeScreen() {
                                 LinkType.SAVED_LINK, AppPreferences.selectedSortingTypeType.value
                             ).collectAsStateWithLifecycle(
                                 emptyList()
-                            ).value
+                            ).value.run {
+                                if (AppPreferences.forceShuffleLinks.value) {
+                                    this.shuffled()
+                                } else {
+                                    this
+                                }
+                            }
 
                             else -> homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
                                 LinkType.IMPORTANT_LINK,
                                 AppPreferences.selectedSortingTypeType.value
                             ).collectAsStateWithLifecycle(
                                 emptyList()
-                            ).value
+                            ).value.run {
+                                if (AppPreferences.forceShuffleLinks.value) {
+                                    this.shuffled()
+                                } else {
+                                    this
+                                }
+                            }
                         }
                     } else homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
                         LinkType.FOLDER_LINK,
@@ -244,7 +256,13 @@ fun HomeScreen() {
                         AppPreferences.selectedSortingTypeType.value
                     ).collectAsStateWithLifecycle(
                         emptyList()
-                    ).value,
+                    ).value.run {
+                        if (AppPreferences.forceShuffleLinks.value) {
+                            this.shuffled()
+                        } else {
+                            this
+                        }
+                    },
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
                         coroutineScope.pushUIEvent(
