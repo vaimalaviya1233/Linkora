@@ -42,12 +42,14 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedLinksViaLongClick
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -79,6 +81,8 @@ class AppVM(
     val startDestination: MutableState<Navigation.Root> = mutableStateOf(Navigation.Root.HomeScreen)
     val onBoardingCompleted = mutableStateOf(false)
 
+    private var snapshotsJob: Job? = null
+
     init {
 
         runBlocking {
@@ -100,75 +104,95 @@ class AppVM(
         }
 
         viewModelScope.launch {
-            combine(
-                linksRepo.getAllLinksAsFlow(),
-                foldersRepo.getAllFoldersAsFlow(),
-                localPanelsRepo.getAllThePanels(),
-                localPanelsRepo.getAllThePanelFoldersAsAFlow()
-            ) { links, folders, panels, panelFolders ->
-                AllTablesDTO(
-                    links = links, folders = folders, panels = panels, panelFolders = panelFolders
-                )
-            }.drop(1) // ignore the first emission which gets fired when the app launches
-                .debounce(1000).collectLatest {
-                    try {
-                        fun rawExportStringAsJSON(): String {
-                            return JSONExportSchema(
-                                schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
-                                links = it.links.map { it.copy(remoteId = null, lastModified = 0) },
-                                folders = it.folders.map {
-                                    it.copy(
-                                        remoteId = null, lastModified = 0
-                                    )
-                                },
-                                panels = PanelForJSONExportSchema(panels = it.panels.map {
-                                    it.copy(
-                                        remoteId = null, lastModified = 0
-                                    )
-                                }, panelFolders = it.panelFolders.map {
-                                    it.copy(
-                                        remoteId = null, lastModified = 0
-                                    )
-                                }),
-                            ).run {
-                                Json.encodeToString(it)
+            snapshotFlow {
+                AppPreferences.areSnapshotsEnabled.value
+            }.debounce(1000).collectLatest {
+                if (it) {
+                    snapshotsJob = this.launch {
+                        linkoraLog("data checks for snapshots are now live")
+                        combine(
+                            linksRepo.getAllLinksAsFlow(),
+                            foldersRepo.getAllFoldersAsFlow(),
+                            localPanelsRepo.getAllThePanels(),
+                            localPanelsRepo.getAllThePanelFoldersAsAFlow()
+                        ) { links, folders, panels, panelFolders ->
+                            AllTablesDTO(
+                                links = links,
+                                folders = folders,
+                                panels = panels,
+                                panelFolders = panelFolders
+                            )
+                        }.cancellable().drop(1) // ignore the first emission which gets fired when the app launches
+                            .debounce(1000).collectLatest {
+                                try {
+                                    fun rawExportStringAsJSON(): String {
+                                        return JSONExportSchema(
+                                            schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                                            links = it.links.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            },
+                                            folders = it.folders.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            },
+                                            panels = PanelForJSONExportSchema(panels = it.panels.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            }, panelFolders = it.panelFolders.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            }),
+                                        ).run {
+                                            Json.encodeToString(it)
+                                        }
+                                    }
+
+                                    fun rawExportStringAsHTML(): String {
+                                        TODO()
+                                    }
+
+                                    if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+                                        awaitAll(async {
+                                            com.sakethh.dataSnapshot(
+                                                rawExportString = rawExportStringAsJSON(),
+                                                fileType = FileType.JSON
+                                            )
+                                        }, async {
+                                            com.sakethh.dataSnapshot(
+                                                rawExportString = rawExportStringAsHTML(),
+                                                fileType = ExportFileType.HTML
+                                            )
+                                        })
+                                    }
+
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
+                                        com.sakethh.dataSnapshot(
+                                            rawExportString = rawExportStringAsJSON(),
+                                            fileType = FileType.JSON
+                                        )
+                                    }
+
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
+                                        com.sakethh.dataSnapshot(
+                                            rawExportString = rawExportStringAsHTML(),
+                                            fileType = ExportFileType.HTML
+                                        )
+                                    }
+                                } catch (e: Exception) {
+                                    e.pushSnackbar()
+                                }
                             }
-                        }
-
-                        fun rawExportStringAsHTML(): String {
-                            TODO()
-                        }
-
-                        if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
-                            awaitAll(async {
-                                com.sakethh.dataSnapshot(
-                                    rawExportString = rawExportStringAsJSON(),
-                                    fileType = FileType.JSON
-                                )
-                            }, async {
-                                com.sakethh.dataSnapshot(
-                                    rawExportString = rawExportStringAsHTML(),
-                                    fileType = ExportFileType.HTML
-                                )
-                            })
-                        }
-
-                        if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
-                            com.sakethh.dataSnapshot(
-                                rawExportString = rawExportStringAsJSON(), fileType = FileType.JSON
-                            )
-                        }
-
-                        if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
-                            com.sakethh.dataSnapshot(
-                                rawExportString = rawExportStringAsHTML(),
-                                fileType = ExportFileType.HTML
-                            )
-                        }
-                    } catch (e: Exception) {
-                        e.pushSnackbar()
                     }
+                } else {
+                    linkoraLog("cancelled data checks for snapshots")
+                    snapshotsJob?.cancel()
                 }
+            }
         }
 
         viewModelScope.launch {
