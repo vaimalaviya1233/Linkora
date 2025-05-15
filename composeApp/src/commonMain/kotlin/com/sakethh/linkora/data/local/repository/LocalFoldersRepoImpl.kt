@@ -146,12 +146,15 @@ class LocalFoldersRepoImpl(
         return foldersDao.getAllRootFoldersAsList()
     }
 
-    override suspend fun getAllFolders(): Flow<Result<List<Folder>>> {
+    override fun getAllFoldersAsResultList(): Flow<Result<List<Folder>>> {
         return performLocalOperationWithRemoteSyncFlow<List<Folder>, Unit>(performRemoteOperation = false) {
-            foldersDao.getAllFolders()
+            foldersDao.getAllFoldersAsList()
         }
     }
 
+    override fun getAllFoldersAsFlow(): Flow<List<Folder>> {
+        return foldersDao.getAllFoldersAsFlow()
+    }
     override suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Flow<Result<Int>> {
         return performLocalOperationWithRemoteSyncFlow<Int, Unit>(performRemoteOperation = false) {
             foldersDao.getSizeOfLinksOfThisFolder(folderID)
@@ -159,7 +162,7 @@ class LocalFoldersRepoImpl(
     }
 
     override suspend fun getAllFoldersAsList(): List<Folder> {
-        return foldersDao.getAllFolders()
+        return foldersDao.getAllFoldersAsList()
     }
 
     override suspend fun getChildFoldersOfThisParentIDAsList(parentFolderID: Long?): List<Folder> {

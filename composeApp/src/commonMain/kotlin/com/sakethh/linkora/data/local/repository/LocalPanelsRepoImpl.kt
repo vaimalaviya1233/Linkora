@@ -286,6 +286,10 @@ class LocalPanelsRepoImpl(
         return panelsDao.getAllThePanelFoldersAsAList()
     }
 
+    override fun getAllThePanelFoldersAsAFlow(): Flow<List<PanelFolder>> {
+        return panelsDao.getAllThePanelFoldersAsAFlow()
+    }
+
     override fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>> {
         return panelsDao.getAllTheFoldersFromAPanel(panelId)
     }

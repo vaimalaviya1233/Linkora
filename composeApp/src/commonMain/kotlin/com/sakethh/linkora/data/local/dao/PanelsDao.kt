@@ -67,6 +67,9 @@ interface PanelsDao {
     @Query("SELECT * FROM panel_folder")
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>
 
+    @Query("SELECT * FROM panel_folder")
+    fun getAllThePanelFoldersAsAFlow(): Flow<List<PanelFolder>>
+
     @Query("SELECT * FROM panel_folder WHERE connectedPanelId = :panelId")
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
 

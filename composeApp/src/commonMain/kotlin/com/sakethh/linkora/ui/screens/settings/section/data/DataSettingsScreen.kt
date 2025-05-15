@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BackupTable
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CloudSync
@@ -34,10 +35,12 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,10 +50,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -93,7 +98,7 @@ import com.sakethh.platform
 import com.sakethh.poppinsFontFamily
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DataSettingsScreen() {
     val navController = LocalNavController.current
@@ -343,7 +348,78 @@ fun DataSettingsScreen() {
                 )
             }
             item {
-                Spacer(modifier = Modifier)
+                Text(
+                    text = "Snapshots",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.padding(start = 15.dp, end = 15.dp),
+                )
+            }
+
+            item {
+                SettingComponent(
+                    SettingComponentParam(
+                        isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                        title = "Use snapshots",
+                        doesDescriptionExists = true,
+                        description = "Links, folders, panels, and panel folders will be auto-exported in your chosen format.",
+                        isSwitchNeeded = true,
+                        isSwitchEnabled = AppPreferences.areSnapshotsEnabled,
+                        onSwitchStateChange = {
+                            AppPreferences.areSnapshotsEnabled.value = it
+                        },
+                        icon = Icons.Default.BackupTable,
+                        shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
+                )
+                if (AppPreferences.areSnapshotsEnabled.value) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(15.dp)
+                    ) {
+                        Text(
+                            text = "Export As:",
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        val selectedExportTypeForSnapshots = rememberSaveable {
+                            mutableStateOf(ExportFileType.JSON.name)
+                        }
+                        Row(
+                            modifier = Modifier.padding(top = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            remember { ExportFileType.entries.map { it.name } + "Both" }.let {
+                                it.forEachIndexed { index, exportType ->
+                                    ToggleButton(
+                                        shapes = when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            it.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                        },
+                                        checked = exportType == selectedExportTypeForSnapshots.value,
+                                        onCheckedChange = {
+                                            selectedExportTypeForSnapshots.value = exportType
+                                        }) {
+                                        Text(
+                                            text = exportType,
+                                            style = if (exportType == selectedExportTypeForSnapshots.value) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Spacer(modifier = Modifier.height(15.dp))
+                }
+                Text(
+                    text = "Any time you add, edit, or delete a link, folder, panel, or panel folder, Linkora auto-exports in the background. This continues even if you close the app, and may impact performance on lower-end systems.",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.padding(start = 15.dp, end = 15.dp),
+                )
             }
             item {
                 Text(
@@ -646,8 +722,8 @@ fun DataSettingsScreen() {
             Button(modifier = Modifier.fillMaxWidth(), onClick = {
                 dataSettingsScreenVM.importDataFromAFile(
                     importFileType = ImportFileType.valueOf(
-                        selectedImportFormat.value
-                    ),
+                    selectedImportFormat.value
+                ),
                     onStart = {
                         showFileLocationPickerDialog.value = false
                         isImportExportProgressUIVisible.value = true
@@ -676,12 +752,12 @@ fun DataSettingsScreen() {
         }, text = {
             OutlinedTextField(
                 label = {
-                    Text(
-                        text = Localization.Key.FileLocationLabel.rememberLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1
-                    )
-                },
+                Text(
+                    text = Localization.Key.FileLocationLabel.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1
+                )
+            },
                 value = fileLocation.value,
                 onValueChange = {
                     fileLocation.value = it

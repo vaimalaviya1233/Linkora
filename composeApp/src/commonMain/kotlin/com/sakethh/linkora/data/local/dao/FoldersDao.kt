@@ -32,7 +32,10 @@ interface FoldersDao {
     suspend fun getAllRootFoldersAsList(): List<Folder>
 
     @Query("SELECT * FROM folders")
-    suspend fun getAllFolders(): List<Folder>
+    suspend fun getAllFoldersAsList(): List<Folder>
+
+    @Query("SELECT * FROM folders")
+    fun getAllFoldersAsFlow(): Flow<List<Folder>>
 
     @Query("SELECT localId FROM folders WHERE localId = (SELECT MAX(localId) FROM folders)")
     suspend fun getLatestFoldersTableID(): Long

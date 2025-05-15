@@ -28,7 +28,8 @@ class ExportDataRepoImpl(
     private val localFoldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo
 ) : ExportDataRepo {
-    override suspend fun exportDataAsJSON(): Flow<Result<RawExportString>> {
+
+    override suspend fun rawExportDataAsJSON(): Flow<Result<RawExportString>> {
         return flow {
             supervisorScope {
                 emit(Result.Loading(message = Localization.Key.PreparingToExportYourData.getLocalizedString()))
@@ -69,8 +70,12 @@ class ExportDataRepoImpl(
                     folders = folders.map { it.copy(remoteId = null, lastModified = 0) },
                     panels = PanelForJSONExportSchema(
                         panels = panels.map { it.copy(remoteId = null, lastModified = 0) },
-                        panelFolders = panelFolders.map { it.copy(remoteId = null, lastModified = 0) }
-                    ),
+                        panelFolders = panelFolders.map {
+                            it.copy(
+                                remoteId = null,
+                                lastModified = 0
+                            )
+                        }),
                 )
                 val requiredRawExportString = Json.encodeToString(exportObject)
                 emit(Result.Success(data = requiredRawExportString))
@@ -78,7 +83,7 @@ class ExportDataRepoImpl(
         }.catchAsExceptionAndEmitFailure()
     }
 
-    override suspend fun exportDataAsHTMl(): Flow<Result<RawExportString>> {
+    override suspend fun rawExportDataAsHTML(): Flow<Result<RawExportString>> {
         return channelFlow<Result<RawExportString>> {
             supervisorScope {
                 var htmlFileRawText = ""
@@ -132,8 +137,7 @@ class ExportDataRepoImpl(
                     allLinks.filter { it.linkType == LinkType.HISTORY_LINK }
                         .forEach { historyLink ->
                             historyLinks += dtA(
-                                linkTitle = historyLink.title,
-                                link = historyLink.url
+                                linkTitle = historyLink.title, link = historyLink.url
                             )
                             send(Result.Loading(message = "Processed history link: ${historyLink.title}"))
                         }
@@ -147,8 +151,7 @@ class ExportDataRepoImpl(
                     allLinks.filter { it.linkType == LinkType.ARCHIVE_LINK }
                         .forEach { archivedLink ->
                             archivedLinks += dtA(
-                                linkTitle = archivedLink.title,
-                                link = archivedLink.url
+                                linkTitle = archivedLink.title, link = archivedLink.url
                             )
                             send(Result.Loading(message = "Processed archived link: ${archivedLink.title}"))
                         }

@@ -58,6 +58,7 @@ interface LocalLinksRepo {
     suspend fun getLinksOfThisFolderAsList(folderID: Long): List<Link>
 
     suspend fun getAllLinks(): List<Link>
+    fun getAllLinksAsFlow(): Flow<List<Link>>
 
     suspend fun deleteAllLinks()
 

@@ -472,6 +472,9 @@ class LocalLinksRepoImpl(
         return linksDao.getAllLinks()
     }
 
+    override fun getAllLinksAsFlow(): Flow<List<Link>> {
+        return linksDao.getAllLinksAsFlow()
+    }
     override suspend fun deleteAllLinks() {
         linksDao.deleteAllLinks()
     }

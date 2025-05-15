@@ -105,6 +105,9 @@ interface LinksDao {
     @Query("SELECT * FROM links")
     suspend fun getAllLinks(): List<Link>
 
+    @Query("SELECT * FROM links")
+    fun getAllLinksAsFlow(): Flow<List<Link>>
+
     @Query("SELECT * FROM links WHERE idOfLinkedFolder=:folderId")
     suspend fun getLinksOfThisFolderAsList(folderId: Long): List<Link>
 

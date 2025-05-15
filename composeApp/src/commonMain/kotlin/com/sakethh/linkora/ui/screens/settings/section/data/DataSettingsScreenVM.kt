@@ -147,9 +147,9 @@ class DataSettingsScreenVM(
                 }
             }
             if (exportFileType == ExportFileType.JSON) {
-                exportDataRepo.exportDataAsJSON()
+                exportDataRepo.rawExportDataAsJSON()
             } else {
-                exportDataRepo.exportDataAsHTMl()
+                exportDataRepo.rawExportDataAsHTML()
             }.collectLatest {
                 it.onLoading { exportLogItem ->
                     importExportProgressLogs.add(exportLogItem)

@@ -29,6 +29,7 @@ interface LocalPanelsRepo {
     fun getAllThePanels(): Flow<List<Panel>>
     suspend fun getAllThePanelsAsAList(): List<Panel>
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>
+    fun getAllThePanelFoldersAsAFlow(): Flow<List<PanelFolder>>
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
     suspend fun getPanel(panelId: Long): Panel
     suspend fun getLocalPanelId(remoteId: Long): Long?

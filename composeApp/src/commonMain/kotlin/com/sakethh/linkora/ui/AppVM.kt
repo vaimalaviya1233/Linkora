@@ -17,9 +17,11 @@ import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.asLinkType
+import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
+import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.NetworkRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -37,14 +39,19 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+@OptIn(FlowPreview::class)
 class AppVM(
     private val remoteSyncRepo: RemoteSyncRepo,
     private val preferencesRepository: PreferencesRepository,
@@ -52,7 +59,8 @@ class AppVM(
     private val linksRepo: LocalLinksRepo,
     private val foldersRepo: LocalFoldersRepo,
     private val localMultiActionRepo: LocalMultiActionRepo,
-    private val localPanelsRepo: LocalPanelsRepo
+    private val localPanelsRepo: LocalPanelsRepo,
+    private val exportDataRepo: ExportDataRepo
 ) : ViewModel() {
 
     private val dataSyncingNotificationService = DataSyncingNotificationService()
@@ -80,6 +88,32 @@ class AppVM(
                     else -> Navigation.Root.CollectionsScreen
                 }
             }
+        }
+
+        viewModelScope.launch {
+            combine(
+                linksRepo.getAllLinksAsFlow(),
+                foldersRepo.getAllFoldersAsFlow(),
+                localPanelsRepo.getAllThePanels(),
+                localPanelsRepo.getAllThePanelFoldersAsAFlow()
+            ) { links, folders, panels, panelFolders ->
+                AllTablesDTO(
+                    links = links, folders = folders, panels = panels, panelFolders = panelFolders
+                )
+            }.drop(1) // ignore the first emission which gets fired when the app launches
+                .debounce(1000).collectLatest {
+                    /*try {
+                        writeRawExportStringToFile(
+                            exportFileType = exportFileType,
+                            rawExportString = it,
+                            onCompletion = {
+                                pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
+                            })
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(message = e.message.toString()))
+                    }*/
+                }
         }
 
         viewModelScope.launch {

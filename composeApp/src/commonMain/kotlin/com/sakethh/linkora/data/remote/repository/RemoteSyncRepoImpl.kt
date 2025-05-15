@@ -20,7 +20,7 @@ import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.asAddLinkDTO
-import com.sakethh.linkora.domain.dto.server.AllTablesDTO
+import com.sakethh.linkora.domain.dto.server.ServerDataDTO
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsSocketResponseDTO
@@ -565,7 +565,7 @@ class RemoteSyncRepoImpl(
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
                 parameter("eventTimestamp", timeStampAfter)
-            }.body<AllTablesDTO>().let { remoteResponse ->
+            }.body<ServerDataDTO>().let { remoteResponse ->
                 send(Result.Loading("Received updates from server. Processing folders..."))
 
                 remoteResponse.folders.forEach {

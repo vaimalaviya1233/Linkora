@@ -6,8 +6,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface ExportDataRepo {
 
-    suspend fun exportDataAsJSON(): Flow<Result<RawExportString>>
+    /**
+     * This function is supposed to export data as JSON from the local database.
+     */
+    suspend fun rawExportDataAsJSON(): Flow<Result<RawExportString>>
 
-    suspend fun exportDataAsHTMl(): Flow<Result<RawExportString>>
-
+    /**
+     * This function is supposed to export data as HTML from the local database.
+     */
+    suspend fun rawExportDataAsHTML(): Flow<Result<RawExportString>>
 }

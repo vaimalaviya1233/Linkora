@@ -69,6 +69,7 @@ object AppPreferences {
     val showVideoTagOnUIIfApplicable = mutableStateOf(true)
     val forceShuffleLinks = mutableStateOf(false)
     val showNoteInListViewLayout = mutableStateOf(true)
+    val areSnapshotsEnabled = mutableStateOf(false)
 
     private var correlation = Correlation.generateRandomCorrelation()
 

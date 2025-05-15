@@ -157,7 +157,8 @@ fun App(
             linksRepo = DependencyContainer.localLinksRepo.value,
             foldersRepo = DependencyContainer.localFoldersRepo.value,
             localMultiActionRepo = DependencyContainer.localMultiActionRepo.value,
-            localPanelsRepo = DependencyContainer.localPanelsRepo.value
+            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
+            exportDataRepo = DependencyContainer.exportDataRepo.value
         )
     })
     val snackbarHostState = remember {

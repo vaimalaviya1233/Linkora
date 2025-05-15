@@ -60,7 +60,7 @@ class SpecificPanelManagerScreenVM(
         specificPanelManagerScreenDataJob?.cancel()
 
         specificPanelManagerScreenDataJob = viewModelScope.launch {
-            foldersRepo.getAllFolders().collectLatest { result ->
+            foldersRepo.getAllFoldersAsResultList().collectLatest { result ->
                 result.onSuccess { success ->
                     val nonArchivedFolders = success.data.filterNot { it.isArchived }
 
