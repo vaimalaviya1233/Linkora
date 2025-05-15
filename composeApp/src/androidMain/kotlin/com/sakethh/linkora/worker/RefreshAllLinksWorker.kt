@@ -1,4 +1,4 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.worker
 
 import android.content.Context
 import androidx.core.app.NotificationCompat
@@ -7,6 +7,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.sakethh.linkora.LinkoraApp
+import com.sakethh.linkora.R
+import com.sakethh.linkora.RefreshAllLinksNotificationService
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -23,9 +26,9 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
 
     companion object {
         fun cancelLinksRefreshing() {
-            WorkManager.getInstance(LinkoraApp.getContext())
+            WorkManager.Companion.getInstance(LinkoraApp.Companion.getContext())
                 .cancelWorkById(UUID.fromString(AppPreferences.refreshLinksWorkerTag.value))
-            DataSettingsScreenVM.refreshLinksState.value = RefreshLinksState(
+            DataSettingsScreenVM.Companion.refreshLinksState.value = RefreshLinksState(
                 isInRefreshingState = false, currentIteration = 0
             )
         }
@@ -45,9 +48,9 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
     override suspend fun doWork(): Result {
         return try {
             DependencyContainer.localLinksRepo.value.getAllLinks().let { allLinks ->
-                DataSettingsScreenVM.refreshLinksState.value =
-                    DataSettingsScreenVM.refreshLinksState.value.copy(isInRefreshingState = true)
-                DataSettingsScreenVM.totalLinksForRefresh.value = allLinks.size
+                DataSettingsScreenVM.Companion.refreshLinksState.value =
+                    DataSettingsScreenVM.Companion.refreshLinksState.value.copy(isInRefreshingState = true)
+                DataSettingsScreenVM.Companion.totalLinksForRefresh.value = allLinks.size
                 val lastRefreshedIndex =
                     DependencyContainer.preferencesRepo.value.readPreferenceValue(
                         longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name)
@@ -60,8 +63,8 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
                     DependencyContainer.localLinksRepo.value.refreshLinkMetadata(link)
                         .collectLatest {
                             it.onSuccess {
-                                DataSettingsScreenVM.refreshLinksState.value =
-                                    DataSettingsScreenVM.refreshLinksState.value.copy(
+                                DataSettingsScreenVM.Companion.refreshLinksState.value =
+                                    DataSettingsScreenVM.Companion.refreshLinksState.value.copy(
                                         currentIteration = index + 1
                                     )
                                 DependencyContainer.preferencesRepo.value.changePreferenceValue(
@@ -80,8 +83,8 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
             e.printStackTrace()
             Result.failure()
         } finally {
-            DataSettingsScreenVM.refreshLinksState.value =
-                DataSettingsScreenVM.refreshLinksState.value.copy(
+            DataSettingsScreenVM.Companion.refreshLinksState.value =
+                DataSettingsScreenVM.Companion.refreshLinksState.value.copy(
                     isInRefreshingState = false, currentIteration = 0
                 )
             refreshAllLinksNotificationService.clearNotifications()

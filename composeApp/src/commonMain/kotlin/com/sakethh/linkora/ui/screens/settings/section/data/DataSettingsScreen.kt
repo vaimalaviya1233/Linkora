@@ -371,12 +371,20 @@ fun DataSettingsScreen() {
                         isSwitchNeeded = true,
                         isSwitchEnabled = AppPreferences.areSnapshotsEnabled,
                         onSwitchStateChange = {
-                            AppPreferences.areSnapshotsEnabled.value = it
-                            dataSettingsScreenVM.changeSettingPreferenceValue(
-                                preferenceKey = booleanPreferencesKey(
-                                    AppPreferenceType.USE_SNAPSHOTS.name
-                                ), newValue = it
-                            )
+                            var isStorageAccessPermitted = false
+                            coroutineScope.launch {
+                                isStorageAccessPermitted =
+                                    com.sakethh.isStorageAccessPermittedOnAndroid()
+                            }.invokeOnCompletion { _ ->
+                                if (isStorageAccessPermitted.not() && platform is Platform.Android) return@invokeOnCompletion
+
+                                AppPreferences.areSnapshotsEnabled.value = it
+                                dataSettingsScreenVM.changeSettingPreferenceValue(
+                                    preferenceKey = booleanPreferencesKey(
+                                        AppPreferenceType.USE_SNAPSHOTS.name
+                                    ), newValue = it
+                                )
+                            }
                         },
                         icon = Icons.Default.BackupTable,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })

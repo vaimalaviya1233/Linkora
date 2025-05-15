@@ -62,7 +62,7 @@ actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsF
 actual val showDynamicThemingOption: Boolean = false
 
 actual suspend fun writeRawExportStringToFile(
-    exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: () -> Unit
+    exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: (String) -> Unit
 ) {
     val userHomeDir = System.getProperty("user.home")
     val exportsFolder = File(userHomeDir, "/Documents/Linkora/Exports")
@@ -80,7 +80,7 @@ actual suspend fun writeRawExportStringToFile(
     withContext(Dispatchers.IO) {
         Files.write(exportFilePath, rawExportString.toByteArray())
     }
-    onCompletion()
+    onCompletion(exportFileName)
 }
 
 actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean = false
@@ -144,7 +144,7 @@ actual class DataSyncingNotificationService actual constructor() {
 }
 
 actual suspend fun dataSnapshot(
-    rawExportString: String, fileType: ExportFileType, onCompletion: () -> Unit
+    rawExportString: String, fileType: ExportFileType, onCompletion: (String) -> Unit
 ) {
     writeRawExportStringToFile(
         exportFileType = fileType, rawExportString = rawExportString, onCompletion = onCompletion

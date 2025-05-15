@@ -22,6 +22,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.work.Constraints
+import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
@@ -30,7 +31,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.R
-import com.sakethh.linkora.RefreshAllLinksWorker
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -48,9 +48,10 @@ import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
+import com.sakethh.linkora.worker.RefreshAllLinksWorker
+import com.sakethh.linkora.worker.SnapshotWorker
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -75,7 +76,7 @@ actual val localDatabase: LocalDatabase? = LinkoraApp.getLocalDb()
 actual val poppinsFontFamily: FontFamily = poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 actual suspend fun writeRawExportStringToFile(
-    exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: () -> Unit
+    exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: (String) -> Unit
 ) {
     val defaultFolder = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
         File(Environment.getExternalStorageDirectory(), "Linkora/Exports")
@@ -101,7 +102,7 @@ actual suspend fun writeRawExportStringToFile(
 
     val file = File(defaultFolder, exportFileName)
     file.writeText(rawExportString)
-    onCompletion()
+    onCompletion(exportFileName)
 }
 
 actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean {
@@ -266,7 +267,11 @@ actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory
     })
 
 actual suspend fun dataSnapshot(
-    rawExportString: String, fileType: ExportFileType, onCompletion: () -> Unit
+    rawExportString: String, fileType: ExportFileType, onCompletion: (String) -> Unit
 ) {
-    linkoraLog(rawExportString)
+    val snapshotWorker = OneTimeWorkRequestBuilder<SnapshotWorker>()
+    val parameters = Data.Builder().putString(key = "rawExportString", value = rawExportString)
+        .putString(key = "fileType", value = fileType.name).build()
+    snapshotWorker.setInputData(parameters)
+    WorkManager.getInstance(LinkoraApp.getContext()).enqueue(snapshotWorker.build())
 }
