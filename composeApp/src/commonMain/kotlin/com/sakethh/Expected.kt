@@ -26,23 +26,19 @@ expect val linkoraDataStore: DataStore<Preferences>
 expect val poppinsFontFamily: FontFamily
 
 expect suspend fun writeRawExportStringToFile(
-    exportFileType: ExportFileType,
-    rawExportString: RawExportString,
-    onCompletion: () -> Unit
+    exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: () -> Unit
 )
 
 expect suspend fun isStorageAccessPermittedOnAndroid(): Boolean
 
 expect suspend fun pickAValidFileForImporting(
-    importFileType: ImportFileType,
-    onStart: () -> Unit
+    importFileType: ImportFileType, onStart: () -> Unit
 ): File?
 
 expect fun onShare(url: String)
 
 expect suspend fun onRefreshAllLinks(
-    localLinksRepo: LocalLinksRepo,
-    preferencesRepository: PreferencesRepository
+    localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
 )
 
 expect suspend fun isAnyRefreshingScheduled(): Flow<Boolean?>
@@ -60,3 +56,9 @@ expect class DataSyncingNotificationService() {
     fun showNotification()
     fun clearNotification()
 }
+
+expect suspend fun dataSnapshot(
+    rawExportString: String,
+    fileType: ExportFileType,
+    onCompletion: () -> Unit = {}
+)

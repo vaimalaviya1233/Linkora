@@ -10,14 +10,19 @@ import com.sakethh.DataSyncingNotificationService
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.asLinkType
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
+import com.sakethh.linkora.domain.model.JSONExportSchema
+import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
@@ -41,6 +46,8 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -50,6 +57,8 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @OptIn(FlowPreview::class)
 class AppVM(
@@ -102,17 +111,63 @@ class AppVM(
                 )
             }.drop(1) // ignore the first emission which gets fired when the app launches
                 .debounce(1000).collectLatest {
-                    /*try {
-                        writeRawExportStringToFile(
-                            exportFileType = exportFileType,
-                            rawExportString = it,
-                            onCompletion = {
-                                pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
+                    try {
+                        fun rawExportStringAsJSON(): String {
+                            return JSONExportSchema(
+                                schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                                links = it.links.map { it.copy(remoteId = null, lastModified = 0) },
+                                folders = it.folders.map {
+                                    it.copy(
+                                        remoteId = null, lastModified = 0
+                                    )
+                                },
+                                panels = PanelForJSONExportSchema(panels = it.panels.map {
+                                    it.copy(
+                                        remoteId = null, lastModified = 0
+                                    )
+                                }, panelFolders = it.panelFolders.map {
+                                    it.copy(
+                                        remoteId = null, lastModified = 0
+                                    )
+                                }),
+                            ).run {
+                                Json.encodeToString(it)
+                            }
+                        }
+
+                        fun rawExportStringAsHTML(): String {
+                            TODO()
+                        }
+
+                        if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+                            awaitAll(async {
+                                com.sakethh.dataSnapshot(
+                                    rawExportString = rawExportStringAsJSON(),
+                                    fileType = FileType.JSON
+                                )
+                            }, async {
+                                com.sakethh.dataSnapshot(
+                                    rawExportString = rawExportStringAsHTML(),
+                                    fileType = ExportFileType.HTML
+                                )
                             })
+                        }
+
+                        if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
+                            com.sakethh.dataSnapshot(
+                                rawExportString = rawExportStringAsJSON(), fileType = FileType.JSON
+                            )
+                        }
+
+                        if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
+                            com.sakethh.dataSnapshot(
+                                rawExportString = rawExportStringAsHTML(),
+                                fileType = ExportFileType.HTML
+                            )
+                        }
                     } catch (e: Exception) {
-                        e.printStackTrace()
-                        pushUIEvent(UIEvent.Type.ShowSnackbar(message = e.message.toString()))
-                    }*/
+                        e.pushSnackbar()
+                    }
                 }
         }
 

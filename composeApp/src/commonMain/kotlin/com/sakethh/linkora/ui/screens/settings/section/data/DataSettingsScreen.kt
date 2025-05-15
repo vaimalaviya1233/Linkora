@@ -423,7 +423,7 @@ fun DataSettingsScreen() {
                     Spacer(modifier = Modifier.height(15.dp))
                 }
                 Text(
-                    text = "Any time you add, edit, or delete a link, folder, panel, or panel folder, Linkora auto-exports in the background. This continues even if you close the app, and may impact performance on lower-end systems.",
+                    text = if (platform !is Platform.Android) "Each create, update, or delete action on a link, folder, panel, or panel folder triggers an export. Progress is shown in the side navigation rail." else "Any time you add, edit, or delete a link, folder, panel, or panel folder, Linkora auto-exports in the background. This continues even if you close the app, and may impact performance on lower-end systems.",
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,

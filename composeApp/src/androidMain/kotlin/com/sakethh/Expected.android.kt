@@ -48,6 +48,7 @@ import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.CompletableDeferred
@@ -263,3 +264,9 @@ actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory
     produceFile = {
         LinkoraApp.getContext().applicationContext.filesDir.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
     })
+
+actual suspend fun dataSnapshot(
+    rawExportString: String, fileType: ExportFileType, onCompletion: () -> Unit
+) {
+    linkoraLog(rawExportString)
+}

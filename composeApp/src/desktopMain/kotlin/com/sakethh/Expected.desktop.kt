@@ -88,13 +88,12 @@ actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean = false
 actual suspend fun pickAValidFileForImporting(
     importFileType: ImportFileType, onStart: () -> Unit
 ): File? {
-    val fileDialog =
-        FileDialog(
-            Frame(),
-            Localization.Key.SelectAValidFile.getLocalizedString()
-                .replaceFirstPlaceHolderWith(importFileType.name),
-            FileDialog.LOAD
-        )
+    val fileDialog = FileDialog(
+        Frame(),
+        Localization.Key.SelectAValidFile.getLocalizedString()
+            .replaceFirstPlaceHolderWith(importFileType.name),
+        FileDialog.LOAD
+    )
     fileDialog.isVisible = true
     val sourceFile = File(fileDialog.directory, fileDialog.file).duplicate()
     return if (sourceFile.isNotNull() && sourceFile!!.extension == importFileType.name.lowercase()) {
@@ -115,8 +114,7 @@ actual suspend fun pickAValidFileForImporting(
 actual fun onShare(url: String) = Unit
 
 actual suspend fun onRefreshAllLinks(
-    localLinksRepo: LocalLinksRepo,
-    preferencesRepository: PreferencesRepository
+    localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
 ) {
     RefreshAllLinksService.invoke(localLinksRepo)
 }
@@ -143,4 +141,12 @@ actual fun platformSpecificLogging(string: String) {
 actual class DataSyncingNotificationService actual constructor() {
     actual fun showNotification() = Unit
     actual fun clearNotification() = Unit
+}
+
+actual suspend fun dataSnapshot(
+    rawExportString: String, fileType: ExportFileType, onCompletion: () -> Unit
+) {
+    writeRawExportStringToFile(
+        exportFileType = fileType, rawExportString = rawExportString, onCompletion = onCompletion
+    )
 }
