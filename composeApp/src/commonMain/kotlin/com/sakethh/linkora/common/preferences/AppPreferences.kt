@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.BUILD_FLAVOUR
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
@@ -70,6 +71,7 @@ object AppPreferences {
     val forceShuffleLinks = mutableStateOf(false)
     val showNoteInListViewLayout = mutableStateOf(true)
     val areSnapshotsEnabled = mutableStateOf(false)
+    val snapshotsExportType = mutableStateOf(ExportFileType.JSON.name)
 
     private var correlation = Correlation.generateRandomCorrelation()
 
@@ -303,12 +305,24 @@ object AppPreferences {
                         AppPreferenceType.FORCE_SHUFFLE_LINKS.name
                     )
                 ) == true
-            },launch {
+            }, launch {
                 showNoteInListViewLayout.value = preferencesRepository.readPreferenceValue(
                     booleanPreferencesKey(
                         AppPreferenceType.NOTE_VISIBILITY_IN_LIST_VIEWS.name
                     )
                 ) != false
+            }, launch {
+                areSnapshotsEnabled.value = preferencesRepository.readPreferenceValue(
+                    booleanPreferencesKey(
+                        AppPreferenceType.USE_SNAPSHOTS.name
+                    )
+                ) == true
+            }, launch {
+                snapshotsExportType.value = preferencesRepository.readPreferenceValue(
+                    preferenceKey = stringPreferencesKey(
+                        AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
+                    )
+                ) ?: ExportFileType.JSON.name
             }).joinAll()
         }
     }

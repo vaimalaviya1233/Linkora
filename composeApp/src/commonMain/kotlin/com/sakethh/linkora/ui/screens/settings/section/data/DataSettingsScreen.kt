@@ -67,12 +67,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.currentSavedServerConfig
 import com.sakethh.linkora.common.utils.getLocalizedString
@@ -369,6 +372,11 @@ fun DataSettingsScreen() {
                         isSwitchEnabled = AppPreferences.areSnapshotsEnabled,
                         onSwitchStateChange = {
                             AppPreferences.areSnapshotsEnabled.value = it
+                            dataSettingsScreenVM.changeSettingPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(
+                                    AppPreferenceType.USE_SNAPSHOTS.name
+                                ), newValue = it
+                            )
                         },
                         icon = Icons.Default.BackupTable,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
@@ -381,9 +389,6 @@ fun DataSettingsScreen() {
                             text = "Export As:",
                             style = MaterialTheme.typography.titleSmall,
                         )
-                        val selectedExportTypeForSnapshots = rememberSaveable {
-                            mutableStateOf(ExportFileType.JSON.name)
-                        }
                         Row(
                             modifier = Modifier.padding(top = 10.dp),
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -396,13 +401,18 @@ fun DataSettingsScreen() {
                                             it.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                             else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                         },
-                                        checked = exportType == selectedExportTypeForSnapshots.value,
+                                        checked = exportType == AppPreferences.snapshotsExportType.value,
                                         onCheckedChange = {
-                                            selectedExportTypeForSnapshots.value = exportType
+                                            AppPreferences.snapshotsExportType.value = exportType
+                                            dataSettingsScreenVM.changeSettingPreferenceValue(
+                                                preferenceKey = stringPreferencesKey(
+                                                    AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
+                                                ), newValue = exportType
+                                            )
                                         }) {
                                         Text(
                                             text = exportType,
-                                            style = if (exportType == selectedExportTypeForSnapshots.value) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall
+                                            style = if (exportType == AppPreferences.snapshotsExportType.value) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall
                                         )
                                     }
                                 }

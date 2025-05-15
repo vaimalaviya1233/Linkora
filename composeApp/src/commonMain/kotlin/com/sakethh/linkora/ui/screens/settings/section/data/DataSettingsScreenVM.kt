@@ -31,6 +31,7 @@ import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
+import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.onRefreshAllLinks
@@ -53,7 +54,7 @@ class DataSettingsScreenVM(
     private val preferencesRepository: PreferencesRepository,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val remoteSyncRepo: RemoteSyncRepo
-) : ViewModel() {
+) : SettingsScreenViewModel(preferencesRepository) {
     val importExportProgressLogs = mutableStateListOf<String>()
 
     private var importExportJob: Job? = null
