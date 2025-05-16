@@ -44,12 +44,9 @@ class LinkoraApp : Application() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel =
-                NotificationChannel(
-                    "1",
-                    "Data Syncing",
-                    NotificationManager.IMPORTANCE_HIGH
-                )
+            val notificationChannel = NotificationChannel(
+                "1", "Data Syncing", NotificationManager.IMPORTANCE_HIGH
+            )
             notificationChannel.description =
                 "Used to notify about the data syncing status, including link refresh."
             val notificationManager =
@@ -366,6 +363,12 @@ class LinkoraApp : Application() {
             }
         }
 
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `snapshot` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `content` TEXT NOT NULL)")
+            }
+        }
+
         val dbFile = applicationContext.getDatabasePath(LocalDatabase.NAME)
         return Room.databaseBuilder(
             applicationContext, LocalDatabase::class.java, name = dbFile.absolutePath
@@ -377,7 +380,8 @@ class LinkoraApp : Application() {
             MIGRATION_5_6,
             MIGRATION_6_7,
             MIGRATION_7_8,
-            MIGRATION_8_9
+            MIGRATION_8_9,
+            MIGRATION_9_10
         ).build()
     }
 }

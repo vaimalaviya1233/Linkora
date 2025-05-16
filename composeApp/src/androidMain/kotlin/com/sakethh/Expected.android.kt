@@ -31,6 +31,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.R
+import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -42,13 +43,13 @@ import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
+import com.sakethh.linkora.domain.model.Snapshot
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
 import com.sakethh.linkora.worker.RefreshAllLinksWorker
@@ -77,7 +78,9 @@ actual val localDatabase: LocalDatabase? = LinkoraApp.getLocalDb()
 actual val poppinsFontFamily: FontFamily = poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 actual suspend fun writeRawExportStringToFile(
-    exportFileType: ExportFileType, rawExportString: RawExportString, onCompletion: (String) -> Unit
+    exportFileType: ExportFileType,
+    rawExportString: RawExportString,
+    onCompletion: suspend (String) -> Unit
 ) {
     val defaultFolder = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
         File(Environment.getExternalStorageDirectory(), "Linkora/Exports")
@@ -268,10 +271,13 @@ actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory
     })
 
 actual suspend fun exportSnapshotData(
-    rawExportString: String, fileType: ExportFileType, onCompletion: (String) -> Unit
+    rawExportString: String, fileType: ExportFileType, onCompletion: suspend (String) -> Unit
 ) {
     val snapshotWorker = OneTimeWorkRequestBuilder<SnapshotWorker>()
-    val parameters = Data.Builder().putString(key = "rawExportString", value = rawExportString)
+    val rawExportStringID: Long =
+        DependencyContainer.snapshotRepo.value.addASnapshot(Snapshot(content = rawExportString))
+
+    val parameters = Data.Builder().putLong(key = "rawExportStringID", value = rawExportStringID)
         .putString(key = "fileType", value = fileType.name).build()
     snapshotWorker.setInputData(parameters)
     WorkManager.getInstance(LinkoraApp.getContext()).enqueue(snapshotWorker.build())
