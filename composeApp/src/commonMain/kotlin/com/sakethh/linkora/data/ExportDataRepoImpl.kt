@@ -8,12 +8,15 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.JSONExportSchema
 import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
@@ -72,8 +75,7 @@ class ExportDataRepoImpl(
                         panels = panels.map { it.copy(remoteId = null, lastModified = 0) },
                         panelFolders = panelFolders.map {
                             it.copy(
-                                remoteId = null,
-                                lastModified = 0
+                                remoteId = null, lastModified = 0
                             )
                         }),
                 )
@@ -184,17 +186,99 @@ class ExportDataRepoImpl(
         }.catchAsExceptionAndEmitFailure()
     }
 
+    override suspend fun rawExportDataAsHTML(
+        links: List<Link>, folders: List<Folder>
+    ): RawExportString {
+        val completableDeferred = CompletableDeferred<String>()
+        supervisorScope {
+            var htmlFileRawText = ""
 
-    private fun dlP(children: String): String {
-        return "<DL><p>\n$children</DL><p>\n"
-    }
+            var savedLinksSection = dtH3(LinkoraExports.SAVED_LINKS__LINKORA_EXPORT.name)
 
-    private fun dtH3(folderName: String): String {
-        return "<DT><H3>$folderName</H3>\n"
-    }
+            var savedLinks = ""
+            val deferredSavedLinks = async {
+                links.filter { it.linkType == LinkType.SAVED_LINK }.forEach { savedLink ->
+                    savedLinks += dtA(linkTitle = savedLink.title, link = savedLink.url)
+                }
+            }
 
-    private fun dtA(linkTitle: String, link: String): String {
-        return "<DT><A HREF=\"$link\">$linkTitle</A>\n"
+            var impLinksSection = dtH3(LinkoraExports.IMPORTANT_LINKS__LINKORA_EXPORT.name)
+
+            var impLinks = ""
+            val deferredImpLinks = async {
+                links.filter { it.linkType == LinkType.IMPORTANT_LINK }.forEach { impLink ->
+                    impLinks += dtA(linkTitle = impLink.title, link = impLink.url)
+                }
+            }
+
+            val deferredRegularFoldersAndRespectiveLinks = async {
+                dtH3(LinkoraExports.REGULAR_FOLDERS__LINKORA_EXPORT.name) + dlP(
+                    foldersSectionInHtml(
+                        allFolders = folders,
+                        allLinks = links,
+                        parentFolderId = null,
+                        forArchiveFolders = false
+                    )
+                )
+            }
+
+            val deferredArchivedFoldersAndRespectiveLinks = async {
+                dtH3(LinkoraExports.ARCHIVED_FOLDERS__LINKORA_EXPORT.name) + dlP(
+                    foldersSectionInHtml(
+                        allFolders = folders,
+                        allLinks = links,
+                        parentFolderId = null,
+                        forArchiveFolders = true
+                    )
+                )
+            }
+
+            var historyLinksSection = dtH3(LinkoraExports.HISTORY_LINKS__LINKORA_EXPORT.name)
+
+            var historyLinks = ""
+            val deferredHistoryLinks = async {
+                links.filter { it.linkType == LinkType.HISTORY_LINK }.forEach { historyLink ->
+                    historyLinks += dtA(
+                        linkTitle = historyLink.title, link = historyLink.url
+                    )
+                }
+            }
+
+            var archivedLinksSection = dtH3(LinkoraExports.ARCHIVED_LINKS__LINKORA_EXPORT.name)
+
+            var archivedLinks = ""
+            val deferredArchivedLinks = async {
+                links.filter { it.linkType == LinkType.ARCHIVE_LINK }.forEach { archivedLink ->
+                    archivedLinks += dtA(
+                        linkTitle = archivedLink.title, link = archivedLink.url
+                    )
+                }
+            }
+
+            deferredSavedLinks.await()
+            savedLinksSection += dlP(savedLinks)
+            htmlFileRawText += savedLinksSection
+
+            deferredImpLinks.await()
+            impLinksSection += dlP(impLinks)
+            htmlFileRawText += impLinksSection
+
+            htmlFileRawText += deferredRegularFoldersAndRespectiveLinks.await()
+
+            htmlFileRawText += deferredArchivedFoldersAndRespectiveLinks.await()
+
+            deferredHistoryLinks.await()
+            historyLinksSection += dlP(historyLinks)
+            htmlFileRawText += historyLinksSection
+
+            deferredArchivedLinks.await()
+            archivedLinksSection += dlP(archivedLinks)
+            htmlFileRawText += archivedLinksSection
+
+
+            completableDeferred.complete(dlP(htmlFileRawText))
+        }
+        return completableDeferred.await()
     }
 
 
@@ -249,4 +333,53 @@ class ExportDataRepoImpl(
         return foldersSection
     }
 
+
+    private fun foldersSectionInHtml(
+        allFolders: List<Folder>,
+        allLinks: List<Link>,
+        parentFolderId: Long?, forArchiveFolders: Boolean,
+    ): String {
+
+        var foldersSection = ""
+
+        val foldersList = if (parentFolderId == null) {
+            allFolders.filter {
+                it.parentFolderId == null && it.isArchived == forArchiveFolders
+            }
+        } else {
+            allFolders.filter {
+                it.parentFolderId == parentFolderId
+            }
+        }
+
+        foldersList.forEach { childFolder ->
+
+            val currentFolderDTH3 = dtH3(childFolder.name)
+            var folderLinksDTA = ""
+
+            val linksList = allLinks.filter {
+                it.idOfLinkedFolder == childFolder.localId
+            }
+
+            linksList.forEach { filteredLink ->
+                folderLinksDTA += dtA(linkTitle = filteredLink.title, link = filteredLink.url)
+            }
+
+            val nestedFolderHTML = foldersSectionInHtml(
+                allFolders = allFolders,
+                allLinks = allLinks,
+                parentFolderId = childFolder.localId,
+                forArchiveFolders = forArchiveFolders,
+            )
+            foldersSection += currentFolderDTH3 + dlP(folderLinksDTA + nestedFolderHTML)
+        }
+
+        return foldersSection
+    }
+
+    private fun dlP(children: String) = "<DL><p>\n$children</DL><p>\n"
+
+    private fun dtH3(folderName: String) = "<DT><H3>$folderName</H3>\n"
+
+    private fun dtA(linkTitle: String, link: String) = "<DT><A HREF=\"$link\">$linkTitle</A>\n"
 }

@@ -163,10 +163,6 @@ class AppVM(
                                         }
                                     }
 
-                                    fun rawExportStringAsHTML(): String {
-                                        TODO()
-                                    }
-
                                     if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
                                         awaitAll(async {
                                             com.sakethh.dataSnapshot(
@@ -175,7 +171,7 @@ class AppVM(
                                             )
                                         }, async {
                                             com.sakethh.dataSnapshot(
-                                                rawExportString = rawExportStringAsHTML(),
+                                                rawExportString = exportDataRepo.rawExportDataAsHTML(links = it.links, folders = it.folders),
                                                 fileType = ExportFileType.HTML
                                             )
                                         })
@@ -190,7 +186,7 @@ class AppVM(
 
                                     if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
                                         com.sakethh.dataSnapshot(
-                                            rawExportString = rawExportStringAsHTML(),
+                                            rawExportString = exportDataRepo.rawExportDataAsHTML(links = it.links, folders = it.folders),
                                             fileType = ExportFileType.HTML
                                         )
                                     }
