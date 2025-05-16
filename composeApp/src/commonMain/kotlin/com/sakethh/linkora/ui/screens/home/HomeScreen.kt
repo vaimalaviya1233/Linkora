@@ -246,7 +246,7 @@ fun HomeScreen() {
                                 } else {
                                     this
                                 }
-                            }
+                            }.distinctBy { it.url }
                         }
                     } else homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
                         LinkType.FOLDER_LINK,

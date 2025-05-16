@@ -57,7 +57,7 @@ fun Link.asHistoryLinkWithoutId(): Link {
         note = this.note,
         idOfLinkedFolder = null,
         userAgent = this.userAgent,
-        markedAsImportant = this.markedAsImportant,
+        markedAsImportant = false,
         lastModified = this.lastModified
     )
 }

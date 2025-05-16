@@ -568,9 +568,9 @@ open class CollectionsScreenVM(
                 it.onSuccess {
                     _links.apply {
                         if (forceShuffleLinks) {
-                            emit(it.data.shuffled())
+                            emit(it.data.shuffled().distinctBy { it.url })
                         } else {
-                            emit(it.data)
+                            emit(it.data.distinctBy { it.url })
                         }
                     }
                 }.pushSnackbarOnFailure()
