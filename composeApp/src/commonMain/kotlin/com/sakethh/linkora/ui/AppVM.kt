@@ -50,6 +50,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
@@ -84,6 +85,7 @@ class AppVM(
     val onBoardingCompleted = mutableStateOf(false)
 
     private var snapshotsJob: Job? = null
+    val isAnySnapshotOngoing = mutableStateOf(false)
 
     init {
 
@@ -138,6 +140,7 @@ class AppVM(
                             .drop(1) // ignore the first emission which gets fired when the app launches
                             .debounce(1000).flowOn(Dispatchers.Default).collectLatest {
                                 try {
+                                    isAnySnapshotOngoing.value = true
                                     val serializedJsonExportString = JSONExportSchema(
                                         schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
                                         links = it.links.map {
@@ -194,6 +197,8 @@ class AppVM(
                                     }
                                 } catch (e: Exception) {
                                     e.pushSnackbar()
+                                } finally {
+                                    isAnySnapshotOngoing.value = false
                                 }
                             }
                     }

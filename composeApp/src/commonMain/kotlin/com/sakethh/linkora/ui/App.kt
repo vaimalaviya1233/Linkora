@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.BackupTable
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContentPaste
@@ -71,6 +72,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -386,16 +388,35 @@ fun App(
                             })
                         }
                     }
-                    if (platform() !is Platform.Android.Mobile && appVM.isPerformingStartupSync.value) {
-                        Box(
-                            Modifier.fillMaxHeight().padding(bottom = 30.dp),
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier.fillMaxHeight(), contentAlignment = Alignment.BottomCenter
+                    ) {
+                        if (platform() !is Platform.Android.Mobile && appVM.isPerformingStartupSync.value) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.align(Alignment.BottomCenter)
+                                    .padding(bottom = 90.dp)
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.CloudSync, contentDescription = null
                                 )
                                 CircularProgressIndicator()
+                            }
+                        }
+
+                        if (AppPreferences.areSnapshotsEnabled.value && platform == Platform.Desktop) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.align(Alignment.BottomCenter)
+                                    .padding(bottom = 30.dp)
+                                    .alpha(if (platform() !is Platform.Android.Mobile && appVM.isAnySnapshotOngoing.value) 1f else 0.25f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.BackupTable,
+                                    contentDescription = null
+                                )
+
+                                if (appVM.isAnySnapshotOngoing.value) CircularProgressIndicator()
                             }
                         }
                     }

@@ -27,6 +27,7 @@ import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -91,6 +92,7 @@ actual suspend fun writeRawExportStringToFile(
         Files.write(exportFilePath, rawExportString.toByteArray())
     }
     onCompletion(exportFileName)
+    linkoraLog(exportFileName)
 }
 
 actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean = false
