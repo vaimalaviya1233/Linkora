@@ -96,7 +96,17 @@ class AppVM(
             } else {
                 onBoardingCompleted.value = true
                 when (AppPreferences.startDestination.value) {
-                    Navigation.Root.HomeScreen.toString() -> Navigation.Root.HomeScreen
+                    Navigation.Root.HomeScreen.toString() -> if (preferencesRepository.readPreferenceValue(
+                            booleanPreferencesKey(
+                                AppPreferenceType.HOME_SCREEN_VISIBILITY.name
+                            )
+                        ) == false
+                    ) {
+                        Navigation.Root.CollectionsScreen
+                    } else {
+                        Navigation.Root.HomeScreen
+                    }
+
                     Navigation.Root.SearchScreen.toString() -> Navigation.Root.SearchScreen
                     else -> Navigation.Root.CollectionsScreen
                 }
@@ -122,7 +132,8 @@ class AppVM(
                                 panels = panels,
                                 panelFolders = panelFolders
                             )
-                        }.cancellable().drop(1) // ignore the first emission which gets fired when the app launches
+                        }.cancellable()
+                            .drop(1) // ignore the first emission which gets fired when the app launches
                             .debounce(1000).collectLatest {
                                 try {
                                     fun rawExportStringAsJSON(): String {

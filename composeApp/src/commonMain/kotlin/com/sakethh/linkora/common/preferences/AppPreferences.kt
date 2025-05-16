@@ -117,16 +117,9 @@ object AppPreferences {
                     preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_SYNC_TYPE.name),
                 )?.let { SyncType.valueOf(it) } ?: serverSyncType.value
             }, launch {
-                isHomeScreenEnabled.value = if (preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.HOME_SCREEN_VISIBILITY.name),
-                    ) == null
-                ) {
-                    true
-                } else {
-                    preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.HOME_SCREEN_VISIBILITY.name),
-                    ) == true
-                }
+                isHomeScreenEnabled.value = preferencesRepository.readPreferenceValue(
+                    preferenceKey = booleanPreferencesKey(AppPreferenceType.HOME_SCREEN_VISIBILITY.name),
+                ) != false
             }, launch {
                 shouldFollowSystemTheme.value = preferencesRepository.readPreferenceValue(
                     preferenceKey = booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),

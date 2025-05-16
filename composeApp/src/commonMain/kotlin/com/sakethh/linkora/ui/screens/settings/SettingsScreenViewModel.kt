@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -105,6 +106,25 @@ open class SettingsScreenViewModel(
                         })
                 )
             }
+            add(
+                SettingComponentParam(
+                    title = "Enable Home Screen",
+                    doesDescriptionExists = true,
+                    description = "When disabled, Collections opens on launch if Home is set as the initial route.",
+                    isSwitchNeeded = true,
+                    isSwitchEnabled = AppPreferences.isHomeScreenEnabled,
+                    onSwitchStateChange = {
+                        AppPreferences.isHomeScreenEnabled.value = it
+                        changeSettingPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.HOME_SCREEN_VISIBILITY.name
+                            ), newValue = it
+                        )
+                    },
+                    isIconNeeded = mutableStateOf(true),
+                    icon = Icons.Rounded.Home
+                )
+            )
         }
     }
 

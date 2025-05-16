@@ -83,6 +83,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.common.utils.defaultFolderIds
@@ -344,43 +345,45 @@ fun App(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         rootRouteList.forEach { navRouteItem ->
+                            if (AppPreferences.isHomeScreenEnabled.value.not() && navRouteItem.toString() == Navigation.Root.HomeScreen.toString()) return@forEach
+
                             val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                             NavigationRailItem(
                                 modifier = Modifier.padding(
-                                    start = 15.dp, end = 15.dp, top = 15.dp
-                                ), selected = isSelected, onClick = {
-                                    if (currentRoute?.hasRoute(navRouteItem::class) == false) {
-                                        CollectionsScreenVM.resetCollectionDetailPaneInfo()
-                                        localNavController.navigate(navRouteItem)
-                                    }
-                                }, icon = {
-                                    Icon(
-                                        imageVector = if (isSelected) {
-                                            when (navRouteItem) {
-                                                Navigation.Root.HomeScreen -> Icons.Filled.Home
-                                                Navigation.Root.SearchScreen -> Icons.Filled.Search
-                                                Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
-                                                Navigation.Root.SettingsScreen -> Icons.Filled.Settings
-                                                else -> return@NavigationRailItem
-                                            }
-                                        } else {
-                                            when (navRouteItem) {
-                                                Navigation.Root.HomeScreen -> Icons.Outlined.Home
-                                                Navigation.Root.SearchScreen -> Icons.Outlined.Search
-                                                Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
-                                                Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
-                                                else -> return@NavigationRailItem
-                                            }
-                                        }, contentDescription = null
-                                    )
-                                }, label = {
-                                    Text(
-                                        text = navRouteItem.toString(),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        maxLines = 1,
-                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                    )
-                                })
+                                start = 15.dp, end = 15.dp, top = 15.dp
+                            ), selected = isSelected, onClick = {
+                                if (currentRoute?.hasRoute(navRouteItem::class) == false) {
+                                    CollectionsScreenVM.resetCollectionDetailPaneInfo()
+                                    localNavController.navigate(navRouteItem)
+                                }
+                            }, icon = {
+                                Icon(
+                                    imageVector = if (isSelected) {
+                                        when (navRouteItem) {
+                                            Navigation.Root.HomeScreen -> Icons.Filled.Home
+                                            Navigation.Root.SearchScreen -> Icons.Filled.Search
+                                            Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
+                                            Navigation.Root.SettingsScreen -> Icons.Filled.Settings
+                                            else -> return@NavigationRailItem
+                                        }
+                                    } else {
+                                        when (navRouteItem) {
+                                            Navigation.Root.HomeScreen -> Icons.Outlined.Home
+                                            Navigation.Root.SearchScreen -> Icons.Outlined.Search
+                                            Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                            Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
+                                            else -> return@NavigationRailItem
+                                        }
+                                    }, contentDescription = null
+                                )
+                            }, label = {
+                                Text(
+                                    text = navRouteItem.toString(),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    maxLines = 1,
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            })
                         }
                     }
                     if (platform() !is Platform.Android.Mobile && appVM.isPerformingStartupSync.value) {
@@ -408,284 +411,276 @@ fun App(
         }
         Scaffold(
             bottomBar = {
-                Box(modifier = Modifier.animateContentSize()) {
-                    if (CollectionsScreenVM.isSelectionEnabled.value) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().animateContentSize()
-                                .background(if (inRootScreen == true) BottomAppBarDefaults.containerColor else TopAppBarDefaults.topAppBarColors().containerColor)
-                        ) {
-                            HorizontalDivider()
-                            Spacer(modifier = Modifier.height(5.dp))
-                            if (showLoadingProgressBarOnTransferAction.value) {
+            Box(modifier = Modifier.animateContentSize()) {
+                if (CollectionsScreenVM.isSelectionEnabled.value) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().animateContentSize()
+                            .background(if (inRootScreen == true) BottomAppBarDefaults.containerColor else TopAppBarDefaults.topAppBarColors().containerColor)
+                    ) {
+                        HorizontalDivider()
+                        Spacer(modifier = Modifier.height(5.dp))
+                        if (showLoadingProgressBarOnTransferAction.value) {
+                            Text(
+                                text = if (appVM.transferActionType.value == TransferActionType.COPY) {
+                                    Localization.Key.Copying.rememberLocalizedString()
+                                } else {
+                                    Localization.Key.Moving.rememberLocalizedString()
+                                },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(
+                                    start = 15.dp, bottom = 10.dp, top = 5.dp
+                                )
+                            )
+                            LinearProgressIndicator(
+                                Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp)
+                            )
+                            Spacer(Modifier.bottomNavPaddingAcrossPlatforms())
+                            return@Column
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = {
+                                CollectionsScreenVM.clearAllSelections()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close, contentDescription = null
+                                )
+                            }
+                            Column {
                                 Text(
-                                    text = if (appVM.transferActionType.value == TransferActionType.COPY) {
-                                        Localization.Key.Copying.rememberLocalizedString()
-                                    } else {
-                                        Localization.Key.Moving.rememberLocalizedString()
-                                    },
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontSize = 14.sp,
-                                    modifier = Modifier.padding(
-                                        start = 15.dp, bottom = 10.dp, top = 5.dp
-                                    )
+                                    text = Localization.Key.SelectedLinksCount.rememberLocalizedString()
+                                        .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedLinksViaLongClick.size.toString()),
+                                    style = MaterialTheme.typography.titleSmall
                                 )
-                                LinearProgressIndicator(
-                                    Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp)
+                                Text(
+                                    text = Localization.Key.SelectedFoldersCount.rememberLocalizedString()
+                                        .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedFoldersViaLongClick.size.toString()),
+                                    style = MaterialTheme.typography.titleSmall
                                 )
-                                Spacer(Modifier.bottomNavPaddingAcrossPlatforms())
-                                return@Column
                             }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = {
-                                    CollectionsScreenVM.clearAllSelections()
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close, contentDescription = null
+                        }
+                        val showPasteButton =
+                            appVM.transferActionType.value != TransferActionType.NONE && (selectedAndInRoot.value.not() || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder != null) && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
+                        if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds().dropWhile {
+                                it == Constants.ARCHIVE_ID
+                            }).not()) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if ((appVM.transferActionType.value == TransferActionType.NONE && showPasteButton.not()) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
+                                    Text(
+                                        text = Localization.Key.MultiActionsLabel.rememberLocalizedString(),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(start = 15.dp)
                                     )
                                 }
-                                Column {
-                                    Text(
-                                        text = Localization.Key.SelectedLinksCount.rememberLocalizedString()
-                                            .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedLinksViaLongClick.size.toString()),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                    Text(
-                                        text = Localization.Key.SelectedFoldersCount.rememberLocalizedString()
-                                            .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedFoldersViaLongClick.size.toString()),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                }
-                            }
-                            val showPasteButton =
-                                appVM.transferActionType.value != TransferActionType.NONE && (selectedAndInRoot.value.not() || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder != null) && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
-                            if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds().dropWhile {
-                                    it == Constants.ARCHIVE_ID
-                                }).not()) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.animateContentSize()
                                 ) {
-                                    if ((appVM.transferActionType.value == TransferActionType.NONE && showPasteButton.not()) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
-                                        Text(
-                                            text = Localization.Key.MultiActionsLabel.rememberLocalizedString(),
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.padding(start = 15.dp)
+                                    if (showPasteButton) {
+                                        IconButton(onClick = {
+                                            if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder == null) {
+                                                return@IconButton
+                                            }
+                                            if (appVM.transferActionType.value == TransferActionType.COPY) {
+                                                appVM.copySelectedItems(
+                                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                                    onStart = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            true
+                                                    },
+                                                    onCompletion = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            false
+                                                    })
+                                            } else {
+                                                appVM.moveSelectedItems(
+                                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                                    onStart = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            true
+                                                    },
+                                                    onCompletion = {
+                                                        showLoadingProgressBarOnTransferAction.value =
+                                                            false
+                                                    })
+                                            }
+                                        }, modifier = Modifier.padding(end = 6.5.dp)) {
+                                            Icon(
+                                                imageVector = Icons.Default.ContentPaste,
+                                                contentDescription = null
+                                            )
+                                        }
+                                        return@Row
+                                    }
+                                    if (appVM.transferActionType.value != TransferActionType.NONE) {
+                                        return@Row
+                                    }
+                                    IconButton(onClick = {
+                                        coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null
                                         )
                                     }
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier.animateContentSize()
-                                    ) {
-                                        if (showPasteButton) {
-                                            IconButton(onClick = {
-                                                if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder == null) {
-                                                    return@IconButton
-                                                }
-                                                if (appVM.transferActionType.value == TransferActionType.COPY) {
-                                                    appVM.copySelectedItems(
-                                                        folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
-                                                        onStart = {
-                                                            showLoadingProgressBarOnTransferAction.value =
-                                                                true
-                                                        },
-                                                        onCompletion = {
-                                                            showLoadingProgressBarOnTransferAction.value =
-                                                                false
-                                                        })
-                                                } else {
-                                                    appVM.moveSelectedItems(
-                                                        folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
-                                                        onStart = {
-                                                            showLoadingProgressBarOnTransferAction.value =
-                                                                true
-                                                        },
-                                                        onCompletion = {
-                                                            showLoadingProgressBarOnTransferAction.value =
-                                                                false
-                                                        })
-                                                }
-                                            }, modifier = Modifier.padding(end = 6.5.dp)) {
-                                                Icon(
-                                                    imageVector = Icons.Default.ContentPaste,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                            return@Row
+                                    if (CollectionsScreenVM.selectedLinksViaLongClick.any {
+                                            it.linkType == LinkType.ARCHIVE_LINK
                                         }
-                                        if (appVM.transferActionType.value != TransferActionType.NONE) {
-                                            return@Row
-                                        }
+                                            .not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
+                                            it.isArchived.not()
+                                        }) {
                                         IconButton(onClick = {
-                                            coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
+                                            appVM.archiveSelectedItems(onStart = {
+                                                showLoadingProgressBarOnTransferAction.value = true
+                                            }, onCompletion = {
+                                                showLoadingProgressBarOnTransferAction.value = false
+                                            })
                                         }) {
                                             Icon(
-                                                imageVector = Icons.Default.Delete,
-                                                contentDescription = null
-                                            )
-                                        }
-                                        if (CollectionsScreenVM.selectedLinksViaLongClick.any {
-                                                it.linkType == LinkType.ARCHIVE_LINK
-                                            }
-                                                .not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
-                                                it.isArchived.not()
-                                            }) {
-                                            IconButton(onClick = {
-                                                appVM.archiveSelectedItems(onStart = {
-                                                    showLoadingProgressBarOnTransferAction.value =
-                                                        true
-                                                }, onCompletion = {
-                                                    showLoadingProgressBarOnTransferAction.value =
-                                                        false
-                                                })
-                                            }) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Archive,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
-                                        if (CollectionsScreenVM.selectedFoldersViaLongClick.any {
-                                                it.isArchived
-                                            } || CollectionsScreenVM.selectedLinksViaLongClick.any {
-                                                it.linkType == LinkType.ARCHIVE_LINK
-                                            }) {
-                                            IconButton(onClick = {
-                                                appVM.markSelectedItemsAsRegular(onStart = {
-                                                    showLoadingProgressBarOnTransferAction.value =
-                                                        true
-                                                }, onCompletion = {
-                                                    showLoadingProgressBarOnTransferAction.value =
-                                                        false
-                                                })
-                                            }) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Unarchive,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
-                                        IconButton(onClick = {
-                                            appVM.transferActionType.value = TransferActionType.COPY
-                                        }) {
-                                            Icon(
-                                                imageVector = Icons.Default.CopyAll,
-                                                contentDescription = null
-                                            )
-                                        }
-                                        IconButton(onClick = {
-                                            appVM.transferActionType.value = TransferActionType.MOVE
-                                        }) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.DriveFileMove,
+                                                imageVector = Icons.Default.Archive,
                                                 contentDescription = null
                                             )
                                         }
                                     }
-                                }
-                            }
-                            if (appVM.transferActionType.value != TransferActionType.NONE) {
-                                Text(
-                                    text = if (appVM.transferActionType.value == TransferActionType.COPY) Localization.Key.NavigateAndCopyDesc.rememberLocalizedString() else Localization.Key.NavigateAndMoveDesc.rememberLocalizedString(),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(start = 15.dp, end = 15.dp)
-                                )
-                            }
-                            val showNavigateToCollectionScreen =
-                                selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
-                            if (CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.selectedFoldersViaLongClick.any {
-                                    it.parentFolderId != null
-                                }) {
-                                Button(
-                                    onClick = {
-                                        appVM.markSelectedFoldersAsRoot(onStart = {
-                                            showLoadingProgressBarOnTransferAction.value = true
-                                        }, onCompletion = {
-                                            showLoadingProgressBarOnTransferAction.value = false
-                                        })
-                                    }, modifier = Modifier.fillMaxWidth().padding(
-                                        start = 15.dp,
-                                        end = 15.dp,
-                                        top = 5.dp,
-                                        bottom = if (showNavigateToCollectionScreen.not()) 5.dp else 0.dp
-                                    )
-                                ) {
-                                    Text(
-                                        text = Localization.Key.MarkSelectedFoldersAsRoot.rememberLocalizedString(),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                }
-                            }
-                            if (showNavigateToCollectionScreen) {
-                                Button(
-                                    onClick = {
-                                        localNavController.navigate(Navigation.Root.CollectionsScreen)
-                                    },
-                                    modifier = Modifier.fillMaxWidth().padding(
-                                        start = 15.dp,
-                                        end = 15.dp,
-                                        top = 5.dp,
-                                        bottom = 5.dp
-                                    )
-                                ) {
-                                    Text(
-                                        text = Localization.Key.NavigateToCollectionsScreen.rememberLocalizedString(),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
+                                    if (CollectionsScreenVM.selectedFoldersViaLongClick.any {
+                                            it.isArchived
+                                        } || CollectionsScreenVM.selectedLinksViaLongClick.any {
+                                            it.linkType == LinkType.ARCHIVE_LINK
+                                        }) {
+                                        IconButton(onClick = {
+                                            appVM.markSelectedItemsAsRegular(onStart = {
+                                                showLoadingProgressBarOnTransferAction.value = true
+                                            }, onCompletion = {
+                                                showLoadingProgressBarOnTransferAction.value = false
+                                            })
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Unarchive,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    }
+                                    IconButton(onClick = {
+                                        appVM.transferActionType.value = TransferActionType.COPY
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.CopyAll,
+                                            contentDescription = null
+                                        )
+                                    }
+                                    IconButton(onClick = {
+                                        appVM.transferActionType.value = TransferActionType.MOVE
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.DriveFileMove,
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-                }
-            }, floatingActionButton = {
-                AnimatedVisibility(
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                    visible = showAddingLinkOrFoldersFAB.value && CollectionsScreenVM.isSelectionEnabled.value.not()
-                ) {
-                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
-                            Constants.SAVED_LINKS_ID,
-                            Constants.IMPORTANT_LINKS_ID,
-                            Constants.ALL_LINKS_ID
-                        )
-                    ) {
-                        FloatingActionButton(
-                            modifier = Modifier.padding(
-                                bottom = if (platform() == Platform.Android.Mobile && rootRouteList.any {
-                                        currentRoute?.hasRoute(it::class) == true
-                                    }) 82.dp else 0.dp
-                            ), onClick = {
-                                shouldShowAddLinkDialog.value = true
-                            }) {
-                            Icon(
-                                imageVector = Icons.Default.AddLink, contentDescription = null
+                        if (appVM.transferActionType.value != TransferActionType.NONE) {
+                            Text(
+                                text = if (appVM.transferActionType.value == TransferActionType.COPY) Localization.Key.NavigateAndCopyDesc.rememberLocalizedString() else Localization.Key.NavigateAndMoveDesc.rememberLocalizedString(),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                             )
                         }
-                        return@AnimatedVisibility
+                        val showNavigateToCollectionScreen =
+                            selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
+                        if (CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.selectedFoldersViaLongClick.any {
+                                it.parentFolderId != null
+                            }) {
+                            Button(
+                                onClick = {
+                                    appVM.markSelectedFoldersAsRoot(onStart = {
+                                        showLoadingProgressBarOnTransferAction.value = true
+                                    }, onCompletion = {
+                                        showLoadingProgressBarOnTransferAction.value = false
+                                    })
+                                }, modifier = Modifier.fillMaxWidth().padding(
+                                    start = 15.dp,
+                                    end = 15.dp,
+                                    top = 5.dp,
+                                    bottom = if (showNavigateToCollectionScreen.not()) 5.dp else 0.dp
+                                )
+                            ) {
+                                Text(
+                                    text = Localization.Key.MarkSelectedFoldersAsRoot.rememberLocalizedString(),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+                        }
+                        if (showNavigateToCollectionScreen) {
+                            Button(
+                                onClick = {
+                                    localNavController.navigate(Navigation.Root.CollectionsScreen)
+                                }, modifier = Modifier.fillMaxWidth().padding(
+                                    start = 15.dp, end = 15.dp, top = 5.dp, bottom = 5.dp
+                                )
+                            ) {
+                                Text(
+                                    text = Localization.Key.NavigateToCollectionsScreen.rememberLocalizedString(),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
+                        }
                     }
-                    AddItemFab(
-                        AddItemFABParam(
-                            showBtmSheetForNewLinkAddition = showBtmSheetForNewLinkAddition,
-                            isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
-                            showDialogForNewFolder = shouldShowNewFolderDialog,
-                            shouldShowAddLinkDialog = shouldShowAddLinkDialog,
-                            isMainFabRotated = AppVM.isMainFabRotated,
-                            rotationAnimation = rotationAnimation,
-                            inASpecificScreen = false
-                        )
-                    )
                 }
-            }, snackbarHost = {
-                SnackbarHost(snackbarHostState, snackbar = {
-                    Snackbar(
-                        it,
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            }
+        }, floatingActionButton = {
+            AnimatedVisibility(
+                enter = fadeIn(),
+                exit = fadeOut(),
+                visible = showAddingLinkOrFoldersFAB.value && CollectionsScreenVM.isSelectionEnabled.value.not()
+            ) {
+                if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
+                        Constants.SAVED_LINKS_ID,
+                        Constants.IMPORTANT_LINKS_ID,
+                        Constants.ALL_LINKS_ID
                     )
-                })
-            }, modifier = Modifier.fillMaxSize()
+                ) {
+                    FloatingActionButton(
+                        modifier = Modifier.padding(
+                            bottom = if (platform() == Platform.Android.Mobile && rootRouteList.any {
+                                    currentRoute?.hasRoute(it::class) == true
+                                }) 82.dp else 0.dp
+                        ), onClick = {
+                            shouldShowAddLinkDialog.value = true
+                        }) {
+                        Icon(
+                            imageVector = Icons.Default.AddLink, contentDescription = null
+                        )
+                    }
+                    return@AnimatedVisibility
+                }
+                AddItemFab(
+                    AddItemFABParam(
+                        showBtmSheetForNewLinkAddition = showBtmSheetForNewLinkAddition,
+                        isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
+                        showDialogForNewFolder = shouldShowNewFolderDialog,
+                        shouldShowAddLinkDialog = shouldShowAddLinkDialog,
+                        isMainFabRotated = AppVM.isMainFabRotated,
+                        rotationAnimation = rotationAnimation,
+                        inASpecificScreen = false
+                    )
+                )
+            }
+        }, snackbarHost = {
+            SnackbarHost(snackbarHostState, snackbar = {
+                Snackbar(
+                    it,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            })
+        }, modifier = Modifier.fillMaxSize()
         ) {
             BottomSheetScaffold(
                 sheetDragHandle = {},
@@ -707,6 +702,8 @@ fun App(
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 rootRouteList.forEach { navRouteItem ->
+                                    if (AppPreferences.isHomeScreenEnabled.value.not() && navRouteItem.toString() == Navigation.Root.HomeScreen.toString()) return@forEach
+
                                     val isSelected =
                                         currentRoute?.hasRoute(navRouteItem::class) == true
                                     NavigationBarItem(selected = isSelected, onClick = {
