@@ -45,6 +45,7 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -81,6 +82,10 @@ class IntentActivity : ComponentActivity() {
                 }
                 LaunchedEffect(shouldUIBeVisible.value) {
                     shouldUIBeVisible.value.ifNot {
+                        if (MainActivity.wasLaunched) {
+                            this@IntentActivity.finishAndRemoveTask()
+                            return@ifNot
+                        }
                         intentActivityVM.createADataSnapshot(onCompletion = {
                             this@IntentActivity.finishAndRemoveTask()
                         })
