@@ -45,6 +45,7 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -56,6 +57,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -134,60 +136,60 @@ class AppVM(
                             )
                         }.cancellable()
                             .drop(1) // ignore the first emission which gets fired when the app launches
-                            .debounce(1000).collectLatest {
+                            .debounce(1000).flowOn(Dispatchers.Default).collectLatest {
                                 try {
-                                    fun rawExportStringAsJSON(): String {
-                                        return JSONExportSchema(
-                                            schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
-                                            links = it.links.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            },
-                                            folders = it.folders.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            },
-                                            panels = PanelForJSONExportSchema(panels = it.panels.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            }, panelFolders = it.panelFolders.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            }),
-                                        ).run {
-                                            Json.encodeToString(it)
-                                        }
+                                    val serializedJsonExportString = JSONExportSchema(
+                                        schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                                        links = it.links.map {
+                                            it.copy(
+                                                remoteId = null, lastModified = 0
+                                            )
+                                        },
+                                        folders = it.folders.map {
+                                            it.copy(
+                                                remoteId = null, lastModified = 0
+                                            )
+                                        },
+                                        panels = PanelForJSONExportSchema(panels = it.panels.map {
+                                            it.copy(
+                                                remoteId = null, lastModified = 0
+                                            )
+                                        }, panelFolders = it.panelFolders.map {
+                                            it.copy(
+                                                remoteId = null, lastModified = 0
+                                            )
+                                        }),
+                                    ).run {
+                                        Json.encodeToString(this)
                                     }
 
                                     if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
                                         awaitAll(async {
-                                            com.sakethh.dataSnapshot(
-                                                rawExportString = rawExportStringAsJSON(),
+                                            com.sakethh.exportSnapshotData(
+                                                rawExportString = serializedJsonExportString,
                                                 fileType = FileType.JSON
                                             )
                                         }, async {
-                                            com.sakethh.dataSnapshot(
-                                                rawExportString = exportDataRepo.rawExportDataAsHTML(links = it.links, folders = it.folders),
-                                                fileType = ExportFileType.HTML
+                                            com.sakethh.exportSnapshotData(
+                                                rawExportString = exportDataRepo.rawExportDataAsHTML(
+                                                    links = it.links, folders = it.folders
+                                                ), fileType = ExportFileType.HTML
                                             )
                                         })
                                     }
 
                                     if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
-                                        com.sakethh.dataSnapshot(
-                                            rawExportString = rawExportStringAsJSON(),
+                                        com.sakethh.exportSnapshotData(
+                                            rawExportString = serializedJsonExportString,
                                             fileType = FileType.JSON
                                         )
                                     }
 
                                     if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
-                                        com.sakethh.dataSnapshot(
-                                            rawExportString = exportDataRepo.rawExportDataAsHTML(links = it.links, folders = it.folders),
-                                            fileType = ExportFileType.HTML
+                                        com.sakethh.exportSnapshotData(
+                                            rawExportString = exportDataRepo.rawExportDataAsHTML(
+                                                links = it.links, folders = it.folders
+                                            ), fileType = ExportFileType.HTML
                                         )
                                     }
                                 } catch (e: Exception) {

@@ -57,7 +57,7 @@ expect class DataSyncingNotificationService() {
     fun clearNotification()
 }
 
-expect suspend fun dataSnapshot(
+expect suspend fun exportSnapshotData(
     rawExportString: String,
     fileType: ExportFileType,
     onCompletion: (String) -> Unit = {}

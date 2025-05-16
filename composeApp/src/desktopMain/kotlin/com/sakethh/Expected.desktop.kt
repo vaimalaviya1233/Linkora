@@ -143,7 +143,7 @@ actual class DataSyncingNotificationService actual constructor() {
     actual fun clearNotification() = Unit
 }
 
-actual suspend fun dataSnapshot(
+actual suspend fun exportSnapshotData(
     rawExportString: String, fileType: ExportFileType, onCompletion: (String) -> Unit
 ) {
     writeRawExportStringToFile(

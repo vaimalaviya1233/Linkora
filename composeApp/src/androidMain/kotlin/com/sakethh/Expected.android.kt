@@ -267,7 +267,7 @@ actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory
         LinkoraApp.getContext().applicationContext.filesDir.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
     })
 
-actual suspend fun dataSnapshot(
+actual suspend fun exportSnapshotData(
     rawExportString: String, fileType: ExportFileType, onCompletion: (String) -> Unit
 ) {
     val snapshotWorker = OneTimeWorkRequestBuilder<SnapshotWorker>()

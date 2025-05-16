@@ -16,11 +16,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.sakethh.exportSnapshotData
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.ifNot
+import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.model.JSONExportSchema
+import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
+import com.sakethh.linkora.domain.repository.ExportDataRepo
+import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
+import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
@@ -31,8 +44,14 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.utils.isTablet
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class IntentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +59,14 @@ class IntentActivity : ComponentActivity() {
         setContent {
             val localConfiguration = LocalConfiguration.current
             val navController = rememberNavController()
+            val intentActivityVM = viewModel<IntentActivityVM>(factory = genericViewModelFactory {
+                IntentActivityVM(
+                    localLinksRepo = DependencyContainer.localLinksRepo.value,
+                    localFoldersRepo = DependencyContainer.localFoldersRepo.value,
+                    localPanelsRepo = DependencyContainer.localPanelsRepo.value,
+                    exportDataRepo = DependencyContainer.exportDataRepo.value
+                )
+            })
             CompositionLocalProvider(
                 LocalNavController provides navController,
                 LocalPlatform provides if (isTablet(localConfiguration)) Platform.Android.Tablet else Platform.Android.Mobile
@@ -54,7 +81,9 @@ class IntentActivity : ComponentActivity() {
                 }
                 LaunchedEffect(shouldUIBeVisible.value) {
                     shouldUIBeVisible.value.ifNot {
-                        this@IntentActivity.finishAndRemoveTask()
+                        intentActivityVM.createADataSnapshot(onCompletion = {
+                            this@IntentActivity.finishAndRemoveTask()
+                        })
                     }
                 }
                 LaunchedEffect(Unit) {
@@ -123,6 +152,75 @@ class IntentActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+    }
+}
+
+class IntentActivityVM(
+    private val localLinksRepo: LocalLinksRepo,
+    private val localFoldersRepo: LocalFoldersRepo,
+    private val localPanelsRepo: LocalPanelsRepo,
+    private val exportDataRepo: ExportDataRepo
+) : ViewModel() {
+    fun createADataSnapshot(onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            val allLinks = localLinksRepo.getAllLinks()
+            val allFolders = localFoldersRepo.getAllFoldersAsList()
+            val allPanels = localPanelsRepo.getAllThePanelsAsAList()
+            val allPanelFolders = localPanelsRepo.getAllThePanelFoldersAsAList()
+            val serializedJsonExportString = JSONExportSchema(
+                schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                links = allLinks.map {
+                    it.copy(
+                        remoteId = null, lastModified = 0
+                    )
+                },
+                folders = allFolders.map {
+                    it.copy(
+                        remoteId = null, lastModified = 0
+                    )
+                },
+                panels = PanelForJSONExportSchema(panels = allPanels.map {
+                    it.copy(
+                        remoteId = null, lastModified = 0
+                    )
+                }, panelFolders = allPanelFolders.map {
+                    it.copy(
+                        remoteId = null, lastModified = 0
+                    )
+                }),
+            ).run {
+                Json.encodeToString(this)
+            }
+            if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+                awaitAll(async {
+                    exportSnapshotData(
+                        rawExportString = serializedJsonExportString, fileType = FileType.JSON
+                    )
+                }, async {
+                    exportSnapshotData(
+                        rawExportString = exportDataRepo.rawExportDataAsHTML(
+                            links = allLinks, folders = allFolders
+                        ), fileType = ExportFileType.HTML
+                    )
+                })
+            }
+
+            if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
+                exportSnapshotData(
+                    rawExportString = serializedJsonExportString, fileType = FileType.JSON
+                )
+            }
+
+            if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
+                exportSnapshotData(
+                    rawExportString = exportDataRepo.rawExportDataAsHTML(
+                        links = allLinks, folders = allFolders
+                    ), fileType = ExportFileType.HTML
+                )
+            }
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 }

@@ -124,7 +124,7 @@ fun AddANewLinkDialogBox(
     shouldBeVisible: MutableState<Boolean>,
     screenType: ScreenType, currentFolder: Folder?,
     collectionsScreenVM: CollectionsScreenVM,
-    url: String = ""
+    url: String = "",
 ) {
     val isDataExtractingForTheLink = rememberSaveable {
         mutableStateOf(false)
@@ -156,23 +156,6 @@ fun AddANewLinkDialogBox(
         }
         LaunchedEffect(Unit) {
             isDataExtractingForTheLink.value = false
-            lifecycleOwner.lifecycle.currentStateFlow.collectLatest {
-                when (it) {
-                    Lifecycle.State.DESTROYED -> {}
-                    Lifecycle.State.INITIALIZED -> {
-
-                    }
-
-                    Lifecycle.State.CREATED -> {}
-                    Lifecycle.State.STARTED -> {}
-                    Lifecycle.State.RESUMED -> {/* linkoraLog(it.name)
-                         AddANewLinkDialogBox.updateUserAgent(
-                             linkTextFieldValue.value,
-                             context
-                         )*/
-                    }
-                }
-            }
         }
         val titleTextFieldValue = rememberSaveable {
             mutableStateOf("")
