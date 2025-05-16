@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BackupTable
 import androidx.compose.material.icons.filled.BrokenImage
@@ -35,22 +36,20 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -94,6 +93,7 @@ import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.screens.settings.section.data.components.ToggleButton
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
@@ -101,7 +101,7 @@ import com.sakethh.platform
 import com.sakethh.poppinsFontFamily
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DataSettingsScreen() {
     val navController = LocalNavController.current
@@ -403,14 +403,26 @@ fun DataSettingsScreen() {
                         ) {
                             remember { ExportFileType.entries.map { it.name } + "Both" }.let {
                                 it.forEachIndexed { index, exportType ->
-                                    ToggleButton( // this aint in org.jetbrains.compose.material3:material3:1.8.0 yet 🤦🏽
-                                        shapes = when (index) {
-                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                            it.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                        },
-                                        checked = exportType == AppPreferences.snapshotsExportType.value,
-                                        onCheckedChange = {
+                                    val checked =
+                                        exportType == AppPreferences.snapshotsExportType.value
+                                    ToggleButton(
+                                        shape = when (index) {
+                                            0 -> RoundedCornerShape(
+                                                topStart = 15.dp,
+                                                bottomStart = 15.dp,
+                                                topEnd = 5.dp,
+                                                bottomEnd = 5.dp
+                                            )
+
+                                            it.lastIndex -> RoundedCornerShape(
+                                                topStart = 5.dp,
+                                                bottomStart = 5.dp,
+                                                topEnd = 15.dp,
+                                                bottomEnd = 15.dp
+                                            )
+
+                                            else -> RoundedCornerShape(5.dp)
+                                        }, checked = checked, onCheckedChange = {
                                             AppPreferences.snapshotsExportType.value = exportType
                                             dataSettingsScreenVM.changeSettingPreferenceValue(
                                                 preferenceKey = stringPreferencesKey(
@@ -420,7 +432,8 @@ fun DataSettingsScreen() {
                                         }) {
                                         Text(
                                             text = exportType,
-                                            style = if (exportType == AppPreferences.snapshotsExportType.value) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall
+                                            style = if (checked) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
+                                            color = if (checked) MaterialTheme.colorScheme.onPrimary else LocalContentColor.current
                                         )
                                     }
                                 }
