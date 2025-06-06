@@ -30,7 +30,7 @@ height="80">](https://github.com/sakethpathike/Linkora/releases) [<img src="http
 
 To learn how to connect to the server from the Linkora app, check [these instructions](/docs/ServerConnectionSetup.md).
 
-To learn how the linkora app and sync-server make syncing seamless, check out [this write-up](https://sakethpathike.github.io/posts/synchronization-in-linkora/).
+To learn how the linkora app and sync-server make syncing seamless, check out [this write-up](https://sakethpathike.github.io/blog/synchronization-in-linkora).
 
 ## Screenshots
 
