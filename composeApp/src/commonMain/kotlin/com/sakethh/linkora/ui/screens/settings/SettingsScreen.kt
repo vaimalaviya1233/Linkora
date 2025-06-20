@@ -27,8 +27,8 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -40,7 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -91,64 +91,64 @@ fun SettingsScreen() {
                     ).fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer)
                         .padding(top = 7.5.dp)
                 ) {
-                    Row(modifier = Modifier.padding(top = 7.5.dp,start = 15.dp)) {
+                    Row(modifier = Modifier.padding(top = 7.5.dp, start = 15.dp)) {
                         Text(
                             text = Localization.Key.Linkora.rememberLocalizedString(),
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                             fontSize = 18.sp,
                             modifier = Modifier.alignByBaseline(),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
                             text = Constants.APP_VERSION_NAME,
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
                             fontSize = 12.sp,
                             modifier = Modifier.alignByBaseline(),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                     Row(
-                        modifier = Modifier.padding(start = 5.dp),
+                        modifier = Modifier.padding(start = 10.dp, top = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pulsateEffect(), onClick = {
                             uriHandler.openUri("https://www.github.com/LinkoraApp")
                         }) {
                             Icon(
                                 painter = painterResource(Res.drawable.github),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                        IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pulsateEffect(), onClick = {
                             uriHandler.openUri("https://discord.gg/ZDBXNtv8MD")
                         }) {
                             Icon(
                                 painter = painterResource(Res.drawable.discord),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                        IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pulsateEffect(), onClick = {
                             uriHandler.openUri("https://www.twitter.com/LinkoraApp")
                         }) {
                             Icon(
                                 painter = painterResource(Res.drawable.twitter),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
                     ItemDivider(
                         paddingValues = PaddingValues(
-                            start = 15.dp, end = 15.dp, bottom = 8.dp
-                        ),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        colorOpacity = 0.125f,
-                        thickness = 0.75.dp,
+                            start = 15.dp,
+                            end = 15.dp,
+                            top = 7.5.dp,
+                            bottom = 7.5.dp
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    colorOpacity = 0.25f,
+                    thickness = 0.25.dp,
                     )
                     Button(
                         onClick = {
