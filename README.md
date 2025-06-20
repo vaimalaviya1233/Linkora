@@ -53,8 +53,7 @@ height="80">](https://f-droid.org/packages/com.sakethh.linkora)
 
 ## Support
 
-Linkora has been solo-developed for 2+ years with over 1500 hours invested.  
-If you find it useful, consider supporting further development:
+⭐️ **Star the repo** if you find Linkora useful  
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/sakethpathike)
 
