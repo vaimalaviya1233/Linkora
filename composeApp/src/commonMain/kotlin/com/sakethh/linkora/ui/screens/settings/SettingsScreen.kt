@@ -1,14 +1,22 @@
 package com.sakethh.linkora.ui.screens.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Group
@@ -16,48 +24,161 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.SettingsInputSvideo
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.collections.ItemDivider
+import com.sakethh.linkora.ui.utils.pulsateEffect
+import linkora.composeapp.generated.resources.Res
+import linkora.composeapp.generated.resources.discord
+import linkora.composeapp.generated.resources.github
+import linkora.composeapp.generated.resources.twitter
+import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
     val navController = LocalNavController.current
     val topAppBarScrollState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val uriHandler = LocalUriHandler.current
     Scaffold(topBar = {
         Column {
             LargeTopAppBar(
                 colors = TopAppBarDefaults.largeTopAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
                 scrollBehavior = topAppBarScrollState,
                 title = {
-                Text(
-                    text = Localization.rememberLocalizedString(Localization.Key.Settings),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = 22.sp
-                )
-            })
+                    Text(
+                        text = Localization.rememberLocalizedString(Localization.Key.Settings),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = 22.sp
+                    )
+                })
         }
     }) { it ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
+            modifier = Modifier.fillMaxSize().padding(it)
                 .nestedScroll(topAppBarScrollState.nestedScrollConnection)
         ) {
+            item {
+                Column(
+                    modifier = Modifier.padding(
+                        start = 15.dp, end = 15.dp, top = 7.5.dp, bottom = 7.5.dp
+                    ).clip(
+                        RoundedCornerShape(15.dp)
+                    ).fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer)
+                        .padding(top = 7.5.dp)
+                ) {
+                    Row(modifier = Modifier.padding(top = 7.5.dp,start = 15.dp)) {
+                        Text(
+                            text = Localization.Key.Linkora.rememberLocalizedString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 18.sp,
+                            modifier = Modifier.alignByBaseline(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = Constants.APP_VERSION_NAME,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontSize = 12.sp,
+                            modifier = Modifier.alignByBaseline(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.padding(start = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                            uriHandler.openUri("https://www.github.com/LinkoraApp")
+                        }) {
+                            Icon(
+                                painter = painterResource(Res.drawable.github),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                            uriHandler.openUri("https://discord.gg/ZDBXNtv8MD")
+                        }) {
+                            Icon(
+                                painter = painterResource(Res.drawable.discord),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                            uriHandler.openUri("https://www.twitter.com/LinkoraApp")
+                        }) {
+                            Icon(
+                                painter = painterResource(Res.drawable.twitter),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    ItemDivider(
+                        paddingValues = PaddingValues(
+                            start = 15.dp, end = 15.dp, bottom = 8.dp
+                        ),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        colorOpacity = 0.125f,
+                        thickness = 0.75.dp,
+                    )
+                    Button(
+                        onClick = {
+                            uriHandler.openUri("https://github.com/LinkoraApp/localization-server")
+                        }, modifier = Modifier.padding(start = 15.dp).pulsateEffect()
+                    ) {
+                        Icon(imageVector = Icons.Default.Translate, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.5.dp))
+                        Text(
+                            text = "Translate",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 16.5.sp
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            uriHandler.openUri("https://ko-fi.com/sakethpathike")
+                        },
+                        modifier = Modifier.padding(start = 15.dp, bottom = 15.dp).pulsateEffect()
+                    ) {
+                        Icon(imageVector = Icons.Default.Coffee, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.5.dp))
+                        Text(
+                            text = "Buy me a Coffee",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 16.5.sp
+                        )
+                    }
+                }
+            }
             items(settingsScreenOptions(navController)) {
                 SettingSectionComponent(
                     SettingSectionComponentParam(
