@@ -1,14 +1,12 @@
-Linkora is the ultimate tool for organizing links on Android. Whether you need to save a quick link or manage them in detailed folders, Linkora gets it done.
+Save, organize, and sync your links between Android and desktop. Whether you're bookmarking something quickly or managing a structured folder hierarchy, Linkora handles it all with optional self-hosted sync.
 
-Features:
+Powerful link organization with a simple, clean interface.
 
- - Save and organize links with ease.
- - Categorize links into folders and subfolders.
- - Highlight important links for quick access.
- - Archive old links to keep things tidy.
- - Share directly from other apps.
- - Sort and search links and folders quickly.
- - Import and export data easily.
- - Auto-recognize link images and titles.
- - Add folders to your Panels for instant home screen access.
- - Sync data with a self-hostable server.
+Features
+- Organize links with unlimited folders and subfolders and easily copy and move links between folders
+- Multiple view layouts (Grid, List, Staggered views) with AMOLED theme support
+- Highlight important links and archive old ones for clean organization
+- Customize link names and auto-recognize images/titles from web pages
+- Share from other apps (Android) and add folders to Panels for quick access
+- Sort, search, import/export data in JSON and HTML formats with auto-backups
+- Keep your links in sync across devices with optional self-hostable server (https://github.com/LinkoraApp/sync-server)

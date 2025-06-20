@@ -1,1 +1,1 @@
-the only link utility app you need for Android.
+ The ultimate link organizer for Android, now available on desktop with self-hosted sync.

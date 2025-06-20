@@ -1,0 +1,5 @@
+- Add Snapshots support (auto-backups)
+- Add initial route selection support
+- Add force shuffle as sort option
+- Add option to hide base URL in list views
+- Add option to display link notes in list views
