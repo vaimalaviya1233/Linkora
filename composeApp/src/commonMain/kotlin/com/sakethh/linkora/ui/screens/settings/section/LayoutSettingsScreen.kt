@@ -305,7 +305,7 @@ fun LayoutSettingsScreen() {
                         newValue = AppPreferences.enableBaseURLForLinkViews.value
                     )
                 },
-                title = Localization.Key.ShowBaseURL.getLocalizedString(),
+                title = Localization.Key.ShowHostAddress.getLocalizedString(),
                 isSwitchChecked = AppPreferences.enableBaseURLForLinkViews
             ),
             LinkPref(
@@ -372,7 +372,7 @@ fun LayoutSettingsScreen() {
                                     newValue = AppPreferences.enableBaseURLForLinkViews.value
                                 )
                             },
-                            title = Localization.Key.ShowBaseURL.getLocalizedString(),
+                            title = Localization.Key.ShowHostAddress.getLocalizedString(),
                             isSwitchChecked = AppPreferences.enableBaseURLForLinkViews.value
                         )
                     }

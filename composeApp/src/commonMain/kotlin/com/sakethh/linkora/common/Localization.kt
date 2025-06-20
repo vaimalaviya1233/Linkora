@@ -128,7 +128,7 @@ object Localization {
         AppIntroSlide3MainLabelDesc("Add any of your folders to a Panel for quick access from the Home screen. Oh, and yep — Linkora supports subfolders too."),
         AppIntroSlide4Label1("Wait,\nThere's More."),
         AppIntroSlide4Label1Desc1("Search, sort, auto title and image detection (when available)."),
-        AppIntroSlide4Label1Desc2("Export/import in JSON or HTML."),
+        AppIntroSlide4Label1Desc2("Export or import as JSON or HTML, with auto-backup support."),
         AppIntroSlide4Label1Desc3("Sync with your own server if you want."),
         AppIntroSlide4Label1Desc4("Opened links are saved in history — even if the original link is deleted."),
         AppIntroSlide4Label1Desc5("Supports different layout settings."),
@@ -345,7 +345,7 @@ object Localization {
             defaultValue = "Show Border Around Links"
         ),
         ShowTitle(defaultValue = "Show Title"),
-        ShowBaseURL(defaultValue = "Show Base URL"),
+        ShowHostAddress(defaultValue = "Show Host Address"),
         ShowBottomFadedEdge(
             defaultValue = "Show Bottom Faded Edge"
         ),
