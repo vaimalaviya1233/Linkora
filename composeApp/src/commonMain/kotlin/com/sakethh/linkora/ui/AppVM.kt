@@ -219,7 +219,7 @@ class AppVM(
             }
         }
 
-        readSocketEvents(viewModelScope, remoteSyncRepo)
+        readSocketEvents(remoteSyncRepo)
 
         viewModelScope.launch {
             if (AppPreferences.isServerConfigured()) {
@@ -289,12 +289,13 @@ class AppVM(
 
     companion object {
         private var socketEventJob: Job? = null
+        private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
         fun shutdownSocketConnection() {
             socketEventJob?.cancel()
         }
 
-        fun readSocketEvents(coroutineScope: CoroutineScope, remoteSyncRepo: RemoteSyncRepo) {
+        fun readSocketEvents(remoteSyncRepo: RemoteSyncRepo) {
             if (AppPreferences.canReadFromServer().not()) return
 
             socketEventJob?.cancel()

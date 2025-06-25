@@ -210,17 +210,6 @@ fun NavHostController.inRootScreen(includeSettingsScreen: Boolean): Boolean? {
 
 fun String.inDoubleQuotes(): String = "\"$this\""
 
-fun Link.excludeLocalId(): Link = Link(
-    linkType = this.linkType,
-    title = this.title,
-    url = this.url,
-    imgURL = this.imgURL,
-    note = this.note,
-    idOfLinkedFolder = this.idOfLinkedFolder,
-    userAgent = this.userAgent,
-    markedAsImportant = this.markedAsImportant,
-    lastModified = this.lastModified
-)
 
 suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Result<IncomingBody> {
     return if (this.status.isSuccess().not()) {
@@ -230,7 +219,7 @@ suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Res
     }
 }
 
-fun String.asWebSocketUrl(): String = "ws://" + this.substringAfter("://")
+fun String.asWebSocketUrl(): String = "wss://" + this.substringAfter("://")
 
 fun Correlation.isSameAsCurrentClient(): Boolean = this.id == AppPreferences.getCorrelation().id
 

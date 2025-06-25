@@ -136,7 +136,7 @@ class ServerManagementViewModel(
                     it.onLoading {
                         dataSyncLogs.add(it)
                     }.onSuccess {
-                        AppVM.readSocketEvents(viewModelScope, remoteSyncRepo)
+                        AppVM.readSocketEvents(remoteSyncRepo)
                     }.onFailure {
                         cancel()
                     }.pushSnackbarOnFailure()
