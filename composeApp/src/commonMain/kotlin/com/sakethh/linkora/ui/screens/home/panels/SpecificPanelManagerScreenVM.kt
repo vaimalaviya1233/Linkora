@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.home.panels
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,10 +26,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 class SpecificPanelManagerScreenVM(
-    private val foldersRepo: LocalFoldersRepo, private val localPanelsRepo: LocalPanelsRepo,
+    private val foldersRepo: LocalFoldersRepo,
+    private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     initData: Boolean = true
 ) : ViewModel() {
@@ -37,6 +40,13 @@ class SpecificPanelManagerScreenVM(
 
     private val _foldersOfTheSelectedPanel = MutableStateFlow(emptyList<PanelFolder>())
     val foldersOfTheSelectedPanel = _foldersOfTheSelectedPanel.asStateFlow()
+
+    var foldersSearchQuery = mutableStateOf("")
+        private set
+
+    fun updateFoldersSearchQuery(query: String) {
+        foldersSearchQuery.value = query
+    }
 
     companion object {
         private val _selectedPanel = mutableStateOf(Panel(localId = 0L, panelName = ""))
@@ -66,14 +76,26 @@ class SpecificPanelManagerScreenVM(
 
                     localPanelsRepo.getAllTheFoldersFromAPanel(_selectedPanel.value.localId)
                         .cancellable().collectLatest { panelFolders ->
-                        val filteredFoldersToIncludeInAPanel = nonArchivedFolders.filterNot { nonArchivedFolder ->
-                            panelFolders.any { it.folderId == nonArchivedFolder.localId }
-                        }.distinctBy {
-                            it.localId
-                        }
+                            val filteredFoldersToIncludeInAPanel =
+                                nonArchivedFolders.filterNot { nonArchivedFolder ->
+                                    panelFolders.any { it.folderId == nonArchivedFolder.localId }
+                                }.distinctBy {
+                                    it.localId
+                                }
 
-                        _foldersOfTheSelectedPanel.emit(panelFolders.distinctBy { it.folderId })
-                        _foldersToIncludeInPanel.emit(filteredFoldersToIncludeInAPanel)
+                            _foldersOfTheSelectedPanel.emit(panelFolders.distinctBy { it.folderId })
+
+                            snapshotFlow {
+                                foldersSearchQuery.value
+                            }.debounce(500).collectLatest { query ->
+                                _foldersToIncludeInPanel.emit(filteredFoldersToIncludeInAPanel.filter {
+                                    if (query.trim().isBlank()) {
+                                        true
+                                    } else {
+                                        it.name.lowercase().contains(query.lowercase().trim())
+                                    }
+                                })
+                            }
                         }
                 }.pushSnackbarOnFailure()
             }
@@ -147,8 +169,7 @@ class SpecificPanelManagerScreenVM(
     }
 
     fun removeAFolderFromAPanel(
-        panelId: Long,
-        folderId: Long
+        panelId: Long, folderId: Long
     ) {
         viewModelScope.launch {
             localPanelsRepo.deleteAFolderFromAPanel(panelId, folderId).collectLatest {
