@@ -138,7 +138,7 @@ class AppVM(
                             )
                         }.cancellable()
                             .drop(1) // ignore the first emission which gets fired when the app launches
-                            .debounce(1000).flowOn(Dispatchers.Default).collectLatest {
+                            .debounce(1000).flowOn(Dispatchers.Default).collect {
                                 try {
                                     isAnySnapshotOngoing.value = true
                                     val serializedJsonExportString = JSONExportSchema(
