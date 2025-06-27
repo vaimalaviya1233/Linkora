@@ -70,7 +70,7 @@ fun PanelsManagerScreen() {
             preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })
-    val panels = homeScreenVM.panels.collectAsStateWithLifecycle()
+    val panels = homeScreenVM.createdPanels.collectAsStateWithLifecycle()
     val selectedPanelForDetailView = rememberDeserializableMutableObject {
         mutableStateOf(Panel(localId = -1, panelName = ""))
     }
