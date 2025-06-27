@@ -72,7 +72,7 @@ class SpecificPanelManagerScreenVM(
                             it.localId
                         }
 
-                        _foldersOfTheSelectedPanel.emit(panelFolders)
+                        _foldersOfTheSelectedPanel.emit(panelFolders.distinctBy { it.folderId })
                         _foldersToIncludeInPanel.emit(filteredFoldersToIncludeInAPanel)
                         }
                 }.pushSnackbarOnFailure()

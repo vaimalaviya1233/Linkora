@@ -21,7 +21,6 @@ import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.state.ProcessedPanelFolders
-import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -157,7 +156,7 @@ class HomeScreenVM(
                         }
                 }
             }.collectLatest {
-                _activePanelAssociatedPanelFolders.emit(it.panelFolders)
+                _activePanelAssociatedPanelFolders.emit(it.panelFolders.distinctBy { it.folderId })
                 _activePanelAssociatedFolders.emit(it.folders)
                 _activePanelAssociatedFolderLinks.emit(it.links)
             }
