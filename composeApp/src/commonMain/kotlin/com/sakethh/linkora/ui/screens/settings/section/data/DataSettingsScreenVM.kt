@@ -2,7 +2,6 @@ package com.sakethh.linkora.ui.screens.settings.section.data
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.cancelRefreshingLinks
 import com.sakethh.isAnyRefreshingScheduled
@@ -30,6 +29,7 @@ import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -75,6 +75,7 @@ class DataSettingsScreenVM(
         onCompletion: () -> Unit,
         importFileSelectionMethod: Pair<ImportFileSelectionMethod, String>
     ) {
+        AppVM.pauseSnapshots = true
         importExportJob?.cancel()
         importExportJob = viewModelScope.launch(Dispatchers.Default) {
             val file =
@@ -122,6 +123,8 @@ class DataSettingsScreenVM(
             }
         }
         importExportJob?.invokeOnCompletion { cause ->
+            AppVM.pauseSnapshots = false
+            AppVM.forceSnapshot()
             onCompletion()
             cause?.printStackTrace()
             importExportProgressLogs.clear()
@@ -181,6 +184,7 @@ class DataSettingsScreenVM(
     }
 
     fun deleteEntireDatabase(deleteEverythingFromRemote: Boolean, onCompletion: () -> Unit) {
+        AppVM.pauseSnapshots = true
         var remoteOperationFailed: Boolean? = null
         viewModelScope.launch {
             remoteSyncRepo.deleteEverything(deleteOnRemote = deleteEverythingFromRemote).collectLatest {
@@ -200,6 +204,7 @@ class DataSettingsScreenVM(
                     )
                 )
             }
+            AppVM.pauseSnapshots = false
             onCompletion()
         }
     }
@@ -214,6 +219,7 @@ class DataSettingsScreenVM(
     }
 
     fun refreshAllLinks() {
+        AppVM.pauseSnapshots = true
         viewModelScope.launch {
             launch {
                 permittedToShowNotification()
@@ -223,6 +229,8 @@ class DataSettingsScreenVM(
                     localLinksRepo = linksRepo, preferencesRepository = preferencesRepository
                 )
             }
+        }.invokeOnCompletion {
+            AppVM.pauseSnapshots = false
         }
     }
 
@@ -231,6 +239,7 @@ class DataSettingsScreenVM(
     }
 
     fun deleteDuplicates(onStart: () -> Unit, onCompletion: () -> Unit) {
+        AppVM.pauseSnapshots = true
         viewModelScope.launch {
             linksRepo.deleteDuplicateLinks().collectLatest {
                 it.onSuccess {
@@ -245,6 +254,9 @@ class DataSettingsScreenVM(
                     pushUIEvent(UIEvent.Type.ShowSnackbar(it))
                 }
             }
+        }.invokeOnCompletion {
+            AppVM.pauseSnapshots = false
+            AppVM.forceSnapshot()
         }
     }
 }

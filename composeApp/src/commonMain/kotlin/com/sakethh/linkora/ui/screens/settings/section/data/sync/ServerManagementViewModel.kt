@@ -108,6 +108,7 @@ class ServerManagementViewModel(
         onSyncStart: () -> Unit,
         onCompletion: () -> Unit
     ) {
+        AppVM.pauseSnapshots = true
         saveServerConnectionAndSyncJob?.cancel()
         dataSyncLogs.clear()
         saveServerConnectionAndSyncJob = viewModelScope.launch {
@@ -166,6 +167,8 @@ class ServerManagementViewModel(
                     pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.DataSynchronizationCompletedSuccessfully.getLocalizedString()))
                 }
             }
+            AppVM.pauseSnapshots = false
+            AppVM.forceSnapshot()
             onCompletion()
             dataSyncLogs.clear()
         }

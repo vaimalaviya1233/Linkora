@@ -50,7 +50,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
@@ -128,8 +127,10 @@ class AppVM(
                             linksRepo.getAllLinksAsFlow(),
                             foldersRepo.getAllFoldersAsFlow(),
                             localPanelsRepo.getAllThePanels(),
-                            localPanelsRepo.getAllThePanelFoldersAsAFlow()
-                        ) { links, folders, panels, panelFolders ->
+                            localPanelsRepo.getAllThePanelFoldersAsAFlow(),
+                            snapshotFlow {
+                                forceSnapshot.value
+                            }) { links, folders, panels, panelFolders, _ ->
                             AllTablesDTO(
                                 links = links,
                                 folders = folders,
@@ -138,7 +139,8 @@ class AppVM(
                             )
                         }.cancellable()
                             .drop(1) // ignore the first emission which gets fired when the app launches
-                            .debounce(1000).flowOn(Dispatchers.Default).collect {
+                            .debounce(1000).flowOn(Dispatchers.Default).collectLatest {
+                                if (pauseSnapshots || (it.links + it.folders + it.panelFolders + it.panels).isEmpty()) return@collectLatest
                                 try {
                                     isAnySnapshotOngoing.value = true
                                     val serializedJsonExportString = JSONExportSchema(
@@ -290,6 +292,14 @@ class AppVM(
     companion object {
         private var socketEventJob: Job? = null
         private val coroutineScope = CoroutineScope(Dispatchers.Default)
+
+        var pauseSnapshots = false
+
+        private val forceSnapshot = mutableStateOf(false)
+
+        fun forceSnapshot() {
+            forceSnapshot.value = !forceSnapshot.value
+        }
 
         fun shutdownSocketConnection() {
             socketEventJob?.cancel()
