@@ -47,7 +47,13 @@ object Localization {
                 } else {
                     DependencyContainer.localizationRepo.value.getLocalizedStringValueFor(
                         key.name, languageCode
-                    ) ?: key.defaultValue
+                    ).run {
+                        if (this == null || this.isBlank()) {
+                            key.defaultValue
+                        } else {
+                            this
+                        }
+                    }
                 }
         }
     }
