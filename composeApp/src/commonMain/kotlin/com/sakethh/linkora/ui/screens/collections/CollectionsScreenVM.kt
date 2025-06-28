@@ -42,8 +42,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 open class CollectionsScreenVM(
-    private val localFoldersRepo: LocalFoldersRepo,
-    private val localLinksRepo: LocalLinksRepo,
+    val localFoldersRepo: LocalFoldersRepo,
+    val localLinksRepo: LocalLinksRepo,
     loadNonArchivedRootFoldersOnInit: Boolean = true,
     loadArchivedRootFoldersOnInit: Boolean = true,
     val collectionDetailPaneInfo: CollectionDetailPaneInfo? = null

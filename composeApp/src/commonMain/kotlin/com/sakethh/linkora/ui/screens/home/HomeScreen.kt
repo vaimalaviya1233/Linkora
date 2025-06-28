@@ -53,13 +53,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
-import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asMenuBtmSheetType
@@ -94,18 +92,20 @@ fun HomeScreen() {
             preferencesRepository = DependencyContainer.preferencesRepo.value
         )
     })
-    LaunchedEffect(Unit) {
-        homeScreenVM.refreshPanelsData()
-    }
     val shouldPanelsBtmSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
     }
     val panelsBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val panels = homeScreenVM.panels.collectAsStateWithLifecycle()
+    val panels = homeScreenVM.createdPanels.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
-    val panelFolders = homeScreenVM.panelFolders.collectAsStateWithLifecycle()
+    val activePanelAssociatedPanelFolders =
+        homeScreenVM.activePanelAssociatedPanelFolders.collectAsStateWithLifecycle()
+    val activePanelAssociatedFolders =
+        homeScreenVM.activePanelAssociatedFolders.collectAsStateWithLifecycle().value
+    val activePanelAssociatedFolderLinks =
+        homeScreenVM.activePanelAssociatedFolderLinks.collectAsStateWithLifecycle().value
     val pagerState = rememberPagerState(pageCount = {
-        panelFolders.value.size
+        activePanelAssociatedPanelFolders.value.size
     })
     val localUriHandler = LocalUriHandler.current
     val platform = LocalPlatform.current
@@ -175,12 +175,12 @@ fun HomeScreen() {
             }
         }
     }) { paddingValues ->
-        if (panelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNull()) {
+        if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNull()) {
             LoadingScreen(paddingValues = PaddingValues(25.dp))
             return@Scaffold
         }
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            if (panelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNotNull()) {
+            if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNotNull()) {
                 DataEmptyScreen(text = Localization.Key.NoFoldersInThePanel.rememberLocalizedString())
                 return@Scaffold
             }
@@ -188,7 +188,7 @@ fun HomeScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 selectedTabIndex = pagerState.currentPage,
                 divider = {}) {
-                panelFolders.value.forEachIndexed { index, panelFolder ->
+                activePanelAssociatedPanelFolders.value.forEachIndexed { index, panelFolder ->
                     Tab(selected = pagerState.currentPage == index, onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
@@ -209,58 +209,14 @@ fun HomeScreen() {
             HorizontalDivider()
             HorizontalPager(state = pagerState) { pageIndex ->
                 CollectionLayoutManager(
-                    folders = if (panelFolders.value.map { it.folderId }
-                        .contains(Constants.SAVED_LINKS_ID)) {
-                    emptyList()
-                } else {
-                    homeScreenVM.localFoldersRepo.sortFoldersAsNonResultFlow(
-                        panelFolders.value[pageIndex].folderId,
-                        AppPreferences.selectedSortingTypeType.value
-                    ).collectAsStateWithLifecycle(
-                        emptyList()
-                    ).value
-                },
-                    links = if (panelFolders.value.map { it.folderId }
-                            .contains(Constants.SAVED_LINKS_ID)) {
+                    folders = activePanelAssociatedFolders[pageIndex],
+                    links = if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
                         when (pageIndex) {
-                            0 -> homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
-                                LinkType.SAVED_LINK, AppPreferences.selectedSortingTypeType.value
-                            ).collectAsStateWithLifecycle(
-                                emptyList()
-                            ).value.run {
-                                if (AppPreferences.forceShuffleLinks.value) {
-                                    this.shuffled()
-                                } else {
-                                    this
-                                }
-                            }
+                            0 -> activePanelAssociatedFolderLinks[0]
 
-                            else -> homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
-                                LinkType.IMPORTANT_LINK,
-                                AppPreferences.selectedSortingTypeType.value
-                            ).collectAsStateWithLifecycle(
-                                emptyList()
-                            ).value.run {
-                                if (AppPreferences.forceShuffleLinks.value) {
-                                    this.shuffled()
-                                } else {
-                                    this
-                                }
-                            }.distinctBy { it.url }
+                            else -> activePanelAssociatedFolderLinks[1]
                         }
-                    } else homeScreenVM.localLinksRepo.sortLinksAsNonResultFlow(
-                        LinkType.FOLDER_LINK,
-                        panelFolders.value[pageIndex].folderId,
-                        AppPreferences.selectedSortingTypeType.value
-                    ).collectAsStateWithLifecycle(
-                        emptyList()
-                    ).value.run {
-                        if (AppPreferences.forceShuffleLinks.value) {
-                            this.shuffled()
-                        } else {
-                            this
-                        }
-                    },
+                    } else activePanelAssociatedFolderLinks[pageIndex],
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
                         coroutineScope.pushUIEvent(
@@ -317,7 +273,7 @@ fun HomeScreen() {
                     isCurrentlyInDetailsView = {
                         false
                     },
-                    emptyDataText = if (panelFolders.value.map { it.folderId }
+                    emptyDataText = if (activePanelAssociatedPanelFolders.value.map { it.folderId }
                             .contains(Constants.SAVED_LINKS_ID)) Localization.Key.NoLinksFound.rememberLocalizedString() else "")
             }
         }

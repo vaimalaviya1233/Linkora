@@ -127,7 +127,7 @@ fun CollectionLayoutManager(
                     FolderComponent(folderComponentParam = folderComponentParam(it))
                 }
 
-                items(links) {
+                items(items = links) {
                     LinkListItemComposable(
                         linkUIComponentParam = linkUIComponentParam(it),
                         forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name

@@ -258,7 +258,7 @@ object Localization {
             defaultValue = "Configuration"
         ),
         ServerURL(defaultValue = "Server URL"),
-        ServerSetupInstruction(defaultValue = "Ensure the server is running. If hosted locally, the server URL should include the correct port number. No port is needed if the server is not hosted locally."),
+        ServerSetupInstruction(defaultValue = "Ensure the server is running. The URL pattern should be: https://<IPv4>:<port>/"),
         SecurityToken(
             defaultValue = "Security Token"
         ),
