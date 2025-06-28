@@ -128,6 +128,9 @@ class HomeScreenVM(
                 } else {
                     localPanelsRepo.getAllTheFoldersFromAPanel(panelId)
                         .flatMapLatest { panelFolders ->
+                            if (panelFolders.isEmpty()){
+                                _activePanelAssociatedPanelFolders.emit(emptyList())
+                            }
                             val childFolders = combine(panelFolders.map {
                                 localFoldersRepo.sortFoldersAsNonResultFlow(
                                     parentFolderId = it.folderId, sortOption = sortingType
