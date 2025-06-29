@@ -20,7 +20,7 @@ data class Link(
     val remoteId: Long? = null,
     val title: String,
     val url: String,
-    val baseURL: String = if (url.isATwitterUrl()) "twitter.com" else url.baseUrl(throwOnException = false),
+    val baseURL: String = if (url.isATwitterUrl()) "twitter.com" else url.baseUrl(throwOnException = false), // called baseUrl, but in some non-ui cases it kinda acts like host. back then I showed baseUrl instead of just host, so stuck with it
     val imgURL: String,
     val note: String,
     val idOfLinkedFolder: Long?,

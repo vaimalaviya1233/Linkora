@@ -265,6 +265,27 @@ fun LayoutSettingsScreen() {
                     localUriHandler.openUri("https://www.youtube.com/watch?v=66OFYWBrg3o")
                 },
             ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Resonance: A Plague Tale Legacy on Steam",
+                    baseURL = "store.steampowered.com",
+                    imgURL = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2713000/56f8a90aaf16302209dd98ff4b67f11c839582ad/capsule_616x353.jpg",
+                    url = "https://store.steampowered.com/app/2713000/Resonance_A_Plague_Tale_Legacy/",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "Embark on an original story, prequel to the award-winning games: A Plague Tale. As Sophia, journey to the Minotaur’s Island, outsmart deadly foes, unravel ancient secrets, and confront a mythical creature at the heart of a devastating curse.",
+                    idOfLinkedFolder = null,
+                    mediaType = MediaType.IMAGE
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> }, onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://store.steampowered.com/app/2713000/Resonance_A_Plague_Tale_Legacy/")
+                },
+            ),
         ).sortedBy {
             it.link.title
         }
