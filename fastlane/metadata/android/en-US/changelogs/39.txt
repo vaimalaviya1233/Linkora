@@ -1,0 +1,5 @@
+- added search bar to search for folders that can be added to the panel
+- snapshots temporarily get suspended when import/sync/complete deletion takes place
+- strings fall back to default values when not found in language packs
+- socket connection is kept alive after initial sync when connecting to the server
+- new logo (really important change, really)

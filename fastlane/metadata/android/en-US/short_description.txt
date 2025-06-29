@@ -1,1 +1,1 @@
- The ultimate link organizer for Android, now available on desktop with self-hosted sync.
+Powerful link organizer for Android with self-hosted sync and desktop support.
