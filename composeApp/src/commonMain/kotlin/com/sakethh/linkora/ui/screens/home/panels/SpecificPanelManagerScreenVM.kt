@@ -87,7 +87,7 @@ class SpecificPanelManagerScreenVM(
 
                             snapshotFlow {
                                 foldersSearchQuery.value
-                            }.debounce(500).collectLatest { query ->
+                            }.collectLatest { query ->
                                 _foldersToIncludeInPanel.emit(filteredFoldersToIncludeInAPanel.filter {
                                     if (query.trim().isBlank()) {
                                         true
