@@ -68,7 +68,10 @@ object DependencyContainer {
             localMultiActionRepo = localMultiActionRepo.value,
             remoteMultiActionRepo = remoteMultiActionRepo.value,
             linksDao = localDatabase?.linksDao!!,
-            foldersDao = localDatabase?.foldersDao!!
+            foldersDao = localDatabase?.foldersDao!!,
+            websocketScheme = {
+                AppPreferences.selectedWebsocketScheme.value
+            },
         )
     }
     val pendingSyncQueueRepo = lazy {

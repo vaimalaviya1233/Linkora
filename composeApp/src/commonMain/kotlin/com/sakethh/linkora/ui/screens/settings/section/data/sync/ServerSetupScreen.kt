@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -46,6 +48,7 @@ import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.section.data.LogsScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.components.ToggleButton
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
@@ -75,6 +78,9 @@ fun ServerSetupScreen(
     }
     val showImportLogsFromServer = rememberSaveable {
         mutableStateOf(false)
+    }
+    val selectedWebSocketScheme = rememberSaveable {
+        mutableStateOf(AppPreferences.selectedWebsocketScheme.value)
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.Data.ServerSetupScreen.toString(),
@@ -122,6 +128,40 @@ fun ServerSetupScreen(
                     },
                     readOnly = serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully && serverManagementViewModel.serverSetupState.value.isConnecting.not()
                 )
+            }
+
+            item {
+                Text(modifier = Modifier.fillMaxWidthWithPadding(),text = "WebSocket Scheme", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(5.dp))
+                Text(modifier = Modifier.fillMaxWidthWithPadding(), style = MaterialTheme.typography.titleSmall,text = "If you're running the server behind a proxy that handles SSL/HTTPS connections, use wss instead of ws. For direct HTTP connections to the server, ws will work fine.")
+                Spacer(Modifier.height(10.dp))
+                Row(modifier = Modifier.fillMaxWidthWithPadding()) {
+                    ToggleButton(
+                        shape = RoundedCornerShape(
+                            topStart = 15.dp, bottomStart = 15.dp, topEnd = 5.dp, bottomEnd = 5.dp
+                        ), checked = selectedWebSocketScheme.value == "ws", onCheckedChange = {
+                            selectedWebSocketScheme.value = "ws"
+                        }) {
+                        Text(
+                            text = "ws",
+                            style = if (selectedWebSocketScheme.value == "ws") MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
+                            color = if (selectedWebSocketScheme.value == "ws") MaterialTheme.colorScheme.onPrimary else LocalContentColor.current
+                        )
+                    }
+                    Spacer(Modifier.width(5.dp))
+                    ToggleButton(
+                        shape = RoundedCornerShape(
+                            topStart = 5.dp, bottomStart = 5.dp, topEnd = 15.dp, bottomEnd = 15.dp
+                        ), checked = selectedWebSocketScheme.value == "wss", onCheckedChange = {
+                            selectedWebSocketScheme.value = "wss"
+                        }) {
+                        Text(
+                            text = "wss",
+                            style = if (selectedWebSocketScheme.value == "wss") MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
+                            color = if (selectedWebSocketScheme.value == "wss") MaterialTheme.colorScheme.onPrimary else LocalContentColor.current
+                        )
+                    }
+                }
             }
 
             item {
@@ -220,16 +260,16 @@ fun ServerSetupScreen(
                     onClick = {
                         serverManagementViewModel.saveServerConnectionAndSync(
                             serverConnection = ServerConnection(
-                                serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
-                                authToken = securityToken.value,
-                                syncType = selectedSyncType.value
-                            ), onSyncStart = {
-                                showImportLogsFromServer.value = true
-                            }, onCompletion = {
-                                showImportLogsFromServer.value = false
-                                navController.navigateUp()
-                            }
-                        )
+                            serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
+                            authToken = securityToken.value,
+                            syncType = selectedSyncType.value,
+                            webSocketScheme = selectedWebSocketScheme.value
+                        ), onSyncStart = {
+                            showImportLogsFromServer.value = true
+                        }, onCompletion = {
+                            showImportLogsFromServer.value = false
+                            navController.navigateUp()
+                        })
                     }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
                 ) {
                     Text(

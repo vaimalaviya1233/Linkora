@@ -124,6 +124,7 @@ fun currentSavedServerConfig(): ServerConnection {
     return ServerConnection(
         serverUrl = AppPreferences.serverBaseUrl.value,
         authToken = AppPreferences.serverSecurityToken.value,
-        syncType = AppPreferences.serverSyncType.value
+        syncType = AppPreferences.serverSyncType.value,
+        webSocketScheme = AppPreferences.selectedWebsocketScheme.value
     )
 }

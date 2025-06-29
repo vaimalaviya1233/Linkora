@@ -4,7 +4,6 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.asWebSocketUrl
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
 import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isSameAsCurrentClient
@@ -20,7 +19,6 @@ import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.asAddLinkDTO
-import com.sakethh.linkora.domain.dto.server.ServerDataDTO
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsSocketResponseDTO
@@ -29,6 +27,7 @@ import com.sakethh.linkora.domain.dto.server.DeleteEverythingDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
+import com.sakethh.linkora.domain.dto.server.ServerDataDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.TombstoneDTO
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
@@ -65,6 +64,7 @@ import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteMultiActionRepo
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.ui.utils.linkoraLog
 import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.bearerAuth
@@ -96,6 +96,7 @@ class RemoteSyncRepoImpl(
     private val localPanelsRepo: LocalPanelsRepo,
     private val authToken: () -> String,
     private val baseUrl: () -> String,
+    private val websocketScheme: () -> String,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val remoteFoldersRepo: RemoteFoldersRepo,
     private val remoteLinksRepo: RemoteLinksRepo,
@@ -115,7 +116,19 @@ class RemoteSyncRepoImpl(
 
     override suspend fun readSocketEvents(currentCorrelation: Correlation): Flow<Result<Unit>> {
         return wrappedResultFlow {
-            Network.client.webSocket(urlString = baseUrl().asWebSocketUrl() + "events", request = {
+            Network.client.webSocket(urlString = run {
+                websocketScheme() + baseUrl.invoke().run {
+                    if (startsWith(prefix = "https")) {
+                        substringAfter("https")
+                    } else {
+                        substringAfter("http")
+                    }.run {
+                        if (endsWith("/")) this else "$this/"
+                    } + "events"
+                }
+            }.also {
+                linkoraLog("Connecting to the websocket at $it")
+            }, request = {
                 bearerAuth(authToken())
                 parameter(key = "correlation", value = Json.encodeToString(currentCorrelation))
             }) {
@@ -261,10 +274,9 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Folder.DELETE_FOLDER.name -> {
                         send(Result.Loading(message = "[FOLDER] Deleting folder from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
-                        remoteFoldersRepo.deleteFolder(idBasedDTO)
-                            .removeQueueItemAndSyncTimestamp(
-                                queueItem.id
-                            )
+                        remoteFoldersRepo.deleteFolder(idBasedDTO).removeQueueItemAndSyncTimestamp(
+                            queueItem.id
+                        )
                         send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder"))
                     }
 
@@ -357,10 +369,9 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Link.DELETE_A_LINK.name -> {
                         send(Result.Loading(message = "[LINK] Deleting link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
-                        remoteLinksRepo.deleteALink(idBasedDTO)
-                            .removeQueueItemAndSyncTimestamp(
-                                queueItem.id
-                            )
+                        remoteLinksRepo.deleteALink(idBasedDTO).removeQueueItemAndSyncTimestamp(
+                            queueItem.id
+                        )
                         send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after deleting link"))
                     }
 
@@ -473,10 +484,9 @@ class RemoteSyncRepoImpl(
                     RemoteRoute.Panel.DELETE_A_PANEL.name -> {
                         send(Result.Loading(message = "[PANEL] Deleting panel from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO = Json.decodeFromString<IDBasedDTO>(queueItem.payload)
-                        remotePanelsRepo.deleteAPanel(idBasedDTO)
-                            .removeQueueItemAndSyncTimestamp(
-                                queueItem.id
-                            )
+                        remotePanelsRepo.deleteAPanel(idBasedDTO).removeQueueItemAndSyncTimestamp(
+                            queueItem.id
+                        )
                         send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after deleting panel"))
                     }
 
@@ -534,8 +544,7 @@ class RemoteSyncRepoImpl(
                             copy(folderIds = this.folderIds.map {
                                 localFoldersRepo.getRemoteIdOfAFolder(it) ?: -45454
                             })
-                        })
-                            .removeQueueItemAndSyncTimestamp(queueItem.id)
+                        }).removeQueueItemAndSyncTimestamp(queueItem.id)
                     }
                 }
             }
@@ -605,8 +614,7 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading("Processing panels..."))
                         remoteResponse.panels.forEach { remotePanelDTO ->
                             send(Result.Loading("Processing panel with id: ${remotePanelDTO.panelId}"))
-                            val localId =
-                                localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
+                            val localId = localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
                             if (localId == null) {
                                 send(Result.Loading("Creating new panel with id: ${remotePanelDTO.panelId}"))
                                 updateLocalDBAccordingToEvent(
@@ -731,6 +739,7 @@ class RemoteSyncRepoImpl(
                     copyItemsSocketResponseDTO.eventTimestamp
                 )
             }
+
             RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name -> {
                 val markItemsRegularDTO =
                     Json.decodeFromJsonElement<MarkItemsRegularDTO>(deserializedWebSocketEvent.payload)
@@ -742,10 +751,10 @@ class RemoteSyncRepoImpl(
                 }
                 localMultiActionRepo.unArchiveMultipleItems(
                     linkIds = markItemsRegularDTO.linkIds.map {
-                        localLinksRepo.getLocalLinkId(it) ?: -45454
-                    }, folderIds = markItemsRegularDTO.foldersIds.map {
-                        localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
-                    }, viaSocket = true
+                    localLinksRepo.getLocalLinkId(it) ?: -45454
+                }, folderIds = markItemsRegularDTO.foldersIds.map {
+                    localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                }, viaSocket = true
                 ).collectAndUpdateTimestamp(markItemsRegularDTO.eventTimestamp)
             }
 
@@ -778,7 +787,8 @@ class RemoteSyncRepoImpl(
                     localLinksRepo.getLocalLinkId(it) ?: -45454
                 }, folderIds = deleteMultipleItemsDTO.folderIds.map {
                     localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
-                }, viaSocket = true).collectAndUpdateTimestamp(deleteMultipleItemsDTO.eventTimestamp)
+                }, viaSocket = true)
+                    .collectAndUpdateTimestamp(deleteMultipleItemsDTO.eventTimestamp)
             }
 
             RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name -> {
@@ -839,8 +849,7 @@ class RemoteSyncRepoImpl(
                     folderIDs = markSelectedFoldersAsRootDTO.folderIds.map {
                         localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
                     }, viaSocket = true
-                )
-                    .collectAndUpdateTimestamp(markSelectedFoldersAsRootDTO.eventTimestamp)
+                ).collectAndUpdateTimestamp(markSelectedFoldersAsRootDTO.eventTimestamp)
             }
 
             RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name -> {

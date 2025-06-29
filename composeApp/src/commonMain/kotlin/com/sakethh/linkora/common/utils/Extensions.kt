@@ -219,7 +219,6 @@ suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Res
     }
 }
 
-fun String.asWebSocketUrl(): String = "wss://" + this.substringAfter("://")
 
 fun Correlation.isSameAsCurrentClient(): Boolean = this.id == AppPreferences.getCorrelation().id
 
