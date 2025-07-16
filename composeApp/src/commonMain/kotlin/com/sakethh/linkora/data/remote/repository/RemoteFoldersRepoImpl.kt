@@ -16,14 +16,14 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 
 class RemoteFoldersRepoImpl(
-    private val httpClient: HttpClient,
+    private val syncServerClient:()-> HttpClient,
     private val baseUrl: () -> String,
     private val authToken: () -> String
 ) : RemoteFoldersRepo {
 
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Flow<Result<NewItemResponseDTO>> {
         return postFlow<AddFolderDTO, NewItemResponseDTO>(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.CREATE_FOLDER.name,
@@ -33,7 +33,7 @@ class RemoteFoldersRepoImpl(
 
     override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER.name,
             body = idBasedDTO,
@@ -42,7 +42,7 @@ class RemoteFoldersRepoImpl(
 
     override suspend fun markAsArchive(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
@@ -52,7 +52,7 @@ class RemoteFoldersRepoImpl(
 
     override suspend fun markAsRegularFolder(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
             body = idBasedDTO
@@ -63,7 +63,7 @@ class RemoteFoldersRepoImpl(
         changeParentFolderDTO: ChangeParentFolderDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.CHANGE_PARENT_FOLDER.name,
             body = changeParentFolderDTO
@@ -74,7 +74,7 @@ class RemoteFoldersRepoImpl(
         updateFolderNameDTO: UpdateFolderNameDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
             body = updateFolderNameDTO
@@ -85,7 +85,7 @@ class RemoteFoldersRepoImpl(
         updateFolderNoteDTO: UpdateFolderNoteDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name,
             body = updateFolderNoteDTO
@@ -94,7 +94,7 @@ class RemoteFoldersRepoImpl(
 
     override suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
             body = idBasedDTO
@@ -103,7 +103,7 @@ class RemoteFoldersRepoImpl(
 
     override suspend fun markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO: MarkSelectedFoldersAsRootDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name,

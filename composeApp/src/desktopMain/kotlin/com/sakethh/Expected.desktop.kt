@@ -162,3 +162,18 @@ actual suspend fun exportSnapshotData(
         exportFileType = fileType, rawExportString = rawExportString, onCompletion = onCompletion
     )
 }
+
+actual suspend fun saveSyncServerCertificateInternally(
+    file: File, onCompletion: () -> Unit
+) {
+    file.inputStream().use { inputStream ->
+        linkoraSpecificFolder.resolve("sync-server-cert.cer").outputStream().use {
+            inputStream.copyTo(it)
+        }
+    }
+    onCompletion()
+}
+
+actual suspend fun loadSyncServerCertificate(): File {
+    return linkoraSpecificFolder.resolve("sync-server-cert.cer")
+}

@@ -11,13 +11,13 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class NetworkRepoImpl(private val httpClient: HttpClient) : NetworkRepo {
+class NetworkRepoImpl(private val syncServerClient: () -> HttpClient) : NetworkRepo {
     override suspend fun testServerConnection(
         serverUrl: String, token: String
     ): Flow<Result<HttpResponse>> {
         return flow {
             emit(Result.Loading())
-            val request = httpClient.get(serverUrl) {
+            val request = syncServerClient().get(serverUrl) {
                 bearerAuth(token)
             }
             if (request.status.isSuccess()) {

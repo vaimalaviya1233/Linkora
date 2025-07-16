@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.DataSyncingNotificationService
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
@@ -61,8 +62,11 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 
 @OptIn(FlowPreview::class)
 class AppVM(
@@ -225,6 +229,23 @@ class AppVM(
 
         viewModelScope.launch {
             if (AppPreferences.isServerConfigured()) {
+                withContext(Dispatchers.IO) {
+                    val certificateFactory = CertificateFactory.getInstance("X.509")
+
+                    val signedCertificate: X509Certificate? = try {
+                        com.sakethh.loadSyncServerCertificate().inputStream().use {
+                            certificateFactory.generateCertificate(it) as X509Certificate
+                        }
+                    } catch (e: Exception) {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+                        null
+                    }
+
+                    if (signedCertificate != null) {
+                        linkoraLog("public key: ${signedCertificate.publicKey}")
+                        Network.configureSyncServerClient(signedCertificate)
+                    }
+                }
                 isPerformingStartupSync.value = true
                 networkRepo.testServerConnection(
                     serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,

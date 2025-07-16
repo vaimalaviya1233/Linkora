@@ -30,7 +30,7 @@ object DependencyContainer {
 
     val localizationRepo = lazy {
         LocalizationRepoImpl(
-            Network.client, {
+            standardClient = Network.standardClient, localizationServerURL =  {
                 AppPreferences.localizationServerURL.value
             },
             localDatabase!!.localizationDao
@@ -38,12 +38,16 @@ object DependencyContainer {
     }
 
     val networkRepo = lazy {
-        NetworkRepoImpl(Network.client)
+        NetworkRepoImpl(syncServerClient = {
+            Network.getSyncServerClient()
+        })
     }
 
     val remoteFoldersRepo = lazy {
         RemoteFoldersRepoImpl(
-            Network.client,
+            syncServerClient = {
+                Network.getSyncServerClient()
+            },
             baseUrl = { AppPreferences.serverBaseUrl.value },
             authToken = { AppPreferences.serverSecurityToken.value },
         )
@@ -70,7 +74,7 @@ object DependencyContainer {
             linksDao = localDatabase?.linksDao!!,
             foldersDao = localDatabase?.foldersDao!!,
             websocketScheme = {
-                AppPreferences.selectedWebsocketScheme.value
+                AppPreferences.WEB_SOCKET_SCHEME
             },
         )
     }
@@ -93,16 +97,19 @@ object DependencyContainer {
             primaryUserAgent = {
                 AppPreferences.primaryJsoupUserAgent.value
             },
-            httpClient = Network.client,
+            syncServerClient = {
+                Network.getSyncServerClient()
+            },
             remoteLinksRepo = remoteLinksRepo.value,
             foldersDao = localDatabase?.foldersDao!!,
             pendingSyncQueueRepo = pendingSyncQueueRepo.value,
-            preferencesRepository = preferencesRepo.value
+            preferencesRepository = preferencesRepo.value,
+            standardClient = Network.standardClient
         )
     }
 
     val remoteLinksRepo = lazy {
-        RemoteLinksRepoImpl(httpClient = Network.client, baseUrl = {
+        RemoteLinksRepoImpl(syncServerClient = { Network.getSyncServerClient() }, baseUrl = {
             AppPreferences.serverBaseUrl.value
         }, authToken = {
             AppPreferences.serverSecurityToken.value
@@ -110,11 +117,11 @@ object DependencyContainer {
     }
 
     val gitHubReleasesRepo = lazy {
-        GitHubReleasesRepoImpl(Network.client)
+        GitHubReleasesRepoImpl(standardClient = Network.standardClient)
     }
 
     val remotePanelsRepo = lazy {
-        RemotePanelsRepoImpl(Network.client, baseUrl = {
+        RemotePanelsRepoImpl(syncServerClient = { Network.getSyncServerClient() }, baseUrl = {
             AppPreferences.serverBaseUrl.value
         }, authToken = {
             AppPreferences.serverSecurityToken.value
@@ -144,7 +151,7 @@ object DependencyContainer {
     }
 
     private val remoteMultiActionRepo = lazy {
-        RemoteMultiActionRepoImpl(httpClient = Network.client, baseUrl = {
+        RemoteMultiActionRepoImpl(syncServerClient = { Network.getSyncServerClient() }, baseUrl = {
             AppPreferences.serverBaseUrl.value
         }, authToken = {
             AppPreferences.serverSecurityToken.value

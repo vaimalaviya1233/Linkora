@@ -1,5 +1,5 @@
 package com.sakethh.linkora.domain
 
 enum class FileType {
-    JSON, HTML
+    JSON, HTML, CER
 }

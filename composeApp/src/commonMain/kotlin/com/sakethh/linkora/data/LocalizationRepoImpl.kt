@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.json.Json
 
 class LocalizationRepoImpl(
-    private val httpClient: HttpClient,
+    private val standardClient: HttpClient,
     private val localizationServerURL: () -> String,
     private val localizationDao: LocalizationDao
 ) :
@@ -26,7 +26,7 @@ class LocalizationRepoImpl(
     override fun getLanguagesFromServer(): Flow<Result<LocalizationInfoDTO>> {
         return flow {
             emit(Result.Loading())
-            httpClient.get(localizationServerURL() + "info").bodyAsText().let {
+            standardClient.get(localizationServerURL() + "info").bodyAsText().let {
                 emit(Result.Success(Json.decodeFromString<LocalizationInfoDTO>(it)))
             }
         }.catchAsExceptionAndEmitFailure()
@@ -35,7 +35,7 @@ class LocalizationRepoImpl(
     override suspend fun getLanguagePackFromServer(languageCode: String): Flow<Result<List<LocalizedString>>> {
         return flow {
             emit(Result.Loading())
-            httpClient.get(localizationServerURL() + languageCode).bodyAsText().let {
+            standardClient.get(localizationServerURL() + languageCode).bodyAsText().let {
                 Json.decodeFromString<Map<String, String>>(it)
             }.map {
                 LocalizedString(

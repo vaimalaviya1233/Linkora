@@ -15,13 +15,13 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 
 class RemotePanelsRepoImpl(
-    private val httpClient: HttpClient,
+    private val syncServerClient:()-> HttpClient,
     private val baseUrl: () -> String,
     private val authToken: () -> String
 ) : RemotePanelsRepo {
     override suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Flow<Result<NewItemResponseDTO>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
@@ -31,7 +31,7 @@ class RemotePanelsRepoImpl(
 
     override suspend fun addANewFolderInAPanel(addANewPanelFolderDTO: AddANewPanelFolderDTO): Flow<Result<NewItemResponseDTO>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
@@ -41,7 +41,7 @@ class RemotePanelsRepoImpl(
 
     override suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_PANEL.name,
@@ -51,7 +51,7 @@ class RemotePanelsRepoImpl(
 
     override suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
@@ -61,7 +61,7 @@ class RemotePanelsRepoImpl(
 
     override suspend fun deleteAFolderFromAllPanels(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
@@ -71,7 +71,7 @@ class RemotePanelsRepoImpl(
 
     override suspend fun deleteAFolderFromAPanel(deleteAFolderFromAPanelDTO: DeleteAFolderFromAPanelDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,

@@ -116,7 +116,7 @@ class RemoteSyncRepoImpl(
 
     override suspend fun readSocketEvents(currentCorrelation: Correlation): Flow<Result<Unit>> {
         return wrappedResultFlow {
-            Network.client.webSocket(urlString = run {
+            Network.getSyncServerClient().webSocket(urlString = run {
                 websocketScheme() + baseUrl.invoke().run {
                     if (startsWith(prefix = "https")) {
                         substringAfter("https")
@@ -570,7 +570,7 @@ class RemoteSyncRepoImpl(
 
         return channelFlow {
             send(Result.Loading("Fetching updates from server..."))
-            Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
+            Network.getSyncServerClient().get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
                 parameter("eventTimestamp", timeStampAfter)
@@ -704,7 +704,7 @@ class RemoteSyncRepoImpl(
 
     override suspend fun applyUpdatesBasedOnRemoteTombstones(timeStampAfter: Long): Flow<Result<Unit>> {
         return wrappedResultFlow {
-            Network.client.get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
+            Network.getSyncServerClient().get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
                 bearerAuth(authToken())
                 contentType(ContentType.Application.Json)
                 parameter("eventTimestamp", timeStampAfter)
@@ -1419,7 +1419,7 @@ class RemoteSyncRepoImpl(
         return performLocalOperationWithRemoteSyncFlow<Unit, DeleteEverythingDTO>(performRemoteOperation = deleteOnRemote,
             remoteOperation = {
                 postFlow(
-                    httpClient = Network.client,
+                    syncServerClient = { Network.getSyncServerClient() },
                     baseUrl = baseUrl,
                     authToken = authToken,
                     endPoint = RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name,

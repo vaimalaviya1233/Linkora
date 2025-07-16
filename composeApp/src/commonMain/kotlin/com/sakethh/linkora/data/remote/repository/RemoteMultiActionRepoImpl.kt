@@ -15,13 +15,13 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 
 class RemoteMultiActionRepoImpl(
-    private val httpClient: HttpClient,
+    private val syncServerClient:()-> HttpClient,
     private val baseUrl: () -> String,
     private val authToken: () -> String
 ) : RemoteMultiActionRepo {
     override suspend fun archiveMultipleItems(archiveMultipleItemsDTO: ArchiveMultipleItemsDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name,
@@ -31,7 +31,7 @@ class RemoteMultiActionRepoImpl(
 
     override suspend fun deleteMultipleItems(deleteMultipleItemsDTO: DeleteMultipleItemsDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
@@ -41,7 +41,7 @@ class RemoteMultiActionRepoImpl(
 
     override suspend fun moveMultipleItems(moveItemsDTO: MoveItemsDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name,
@@ -51,7 +51,7 @@ class RemoteMultiActionRepoImpl(
 
     override suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Flow<Result<CopyItemsHTTPResponseDTO>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name,
@@ -61,7 +61,7 @@ class RemoteMultiActionRepoImpl(
 
     override suspend fun markItemsAsRegular(markItemsRegularDTO: MarkItemsRegularDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name,

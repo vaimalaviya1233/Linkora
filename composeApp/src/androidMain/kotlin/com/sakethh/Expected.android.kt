@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Environment
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
@@ -37,7 +38,6 @@ import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
@@ -126,7 +126,11 @@ actual suspend fun pickAValidFileForImporting(
 ): File? {
     AndroidUIEvent.pushUIEvent(
         AndroidUIEvent.Type.ImportAFile(
-            fileType = if (importFileType == ImportFileType.JSON) "application/json" else "text/html"
+            fileType = when (importFileType) {
+                ImportFileType.JSON -> "application/json"
+                ImportFileType.HTML -> "text/html"
+                else -> "*/*"
+            }
         )
     )
     val deferredFile = CompletableDeferred<File?>()
@@ -134,12 +138,22 @@ actual suspend fun pickAValidFileForImporting(
         AndroidUIEvent.androidUIEventChannel.collectLatest {
             if (it is AndroidUIEvent.Type.UriOfTheFileForImporting) {
                 try {
-                    if (it.uri.isNull()) {
+                    if (it.uri == null) {
                         throw NullPointerException()
                     }
                     onStart()
-                    val file = createTempFile()
-                    LinkoraApp.getContext().contentResolver.openInputStream(it.uri!!).use { input ->
+                    val fileName = LinkoraApp.getContext().contentResolver.query(
+                        it.uri, null, null, null, null
+                    )?.use {
+                        val nameColumnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        it.moveToFirst()
+                        it.getString(nameColumnIndex)
+                    } ?: ""
+                    val file = createTempFile(
+                        prefix = fileName.substringBeforeLast("."),
+                        suffix = fileName.substringAfterLast(".")
+                    )
+                    LinkoraApp.getContext().contentResolver.openInputStream(it.uri).use { input ->
                         file.outputStream().use { output ->
                             input?.copyTo(output)
                         }
@@ -281,4 +295,19 @@ actual suspend fun exportSnapshotData(
         .putString(key = "fileType", value = fileType.name).build()
     snapshotWorker.setInputData(parameters)
     WorkManager.getInstance(LinkoraApp.getContext()).enqueue(snapshotWorker.build())
+}
+
+actual suspend fun saveSyncServerCertificateInternally(
+    file: File, onCompletion: () -> Unit
+) {
+    file.inputStream().use { inputStream ->
+        LinkoraApp.getContext().filesDir.resolve("sync-server-cert.cer").outputStream().use {
+            inputStream.copyTo(it)
+        }
+    }
+    onCompletion()
+}
+
+actual suspend fun loadSyncServerCertificate(): File {
+    return LinkoraApp.getContext().filesDir.resolve("sync-server-cert.cer")
 }

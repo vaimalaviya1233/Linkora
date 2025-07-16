@@ -1,5 +1,6 @@
 package com.sakethh.linkora.ui.screens.settings.section.data.sync
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -8,17 +9,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -48,7 +50,6 @@ import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.section.data.LogsScreen
-import com.sakethh.linkora.ui.screens.settings.section.data.components.ToggleButton
 import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
@@ -79,9 +80,15 @@ fun ServerSetupScreen(
     val showImportLogsFromServer = rememberSaveable {
         mutableStateOf(false)
     }
-    val selectedWebSocketScheme = rememberSaveable {
-        mutableStateOf(AppPreferences.selectedWebsocketScheme.value)
+
+    val isCertificateInProcessing = rememberSaveable {
+        mutableStateOf(false)
     }
+
+    val importedCertFileName = rememberSaveable {
+        mutableStateOf("")
+    }
+
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.Data.ServerSetupScreen.toString(),
         navController = navController
@@ -131,40 +138,6 @@ fun ServerSetupScreen(
             }
 
             item {
-                Text(modifier = Modifier.fillMaxWidthWithPadding(),text = "WebSocket Scheme", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.height(5.dp))
-                Text(modifier = Modifier.fillMaxWidthWithPadding(), style = MaterialTheme.typography.titleSmall,text = "If you're running the server behind a proxy that handles SSL/HTTPS connections, use wss instead of ws. For direct HTTP connections to the server, ws will work fine.")
-                Spacer(Modifier.height(10.dp))
-                Row(modifier = Modifier.fillMaxWidthWithPadding()) {
-                    ToggleButton(
-                        shape = RoundedCornerShape(
-                            topStart = 15.dp, bottomStart = 15.dp, topEnd = 5.dp, bottomEnd = 5.dp
-                        ), checked = selectedWebSocketScheme.value == "ws", onCheckedChange = {
-                            selectedWebSocketScheme.value = "ws"
-                        }) {
-                        Text(
-                            text = "ws",
-                            style = if (selectedWebSocketScheme.value == "ws") MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
-                            color = if (selectedWebSocketScheme.value == "ws") MaterialTheme.colorScheme.onPrimary else LocalContentColor.current
-                        )
-                    }
-                    Spacer(Modifier.width(5.dp))
-                    ToggleButton(
-                        shape = RoundedCornerShape(
-                            topStart = 5.dp, bottomStart = 5.dp, topEnd = 15.dp, bottomEnd = 15.dp
-                        ), checked = selectedWebSocketScheme.value == "wss", onCheckedChange = {
-                            selectedWebSocketScheme.value = "wss"
-                        }) {
-                        Text(
-                            text = "wss",
-                            style = if (selectedWebSocketScheme.value == "wss") MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
-                            color = if (selectedWebSocketScheme.value == "wss") MaterialTheme.colorScheme.onPrimary else LocalContentColor.current
-                        )
-                    }
-                }
-            }
-
-            item {
                 TextField(
                     textStyle = TextStyle(fontFamily = poppinsFontFamily),
                     modifier = Modifier.fillMaxWidthWithPadding(),
@@ -180,6 +153,42 @@ fun ServerSetupScreen(
                     },
                     readOnly = serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully && serverManagementViewModel.serverSetupState.value.isConnecting.not()
                 )
+            }
+
+            item {
+                Card(modifier = Modifier.animateContentSize().padding(start = 15.dp, end = 15.dp)) {
+                    Text(
+                        modifier = Modifier.padding(
+                            start = 15.dp, end = 15.dp, top = 15.dp, bottom = 5.dp
+                        ),
+                        text = if (importedCertFileName.value.isNotBlank()) "Imported: ${importedCertFileName.value}" else if (isCertificateInProcessing.value) "Processing the certificate..." else "To connect securely, please import the .cer certificate automatically generated by your server.",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    if (isCertificateInProcessing.value) {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(start = 15.dp, end = 15.dp, bottom = 15.dp, top = 10.dp)
+                        )
+                    } else {
+                        ElevatedButton(
+                            onClick = {
+                                serverManagementViewModel.importSignedCertificate(onStart = {
+                                    isCertificateInProcessing.value = true
+                                }, onCompletion = {
+                                    importedCertFileName.value = it
+                                    isCertificateInProcessing.value = false
+                                })
+                            }, modifier = Modifier.fillMaxWidth().padding(
+                                start = 15.dp, end = 15.dp, bottom = 15.dp
+                            ).pulsateEffect()
+                        ) {
+                            Text(
+                                text = "Import Server Certificate",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
+                    }
+                }
             }
 
             item {
@@ -205,6 +214,7 @@ fun ServerSetupScreen(
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
+                    Spacer(Modifier.height(50.dp))
                 }
             }
             if (serverManagementViewModel.serverSetupState.value.isConnectedSuccessfully.not()) {
@@ -263,7 +273,6 @@ fun ServerSetupScreen(
                             serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
                             authToken = securityToken.value,
                             syncType = selectedSyncType.value,
-                            webSocketScheme = selectedWebSocketScheme.value
                         ), onSyncStart = {
                             showImportLogsFromServer.value = true
                         }, onCompletion = {

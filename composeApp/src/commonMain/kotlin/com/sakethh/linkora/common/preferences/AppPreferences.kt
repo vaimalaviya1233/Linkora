@@ -72,7 +72,7 @@ object AppPreferences {
     val showNoteInListViewLayout = mutableStateOf(true)
     val areSnapshotsEnabled = mutableStateOf(false)
     val snapshotsExportType = mutableStateOf(ExportFileType.JSON.name)
-    val selectedWebsocketScheme = mutableStateOf("ws")
+    const val WEB_SOCKET_SCHEME = "wss"
     private var correlation = Correlation.generateRandomCorrelation()
 
 
@@ -316,13 +316,7 @@ object AppPreferences {
                         AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
                     )
                 ) ?: ExportFileType.JSON.name
-            }, launch {
-                selectedWebsocketScheme.value = preferencesRepository.readPreferenceValue(
-                    preferenceKey = stringPreferencesKey(
-                        AppPreferenceType.WEBSOCKET_SCHEME.name
-                    )
-                ) ?: "ws"
-            },).joinAll()
+            }).joinAll()
         }
     }
 }

@@ -10,11 +10,11 @@ import io.ktor.client.request.get
 import kotlinx.coroutines.flow.Flow
 
 class GitHubReleasesRepoImpl(
-    private val ktorClient: HttpClient
+    private val standardClient: HttpClient
 ) : GitHubReleasesRepo {
     override suspend fun getLatestVersionData(): Flow<Result<GitHubReleaseDTOItem>> {
         return wrappedResultFlow {
-            ktorClient.get("https://api.github.com/repos/sakethpathike/Linkora/releases")
+            standardClient.get("https://api.github.com/repos/sakethpathike/Linkora/releases")
                 .body<List<GitHubReleaseDTOItem>>().first().run {
                     copy(
                         releaseName = if (releaseName.startsWith("v").not()) "v$releaseName"

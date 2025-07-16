@@ -52,7 +52,7 @@ fun defaultImpLinksFolder(): Folder = Folder(
 )
 
 inline fun <reified OutgoingBody, reified IncomingBody> postFlow(
-    httpClient: HttpClient,
+    crossinline syncServerClient: () -> HttpClient,
     crossinline baseUrl: () -> String,
     crossinline authToken: () -> String,
     endPoint: String,
@@ -61,7 +61,7 @@ inline fun <reified OutgoingBody, reified IncomingBody> postFlow(
 ): Flow<Result<IncomingBody>> {
     return flow {
         emit(Result.Loading())
-        httpClient.post(baseUrl() + endPoint) {
+        syncServerClient().post(baseUrl() + endPoint) {
             bearerAuth(authToken())
             contentType(contentType)
             setBody(body)
@@ -125,6 +125,6 @@ fun currentSavedServerConfig(): ServerConnection {
         serverUrl = AppPreferences.serverBaseUrl.value,
         authToken = AppPreferences.serverSecurityToken.value,
         syncType = AppPreferences.serverSyncType.value,
-        webSocketScheme = AppPreferences.selectedWebsocketScheme.value
+        webSocketScheme = AppPreferences.WEB_SOCKET_SCHEME
     )
 }

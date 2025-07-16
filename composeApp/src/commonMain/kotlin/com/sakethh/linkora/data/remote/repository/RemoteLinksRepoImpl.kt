@@ -16,13 +16,13 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 
 class RemoteLinksRepoImpl(
-    private val httpClient: HttpClient,
+    private val syncServerClient: () ->HttpClient,
     private val baseUrl: () -> String,
     private val authToken: () -> String
 ) : RemoteLinksRepo {
     override suspend fun addANewLink(addLinkDTO: AddLinkDTO): Flow<Result<NewItemResponseDTO>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
@@ -32,7 +32,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun deleteALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.DELETE_A_LINK.name,
@@ -44,7 +44,7 @@ class RemoteLinksRepoImpl(
         updateTitleOfTheLinkDTO: UpdateTitleOfTheLinkDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
@@ -56,7 +56,7 @@ class RemoteLinksRepoImpl(
         updateNoteOfALinkDTO: UpdateNoteOfALinkDTO
     ): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
@@ -66,7 +66,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun archiveALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.ARCHIVE_LINK.name,
@@ -76,7 +76,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun unArchiveALink(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UNARCHIVE_LINK.name,
@@ -86,7 +86,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.MARK_AS_IMP.name,
@@ -96,7 +96,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UNMARK_AS_IMP.name,
@@ -106,7 +106,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK.name,
@@ -116,7 +116,7 @@ class RemoteLinksRepoImpl(
 
     override suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Flow<Result<TimeStampBasedResponse>> {
         return postFlow(
-            httpClient = httpClient,
+            syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,

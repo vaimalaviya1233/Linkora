@@ -49,7 +49,8 @@ import java.time.Instant
 class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
     private val primaryUserAgent: () -> String,
-    private val httpClient: HttpClient,
+    private val syncServerClient: () -> HttpClient,
+    private val standardClient: HttpClient,
     private val remoteLinksRepo: RemoteLinksRepo,
     private val foldersDao: FoldersDao,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
@@ -182,7 +183,7 @@ class LocalLinksRepoImpl(
 
     private suspend fun retrieveFromVxTwitterApi(tweetURL: String): ScrapedLinkInfo {
         val vxTwitterResponseBody =
-            httpClient.get("https://api.vxtwitter.com/${tweetURL.substringAfter(".com/")}")
+            standardClient.get("https://api.vxtwitter.com/${tweetURL.substringAfter(".com/")}")
                 .body<TwitterMetaDataDTO>()
         return ScrapedLinkInfo(
             title = vxTwitterResponseBody.text,
