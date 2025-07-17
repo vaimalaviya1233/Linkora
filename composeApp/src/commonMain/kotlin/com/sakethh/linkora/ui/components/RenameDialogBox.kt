@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,9 +22,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +42,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
+import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
@@ -69,20 +74,14 @@ fun RenameDialogBox(
         val showProgressBar = rememberSaveable {
             mutableStateOf(false)
         }
-        BasicAlertDialog(
-            modifier = Modifier.then(
-                if (platform() == Platform.Android.Mobile) Modifier.fillMaxSize() else Modifier.wrapContentSize()
-            ).clip(RoundedCornerShape(10.dp)).background(AlertDialogDefaults.containerColor),
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            onDismissRequest = {
-                if (showProgressBar.value.not()) {
-                    renameDialogBoxParam.shouldDialogBoxAppear.value = false
-                }
-            }) {
+        val content: ComposableContent = {
             LazyColumn(
-                Modifier.then(
-                    if (platform() == Platform.Android.Mobile) Modifier.fillMaxSize() else Modifier.wrapContentSize()
-                ).padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)
+                Modifier.wrapContentSize().padding(
+                    start = 15.dp,
+                    end = 15.dp,
+                    bottom = 15.dp,
+                    top = if (platform() == Platform.Android.Mobile) 0.dp else 15.dp
+                ), verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
                 item {
                     Row(
@@ -176,12 +175,9 @@ fun RenameDialogBox(
                         modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
                             showProgressBar.value = true
                             renameDialogBoxParam.onBothTitleAndNoteChangeClick(
-                                newFolderOrTitleName.value,
-                                newNote.value,
-                                {
+                                newFolderOrTitleName.value, newNote.value, {
                                     showProgressBar.value = false
-                                }
-                            )
+                                })
                         }) {
                         Text(
                             text = Localization.rememberLocalizedString(Localization.Key.ChangeBothNameAndNote),
@@ -201,6 +197,35 @@ fun RenameDialogBox(
                         )
                     }
                 }
+            }
+        }
+        if (platform() == Platform.Android.Mobile) {
+            ModalBottomSheet(
+                sheetState = rememberModalBottomSheetState(
+                    skipPartiallyExpanded = true, confirmValueChange = {
+                        !showProgressBar.value
+                    }),
+                modifier = Modifier.imePadding(),
+                properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
+                onDismissRequest = {
+                    if (showProgressBar.value.not()) {
+                        renameDialogBoxParam.shouldDialogBoxAppear.value = false
+                    }
+                }) {
+                content()
+            }
+        } else {
+            BasicAlertDialog(
+                modifier = Modifier.then(
+                    if (platform() == Platform.Android.Mobile) Modifier.fillMaxSize() else Modifier.wrapContentSize()
+                ).clip(RoundedCornerShape(10.dp)).background(AlertDialogDefaults.containerColor),
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+                onDismissRequest = {
+                    if (showProgressBar.value.not()) {
+                        renameDialogBoxParam.shouldDialogBoxAppear.value = false
+                    }
+                }) {
+                content()
             }
         }
     }
