@@ -1,0 +1,5 @@
+- Added support to connect to sync-server (v0.1.0) via HTTPS
+- Search now works based on URL too, along with note and title
+- Linkora can now block saving of links that already exist in the destination (enabled by default, can be turned off in settings)
+- Fixed main FAB (+ button) positioning
+- Updated renaming UI to use a bottom sheet instead of full screen
