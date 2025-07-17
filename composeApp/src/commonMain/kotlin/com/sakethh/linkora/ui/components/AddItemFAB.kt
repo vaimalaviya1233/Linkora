@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -18,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -30,15 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
-import com.sakethh.platform
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -80,15 +76,7 @@ fun AddItemFab(
             Navigation.Root.SettingsScreen,
         )
     }
-    val currentBackStackEntryState = navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntryState.value?.destination
-    androidx.compose.foundation.layout.Column(
-        modifier = Modifier.padding(
-            bottom = if (!addItemFABParam.inASpecificScreen && platform() == Platform.Android.Mobile && rootRouteList.any {
-                    currentRoute?.hasRoute(it::class) == true
-                }) 82.dp else 0.dp
-        )
-    ) {
+    Column {
         androidx.compose.foundation.layout.Row(
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
             modifier = Modifier.align(Alignment.End),
@@ -129,10 +117,8 @@ fun AddItemFab(
                 )
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.pulsateEffect(),
-                    onClick = {
-                        addItemFABParam.isReducedTransparencyBoxVisible.value =
-                            false
+                    modifier = Modifier.pulsateEffect(), onClick = {
+                        addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.showDialogForNewFolder.value = true
                         addItemFABParam.isMainFabRotated.value = false
                         coroutineScope.launch {
@@ -140,8 +126,7 @@ fun AddItemFab(
                         }
                     }) {
                     Icon(
-                        imageVector = Icons.Default.CreateNewFolder,
-                        contentDescription = null
+                        imageVector = Icons.Default.CreateNewFolder, contentDescription = null
                     )
                 }
             }
@@ -181,15 +166,11 @@ fun AddItemFab(
                 }
             }
             FloatingActionButton(
-                modifier = Modifier
-                    .rotate(
+                modifier = Modifier.rotate(
                         addItemFABParam.rotationAnimation.value
-                    )
-                    .pulsateEffect(),
-                onClick = {
+                    ).pulsateEffect(), onClick = {
                     if (addItemFABParam.isMainFabRotated.value) {
-                        addItemFABParam.isReducedTransparencyBoxVisible.value =
-                            false
+                        addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.shouldShowAddLinkDialog.value = true
                         addItemFABParam.isMainFabRotated.value = false
                         coroutineScope.launch {
@@ -202,8 +183,7 @@ fun AddItemFab(
                                     180f, animationSpec = tween(500)
                                 )
                             }, async {
-                                addItemFABParam.isReducedTransparencyBoxVisible.value =
-                                    true
+                                addItemFABParam.isReducedTransparencyBoxVisible.value = true
                                 kotlinx.coroutines.delay(10L)
                                 addItemFABParam.isMainFabRotated.value = true
                             })

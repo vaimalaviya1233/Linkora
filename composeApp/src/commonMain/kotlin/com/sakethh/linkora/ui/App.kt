@@ -74,6 +74,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -92,7 +94,6 @@ import com.sakethh.linkora.common.utils.defaultFolderIds
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.inRootScreen
 import com.sakethh.linkora.common.utils.initializeIfServerConfigured
-import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.LinkType
@@ -422,6 +423,10 @@ fun App(
         val selectedAndInRoot = rememberSaveable(inRootScreen, appVM.transferActionType.value) {
             mutableStateOf((inRootScreen == true) && (appVM.transferActionType.value != TransferActionType.NONE))
         }
+        val bottomNavBarHeight = rememberSaveable {
+            mutableStateOf(0)
+        }
+        val localDensity = LocalDensity.current
         Scaffold(
             bottomBar = {
             Box(modifier = Modifier.animateContentSize()) {
@@ -645,6 +650,10 @@ fun App(
                             }
                         }
                     }
+                } else if (inRootScreen == true) {
+                    Spacer(Modifier.height(with(localDensity) {
+                        bottomNavBarHeight.value.toDp()
+                    }))
                 }
             }
         }, floatingActionButton = {
@@ -703,7 +712,9 @@ fun App(
                 sheetShape = RectangleShape,
                 sheetContent = {
                     if (platform == Platform.Android.Mobile) {
-                        Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
+                        Column(modifier = Modifier.onGloballyPositioned {
+                            bottomNavBarHeight.value = it.size.height
+                        }.fillMaxWidth().animateContentSize()) {
                             if (appVM.isPerformingStartupSync.value) {
                                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                             }
