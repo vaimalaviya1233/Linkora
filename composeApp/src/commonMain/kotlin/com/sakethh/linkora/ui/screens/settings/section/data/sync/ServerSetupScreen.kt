@@ -155,6 +155,19 @@ fun ServerSetupScreen(
                 )
             }
 
+            if (serverManagementViewModel.existingCertificateInfo.value.isNotBlank()) {
+                item {
+                    Text(
+                        text = "A certificate has already been imported. If you're unsure whether it matches the server-generated certificate, you can import the updated certificate to replace the existing one.\n\n${serverManagementViewModel.existingCertificateInfo.value}",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(
+                            start = 15.dp, end = 15.dp, top = 5.dp
+                        ),
+                        softWrap = true
+                    )
+                }
+            }
+
             item {
                 Card(modifier = Modifier.animateContentSize().padding(start = 15.dp, end = 15.dp)) {
                     Text(

@@ -136,6 +136,7 @@ class RemoteSyncRepoImpl(
                     if (it is Frame.Text) {
                         val deserializedWebSocketEvent =
                             json.decodeFromString<WebSocketEvent>((it.data).decodeToString())
+                        linkoraLog(deserializedWebSocketEvent)
                         updateLocalDBAccordingToEvent(deserializedWebSocketEvent)
                     }
                 }

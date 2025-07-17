@@ -41,6 +41,7 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.clearAllSelections
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedFoldersViaLongClick
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedLinksViaLongClick
+import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
@@ -62,11 +63,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
 
 @OptIn(FlowPreview::class)
 class AppVM(
@@ -229,22 +227,8 @@ class AppVM(
 
         viewModelScope.launch {
             if (AppPreferences.isServerConfigured()) {
-                withContext(Dispatchers.IO) {
-                    val certificateFactory = CertificateFactory.getInstance("X.509")
-
-                    val signedCertificate: X509Certificate? = try {
-                        com.sakethh.loadSyncServerCertificate().inputStream().use {
-                            certificateFactory.generateCertificate(it) as X509Certificate
-                        }
-                    } catch (e: Exception) {
-                        pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
-                        null
-                    }
-
-                    if (signedCertificate != null) {
-                        linkoraLog("public key: ${signedCertificate.publicKey}")
-                        Network.configureSyncServerClient(signedCertificate)
-                    }
+                ServerManagementViewModel.getExistingSyncServerCertificate()?.let {
+                    Network.configureSyncServerClient(it)
                 }
                 isPerformingStartupSync.value = true
                 networkRepo.testServerConnection(

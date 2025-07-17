@@ -185,6 +185,48 @@ class ServerManagementViewModel(
         }
     }
 
+    val existingCertificateInfo = mutableStateOf("")
+
+    init {
+        viewModelScope.launch {
+            existingCertificateInfo.value = getExistingSyncServerCertificate().run {
+                if (this == null) {
+                    ""
+                } else {
+                    "Certificate Authority:\n${this.issuerX500Principal.name}\nStatus: ${
+                        try {
+                            this.checkValidity()
+                            "Valid"
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            "Invalid"
+                        }
+                    }".trim()
+                }
+            }
+        }
+    }
+
+    companion object {
+        suspend fun getExistingSyncServerCertificate(): X509Certificate? {
+            return if (AppPreferences.isServerConfigured()) {
+                withContext(Dispatchers.IO) {
+                    val certificateFactory = CertificateFactory.getInstance("X.509")
+                    try {
+                        com.sakethh.loadSyncServerCertificate().inputStream().use {
+                            certificateFactory.generateCertificate(it) as X509Certificate
+                        }
+                    } catch (e: Exception) {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+                        null
+                    }
+                }
+            } else {
+                null
+            }
+        }
+    }
+
     fun deleteTheConnection(onDeleted: () -> Unit) {
         viewModelScope.launch {
             preferencesRepository.changePreferenceValue(
