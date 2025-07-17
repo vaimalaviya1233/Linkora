@@ -67,6 +67,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -80,7 +81,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -176,8 +176,7 @@ fun AddANewLinkDialogBox(
                     if (platform() !is Platform.Android.Mobile) Modifier.clip(
                         RoundedCornerShape(10.dp)
                     ) else Modifier
-                )
-                .background(AlertDialogDefaults.containerColor),
+                ).background(AlertDialogDefaults.containerColor),
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Surface(
@@ -276,7 +275,8 @@ private fun TopPartOfAddANewLinkDialogBox(
     titleTextFieldValue: MutableState<String>,
     noteTextFieldValue: MutableState<String>,
     isAutoDetectTitleEnabled: MutableState<Boolean>,
-    isForceSaveWithoutFetchingMetaDataEnabled: MutableState<Boolean>, currentFolder: Folder?
+    isForceSaveWithoutFetchingMetaDataEnabled: MutableState<Boolean>,
+    currentFolder: Folder?
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
@@ -284,7 +284,8 @@ private fun TopPartOfAddANewLinkDialogBox(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            color = AlertDialogDefaults.titleContentColor, text = when (currentFolder) {
+            color = AlertDialogDefaults.titleContentColor,
+            text = when (currentFolder) {
                 null -> Localization.rememberLocalizedString(
                     Localization.Key.AddANewLink
                 )
@@ -453,7 +454,8 @@ private fun BottomPartOfAddANewLinkDialogBox(
     btmSheetState: SheetState,
     lazyRowState: LazyListState,
     addTheFolderInRoot: MutableState<Boolean>,
-    collectionsScreenVM: CollectionsScreenVM, currentlyInFolder: Folder?
+    collectionsScreenVM: CollectionsScreenVM,
+    currentlyInFolder: Folder?
 ) {
     val coroutineScope = rememberCoroutineScope()
     val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
@@ -487,9 +489,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 18.sp,
                 modifier = Modifier.padding(
-                    start = 20.dp,
-                    top = 20.dp,
-                    end = 20.dp
+                    start = 20.dp, top = 20.dp, end = 20.dp
                 )
             )
             Row(
@@ -554,33 +554,33 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.IMPORTANT_LINKS_ID
             )
 
-            // Not good, but I’m not creating another file just for another platform. This works for now.
             rootFolders.value.forEach {
-                FolderSelectorComponent(
-                    onItemClick = {
-                        isDropDownMenuIconClicked.value = false
-                        selectedFolderForSavingTheLink.value = it
-                    },
-                    isCurrentFolderSelected = mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId),
-                    folderName = it.name,
-                    onSubDirectoryIconClick = {
-                        AddANewLinkDialogBox.changeParentFolderId(
-                            it.localId,
-                            collectionsScreenVM.viewModelScope
-                        )
-                        AddANewLinkDialogBox.subFoldersList.add(it)
-                        isChildFoldersBottomSheetExpanded.value = true
-                        coroutineScope.launch {
-                            btmSheetState.expand()
-                            try {
-                                if (lazyRowState.layoutInfo.totalItemsCount - 1 < 0) return@launch
-                                lazyRowState.animateScrollToItem(lazyRowState.layoutInfo.totalItemsCount - 1)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                key(it) {
+                    FolderSelectorComponent(
+                        onItemClick = {
+                            isDropDownMenuIconClicked.value = false
+                            selectedFolderForSavingTheLink.value = it
+                        },
+                        isCurrentFolderSelected = mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId),
+                        folderName = it.name,
+                        onSubDirectoryIconClick = {
+                            AddANewLinkDialogBox.changeParentFolderId(
+                                it.localId, collectionsScreenVM.viewModelScope
+                            )
+                            AddANewLinkDialogBox.subFoldersList.add(it)
+                            isChildFoldersBottomSheetExpanded.value = true
+                            coroutineScope.launch {
+                                btmSheetState.expand()
+                                try {
+                                    if (lazyRowState.layoutInfo.totalItemsCount - 1 < 0) return@launch
+                                    lazyRowState.animateScrollToItem(lazyRowState.layoutInfo.totalItemsCount - 1)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
-                        }
-                        selectedFolderForSavingTheLink.value = it
-                    })
+                            selectedFolderForSavingTheLink.value = it
+                        })
+                }
 
             }
             if (!isDropDownMenuIconClicked.value) {
