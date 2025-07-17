@@ -129,26 +129,27 @@ compose.desktop {
         mainClass = "com.sakethh.linkora.MainKt"
 
         nativeDistributions {
+            targetFormats(
+                TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,
+                TargetFormat.AppImage, TargetFormat.Rpm, TargetFormat.Pkg, TargetFormat.Exe
+            )
+            packageName = "Linkora"
+            this.vendor = "Saketh Pathike"
+            this.packageVersion = "1.0.8"
+            /*
 
-            macOS {
-                targetFormats(TargetFormat.Dmg, TargetFormat.Pkg)
-                this.iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
-            }
+            This logo (src/desktopMain/resources/logo.*) was painted by `mondstern`.
+            The original post can be found here: https://pixelfed.social/p/mondstern/747494483548287527
+
+             */
 
             windows {
-                targetFormats(TargetFormat.Msi, TargetFormat.Exe)
                 this.iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
             }
 
             linux {
-                targetFormats(TargetFormat.Deb, TargetFormat.Rpm)
-                this.iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
+                this.iconFile.set(project.file("src/desktopMain/resources/logo.png"))
             }
-
-            packageName = "Linkora"
-            this.vendor = "Saketh Pathike"
-            this.packageVersion = "1.0.8"
-
             modules("jdk.unsupported")
             modules("jdk.unsupported.desktop")
         }
