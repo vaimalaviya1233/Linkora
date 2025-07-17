@@ -351,12 +351,12 @@ abstract class LocalDatabase : RoomDatabase() {
                     """
             INSERT INTO links (
                 linkType, remoteId, title, url, baseURL, imgURL, note,
-                idOfLinkedFolder, userAgent, mediaType, lastModified
+                idOfLinkedFolder, userAgent, mediaType, lastModified, markedAsImportant
             )
             SELECT
                 'IMPORTANT_LINK' AS linkType,
                 remoteId, title, url, baseURL, imgURL, note,
-                idOfLinkedFolder, userAgent, mediaType, lastModified
+                idOfLinkedFolder, userAgent, mediaType, lastModified, 1 AS markedAsImportant
             FROM links
             WHERE markedAsImportant = 1
         """
