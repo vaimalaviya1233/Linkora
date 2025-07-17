@@ -61,6 +61,7 @@ object AppPreferences {
     val enableFadedEdgeForNonListViews = mutableStateOf(true)
     val shouldFollowAmoledTheme = mutableStateOf(false)
     val forceSaveWithoutFetchingAnyMetaData = mutableStateOf(false)
+    val skipSavingExistingLink = mutableStateOf(true)
     val startDestination = mutableStateOf(Navigation.Root.HomeScreen.toString())
     val serverBaseUrl = mutableStateOf("")
     val serverSecurityToken = mutableStateOf("")
@@ -316,6 +317,12 @@ object AppPreferences {
                         AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
                     )
                 ) ?: ExportFileType.JSON.name
+            }, launch {
+                skipSavingExistingLink.value = preferencesRepository.readPreferenceValue(
+                    preferenceKey = booleanPreferencesKey(
+                        AppPreferenceType.SKIP_SAVING_EXISTING_LINK.name
+                    )
+                ) != false
             }).joinAll()
         }
     }

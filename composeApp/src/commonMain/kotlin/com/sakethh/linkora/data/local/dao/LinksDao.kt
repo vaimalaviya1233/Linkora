@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.LinkType
 import com.sakethh.linkora.common.utils.Sorting
 import com.sakethh.linkora.domain.model.link.Link
@@ -147,6 +148,9 @@ interface LinksDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM links WHERE linkType = :linkType AND url = :url)")
     suspend fun doesLinkExist(linkType: com.sakethh.linkora.domain.LinkType, url: String): Boolean
+
+    @Query("SELECT EXISTS(SELECT 1 FROM links WHERE linkType = '${LinkType.FOLDER_LINK}' AND idOfLinkedFolder =:folderId AND url = :url)")
+    suspend fun doesLinkExist(folderId:Long, url: String): Boolean
 
     @Query("UPDATE links SET localId = :newId WHERE localId=:existingId")
     suspend fun changeIdOfALink(existingId: Long, newId: Long)

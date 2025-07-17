@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.settings
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Search
@@ -80,7 +81,26 @@ open class SettingsScreenViewModel(
                                     AppPreferences.isAutoDetectTitleForLinksEnabled.value = false
                                 }
                             }
-                        })
+                        },
+                    ), SettingComponentParam(
+                        title = "Skip saving existing links",
+                        doesDescriptionExists = true,
+                        description = "If enabled, a link won't be saved if it already exists in the destination. An error will be thrown instead.",
+                        isSwitchNeeded = true,
+                        isSwitchEnabled = AppPreferences.skipSavingExistingLink,
+                        isIconNeeded = mutableStateOf(true),
+                        icon = Icons.Default.Block,
+                        onSwitchStateChange = {
+                            viewModelScope.launch {
+                                changeSettingPreferenceValue(
+                                    preferenceKey = booleanPreferencesKey(
+                                        AppPreferenceType.SKIP_SAVING_EXISTING_LINK.name
+                                    ), newValue = it
+                                )
+                                AppPreferences.skipSavingExistingLink.value = it
+                            }
+                        },
+                    )
                 )
             )
 

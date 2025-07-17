@@ -120,6 +120,36 @@ class LocalLinksRepoImpl(
                 )
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.timeStampBasedResponse.eventTimestamp)
             }) {
+
+            // throwing manually (failing early) skips remote execution — see @performLocalOperationWithRemoteSyncFlow
+
+            if (linkSaveConfig.skipSavingIfExists) {
+                when (val linkType = link.linkType) {
+                    LinkType.FOLDER_LINK -> {
+                        require(link.idOfLinkedFolder != null)
+                        require(
+                            !linksDao.doesLinkExist(
+                                folderId = link.idOfLinkedFolder, url = link.url
+                            )
+                        ) {
+                            "You've already added this link to the selected folder."
+                        }
+                    }
+
+                    else -> {
+                        require(!linksDao.doesLinkExist(linkType = linkType, url = link.url)) {
+                            when (linkType) {
+                                LinkType.SAVED_LINK -> "You've already saved this link in the \"Saved\" collection."
+                                LinkType.HISTORY_LINK -> "This link is already in your history."
+                                LinkType.IMPORTANT_LINK -> "You've already marked this link as important."
+                                LinkType.ARCHIVE_LINK -> "This link is already archived."
+                                else -> "You've already saved this link."
+                            }
+                        }
+                    }
+                }
+            }
+
             if (linkSaveConfig.forceSaveWithoutRetrievingData) {
                 link.url.isAValidLink().ifNot {
                     throw Link.Invalid()
@@ -470,6 +500,7 @@ class LocalLinksRepoImpl(
     override fun getAllLinksAsFlow(): Flow<List<Link>> {
         return linksDao.getAllLinksAsFlow()
     }
+
     override suspend fun deleteAllLinks() {
         linksDao.deleteAllLinks()
     }
@@ -514,9 +545,12 @@ class LocalLinksRepoImpl(
                 if (remoteId != null) {
                     remoteLinksRepo.updateLink(
                         linksDao.getLink(link.localId).asLinkDTO(id = remoteId).run {
-                            copy(idOfLinkedFolder = foldersDao.getRemoteIdOfAFolder(idOfLinkedFolder ?: -45454))
-                        }
-                    )
+                            copy(
+                                idOfLinkedFolder = foldersDao.getRemoteIdOfAFolder(
+                                    idOfLinkedFolder ?: -45454
+                                )
+                            )
+                        })
                 } else {
                     emptyFlow()
                 }

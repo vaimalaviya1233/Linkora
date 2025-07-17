@@ -123,11 +123,7 @@ class ServerManagementViewModel(
                     AppPreferenceType.SERVER_URL.name
                 ), newValue = serverConnection.serverUrl
             )
-            preferencesRepository.changePreferenceValue(
-                preferenceKey = stringPreferencesKey(
-                    AppPreferenceType.WEBSOCKET_SCHEME.name
-                ), newValue = serverConnection.webSocketScheme
-            )
+
             AppPreferences.serverBaseUrl.value = serverConnection.serverUrl
 
             preferencesRepository.changePreferenceValue(
