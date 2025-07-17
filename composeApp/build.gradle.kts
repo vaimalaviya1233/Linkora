@@ -14,8 +14,7 @@ plugins {
 
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class) compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
@@ -74,8 +73,8 @@ android {
         applicationId = "com.sakethh.linkora"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 40
-        versionName = "0.13.3"
+        versionCode = 41
+        versionName = "0.13.5"
     }
     packaging {
         resources {
@@ -111,8 +110,7 @@ android {
     }
 
     sourceSets["main"].res.srcDirs(
-        "src/commonMain/resources",
-        "src/androidMain/resources"
+        "src/commonMain/resources", "src/androidMain/resources"
     )
 
     dependenciesInfo {
@@ -131,27 +129,26 @@ compose.desktop {
         mainClass = "com.sakethh.linkora.MainKt"
 
         nativeDistributions {
-            targetFormats(
-                TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,
-                TargetFormat.AppImage, TargetFormat.Rpm, TargetFormat.Pkg, TargetFormat.Exe
-            )
-            packageName = "Linkora"
-            this.vendor = "Saketh Pathike"
-            this.packageVersion = "1.0.7"
-            /*
 
-            This logo (src/desktopMain/resources/logo.*) was painted by `mondstern`.
-            The original post can be found here: https://pixelfed.social/p/mondstern/747494483548287527
-
-             */
+            macOS {
+                targetFormats(TargetFormat.Dmg, TargetFormat.Pkg)
+                this.iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
+            }
 
             windows {
+                targetFormats(TargetFormat.Msi, TargetFormat.Exe)
                 this.iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
             }
 
             linux {
-                this.iconFile.set(project.file("src/desktopMain/resources/logo.png"))
+                targetFormats(TargetFormat.Deb, TargetFormat.Rpm)
+                this.iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
             }
+
+            packageName = "Linkora"
+            this.vendor = "Saketh Pathike"
+            this.packageVersion = "1.0.8"
+
             modules("jdk.unsupported")
             modules("jdk.unsupported.desktop")
         }
