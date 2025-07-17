@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
@@ -432,7 +433,8 @@ fun App(
             Box(modifier = Modifier.animateContentSize()) {
                 if (CollectionsScreenVM.isSelectionEnabled.value) {
                     Column(
-                        modifier = Modifier.fillMaxWidth().animateContentSize()
+                        modifier = Modifier.navigationBarsPadding().fillMaxWidth()
+                            .animateContentSize()
                             .background(if (inRootScreen == true) BottomAppBarDefaults.containerColor else TopAppBarDefaults.topAppBarColors().containerColor)
                     ) {
                         HorizontalDivider()
@@ -712,7 +714,7 @@ fun App(
                 sheetShape = RectangleShape,
                 sheetContent = {
                     if (platform == Platform.Android.Mobile) {
-                        Column(modifier = Modifier.onGloballyPositioned {
+                        Column(modifier = Modifier.navigationBarsPadding().onGloballyPositioned {
                             bottomNavBarHeight.value = it.size.height
                         }.fillMaxWidth().animateContentSize()) {
                             if (appVM.isPerformingStartupSync.value) {
