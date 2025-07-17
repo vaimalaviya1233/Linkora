@@ -39,7 +39,6 @@ import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,8 +57,8 @@ import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
@@ -264,7 +263,10 @@ fun HomeScreen() {
                     },
                     onLinkClick = {
                         homeScreenVM.addANewLink(
-                            link = it.asHistoryLinkWithoutId(), linkSaveConfig = LinkSaveConfig(
+                            link = it.copy(
+                                linkType = LinkType.HISTORY_LINK,
+                                localId = 0
+                            ), linkSaveConfig = LinkSaveConfig(
                                 forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                             ), onCompletion = {}, pushSnackbarOnSuccess = false
                         )

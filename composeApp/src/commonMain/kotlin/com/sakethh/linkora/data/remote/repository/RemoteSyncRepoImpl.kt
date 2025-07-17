@@ -5,7 +5,6 @@ import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isSameAsCurrentClient
 import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.common.utils.postFlow
@@ -14,6 +13,7 @@ import com.sakethh.linkora.common.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
+import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
@@ -571,97 +571,99 @@ class RemoteSyncRepoImpl(
 
         return channelFlow {
             send(Result.Loading("Fetching updates from server..."))
-            Network.getSyncServerClient().get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
-                bearerAuth(authToken())
-                contentType(ContentType.Application.Json)
-                parameter("eventTimestamp", timeStampAfter)
-            }.body<ServerDataDTO>().let { remoteResponse ->
-                send(Result.Loading("Received updates from server. Processing folders..."))
+            Network.getSyncServerClient()
+                .get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
+                    bearerAuth(authToken())
+                    contentType(ContentType.Application.Json)
+                    parameter("eventTimestamp", timeStampAfter)
+                }.body<ServerDataDTO>().let { remoteResponse ->
+                    send(Result.Loading("Received updates from server. Processing folders..."))
 
-                remoteResponse.folders.forEach {
-                    send(Result.Loading("Processing folder with id: ${it.id}"))
-                    applyFolderUpdates(it)
-                }
+                    remoteResponse.folders.forEach {
+                        send(Result.Loading("Processing folder with id: ${it.id}"))
+                        applyFolderUpdates(it)
+                    }
 
-                coroutineScope {
-                    awaitAll(async {
-                        send(Result.Loading("Processing links..."))
-                        remoteResponse.links.forEach { remoteLinkDTO ->
-                            send(Result.Loading("Processing link with id: ${remoteLinkDTO.id}"))
-                            val localId = localLinksRepo.getLocalLinkId(remoteLinkDTO.id)
-                            if (localId == null) {
-                                send(Result.Loading("Creating new link with id: ${remoteLinkDTO.id}"))
-                                updateLocalDBAccordingToEvent(
-                                    WebSocketEvent(
-                                        operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
-                                        payload = json.encodeToJsonElement(
-                                            remoteLinkDTO.copy(correlation = randomCorrelation)
-                                        )
-                                    )
-                                )
-                            } else {
-                                send(Result.Loading("Updating existing link with id: ${remoteLinkDTO.id}"))
-                                updateLocalDBAccordingToEvent(
-                                    WebSocketEvent(
-                                        operation = RemoteRoute.Link.UPDATE_LINK.name,
-                                        payload = json.encodeToJsonElement(
-                                            remoteLinkDTO.copy(correlation = randomCorrelation)
-                                        )
-                                    )
-                                )
-                            }
-                        }
-                    }, async {
-                        send(Result.Loading("Processing panels..."))
-                        remoteResponse.panels.forEach { remotePanelDTO ->
-                            send(Result.Loading("Processing panel with id: ${remotePanelDTO.panelId}"))
-                            val localId = localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
-                            if (localId == null) {
-                                send(Result.Loading("Creating new panel with id: ${remotePanelDTO.panelId}"))
-                                updateLocalDBAccordingToEvent(
-                                    WebSocketEvent(
-                                        operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
-                                        payload = json.encodeToJsonElement(
-                                            remotePanelDTO.copy(correlation = randomCorrelation)
-                                        )
-                                    )
-                                )
-                            } else {
-                                send(Result.Loading("Updating existing panel name for id: ${remotePanelDTO.panelId}"))
-                                updateLocalDBAccordingToEvent(
-                                    WebSocketEvent(
-                                        operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
-                                        payload = json.encodeToJsonElement(
-                                            UpdatePanelNameDTO(
-                                                newName = remotePanelDTO.panelName,
-                                                panelId = remotePanelDTO.panelId,
-                                                correlation = randomCorrelation,
-                                                eventTimestamp = remotePanelDTO.eventTimestamp
+                    coroutineScope {
+                        awaitAll(async {
+                            send(Result.Loading("Processing links..."))
+                            remoteResponse.links.forEach { remoteLinkDTO ->
+                                send(Result.Loading("Processing link with id: ${remoteLinkDTO.id}"))
+                                val localId = localLinksRepo.getLocalLinkId(remoteLinkDTO.id)
+                                if (localId == null) {
+                                    send(Result.Loading("Creating new link with id: ${remoteLinkDTO.id}"))
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+                                            payload = json.encodeToJsonElement(
+                                                remoteLinkDTO.copy(correlation = randomCorrelation)
                                             )
                                         )
                                     )
-                                )
-                            }
-                        }
-
-                        send(Result.Loading("Processing panel folders..."))
-                        remoteResponse.panelFolders.forEach { remotePanelFolder ->
-                            send(Result.Loading("Adding folder to panel with id: ${remotePanelFolder.id}"))
-                            // a panel_folder can only be added with this endpoint response because if it got deleted, it will be caught in the tombstones response, not here
-                            if (localPanelsRepo.getLocalPanelFolderId(remotePanelFolder.id) == null) {
-                                updateLocalDBAccordingToEvent(
-                                    WebSocketEvent(
-                                        operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
-                                        payload = json.encodeToJsonElement(
-                                            remotePanelFolder.copy(correlation = randomCorrelation)
+                                } else {
+                                    send(Result.Loading("Updating existing link with id: ${remoteLinkDTO.id}"))
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Link.UPDATE_LINK.name,
+                                            payload = json.encodeToJsonElement(
+                                                remoteLinkDTO.copy(correlation = randomCorrelation)
+                                            )
                                         )
                                     )
-                                )
+                                }
                             }
-                        }
-                    })
+                        }, async {
+                            send(Result.Loading("Processing panels..."))
+                            remoteResponse.panels.forEach { remotePanelDTO ->
+                                send(Result.Loading("Processing panel with id: ${remotePanelDTO.panelId}"))
+                                val localId =
+                                    localPanelsRepo.getLocalPanelId(remotePanelDTO.panelId)
+                                if (localId == null) {
+                                    send(Result.Loading("Creating new panel with id: ${remotePanelDTO.panelId}"))
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
+                                            payload = json.encodeToJsonElement(
+                                                remotePanelDTO.copy(correlation = randomCorrelation)
+                                            )
+                                        )
+                                    )
+                                } else {
+                                    send(Result.Loading("Updating existing panel name for id: ${remotePanelDTO.panelId}"))
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
+                                            payload = json.encodeToJsonElement(
+                                                UpdatePanelNameDTO(
+                                                    newName = remotePanelDTO.panelName,
+                                                    panelId = remotePanelDTO.panelId,
+                                                    correlation = randomCorrelation,
+                                                    eventTimestamp = remotePanelDTO.eventTimestamp
+                                                )
+                                            )
+                                        )
+                                    )
+                                }
+                            }
+
+                            send(Result.Loading("Processing panel folders..."))
+                            remoteResponse.panelFolders.forEach { remotePanelFolder ->
+                                send(Result.Loading("Adding folder to panel with id: ${remotePanelFolder.id}"))
+                                // a panel_folder can only be added with this endpoint response because if it got deleted, it will be caught in the tombstones response, not here
+                                if (localPanelsRepo.getLocalPanelFolderId(remotePanelFolder.id) == null) {
+                                    updateLocalDBAccordingToEvent(
+                                        WebSocketEvent(
+                                            operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                                            payload = json.encodeToJsonElement(
+                                                remotePanelFolder.copy(correlation = randomCorrelation)
+                                            )
+                                        )
+                                    )
+                                }
+                            }
+                        })
+                    }
                 }
-            }
             send(Result.Success(Unit))
         }.catchAsThrowableAndEmitFailure()
     }
@@ -705,17 +707,18 @@ class RemoteSyncRepoImpl(
 
     override suspend fun applyUpdatesBasedOnRemoteTombstones(timeStampAfter: Long): Flow<Result<Unit>> {
         return wrappedResultFlow {
-            Network.getSyncServerClient().get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
-                bearerAuth(authToken())
-                contentType(ContentType.Application.Json)
-                parameter("eventTimestamp", timeStampAfter)
-            }.body<List<TombstoneDTO>>().map {
-                WebSocketEvent(
-                    operation = it.operation, payload = it.payload
-                )
-            }.forEach {
-                updateLocalDBAccordingToEvent(it)
-            }
+            Network.getSyncServerClient()
+                .get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
+                    bearerAuth(authToken())
+                    contentType(ContentType.Application.Json)
+                    parameter("eventTimestamp", timeStampAfter)
+                }.body<List<TombstoneDTO>>().map {
+                    WebSocketEvent(
+                        operation = it.operation, payload = it.payload
+                    )
+                }.forEach {
+                    updateLocalDBAccordingToEvent(it)
+                }
         }
     }
 
@@ -1127,8 +1130,10 @@ class RemoteSyncRepoImpl(
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
                     val link = localLinksRepo.getALink(localLinkId)
-                    localLinksRepo.updateALink(
-                        link.copy(markedAsImportant = true), viaSocket = true
+                    localLinksRepo.addANewLink(
+                        link = link.copy(linkType = LinkType.IMPORTANT_LINK),
+                        linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
+                        viaSocket = true
                     ).collectAndUpdateTimestamp(idBasedDTO.eventTimestamp)
                 }
             }
@@ -1145,9 +1150,8 @@ class RemoteSyncRepoImpl(
 
                 val localLinkId = localLinksRepo.getLocalLinkId(idBasedDTO.id)
                 if (localLinkId != null) {
-                    val link = localLinksRepo.getALink(localLinkId)
-                    localLinksRepo.updateALink(
-                        link.copy(markedAsImportant = false), viaSocket = true
+                    localLinksRepo.deleteALink(
+                        linkId = localLinkId, viaSocket = true
                     ).collectAndUpdateTimestamp(idBasedDTO.eventTimestamp)
                 }
             }
@@ -1176,7 +1180,6 @@ class RemoteSyncRepoImpl(
                                 linkDTO.idOfLinkedFolder
                             ) else null,
                             userAgent = linkDTO.userAgent,
-                            markedAsImportant = linkDTO.markedAsImportant,
                             mediaType = linkDTO.mediaType
                         ), viaSocket = true
                     ).collectAndUpdateTimestamp(linkDTO.eventTimestamp)
@@ -1205,10 +1208,11 @@ class RemoteSyncRepoImpl(
                         ) else null,
                         remoteId = linkDTO.id,
                         userAgent = linkDTO.userAgent,
-                        markedAsImportant = linkDTO.markedAsImportant,
                         mediaType = linkDTO.mediaType,
                         lastModified = linkDTO.eventTimestamp
-                    ), linkSaveConfig = forceSaveWithoutRetrieving(), viaSocket = true
+                    ),
+                    linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
+                    viaSocket = true
                 ).collectAndUpdateTimestamp(linkDTO.eventTimestamp)
             }
 

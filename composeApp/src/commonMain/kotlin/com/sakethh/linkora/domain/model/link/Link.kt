@@ -15,8 +15,7 @@ import java.time.Instant
 @Serializable
 data class Link(
     val linkType: LinkType,
-    @PrimaryKey(autoGenerate = true)
-    val localId: Long = 0,
+    @PrimaryKey(autoGenerate = true) val localId: Long = 0,
     val remoteId: Long? = null,
     val title: String,
     val url: String,
@@ -25,7 +24,6 @@ data class Link(
     val note: String,
     val idOfLinkedFolder: Long?,
     val userAgent: String? = AppPreferences.primaryJsoupUserAgent.value,
-    val markedAsImportant: Boolean = linkType == LinkType.IMPORTANT_LINK,
     val mediaType: MediaType = MediaType.IMAGE,
     val lastModified: Long = Instant.now().epochSecond
 ) {

@@ -1,6 +1,14 @@
 package com.sakethh.linkora.domain
 
 data class LinkSaveConfig(
-    val forceAutoDetectTitle: Boolean,
-    val forceSaveWithoutRetrievingData: Boolean
-)
+    val forceAutoDetectTitle: Boolean, val forceSaveWithoutRetrievingData: Boolean
+) {
+    companion object {
+        fun forceSaveWithoutRetrieving(): LinkSaveConfig {
+            return LinkSaveConfig(
+                forceAutoDetectTitle = false,
+                forceSaveWithoutRetrievingData = true
+            )
+        }
+    }
+}

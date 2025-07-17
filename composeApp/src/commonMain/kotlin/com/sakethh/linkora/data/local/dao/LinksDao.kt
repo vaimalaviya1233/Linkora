@@ -44,10 +44,7 @@ interface LinksDao {
     @Query("UPDATE links SET title = :newTitle WHERE localId=:linkId")
     suspend fun updateLinkTitle(linkId: Long, newTitle: String)
 
-    @Query("SELECT linkType = '${LinkType.IMPORTANT_LINK}' OR markedAsImportant FROM links WHERE url=:url")
-    suspend fun markedAsImportant(url: String): Boolean
-
-    @Query("SELECT linkType = '${LinkType.ARCHIVE_LINK}' FROM links WHERE url=:url")
+    @Query("SELECT CASE WHEN linkType = 'ARCHIVE_LINK' THEN 1 ELSE 0 END FROM links WHERE url=:url")
     suspend fun isInArchive(url: String): Boolean
 
     @Query(
@@ -67,16 +64,15 @@ interface LinksDao {
 
     @Query(
         """
-    SELECT * FROM links 
-    WHERE 
-        (:linkType = '${LinkType.IMPORTANT_LINK}' AND (linkType = '${LinkType.IMPORTANT_LINK}' OR markedAsImportant = 1))
-        OR (:linkType != '${LinkType.IMPORTANT_LINK}' AND linkType = :linkType)
-    ORDER BY 
-        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
-        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
-        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
-        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
-    """
+    SELECT * FROM links
+    WHERE
+        linkType = :linkType
+    ORDER BY
+        CASE WHEN :sortOption = 'A_TO_Z' THEN title COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = 'Z_TO_A' THEN title COLLATE NOCASE END DESC,
+        CASE WHEN :sortOption = 'NEW_TO_OLD' THEN localId END DESC,
+        CASE WHEN :sortOption = 'OLD_TO_NEW' THEN localId END ASC
+"""
     )
     fun getSortedLinks(
         linkType: com.sakethh.linkora.domain.LinkType, sortOption: String

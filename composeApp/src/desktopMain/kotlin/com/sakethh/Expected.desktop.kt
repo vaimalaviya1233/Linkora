@@ -6,10 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import androidx.sqlite.execSQL
 import com.sakethh.linkora.RefreshAllLinksService
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
@@ -56,13 +53,10 @@ private val linkoraSpecificFolder = System.getProperty("user.home").run {
 
 actual val localDatabase: LocalDatabase? =
     File(linkoraSpecificFolder, "${LocalDatabase.NAME}.db").run {
-        val MIGRATION_9_10 = object : Migration(9, 10) {
-            override fun migrate(connection: SQLiteConnection) {
-                connection.execSQL("CREATE TABLE IF NOT EXISTS `snapshot` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `content` TEXT NOT NULL)")
-            }
-        }
         Room.databaseBuilder<LocalDatabase>(name = this.absolutePath)
-            .setDriver(BundledSQLiteDriver()).addMigrations(MIGRATION_9_10).build()
+            .setDriver(BundledSQLiteDriver()).addMigrations(
+                LocalDatabase.MIGRATION_9_10, LocalDatabase.MIGRATION_10_11
+            ).build()
     }
 actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath {
     linkoraSpecificFolder.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()

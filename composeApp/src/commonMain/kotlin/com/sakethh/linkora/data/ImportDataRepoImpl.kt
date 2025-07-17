@@ -2,8 +2,8 @@ package com.sakethh.linkora.data
 
 import com.sakethh.linkora.common.utils.LinkoraExports
 import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.common.utils.forceSaveWithoutRetrieving
 import com.sakethh.linkora.common.utils.isNull
+import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asJSONExportSchema
@@ -258,7 +258,7 @@ class ImportDataRepoImpl(
                                         imgURL = "",
                                         note = "",
                                         idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
-                                    ), linkSaveConfig = forceSaveWithoutRetrieving()
+                                    ), linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving()
                                 ).collect()
                             } catch (e: Exception) {
                                 e.printStackTrace()
@@ -274,7 +274,7 @@ class ImportDataRepoImpl(
                                         imgURL = "",
                                         note = "",
                                         idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
-                                    ), linkSaveConfig = forceSaveWithoutRetrieving()
+                                    ), linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving()
                                 ).collect()
                             } catch (e: Exception) {
                                 e.printStackTrace()

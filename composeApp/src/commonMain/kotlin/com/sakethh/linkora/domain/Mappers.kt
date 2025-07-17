@@ -47,21 +47,6 @@ fun Long.asLinkType() = when (this) {
     }
 }
 
-fun Link.asHistoryLinkWithoutId(): Link {
-    return Link(
-        linkType = LinkType.HISTORY_LINK,
-        title = this.title,
-        url = this.url,
-        baseURL = this.baseURL,
-        imgURL = this.imgURL,
-        note = this.note,
-        idOfLinkedFolder = null,
-        userAgent = this.userAgent,
-        markedAsImportant = false,
-        lastModified = this.lastModified
-    )
-}
-
 @Composable
 fun LinkType.asLocalizedString(): String {
     return when (this) {
@@ -99,7 +84,7 @@ fun Link.asAddLinkDTO(): AddLinkDTO = AddLinkDTO(
     eventTimestamp = this.lastModified,
     idOfLinkedFolder = this.idOfLinkedFolder,
     userAgent = this.userAgent,
-    markedAsImportant = this.markedAsImportant,
+    markedAsImportant = false,
     mediaType = this.mediaType
 )
 
@@ -112,7 +97,7 @@ fun Link.asLinkDTO(id: Long): LinkDTO = LinkDTO(
     note = this.note,
     idOfLinkedFolder = this.idOfLinkedFolder,
     userAgent = this.userAgent,
-    markedAsImportant = this.markedAsImportant,
+    markedAsImportant = false,
     mediaType = this.mediaType,
     id = id,
     eventTimestamp = this.lastModified
@@ -147,7 +132,6 @@ suspend fun LegacyExportSchema.asJSONExportSchema(): JSONExportSchema = coroutin
                     note = it.infoForSaving,
                     idOfLinkedFolder = null,
                     localId = it.id,
-                    markedAsImportant = true
                 )
             })
         },

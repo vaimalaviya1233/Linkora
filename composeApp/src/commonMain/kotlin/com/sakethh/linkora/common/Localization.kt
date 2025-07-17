@@ -493,7 +493,7 @@ object Localization {
         RemoveALinkFromImpLink(
             defaultValue = "Remove from Important Links"
         ),
-        MarkALinkAsImpLink(defaultValue = "Mark Link as Important"),
+        MarkALinkAsImpLink(defaultValue = "Add to Important Links"),
         NewestToOldest(defaultValue = "Newest to Oldest"),
         OldestToNewest(
             defaultValue = "Oldest to Newest"

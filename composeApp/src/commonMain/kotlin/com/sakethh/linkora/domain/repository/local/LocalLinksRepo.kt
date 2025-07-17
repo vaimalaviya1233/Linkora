@@ -49,8 +49,6 @@ interface LocalLinksRepo {
         linkId: Long, newTitle: String, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
-    suspend fun markedAsImportant(linkUrl: String): Flow<Result<Boolean>>
-
     suspend fun isInArchive(url: String): Flow<Result<Boolean>>
 
     fun search(query: String, sortOption: String): Flow<Result<List<Link>>>

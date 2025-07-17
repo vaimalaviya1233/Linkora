@@ -2,7 +2,6 @@ package com.sakethh.linkora.common.utils
 
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure
@@ -27,10 +26,6 @@ fun <T> wrappedResultFlow(init: suspend (SendChannel<Result<T>>) -> T): Flow<Res
             send(Result.Success(it))
         }
     }.catchAsExceptionAndEmitFailure()
-}
-
-fun forceSaveWithoutRetrieving(): LinkSaveConfig {
-    return LinkSaveConfig(forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true)
 }
 
 fun defaultSavedLinksFolder(): Folder = Folder(

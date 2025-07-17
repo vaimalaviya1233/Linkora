@@ -111,7 +111,6 @@ import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetUI
@@ -214,10 +213,6 @@ fun App(
         mutableStateOf(MenuBtmSheetType.Folder.RegularFolder)
     }
 
-    val menuBtmSheetVM: MenuBtmSheetVM = viewModel(factory = genericViewModelFactory {
-        MenuBtmSheetVM(DependencyContainer.localLinksRepo.value)
-    })
-
     LaunchedEffect(Unit) {
         UIEvent.uiEvents.collectLatest { eventType ->
             when (eventType) {
@@ -231,14 +226,11 @@ fun App(
 
                 is UIEvent.Type.ShowMenuBtmSheetUI -> {
                     menuBtmSheetFor.value = eventType.menuBtmSheetFor
-                    if (eventType.selectedFolderForMenuBtmSheet.isNotNull()) {
-                        menuBtmSheetVM.updateArchiveFolderCardData(eventType.selectedFolderForMenuBtmSheet!!.isArchived)
+                    if (eventType.selectedFolderForMenuBtmSheet != null) {
                         selectedFolderForMenuBtmSheet.value =
                             eventType.selectedFolderForMenuBtmSheet
                     }
-                    if (eventType.selectedLinkForMenuBtmSheet.isNotNull()) {
-                        menuBtmSheetVM.updateImpLinkInfo(eventType.selectedLinkForMenuBtmSheet!!.url)
-                        menuBtmSheetVM.updateArchiveLinkInfo(eventType.selectedLinkForMenuBtmSheet.url)
+                    if (eventType.selectedLinkForMenuBtmSheet != null) {
                         selectedLinkForMenuBtmSheet.value = eventType.selectedLinkForMenuBtmSheet
                     }
                     menuBtmModalSheetVisible.value = true
@@ -971,7 +963,7 @@ fun App(
                             })
                     },
                     shouldShowArchiveOption = {
-                        menuBtmSheetVM.shouldShowArchiveOption(selectedLinkForMenuBtmSheet.value.url)
+                        selectedLinkForMenuBtmSheet.value.linkType == LinkType.ARCHIVE_LINK
                     },
                     showProgressBarDuringRemoteSave = showProgressBarDuringRemoteSave
                 )

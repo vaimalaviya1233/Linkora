@@ -23,7 +23,6 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetVM
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -409,18 +408,19 @@ open class CollectionsScreenVM(
 
     fun markALinkAsImp(link: Link, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            if (MenuBtmSheetVM.isCurrentLinkMarkedAsImp) {
-                if (link.linkType == LinkType.IMPORTANT_LINK) {
-                    deleteALink(link, onCompletion = {})
-                } else {
-                    localLinksRepo.updateALink(link.copy(markedAsImportant = false)).collectLatest {
-                        it.pushSnackbarOnFailure()
-                    }
+            if (link.linkType == LinkType.IMPORTANT_LINK) {
+                deleteALink(link, onCompletion = {})
+                return@launch
+            }
+            localLinksRepo.addANewLink(
+                link = link.copy(
+                    localId = 0, linkType = LinkType.IMPORTANT_LINK,
+                ), linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving()
+            ).collectLatest {
+                it.onSuccess {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar("Added Copy to Important Links"))
                 }
-            } else {
-                localLinksRepo.updateALink(link.copy(markedAsImportant = true)).collectLatest {
-                    it.pushSnackbarOnFailure()
-                }
+                it.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {
             onCompletion()
@@ -568,9 +568,9 @@ open class CollectionsScreenVM(
                 it.onSuccess {
                     _links.apply {
                         if (forceShuffleLinks) {
-                            emit(it.data.shuffled().distinctBy { it.url })
+                            emit(it.data.shuffled())
                         } else {
-                            emit(it.data.distinctBy { it.url })
+                            emit(it.data)
                         }
                     }
                 }.pushSnackbarOnFailure()

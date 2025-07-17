@@ -39,8 +39,8 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
@@ -163,8 +163,7 @@ fun SearchScreen() {
                             },
                             onFolderClick = { folder ->
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
-                                    currentFolder = folder,
-                                    isAnyCollectionSelected = true
+                                    currentFolder = folder, isAnyCollectionSelected = true
                                 )
                                 CollectionsScreenVM.updateSearchNavigated(
                                     SearchNavigated(
@@ -199,7 +198,10 @@ fun SearchScreen() {
                             onLinkClick = {
                                 localUriHandler.openUri(it.url)
                                 searchScreenVM.addANewLinkToHistory(
-                                    link = it.asHistoryLinkWithoutId()
+                                    link = it.copy(
+                                        linkType = com.sakethh.linkora.domain.LinkType.HISTORY_LINK,
+                                        localId = 0
+                                    )
                                 )
                             },
                             isCurrentlyInDetailsView = {
@@ -242,7 +244,7 @@ fun SearchScreen() {
             onLinkClick = {
                 localUriHandler.openUri(it.url)
                 searchScreenVM.addANewLinkToHistory(
-                    link = it.asHistoryLinkWithoutId()
+                    link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0)
                 )
             },
             isCurrentlyInDetailsView = {

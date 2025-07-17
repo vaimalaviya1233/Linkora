@@ -120,8 +120,8 @@ class HomeScreenVM(
                         ProcessedPanelFolders(
                             panelFolders = defaultPanelFolders,
                             links = listOf(
-                                (if (shuffleLinks) savedLinks.shuffled() else savedLinks).distinctBy { it.url },
-                                (if (shuffleLinks) impLinks.shuffled() else impLinks).distinctBy { it.url }),
+                                if (shuffleLinks) savedLinks.shuffled() else savedLinks,
+                                if (shuffleLinks) impLinks.shuffled() else impLinks),
                             folders = listOf(emptyList(), emptyList())
                         )
                     }
@@ -152,7 +152,7 @@ class HomeScreenVM(
                             combine(childFolders, links) { childFolders, links ->
                                 ProcessedPanelFolders(
                                     panelFolders = panelFolders,
-                                    links = links.map { it.distinctBy { it.url } },
+                                    links = links,
                                     folders = childFolders
                                 )
                             }

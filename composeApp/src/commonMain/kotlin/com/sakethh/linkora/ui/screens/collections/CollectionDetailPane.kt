@@ -47,8 +47,8 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.domain.asHistoryLinkWithoutId
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
@@ -206,7 +206,7 @@ fun CollectionDetailPane(
                                 onFolderClick = {},
                                 onLinkClick = {
                                     collectionsScreenVM.addANewLink(
-                                        link = it.asHistoryLinkWithoutId(),
+                                        link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0),
                                         linkSaveConfig = LinkSaveConfig(
                                             forceAutoDetectTitle = false,
                                             forceSaveWithoutRetrievingData = true
@@ -370,7 +370,7 @@ fun CollectionDetailPane(
                 },
                 onLinkClick = {
                     collectionsScreenVM.addANewLink(
-                        link = it.asHistoryLinkWithoutId(), linkSaveConfig = LinkSaveConfig(
+                        link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0), linkSaveConfig = LinkSaveConfig(
                             forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                         ), onCompletion = {}, pushSnackbarOnSuccess = false
                     )

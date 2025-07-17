@@ -14,11 +14,14 @@ import androidx.compose.material.icons.automirrored.outlined.TextSnippet
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.FolderDelete
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.Unarchive
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -48,6 +51,7 @@ import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.onShare
@@ -131,6 +135,8 @@ fun MenuBtmSheetUI(
                 }
 
                 if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
+                    val markedAsImportant = menuBtmSheetParam.link!!.value.linkType == LinkType.IMPORTANT_LINK
+
                     IndividualMenuComponent(
                         onClick = {
                             menuBtmSheetParam.onAddToImportantLinks?.let { it() }
@@ -141,11 +147,12 @@ fun MenuBtmSheetUI(
                                 menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                             }
                         },
-                        elementName = MenuBtmSheetVM.importantOptionText.value,
-                        elementImageVector = MenuBtmSheetVM.importantOptionIcon.value
+                        elementName = if (!markedAsImportant) Localization.Key.MarkALinkAsImpLink.getLocalizedString() else Localization.Key.RemoveALinkFromImpLink.getLocalizedString(),
+                        elementImageVector = if (markedAsImportant) Icons.Outlined.DeleteForever else Icons.Outlined.StarOutline
                     )
                 }
 
+                val isArchived = menuBtmSheetParam.link!!.value.linkType == LinkType.ARCHIVE_LINK
                 IndividualMenuComponent(
                     onClick = {
                         menuBtmSheetParam.onArchive()
@@ -157,8 +164,8 @@ fun MenuBtmSheetUI(
                             menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                         }
                     },
-                    elementName = MenuBtmSheetVM.archiveOptionText.value,
-                    elementImageVector = MenuBtmSheetVM.archiveOptionIcon.value
+                    elementName = if (isArchived) Localization.Key.UnArchive.getLocalizedString() else Localization.Key.Archive.getLocalizedString(),
+                    elementImageVector = if (isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive
                 )
 
                 if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor) && menuBtmSheetParam.link!!.value.note.isNotBlank() || menuBtmSheetFolderEntries().contains(
@@ -231,6 +238,8 @@ fun MenuBtmSheetUI(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        val isArchived =
+                            menuBtmSheetParam.link.value.linkType == LinkType.ARCHIVE_LINK
                         NavigationBarItem(selected = true, onClick = {
                             if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
                                 localClipboard.setText(
@@ -248,7 +257,7 @@ fun MenuBtmSheetUI(
                             }
                         }, icon = {
                             Icon(
-                                imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Default.ContentCopy else MenuBtmSheetVM.archiveOptionIcon.value,
+                                imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Default.ContentCopy else if (isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
                                 contentDescription = null
                             )
                         }, label = {
@@ -256,7 +265,7 @@ fun MenuBtmSheetUI(
                                 text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
                                     Localization.Key.CopyLink.rememberLocalizedString()
                                 } else {
-                                    MenuBtmSheetVM.archiveOptionText.value
+                                    if (isArchived) Localization.Key.UnArchive.getLocalizedString() else Localization.Key.Archive.getLocalizedString()
                                 }, style = MaterialTheme.typography.titleSmall
                             )
                         })

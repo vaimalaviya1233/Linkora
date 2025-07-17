@@ -449,12 +449,6 @@ class LocalLinksRepoImpl(
         }
     }
 
-    override suspend fun markedAsImportant(linkUrl: String): Flow<Result<Boolean>> {
-        return wrappedResultFlow {
-            linksDao.markedAsImportant(linkUrl)
-        }
-    }
-
     override suspend fun isInArchive(url: String): Flow<Result<Boolean>> {
         return wrappedResultFlow {
             linksDao.isInArchive(url)
