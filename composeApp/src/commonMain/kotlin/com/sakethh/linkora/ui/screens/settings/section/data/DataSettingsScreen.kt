@@ -401,7 +401,10 @@ fun DataSettingsScreen() {
                             modifier = Modifier.padding(top = 10.dp),
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
-                            remember { ExportFileType.entries.map { it.name } + "Both" }.let {
+                            remember {
+                                ExportFileType.entries.map { it.name }
+                                    .filter { it != "CER" } + "Both"
+                            }.let {
                                 it.forEachIndexed { index, exportType ->
                                     val checked =
                                         exportType == AppPreferences.snapshotsExportType.value
