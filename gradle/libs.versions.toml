@@ -15,7 +15,6 @@ androidx-test-junit = "1.2.1"
 coilCompose = "3.0.4"
 compose-multiplatform = "1.7.0"
 datastorePreferencesCore = "1.1.1"
-filekitCore = "0.8.8"
 jsoup = "1.18.1"
 junit = "4.13.2"
 kotlin = "2.0.21"
@@ -26,7 +25,7 @@ lifecycleViewmodelCompose = "2.8.2"
 navigationCompose = "2.8.0-alpha10"
 ksp = "2.0.20-1.0.24"
 sqlite = "2.5.0-SNAPSHOT"
-androidx-room = "2.7.0"
+androidx-room = "2.7.2"
 workRuntime = "2.10.0"
 
 [libraries]
@@ -35,8 +34,6 @@ androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-p
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
-filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCore" }
-filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekitCore" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
