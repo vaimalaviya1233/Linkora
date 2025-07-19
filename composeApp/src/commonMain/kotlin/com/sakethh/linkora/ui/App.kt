@@ -3,8 +3,6 @@ package com.sakethh.linkora.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -22,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
@@ -64,11 +61,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,8 +75,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -90,8 +87,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.preferences.AppPreferences.serverBaseUrl
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
+import com.sakethh.linkora.common.utils.currentSavedServerConfig
 import com.sakethh.linkora.common.utils.defaultFolderIds
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.inRootScreen
@@ -412,10 +411,10 @@ fun App(
         val selectedAndInRoot = rememberSaveable(inRootScreen, appVM.transferActionType.value) {
             mutableStateOf((inRootScreen == true) && (appVM.transferActionType.value != TransferActionType.NONE))
         }
-        val bottomNavBarOffset = rememberSaveable {
-            mutableStateOf(0)
+        val isDataSyncingFromPullRefresh = rememberSaveable {
+            mutableStateOf(false)
         }
-        val localDensity = LocalDensity.current
+        val pullToRefreshState = rememberPullToRefreshState()
         Scaffold(
             bottomBar = {
             Box(modifier = Modifier.animateContentSize()) {
@@ -745,66 +744,93 @@ fun App(
             })
         }, modifier = Modifier.fillMaxSize()
         ) {
-            NavHost(
-                navController = localNavController, startDestination = appVM.startDestination.value
-            ) {
-                composable<Navigation.Root.HomeScreen> {
-                    HomeScreen()
-                }
-                composable<Navigation.Root.SearchScreen> {
-                    SearchScreen()
-                }
-                composable<Navigation.Root.CollectionsScreen> {
-                    CollectionsScreen(
-                        collectionsScreenVM = collectionsScreenVM
-                    )
-                }
-                composable<Navigation.Root.SettingsScreen> {
-                    SettingsScreen()
-                }
-                composable<Navigation.Settings.ThemeSettingsScreen> {
-                    ThemeSettingsScreen()
-                }
-                composable<Navigation.Settings.GeneralSettingsScreen> {
-                    GeneralSettingsScreen()
-                }
-                composable<Navigation.Settings.LayoutSettingsScreen> {
-                    LayoutSettingsScreen()
-                }
-                composable<Navigation.Settings.DataSettingsScreen> {
-                    DataSettingsScreen()
-                }
-                composable<Navigation.Settings.Data.ServerSetupScreen> {
-                    ServerSetupScreen()
-                }
-                composable<Navigation.Settings.LanguageSettingsScreen> {
-                    LanguageSettingsScreen()
-                }
-                composable<Navigation.Collection.CollectionDetailPane> {
-                    CollectionDetailPane()
-                }
-                composable<Navigation.Home.PanelsManagerScreen> {
-                    PanelsManagerScreen()
-                }
-                composable<Navigation.Home.SpecificPanelManagerScreen> {
-                    SpecificPanelManagerScreen()
-                }
-                composable<Navigation.Settings.AboutSettingsScreen> {
-                    AboutSettingsScreen()
-                }
-                composable<Navigation.Settings.AcknowledgementSettingsScreen> {
-                    AcknowledgementSettingsScreen()
-                }
-                composable<Navigation.Settings.AdvancedSettingsScreen> {
-                    AdvancedSettingsScreen()
-                }
-                composable<Navigation.Root.OnboardingSlidesScreen> {
-                    OnboardingSlidesScreen(onOnboardingComplete = {
-                        appVM.markOnboardingComplete()
+            Box(
+                modifier = Modifier.pullToRefresh(
+                    isRefreshing = isDataSyncingFromPullRefresh.value,
+                    state = pullToRefreshState,
+                    enabled = rememberSaveable(serverBaseUrl.value) {
+                        serverBaseUrl.value.isNotBlank() && platform == Platform.Android.Mobile
+                    },
+                    onRefresh = {
+                        appVM.saveServerConnectionAndSync(
+                            serverConnection = currentSavedServerConfig(),
+                            timeStampAfter = {
+                                appVM.getLastSyncedTime()
+                            },
+                            onSyncStart = {
+                                isDataSyncingFromPullRefresh.value = true
+                            },
+                            onCompletion = {
+                                isDataSyncingFromPullRefresh.value = false
+                            })
                     })
+            ) {
+                NavHost(
+                    navController = localNavController,
+                    startDestination = appVM.startDestination.value
+                ) {
+                    composable<Navigation.Root.HomeScreen> {
+                        HomeScreen()
+                    }
+                    composable<Navigation.Root.SearchScreen> {
+                        SearchScreen()
+                    }
+                    composable<Navigation.Root.CollectionsScreen> {
+                        CollectionsScreen(
+                            collectionsScreenVM = collectionsScreenVM
+                        )
+                    }
+                    composable<Navigation.Root.SettingsScreen> {
+                        SettingsScreen()
+                    }
+                    composable<Navigation.Settings.ThemeSettingsScreen> {
+                        ThemeSettingsScreen()
+                    }
+                    composable<Navigation.Settings.GeneralSettingsScreen> {
+                        GeneralSettingsScreen()
+                    }
+                    composable<Navigation.Settings.LayoutSettingsScreen> {
+                        LayoutSettingsScreen()
+                    }
+                    composable<Navigation.Settings.DataSettingsScreen> {
+                        DataSettingsScreen()
+                    }
+                    composable<Navigation.Settings.Data.ServerSetupScreen> {
+                        ServerSetupScreen()
+                    }
+                    composable<Navigation.Settings.LanguageSettingsScreen> {
+                        LanguageSettingsScreen()
+                    }
+                    composable<Navigation.Collection.CollectionDetailPane> {
+                        CollectionDetailPane()
+                    }
+                    composable<Navigation.Home.PanelsManagerScreen> {
+                        PanelsManagerScreen()
+                    }
+                    composable<Navigation.Home.SpecificPanelManagerScreen> {
+                        SpecificPanelManagerScreen()
+                    }
+                    composable<Navigation.Settings.AboutSettingsScreen> {
+                        AboutSettingsScreen()
+                    }
+                    composable<Navigation.Settings.AcknowledgementSettingsScreen> {
+                        AcknowledgementSettingsScreen()
+                    }
+                    composable<Navigation.Settings.AdvancedSettingsScreen> {
+                        AdvancedSettingsScreen()
+                    }
+                    composable<Navigation.Root.OnboardingSlidesScreen> {
+                        OnboardingSlidesScreen(onOnboardingComplete = {
+                            appVM.markOnboardingComplete()
+                        })
+                    }
                 }
+                Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = isDataSyncingFromPullRefresh.value,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
             }
-
             AnimatedVisibility(
                 visible = isReducedTransparencyBoxVisible.value, enter = fadeIn(), exit = fadeOut()
             ) {

@@ -36,10 +36,11 @@ import java.io.File
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 
-class ServerManagementViewModel(
+open class ServerManagementViewModel(
     private val networkRepo: NetworkRepo,
     val preferencesRepository: PreferencesRepository,
-    private val remoteSyncRepo: RemoteSyncRepo
+    private val remoteSyncRepo: RemoteSyncRepo,
+    loadExistingCertificateInfo: Boolean = true
 ) : ViewModel() {
     val serverSetupState = mutableStateOf(
         ServerSetupState(
@@ -145,9 +146,10 @@ class ServerManagementViewModel(
                         dataSyncLogs.add(it)
                     }.onSuccess {
                         AppVM.readSocketEvents(remoteSyncRepo)
-                    }.onFailure {
+                    }.onFailure { _ ->
+                        it.pushSnackbarOnFailure()
                         cancel()
-                    }.pushSnackbarOnFailure()
+                    }
                 }
             }
             if (AppPreferences.canPushToServer()) {
@@ -184,20 +186,22 @@ class ServerManagementViewModel(
     val existingCertificateInfo = mutableStateOf("")
 
     init {
-        viewModelScope.launch {
-            existingCertificateInfo.value = getExistingSyncServerCertificate().run {
-                if (this == null) {
-                    ""
-                } else {
-                    "Certificate Authority:\n${this.issuerX500Principal.name}\nStatus: ${
-                        try {
-                            this.checkValidity()
-                            "Valid"
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            "Invalid"
-                        }
-                    }".trim()
+        if (loadExistingCertificateInfo) {
+            viewModelScope.launch {
+                existingCertificateInfo.value = getExistingSyncServerCertificate().run {
+                    if (this == null) {
+                        ""
+                    } else {
+                        "Certificate Authority:\n${this.issuerX500Principal.name}\nStatus: ${
+                            try {
+                                this.checkValidity()
+                                "Valid"
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                "Invalid"
+                            }
+                        }".trim()
+                    }
                 }
             }
         }

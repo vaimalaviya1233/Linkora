@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.lifecycle.ViewModel
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.DataSyncingNotificationService
 import com.sakethh.linkora.common.Localization
@@ -69,14 +69,19 @@ import kotlinx.serialization.json.Json
 @OptIn(FlowPreview::class)
 class AppVM(
     private val remoteSyncRepo: RemoteSyncRepo,
-    private val preferencesRepository: PreferencesRepository,
+    preferencesRepository: PreferencesRepository,
     private val networkRepo: NetworkRepo,
     private val linksRepo: LocalLinksRepo,
     private val foldersRepo: LocalFoldersRepo,
     private val localMultiActionRepo: LocalMultiActionRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val exportDataRepo: ExportDataRepo
-) : ViewModel() {
+) : ServerManagementViewModel(
+    networkRepo = networkRepo,
+    preferencesRepository = preferencesRepository,
+    remoteSyncRepo = remoteSyncRepo,
+    loadExistingCertificateInfo = false
+) {
 
     private val dataSyncingNotificationService = DataSyncingNotificationService()
     val isPerformingStartupSync = mutableStateOf(false)
@@ -87,6 +92,12 @@ class AppVM(
 
     private var snapshotsJob: Job? = null
     val isAnySnapshotOngoing = mutableStateOf(false)
+
+    suspend fun getLastSyncedTime(): Long{
+        return preferencesRepository.readPreferenceValue(
+            preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
+        ) ?: 0
+    }
 
     init {
 

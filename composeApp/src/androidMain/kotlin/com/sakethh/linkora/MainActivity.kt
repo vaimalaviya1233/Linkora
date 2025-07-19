@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.BottomAppBarDefaults
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
             val currentBackStackEntryState = navController.currentBackStackEntryAsState()
@@ -212,7 +214,7 @@ class MainActivity : ComponentActivity() {
                             }) {
                             systemUIController.setNavigationBarColor(rootBtmNavColor)
                         } else {
-                            systemUIController.setNavigationBarColor(colors.surface)
+                            systemUIController.setNavigationBarColor(colors.surface.copy(0f))
                         }
                         systemUIController.setStatusBarColor(colors.surface)
                     }
