@@ -414,6 +414,7 @@ open class CollectionsScreenVM(
             }
             localLinksRepo.addANewLink(
                 link = link.copy(
+                    idOfLinkedFolder = Constants.IMPORTANT_LINKS_ID,
                     localId = 0, linkType = LinkType.IMPORTANT_LINK,
                 ), linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving()
             ).collectLatest {
