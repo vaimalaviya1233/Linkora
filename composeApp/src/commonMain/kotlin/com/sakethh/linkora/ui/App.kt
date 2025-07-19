@@ -311,6 +311,12 @@ fun App(
             } && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ARCHIVE_ID
         }
     }
+
+    val isDataSyncingFromPullRefresh = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val pullToRefreshState = rememberPullToRefreshState()
+
     LaunchedEffect(AppVM.isMainFabRotated.value) {
         if (AppVM.isMainFabRotated.value.not()) {
             isReducedTransparencyBoxVisible.value = false
@@ -372,16 +378,35 @@ fun App(
                     Box(
                         Modifier.fillMaxHeight(), contentAlignment = Alignment.BottomCenter
                     ) {
-                        if (platform() !is Platform.Android.Mobile && appVM.isPerformingStartupSync.value) {
+                        if (platform() !is Platform.Android.Mobile && serverBaseUrl.value.isNotBlank()) {
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.align(Alignment.BottomCenter)
-                                    .padding(bottom = 90.dp)
+                                    .padding(bottom = 80.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.CloudSync, contentDescription = null
-                                )
-                                CircularProgressIndicator()
+                                IconButton(onClick = {
+                                    if (!appVM.isPerformingStartupSync.value && !isDataSyncingFromPullRefresh.value) {
+                                        appVM.saveServerConnectionAndSync(
+                                            serverConnection = currentSavedServerConfig(),
+                                            timeStampAfter = {
+                                                appVM.getLastSyncedTime()
+                                            },
+                                            onSyncStart = {
+                                                isDataSyncingFromPullRefresh.value = true
+                                            },
+                                            onCompletion = {
+                                                isDataSyncingFromPullRefresh.value = false
+                                            })
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.CloudSync,
+                                        contentDescription = null
+                                    )
+                                }
+                                if (appVM.isPerformingStartupSync.value || isDataSyncingFromPullRefresh.value) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
 
@@ -389,7 +414,7 @@ fun App(
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
+                                    .padding(bottom = 20.dp)
                                     .alpha(if (platform() !is Platform.Android.Mobile && appVM.isAnySnapshotOngoing.value) 1f else 0.25f)
                             ) {
                                 Icon(
@@ -411,10 +436,6 @@ fun App(
         val selectedAndInRoot = rememberSaveable(inRootScreen, appVM.transferActionType.value) {
             mutableStateOf((inRootScreen == true) && (appVM.transferActionType.value != TransferActionType.NONE))
         }
-        val isDataSyncingFromPullRefresh = rememberSaveable {
-            mutableStateOf(false)
-        }
-        val pullToRefreshState = rememberPullToRefreshState()
         Scaffold(
             bottomBar = {
             Box(modifier = Modifier.animateContentSize()) {
