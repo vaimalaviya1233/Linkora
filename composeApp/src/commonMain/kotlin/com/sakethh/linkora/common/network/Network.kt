@@ -1,5 +1,6 @@
 package com.sakethh.linkora.common.network
 
+import com.sakethh.linkora.ui.utils.linkoraLog
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -27,16 +28,21 @@ object Network {
     private var syncServerClient: HttpClient? = null
 
     fun getSyncServerClient(): HttpClient {
-        return syncServerClient ?: error("syncServerClient isn't configured; make sure a valid certificate is imported.")
+        return syncServerClient
+            ?: error("syncServerClient isn't configured; make sure a valid certificate is imported.")
     }
 
-    fun closeSyncServerClient(){
+    fun closeSyncServerClient() {
         syncServerClient?.close()
         syncServerClient = null
     }
 
-    fun configureSyncServerClient(signedCertificate: X509Certificate) {
+    fun configureSyncServerClient(signedCertificate: X509Certificate?, bypassCertCheck: Boolean) {
         if (syncServerClient != null) return
+
+        if (signedCertificate == null && !bypassCertCheck) {
+            error("syncServerClient isn't configured; make sure a valid certificate is imported.")
+        }
 
         syncServerClient = HttpClient(CIO) {
             engine {
@@ -50,17 +56,24 @@ object Network {
                         override fun checkServerTrusted(
                             chain: Array<out X509Certificate?>?, authType: String?
                         ) {
+                            if (bypassCertCheck) {
+                                linkoraLog("Bypassing checkServerTrusted")
+                                return
+                            }
+
                             if (chain?.isEmpty() == true) {
                                 throw CertificateException("Certificate chain is empty") as Throwable
                             }
 
                             val serverCert = chain?.get(0)
-                            serverCert?.verify(signedCertificate.publicKey)
+                            signedCertificate?.let {
+                                serverCert?.verify(it.publicKey)
+                            }
                             serverCert?.checkValidity()
                         }
 
                         override fun getAcceptedIssuers(): Array<out X509Certificate?>? {
-                            return arrayOf(signedCertificate)
+                            return if (bypassCertCheck) arrayOf() else arrayOf(signedCertificate)
                         }
 
                     }

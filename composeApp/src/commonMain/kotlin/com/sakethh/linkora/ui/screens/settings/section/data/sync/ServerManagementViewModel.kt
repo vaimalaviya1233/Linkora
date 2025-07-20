@@ -2,6 +2,7 @@ package com.sakethh.linkora.ui.screens.settings.section.data.sync
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,8 +24,11 @@ import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.loadSyncServerCertificate
 import com.sakethh.permittedToShowNotification
 import com.sakethh.pickAValidFileForImporting
+import com.sakethh.saveSyncServerCertificateInternally
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -57,22 +61,43 @@ open class ServerManagementViewModel(
 
     fun testServerConnection(serverUrl: String, token: String) {
         viewModelScope.launch {
-            networkRepo.testServerConnection(serverUrl, token).collectLatest {
-                it.onSuccess {
-                    serverSetupState.value = ServerSetupState(
-                        isConnecting = false, isConnectedSuccessfully = true, isError = false
-                    )
-                    permittedToShowNotification()
-                }.onFailure { failureMessage ->
-                    serverSetupState.value = ServerSetupState(
-                        isConnecting = false, isConnectedSuccessfully = false, isError = true
-                    )
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(failureMessage))
-                }.onLoading {
-                    serverSetupState.value = ServerSetupState(
-                        isConnecting = true, isConnectedSuccessfully = false, isError = false
-                    )
+            val certificateFactory = CertificateFactory.getInstance("X.509")
+            val signedCertificate: X509Certificate? =
+                _generatedServerCertificate?.inputStream().use {
+                    try {
+                        certificateFactory.generateCertificate(it) as X509Certificate
+                    } catch (e: Exception) {
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+                        null
+                    }
                 }
+            try {
+
+                Network.closeSyncServerClient()
+                Network.configureSyncServerClient(
+                    signedCertificate = signedCertificate,
+                    bypassCertCheck = AppPreferences.skipCertCheckForSync.value
+                )
+
+                networkRepo.testServerConnection(serverUrl, token).collectLatest {
+                    it.onSuccess {
+                        serverSetupState.value = ServerSetupState(
+                            isConnecting = false, isConnectedSuccessfully = true, isError = false
+                        )
+                        permittedToShowNotification()
+                    }.onFailure { failureMessage ->
+                        serverSetupState.value = ServerSetupState(
+                            isConnecting = false, isConnectedSuccessfully = false, isError = true
+                        )
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(failureMessage))
+                    }.onLoading {
+                        serverSetupState.value = ServerSetupState(
+                            isConnecting = true, isConnectedSuccessfully = false, isError = false
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
             }
         }
     }
@@ -114,7 +139,7 @@ open class ServerManagementViewModel(
         saveServerConnectionAndSyncJob = viewModelScope.launch {
             _generatedServerCertificate?.let {
                 withContext(Dispatchers.IO) {
-                    com.sakethh.saveSyncServerCertificateInternally(file = it, onCompletion = {
+                    saveSyncServerCertificateInternally(file = it, onCompletion = {
                         pushUIEvent(UIEvent.Type.ShowSnackbar("Server certificate saved successfully."))
                     })
                 }
@@ -186,7 +211,7 @@ open class ServerManagementViewModel(
     val existingCertificateInfo = mutableStateOf("")
 
     init {
-        if (loadExistingCertificateInfo) {
+        if (loadExistingCertificateInfo && !AppPreferences.skipCertCheckForSync.value) {
             viewModelScope.launch {
                 existingCertificateInfo.value = getExistingSyncServerCertificate().run {
                     if (this == null) {
@@ -213,7 +238,7 @@ open class ServerManagementViewModel(
                 withContext(Dispatchers.IO) {
                     val certificateFactory = CertificateFactory.getInstance("X.509")
                     try {
-                        com.sakethh.loadSyncServerCertificate().inputStream().use {
+                        loadSyncServerCertificate().inputStream().use {
                             certificateFactory.generateCertificate(it) as X509Certificate
                         }
                     } catch (e: Exception) {
@@ -274,25 +299,22 @@ open class ServerManagementViewModel(
                 return@launch
             }
             _generatedServerCertificate = generatedServerCertificate
-            val certificateFactory = CertificateFactory.getInstance("X.509")
-            val signedCertificate: X509Certificate? = generatedServerCertificate.inputStream().use {
-                try {
-                    certificateFactory.generateCertificate(it) as X509Certificate
-                } catch (e: Exception) {
-                    onCompletion("")
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
-                    null
-                }
-            }
-            Network.closeSyncServerClient()
-            signedCertificate?.let {
-                Network.configureSyncServerClient(it)
-            }
             onCompletion(generatedServerCertificate.name)
         }
 
         certImportJob?.invokeOnCompletion {
             it?.printStackTrace()
+        }
+    }
+
+    fun updateCertificateBypassRule(bypass: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = booleanPreferencesKey(AppPreferenceType.SKIP_CERT_CHECK_FOR_SYNC_SERVER.name),
+                newValue = bypass
+            )
+        }.invokeOnCompletion {
+            AppPreferences.skipCertCheckForSync.value = bypass
         }
     }
 }

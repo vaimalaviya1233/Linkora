@@ -93,7 +93,7 @@ class AppVM(
     private var snapshotsJob: Job? = null
     val isAnySnapshotOngoing = mutableStateOf(false)
 
-    suspend fun getLastSyncedTime(): Long{
+    suspend fun getLastSyncedTime(): Long {
         return preferencesRepository.readPreferenceValue(
             preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
         ) ?: 0
@@ -238,8 +238,13 @@ class AppVM(
 
         viewModelScope.launch {
             if (AppPreferences.isServerConfigured()) {
-                ServerManagementViewModel.getExistingSyncServerCertificate()?.let {
-                    Network.configureSyncServerClient(it)
+                try {
+                    Network.configureSyncServerClient(
+                        signedCertificate = getExistingSyncServerCertificate(),
+                        bypassCertCheck = AppPreferences.skipCertCheckForSync.value
+                    )
+                } catch (e: Exception) {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
                 }
                 isPerformingStartupSync.value = true
                 networkRepo.testServerConnection(
