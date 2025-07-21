@@ -51,8 +51,7 @@ fun ThemeSettingsScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                .navigationBarsPadding(),
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             if (platform is Platform.Android && showFollowSystemThemeOption && !AppPreferences.shouldUseForceDarkTheme.value) {

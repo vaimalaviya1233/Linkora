@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -100,8 +99,8 @@ fun ServerSetupScreen(
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                .navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(30.dp)
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {
                 Spacer(Modifier)

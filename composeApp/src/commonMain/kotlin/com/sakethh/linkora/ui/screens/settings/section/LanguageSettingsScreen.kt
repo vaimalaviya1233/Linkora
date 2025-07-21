@@ -128,8 +128,7 @@ fun LanguageSettingsScreen() {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
                 .padding(start = 15.dp, end = 15.dp)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                .navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(15.dp)
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             item {
                 Spacer(modifier = Modifier)

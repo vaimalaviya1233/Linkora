@@ -61,7 +61,7 @@ fun AcknowledgementSettingsScreen() {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                .navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(30.dp)
+                , verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {
                 if (platform is Platform.Desktop) {

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -359,213 +358,216 @@ fun LayoutSettingsScreen() {
         topAppBarText = Localization.Key.LinkLayoutSettings.rememberLocalizedString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
-        if (AppPreferences.currentlySelectedLinkLayout.value == Layout.REGULAR_LIST_VIEW.name || AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues)
-                    .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                    .navigationBarsPadding()
-            ) {
-                item {
-                    Text(
-                        text = Localization.Key.ChooseTheLayoutYouLikeBest.rememberLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(15.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                items(Layout.entries) {
-                    LinkViewRadioButtonComponent(
-                        it, settingsScreenViewModel, PaddingValues(start = 10.dp)
-                    )
-                }
-
-                item {
-                    Box(
-                        modifier = Modifier.padding(start = 10.dp, end = 10.dp)
-                    ) {
-                        LinkViewPreferenceSwitch(
-                            onClick = {
-                                AppPreferences.enableBaseURLForLinkViews.value =
-                                    !AppPreferences.enableBaseURLForLinkViews.value
-                                settingsScreenViewModel.changeSettingPreferenceValue(
-                                    preferenceKey = booleanPreferencesKey(AppPreferenceType.BASE_URL_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-                                    newValue = AppPreferences.enableBaseURLForLinkViews.value
-                                )
-                            },
-                            title = Localization.Key.ShowHostAddress.getLocalizedString(),
-                            isSwitchChecked = AppPreferences.enableBaseURLForLinkViews.value
-                        )
-                    }
-                }
-
-                item {
-                    Box(
-                        modifier = Modifier.padding(start = 10.dp, end = 10.dp)
-                    ) {
-                        LinkViewPreferenceSwitch(
-                            onClick = {
-                                AppPreferences.showNoteInListViewLayout.value =
-                                    !AppPreferences.showNoteInListViewLayout.value
-                                settingsScreenViewModel.changeSettingPreferenceValue(
-                                    preferenceKey = booleanPreferencesKey(AppPreferenceType.NOTE_VISIBILITY_IN_LIST_VIEWS.name),
-                                    newValue = AppPreferences.showNoteInListViewLayout.value
-                                )
-                            },
-                            title = Localization.Key.ShowNote.getLocalizedString(),
-                            isSwitchChecked = AppPreferences.showNoteInListViewLayout.value
-                        )
-                    }
-                }
-
-                item {
-                    HorizontalDivider(
-                        Modifier.padding(
-                            start = 15.dp, end = 15.dp, top = 15.dp, bottom = 5.dp
-                        )
-                    )
-                }
-
-                item {
-                    Text(
-                        text = Localization.Key.FeedPreview.rememberLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(15.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                items(sampleList) {
-                    LinkListItemComposable(
-                        linkUIComponentParam = it,
-                        forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
-                    )
-                }
-                item {
-                    Spacer(Modifier.height(100.dp))
-                }
-            }
-        } else if (AppPreferences.currentlySelectedLinkLayout.value == Layout.GRID_VIEW.name) {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(150.dp),
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp).padding(paddingValues)
-                    .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                    .navigationBarsPadding()
-            ) {
-                item(span = {
-                    GridItemSpan(maxLineSpan)
-                }) {
-                    Text(
-                        text = Localization.Key.ChooseTheLayoutYouLikeBest.getLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(top = 15.dp, bottom = 15.dp, start = 5.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                items(Layout.entries, span = {
-                    GridItemSpan(maxLineSpan)
-                }) {
-                    LinkViewRadioButtonComponent(
-                        it, settingsScreenViewModel
-                    )
-                }
-
-                items(nonListViewPref, span = {
-                    GridItemSpan(maxLineSpan)
-                }) {
-                    LinkViewPreferenceSwitch(
-                        onClick = it.onClick,
-                        title = it.title,
-                        isSwitchChecked = it.isSwitchChecked.value
-                    )
-                }
-
-                item(span = {
-                    GridItemSpan(maxLineSpan)
-                }) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(
-                            top = 15.dp, bottom = 5.dp, start = 5.dp, end = 5.dp
-                        ),
-                    )
-                }
-
-                item(span = {
-                    GridItemSpan(maxLineSpan)
-                }) {
-                    Text(
-                        text = Localization.Key.FeedPreview.getLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(top = 10.dp, bottom = 15.dp, start = 5.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                items(sampleList) {
-                    GridViewLinkUIComponent(it, forStaggeredView = false)
-                }
-                item(span = {
-                    GridItemSpan(maxLineSpan)
-                }) {
-                    Spacer(Modifier.height(100.dp))
-                }
-            }
-        } else {
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Adaptive(150.dp),
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp).padding(paddingValues)
-                    .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                    .navigationBarsPadding()
-            ) {
-                item(
-                    span = StaggeredGridItemSpan.FullLine
+        when (AppPreferences.currentlySelectedLinkLayout.value) {
+            Layout.REGULAR_LIST_VIEW.name, Layout.TITLE_ONLY_LIST_VIEW.name -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(paddingValues)
+                        .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                 ) {
-                    Text(
-                        text = Localization.Key.ChooseTheLayoutYouLikeBest.getLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(top = 15.dp, bottom = 15.dp, start = 5.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                    item {
+                        Text(
+                            text = Localization.Key.ChooseTheLayoutYouLikeBest.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(15.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
 
-                items(
-                    items = Layout.entries, span = {
-                        StaggeredGridItemSpan.FullLine
+                    items(Layout.entries) {
+                        LinkViewRadioButtonComponent(
+                            it, settingsScreenViewModel, PaddingValues(start = 10.dp)
+                        )
+                    }
+
+                    item {
+                        Box(
+                            modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                        ) {
+                            LinkViewPreferenceSwitch(
+                                onClick = {
+                                    AppPreferences.enableBaseURLForLinkViews.value =
+                                        !AppPreferences.enableBaseURLForLinkViews.value
+                                    settingsScreenViewModel.changeSettingPreferenceValue(
+                                        preferenceKey = booleanPreferencesKey(AppPreferenceType.BASE_URL_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+                                        newValue = AppPreferences.enableBaseURLForLinkViews.value
+                                    )
+                                },
+                                title = Localization.Key.ShowHostAddress.getLocalizedString(),
+                                isSwitchChecked = AppPreferences.enableBaseURLForLinkViews.value
+                            )
+                        }
+                    }
+
+                    item {
+                        Box(
+                            modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                        ) {
+                            LinkViewPreferenceSwitch(
+                                onClick = {
+                                    AppPreferences.showNoteInListViewLayout.value =
+                                        !AppPreferences.showNoteInListViewLayout.value
+                                    settingsScreenViewModel.changeSettingPreferenceValue(
+                                        preferenceKey = booleanPreferencesKey(AppPreferenceType.NOTE_VISIBILITY_IN_LIST_VIEWS.name),
+                                        newValue = AppPreferences.showNoteInListViewLayout.value
+                                    )
+                                },
+                                title = Localization.Key.ShowNote.getLocalizedString(),
+                                isSwitchChecked = AppPreferences.showNoteInListViewLayout.value
+                            )
+                        }
+                    }
+
+                    item {
+                        HorizontalDivider(
+                            Modifier.padding(
+                                start = 15.dp, end = 15.dp, top = 15.dp, bottom = 5.dp
+                            )
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = Localization.Key.FeedPreview.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(15.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    items(sampleList) {
+                        LinkListItemComposable(
+                            linkUIComponentParam = it,
+                            forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
+                        )
+                    }
+                    item {
+                        Spacer(Modifier.height(100.dp))
+                    }
+                }
+            }
+
+            Layout.GRID_VIEW.name -> {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(150.dp),
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).padding(paddingValues)
+                        .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
+                ) {
+                    item(span = {
+                        GridItemSpan(maxLineSpan)
                     }) {
-                    LinkViewRadioButtonComponent(
-                        it, settingsScreenViewModel
-                    )
-                }
+                        Text(
+                            text = Localization.Key.ChooseTheLayoutYouLikeBest.getLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 15.dp, bottom = 15.dp, start = 5.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    items(Layout.entries, span = {
+                        GridItemSpan(maxLineSpan)
+                    }) {
+                        LinkViewRadioButtonComponent(
+                            it, settingsScreenViewModel
+                        )
+                    }
 
-                items(items = nonListViewPref, span = { StaggeredGridItemSpan.FullLine }) {
-                    LinkViewPreferenceSwitch(
-                        onClick = it.onClick,
-                        title = it.title,
-                        isSwitchChecked = it.isSwitchChecked.value
-                    )
-                }
+                    items(nonListViewPref, span = {
+                        GridItemSpan(maxLineSpan)
+                    }) {
+                        LinkViewPreferenceSwitch(
+                            onClick = it.onClick,
+                            title = it.title,
+                            isSwitchChecked = it.isSwitchChecked.value
+                        )
+                    }
 
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(
-                            top = 15.dp, bottom = 5.dp, start = 5.dp, end = 5.dp
-                        ),
-                    )
-                }
+                    item(span = {
+                        GridItemSpan(maxLineSpan)
+                    }) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(
+                                top = 15.dp, bottom = 5.dp, start = 5.dp, end = 5.dp
+                            ),
+                        )
+                    }
 
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    Text(
-                        text = Localization.Key.FeedPreview.getLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(top = 10.dp, bottom = 15.dp, start = 5.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    item(span = {
+                        GridItemSpan(maxLineSpan)
+                    }) {
+                        Text(
+                            text = Localization.Key.FeedPreview.getLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 10.dp, bottom = 15.dp, start = 5.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    items(sampleList) {
+                        GridViewLinkUIComponent(it, forStaggeredView = false)
+                    }
+                    item(span = {
+                        GridItemSpan(maxLineSpan)
+                    }) {
+                        Spacer(Modifier.height(100.dp))
+                    }
                 }
-                items(sampleList) {
-                    GridViewLinkUIComponent(
-                        linkUIComponentParam = it, forStaggeredView = true
-                    )
-                }
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    Spacer(Modifier.height(100.dp))
+            }
+
+            else -> {
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Adaptive(150.dp),
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).padding(paddingValues)
+                        .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
+                ) {
+                    item(
+                        span = StaggeredGridItemSpan.FullLine
+                    ) {
+                        Text(
+                            text = Localization.Key.ChooseTheLayoutYouLikeBest.getLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 15.dp, bottom = 15.dp, start = 5.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    items(
+                        items = Layout.entries, span = {
+                            StaggeredGridItemSpan.FullLine
+                        }) {
+                        LinkViewRadioButtonComponent(
+                            it, settingsScreenViewModel
+                        )
+                    }
+
+                    items(items = nonListViewPref, span = { StaggeredGridItemSpan.FullLine }) {
+                        LinkViewPreferenceSwitch(
+                            onClick = it.onClick,
+                            title = it.title,
+                            isSwitchChecked = it.isSwitchChecked.value
+                        )
+                    }
+
+                    item(span = StaggeredGridItemSpan.FullLine) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(
+                                top = 15.dp, bottom = 5.dp, start = 5.dp, end = 5.dp
+                            ),
+                        )
+                    }
+
+                    item(span = StaggeredGridItemSpan.FullLine) {
+                        Text(
+                            text = Localization.Key.FeedPreview.getLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 10.dp, bottom = 15.dp, start = 5.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    items(sampleList) {
+                        GridViewLinkUIComponent(
+                            linkUIComponentParam = it, forStaggeredView = true
+                        )
+                    }
+                    item(span = StaggeredGridItemSpan.FullLine) {
+                        Spacer(Modifier.height(100.dp))
+                    }
                 }
             }
         }

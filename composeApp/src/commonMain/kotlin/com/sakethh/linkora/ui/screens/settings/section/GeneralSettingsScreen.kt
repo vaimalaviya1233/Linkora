@@ -76,8 +76,7 @@ fun GeneralSettingsScreen() {
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
-                .navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(30.dp)
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {
                 Spacer(Modifier)
