@@ -59,6 +59,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.inDoubleQuotes
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
@@ -126,7 +127,7 @@ fun LanguageSettingsScreen() {
             }
         }) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                 .padding(start = 15.dp, end = 15.dp)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {

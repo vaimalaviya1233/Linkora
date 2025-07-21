@@ -80,7 +80,7 @@ fun CollectionLayoutManager(
             })
     }
     val bottomSpacing = remember {
-        mutableStateOf(150.dp)
+        mutableStateOf(250.dp)
     }
     val folderComponentParam: (folder: Folder) -> FolderComponentParam = {
         FolderComponentParam(

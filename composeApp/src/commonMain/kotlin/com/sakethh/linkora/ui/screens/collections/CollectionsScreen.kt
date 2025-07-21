@@ -89,7 +89,6 @@ fun CollectionsScreen(
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         topBar = {
             MediumTopAppBar(
-                colors = TopAppBarDefaults.mediumTopAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
                 scrollBehavior = topAppBarScrollState,
                 title = {
                     Text(

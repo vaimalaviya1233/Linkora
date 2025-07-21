@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.LocalNavController
@@ -59,7 +59,7 @@ fun AcknowledgementSettingsScreen() {
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                 , verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {

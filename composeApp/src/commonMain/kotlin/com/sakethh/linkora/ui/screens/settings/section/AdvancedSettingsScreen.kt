@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -23,6 +21,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -57,7 +56,7 @@ fun AdvancedSettingsScreen() {
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {

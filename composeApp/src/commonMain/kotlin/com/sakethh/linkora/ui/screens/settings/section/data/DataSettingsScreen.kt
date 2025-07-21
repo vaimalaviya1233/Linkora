@@ -76,6 +76,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.currentSavedServerConfig
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
@@ -160,7 +161,7 @@ fun DataSettingsScreen() {
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {

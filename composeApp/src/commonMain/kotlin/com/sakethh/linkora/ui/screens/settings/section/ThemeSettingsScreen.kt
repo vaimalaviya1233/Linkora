@@ -21,6 +21,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
@@ -50,7 +51,7 @@ fun ThemeSettingsScreen() {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .addEdgeToEdgeScaffoldPadding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {

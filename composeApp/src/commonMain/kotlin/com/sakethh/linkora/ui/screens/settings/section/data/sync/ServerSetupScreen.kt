@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.RemoteRoute
@@ -98,7 +99,7 @@ fun ServerSetupScreen(
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {

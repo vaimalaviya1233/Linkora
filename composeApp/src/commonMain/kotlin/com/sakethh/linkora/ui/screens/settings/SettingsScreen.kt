@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -66,9 +67,7 @@ fun SettingsScreen() {
     Scaffold(topBar = {
         Column {
             LargeTopAppBar(
-                colors = TopAppBarDefaults.largeTopAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
-                scrollBehavior = topAppBarScrollState,
-                title = {
+                scrollBehavior = topAppBarScrollState, title = {
                     Text(
                         text = Localization.rememberLocalizedString(Localization.Key.Settings),
                         color = MaterialTheme.colorScheme.onSurface,
@@ -79,7 +78,7 @@ fun SettingsScreen() {
         }
     }) { it ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(it)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(it)
                 .nestedScroll(topAppBarScrollState.nestedScrollConnection)
         ) {
             item {
@@ -141,14 +140,11 @@ fun SettingsScreen() {
                     }
                     ItemDivider(
                         paddingValues = PaddingValues(
-                            start = 15.dp,
-                            end = 15.dp,
-                            top = 7.5.dp,
-                            bottom = 7.5.dp
-                    ),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    colorOpacity = 0.25f,
-                    thickness = 0.25.dp,
+                            start = 15.dp, end = 15.dp, top = 7.5.dp, bottom = 7.5.dp
+                        ),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        colorOpacity = 0.25f,
+                        thickness = 0.25.dp,
                     )
                     Button(
                         onClick = {

@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Archive
@@ -41,7 +40,6 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,7 +57,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
@@ -148,6 +145,7 @@ import com.sakethh.platform
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
@@ -318,7 +316,7 @@ fun App(
     val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(AppVM.isMainFabRotated.value) {
-        if (AppVM.isMainFabRotated.value.not()) {
+        if (!AppVM.isMainFabRotated.value) {
             isReducedTransparencyBoxVisible.value = false
             rotationAnimation.animateTo(
                 -180f, animationSpec = tween(500)
@@ -441,9 +439,9 @@ fun App(
             Box(modifier = Modifier.animateContentSize()) {
                 if (CollectionsScreenVM.isSelectionEnabled.value) {
                     Column(
-                        modifier = Modifier.navigationBarsPadding().fillMaxWidth()
-                            .animateContentSize()
-                            .background(if (inRootScreen == true) BottomAppBarDefaults.containerColor else TopAppBarDefaults.topAppBarColors().containerColor)
+                        modifier = Modifier.fillMaxWidth().animateContentSize()
+                            .background(NavigationBarDefaults.containerColor)
+                            .navigationBarsPadding()
                     ) {
                         HorizontalDivider()
                         Spacer(modifier = Modifier.height(5.dp))
@@ -662,21 +660,23 @@ fun App(
                     }
                 }
             }
+
+            // Bottom Nav Bar on Android Mobile:
             AnimatedVisibility(
                 visible = platform == Platform.Android.Mobile && inRootScreen == true && !CollectionsScreenVM.isSelectionEnabled.value,
                 exit = slideOutVertically(targetOffsetY = { it }),
                 enter = slideInVertically(initialOffsetY = { it })
             ) {
                 Column(
-                    modifier = Modifier.navigationBarsPadding().fillMaxWidth().animateContentSize()
+                    modifier = Modifier.fillMaxWidth().animateContentSize()
                 ) {
                     if (appVM.isPerformingStartupSync.value) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth()
-                            .windowInsetsPadding(NavigationBarDefaults.windowInsets)
-                            .background(NavigationBarDefaults.containerColor),
+                            .background(NavigationBarDefaults.containerColor)
+                            .navigationBarsPadding(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
@@ -1116,9 +1116,12 @@ fun App(
                     onSelected = { sortingPreferences, _, _ -> },
                     bottomModalSheetState = sortingBtmSheetState,
                     sortingBtmSheetType = SortingBtmSheetType.COLLECTIONS_SCREEN,
-                    shouldFoldersSelectionBeVisible = mutableStateOf(false),
-                    shouldLinksSelectionBeVisible = mutableStateOf(false)
-                )
+                    shouldFoldersSelectionBeVisible = rememberSaveable {
+                        mutableStateOf(false)
+                    },
+                    shouldLinksSelectionBeVisible = rememberSaveable {
+                        mutableStateOf(false)
+                    })
             )
         }
     }

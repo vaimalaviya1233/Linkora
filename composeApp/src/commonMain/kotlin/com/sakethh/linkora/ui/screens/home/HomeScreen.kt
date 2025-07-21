@@ -134,7 +134,7 @@ fun HomeScreen() {
                     SortingIconButton()
                 }
             }
-            if (homeScreenVM.selectedPanelData.value.isNotNull()) {
+            if (homeScreenVM.selectedPanelData.value != null) {
                 Text(
                     text = Localization.Key.SelectedPanel.rememberLocalizedString(),
                     color = MaterialTheme.colorScheme.primary.copy(0.9f),
@@ -264,8 +264,7 @@ fun HomeScreen() {
                     onLinkClick = {
                         homeScreenVM.addANewLink(
                             link = it.copy(
-                                linkType = LinkType.HISTORY_LINK,
-                                localId = 0
+                                linkType = LinkType.HISTORY_LINK, localId = 0
                             ), linkSaveConfig = LinkSaveConfig(
                                 forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                             ), onCompletion = {}, pushSnackbarOnSuccess = false

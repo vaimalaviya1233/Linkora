@@ -42,6 +42,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkType
@@ -361,7 +362,7 @@ fun LayoutSettingsScreen() {
         when (AppPreferences.currentlySelectedLinkLayout.value) {
             Layout.REGULAR_LIST_VIEW.name, Layout.TITLE_ONLY_LIST_VIEW.name -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues)
+                    modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                         .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                 ) {
                     item {
@@ -448,7 +449,7 @@ fun LayoutSettingsScreen() {
             Layout.GRID_VIEW.name -> {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(150.dp),
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).padding(paddingValues)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).addEdgeToEdgeScaffoldPadding(paddingValues)
                         .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                 ) {
                     item(span = {
@@ -513,7 +514,7 @@ fun LayoutSettingsScreen() {
             else -> {
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Adaptive(150.dp),
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).padding(paddingValues)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).addEdgeToEdgeScaffoldPadding(paddingValues)
                         .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                 ) {
                     item(

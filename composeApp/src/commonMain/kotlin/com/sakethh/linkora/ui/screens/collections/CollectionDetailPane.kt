@@ -43,6 +43,7 @@ import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
@@ -163,7 +164,7 @@ fun CollectionDetailPane(
     }) { paddingValues ->
 
         if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
-            Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            Column(modifier = Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxSize()) {
                 TabRow(selectedTabIndex = pagerState.currentPage) {
                     listOf(
                         Localization.Key.Links.rememberLocalizedString(),
@@ -311,7 +312,7 @@ fun CollectionDetailPane(
             return@Scaffold
         }
 
-        Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+        Column(modifier = Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxSize()) {
             if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                     collectionsScreenVM.availableFiltersForAllLinks.forEach {

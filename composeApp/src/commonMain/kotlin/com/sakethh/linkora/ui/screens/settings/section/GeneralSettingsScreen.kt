@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -42,6 +40,7 @@ import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
@@ -75,8 +74,9 @@ fun GeneralSettingsScreen() {
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(30.dp)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {
                 Spacer(Modifier)
@@ -188,10 +188,10 @@ fun GeneralSettingsScreen() {
                 ).forEach {
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable(onClick = {
-                                currentlySelectedRoute.value = it.toString()
-                            }, indication = null, interactionSource = remember {
-                                MutableInteractionSource()
-                            }).pulsateEffect(), verticalAlignment = Alignment.CenterVertically
+                            currentlySelectedRoute.value = it.toString()
+                        }, indication = null, interactionSource = remember {
+                            MutableInteractionSource()
+                        }).pulsateEffect(), verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = currentlySelectedRoute.value == it.toString(), onClick = {

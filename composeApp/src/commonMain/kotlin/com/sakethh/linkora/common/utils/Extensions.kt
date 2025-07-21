@@ -1,11 +1,15 @@
 package com.sakethh.linkora.common.utils
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -18,7 +22,6 @@ import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.Correlation
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -56,8 +59,7 @@ fun String.baseUrl(throwOnException: Boolean = true): String {
 
 fun Modifier.fillMaxWidthWithPadding(
     paddingValues: PaddingValues = PaddingValues(
-        start = 15.dp,
-        end = 15.dp
+        start = 15.dp, end = 15.dp
     )
 ): Modifier {
     return this.fillMaxWidth().padding(paddingValues)
@@ -75,6 +77,14 @@ fun Modifier.bottomNavPaddingAcrossPlatforms(): Modifier {
 fun Any?.isNotNull(): Boolean {
     return this != null
 }
+
+// keeps the nav bar (what's it actually called?) transparent while still applying padding on top, end, bottom;
+// kinda a hacky workaround, but there doesn't seem to be any clear documentation on how to handle this properly
+fun Modifier.addEdgeToEdgeScaffoldPadding(paddingValues: PaddingValues) = this.padding(
+    top = paddingValues.calculateTopPadding(), start = paddingValues.calculateStartPadding(
+        LayoutDirection.Ltr
+    ), end = paddingValues.calculateEndPadding(LayoutDirection.Rtl)
+).consumeWindowInsets(paddingValues)
 
 fun Any?.isNull(): Boolean {
     return this == null
