@@ -244,7 +244,9 @@ fun CollectionsScreen(
                         )
                         Row {
                             SortingIconButton()
-                            Spacer(modifier = Modifier.width(5.dp))
+                            if (platform == Platform.Android.Mobile) {
+                                Spacer(modifier = Modifier.width(5.dp))
+                            }
                         }
                     }
                 }
