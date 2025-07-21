@@ -6,13 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.ui.LocalNavController
@@ -90,38 +91,37 @@ fun SpecificPanelManagerScreen(
             })
         },
         bottomBar = {
-            Column {
-                OutlinedTextField(
-                    trailingIcon = {
-                        if (specificPanelManagerScreenVM.foldersSearchQuery.value.isNotBlank()) {
-                            IconButton(onClick = {
-                                specificPanelManagerScreenVM.updateFoldersSearchQuery("")
-                            }) {
-                                Icon(imageVector = Icons.Default.Clear, contentDescription = null)
-                            }
+            OutlinedTextField(
+                trailingIcon = {
+                    if (specificPanelManagerScreenVM.foldersSearchQuery.value.isNotBlank()) {
+                        IconButton(onClick = {
+                            specificPanelManagerScreenVM.updateFoldersSearchQuery("")
+                        }) {
+                            Icon(imageVector = Icons.Default.Clear, contentDescription = null)
                         }
-                    },
-                    textStyle = MaterialTheme.typography.titleSmall,
-                    shape = RoundedCornerShape(15.dp),
-                    value = specificPanelManagerScreenVM.foldersSearchQuery.value,
-                    onValueChange = {
-                        specificPanelManagerScreenVM.updateFoldersSearchQuery(it)
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(15.dp),
-                    placeholder = {
-                        Text(
-                            text = "Search folders to add",
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.basicMarquee()
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                    })
-            }
+                    }
+                },
+                textStyle = MaterialTheme.typography.titleSmall,
+                shape = RoundedCornerShape(15.dp),
+                value = specificPanelManagerScreenVM.foldersSearchQuery.value,
+                onValueChange = {
+                    specificPanelManagerScreenVM.updateFoldersSearchQuery(it)
+                },
+                modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp)
+                    .navigationBarsPadding(),
+                placeholder = {
+                    Text(
+                        text = "Search folders to add",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.basicMarquee()
+                    )
+                },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                })
         }) {
         LazyColumn(
-            modifier = Modifier.padding(it).fillMaxWidth().animateContentSize()
+            modifier = Modifier.addEdgeToEdgeScaffoldPadding(it).fillMaxWidth().animateContentSize()
                 .nestedScroll(topAppBarState.nestedScrollConnection)
         ) {
             stickyHeader {
