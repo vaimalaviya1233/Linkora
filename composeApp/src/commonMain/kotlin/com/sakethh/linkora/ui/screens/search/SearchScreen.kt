@@ -225,7 +225,10 @@ fun SearchScreen() {
                 fontSize = 20.sp,
                 modifier = Modifier.padding(start = 15.dp)
             )
-            SortingIconButton()
+            Row {
+                SortingIconButton()
+                Spacer(modifier = Modifier.width(5.dp))
+            }
         }
         CollectionLayoutManager(
             emptyDataText = Localization.Key.NoHistoryFound.rememberLocalizedString(),

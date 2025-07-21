@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -89,8 +90,7 @@ fun CollectionsScreen(
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         topBar = {
             MediumTopAppBar(
-                scrollBehavior = topAppBarScrollBehavior,
-                title = {
+                scrollBehavior = topAppBarScrollBehavior, title = {
                     Text(
                         text = Navigation.Root.CollectionsScreen.toString(),
                         color = MaterialTheme.colorScheme.onSurface,
@@ -242,7 +242,10 @@ fun CollectionsScreen(
                             fontSize = 20.sp,
                             modifier = Modifier.padding(start = 15.dp)
                         )
-                        SortingIconButton()
+                        Row {
+                            SortingIconButton()
+                            Spacer(modifier = Modifier.width(5.dp))
+                        }
                     }
                 }
                 if (rootFolders.value.isEmpty()) {
