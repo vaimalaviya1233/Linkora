@@ -274,6 +274,7 @@ fun HomeScreen() {
                     isCurrentlyInDetailsView = {
                         false
                     },
+                    nestedScrollConnection = null,
                     emptyDataText = if (activePanelAssociatedPanelFolders.value.map { it.folderId }
                             .contains(Constants.SAVED_LINKS_ID)) Localization.Key.NoLinksFound.rememberLocalizedString() else "")
             }

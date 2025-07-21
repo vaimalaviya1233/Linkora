@@ -17,16 +17,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,8 +90,7 @@ fun CollectionDetailPane(
                         CollectionsScreenVM.updateCollectionDetailPaneInfo(it)
                     }
                 }
-            } else CollectionsScreenVM.collectionDetailPaneInfo.value
-        )
+            } else CollectionsScreenVM.collectionDetailPaneInfo.value)
     }),
 ) {
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
@@ -103,9 +102,10 @@ fun CollectionDetailPane(
         if (platform is Platform.Android.Mobile) collectionsScreenVM.collectionDetailPaneInfo?.currentFolder else CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
     val navController = LocalNavController.current
     val localUriHandler = LocalUriHandler.current
+    val topAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
-            TopAppBar(actions = {
+            MediumTopAppBar(scrollBehavior = topAppBarScrollBehavior, actions = {
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
@@ -123,9 +123,7 @@ fun CollectionDetailPane(
                         )
 
                         if (platform is Platform.Android.Mobile) {
-                            navController.currentBackStackEntry
-                                ?.savedStateHandle
-                                ?.set(
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
                                     Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
                                     Json.encodeToString(parentFolderCollectionPane)
                                 )
@@ -148,21 +146,20 @@ fun CollectionDetailPane(
                     }
                 }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null
                     )
                 }
             }, title = {
                 Text(
                     text = currentlyInFolder?.name ?: "",
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontSize = 18.sp
                 )
             })
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(0.25f))
         }
     }) { paddingValues ->
-
         if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
             Column(modifier = Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxSize()) {
                 TabRow(selectedTabIndex = pagerState.currentPage) {
@@ -207,20 +204,21 @@ fun CollectionDetailPane(
                                 onFolderClick = {},
                                 onLinkClick = {
                                     collectionsScreenVM.addANewLink(
-                                        link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0),
-                                        linkSaveConfig = LinkSaveConfig(
+                                        link = it.copy(
+                                            linkType = LinkType.HISTORY_LINK,
+                                            localId = 0
+                                        ), linkSaveConfig = LinkSaveConfig(
                                             forceAutoDetectTitle = false,
                                             forceSaveWithoutRetrievingData = true
-                                        ),
-                                        onCompletion = {},
-                                        pushSnackbarOnSuccess = false
+                                        ), onCompletion = {}, pushSnackbarOnSuccess = false
                                     )
                                     localUriHandler.openUri(it.url)
                                 },
                                 isCurrentlyInDetailsView = {
                                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
                                 },
-                                emptyDataText = Localization.Key.NoArchiveLinksFound.getLocalizedString()
+                                emptyDataText = Localization.Key.NoArchiveLinksFound.getLocalizedString(),
+                                nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection
                             )
                         }
 
@@ -285,7 +283,8 @@ fun CollectionDetailPane(
                                             },
                                             showMoreIcon = rememberSaveable {
                                                 mutableStateOf(true)
-                                            }, isSelectedForSelection = mutableStateOf(
+                                            },
+                                            isSelectedForSelection = mutableStateOf(
                                                 CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
                                                     rootArchiveFolder
                                                 )
@@ -371,15 +370,20 @@ fun CollectionDetailPane(
                 },
                 onLinkClick = {
                     collectionsScreenVM.addANewLink(
-                        link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0), linkSaveConfig = LinkSaveConfig(
+                        link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0),
+                        linkSaveConfig = LinkSaveConfig(
                             forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
-                        ), onCompletion = {}, pushSnackbarOnSuccess = false
+                        ),
+                        onCompletion = {},
+                        pushSnackbarOnSuccess = false
                     )
                     localUriHandler.openUri(it.url)
                 },
                 isCurrentlyInDetailsView = {
                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
-                })
+                },
+                nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection
+            )
         }
     }
     PlatformSpecificBackHandler {
@@ -397,9 +401,7 @@ fun CollectionDetailPane(
             )
 
             if (platform is Platform.Android.Mobile) {
-                navController.currentBackStackEntry
-                    ?.savedStateHandle
-                    ?.set(
+                navController.currentBackStackEntry?.savedStateHandle?.set(
                         Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
                         Json.encodeToString(parentFolderCollectionPane)
                     )

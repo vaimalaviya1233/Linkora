@@ -19,10 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.common.utils.then
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -44,7 +47,8 @@ fun CollectionLayoutManager(
     linkMoreIconClick: (link: Link) -> Unit,
     onLinkClick: (link: Link) -> Unit,
     isCurrentlyInDetailsView: (folder: Folder) -> Boolean,
-    emptyDataText: String = ""
+    emptyDataText: String = "",
+    nestedScrollConnection: NestedScrollConnection?
 ) {
     val linkUIComponentParam: (link: Link) -> LinkUIComponentParam = {
         LinkUIComponentParam(
@@ -122,7 +126,7 @@ fun CollectionLayoutManager(
     when (AppPreferences.currentlySelectedLinkLayout.value) {
         Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> {
 
-            LazyColumn(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            LazyColumn(modifier = Modifier.then(if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier).padding(paddingValues).fillMaxSize()) {
                 items(folders) {
                     FolderComponent(folderComponentParam = folderComponentParam(it))
                 }
@@ -155,6 +159,7 @@ fun CollectionLayoutManager(
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
                 modifier = Modifier.padding(paddingValues).fillMaxSize()
+                    .then(if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier)
             ) {
                 items(items = folders, span = {
                     GridItemSpan(this.maxLineSpan)
@@ -187,7 +192,7 @@ fun CollectionLayoutManager(
         Layout.STAGGERED_VIEW.name -> {
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Adaptive(150.dp),
-                modifier = Modifier.padding(paddingValues).fillMaxSize()
+                modifier = Modifier.padding(paddingValues).fillMaxSize().then(if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier)
             ) {
                 items(items = folders, span = { StaggeredGridItemSpan.Companion.FullLine }) {
                     FolderComponent(folderComponentParam = folderComponentParam(it))

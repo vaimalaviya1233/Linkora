@@ -83,13 +83,13 @@ fun CollectionsScreen(
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val platform = LocalPlatform.current
-    val topAppBarScrollState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val topAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         topBar = {
             MediumTopAppBar(
-                scrollBehavior = topAppBarScrollState,
+                scrollBehavior = topAppBarScrollBehavior,
                 title = {
                     Text(
                         text = Navigation.Root.CollectionsScreen.toString(),
@@ -103,7 +103,7 @@ fun CollectionsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxHeight()
                     .fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.4f)
-                    .nestedScroll(topAppBarScrollState.nestedScrollConnection)
+                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
             ) {
                 item {
                     DefaultFolderComponent(

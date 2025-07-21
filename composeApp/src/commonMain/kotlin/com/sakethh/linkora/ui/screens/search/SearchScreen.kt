@@ -206,7 +206,9 @@ fun SearchScreen() {
                             },
                             isCurrentlyInDetailsView = {
                                 false
-                            })
+                            },
+                            nestedScrollConnection = null
+                        )
                     }
                 }
             }
@@ -249,7 +251,9 @@ fun SearchScreen() {
             },
             isCurrentlyInDetailsView = {
                 false
-            })
+            },
+            nestedScrollConnection = null
+        )
     }
 }
 
