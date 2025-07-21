@@ -1,6 +1,8 @@
 Save, organize, and sync your links between Android and desktop. Whether you're bookmarking something quickly or managing a structured folder hierarchy, Linkora handles it all with optional self-hosted sync.
 
-Powerful link organization with a simple, clean interface.
+A browser extension is available for saving web links directly to Linkora via sync-server.
+
+Organize your links with a simple, clean interface.
 
 Features
 - Organize links with unlimited folders and subfolders and easily copy and move links between folders
@@ -10,3 +12,4 @@ Features
 - Share from other apps (Android) and add folders to Panels for quick access
 - Sort, search, import/export data in JSON and HTML formats with auto-backups
 - Keep your links in sync across devices with optional self-hostable server (https://github.com/LinkoraApp/sync-server)
+- Browser extension support for web link saving (https://github.com/LinkoraApp/browser-extension)

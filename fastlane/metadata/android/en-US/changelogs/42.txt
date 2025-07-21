@@ -1,0 +1,4 @@
+- Added bypass certificate verification option for sync server connections
+- Pull-to-refresh and sync buttons to manually trigger sync and reconnect WebSocket
+- Edge-to-edge display improvements with transparent navigation bars
+- Updated target SDK to 36
