@@ -8,10 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -141,7 +139,9 @@ fun AddANewLinkDialogBox(
     val addTheFolderInRoot = rememberSaveable {
         mutableStateOf(false)
     }
-    val isChildFoldersBottomSheetExpanded = mutableStateOf(false)
+    val isChildFoldersBottomSheetExpanded = rememberSaveable {
+        mutableStateOf(false)
+    }
     val btmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val lifecycleOwner = LocalLifecycleOwner.current
     if (shouldBeVisible.value) {
@@ -260,7 +260,9 @@ fun AddANewLinkDialogBox(
                                 onClick = {
                                     shouldBeVisible.value = false
                                 }) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                                Icon(
+                                    imageVector = Icons.Default.Close, contentDescription = null
+                                )
                             }
                         }
                     }
