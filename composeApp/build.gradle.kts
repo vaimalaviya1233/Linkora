@@ -58,6 +58,11 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
+
+        commonTest.dependencies {
+            implementation("io.mockk:mockk:1.14.5")
+            implementation(libs.kotlin.test)
+        }
     }
 }
 
@@ -130,13 +135,17 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(
-                TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,
-                TargetFormat.AppImage, TargetFormat.Rpm, TargetFormat.Pkg, TargetFormat.Exe
+                TargetFormat.Dmg,
+                TargetFormat.Msi,
+                TargetFormat.Deb,
+                TargetFormat.AppImage,
+                TargetFormat.Rpm,
+                TargetFormat.Pkg,
+                TargetFormat.Exe
             )
             packageName = "Linkora"
             this.vendor = "Saketh Pathike"
-            this.packageVersion = "1.0.9"
-            /*
+            this.packageVersion = "1.0.9"/*
 
             This logo (src/desktopMain/resources/logo.*) was painted by `mondstern`.
             The original post can be found here: https://pixelfed.social/p/mondstern/747494483548287527
