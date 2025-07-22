@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common
+package com.sakethh.linkora.di
 
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.network.repository.NetworkRepoImpl
@@ -30,10 +30,9 @@ object DependencyContainer {
 
     val localizationRepo = lazy {
         LocalizationRepoImpl(
-            standardClient = Network.standardClient, localizationServerURL =  {
+            standardClient = Network.standardClient, localizationServerURL = {
                 AppPreferences.localizationServerURL.value
-            },
-            localDatabase!!.localizationDao
+            }, localDatabase!!.localizationDao
         )
     }
 
@@ -85,7 +84,8 @@ object DependencyContainer {
         LocalFoldersRepoImpl(
             foldersDao = localDatabase?.foldersDao!!,
             remoteFoldersRepo = remoteFoldersRepo.value,
-            localLinksRepo = localLinksRepo.value, localPanelsRepo = localPanelsRepo.value,
+            localLinksRepo = localLinksRepo.value,
+            localPanelsRepo = localPanelsRepo.value,
             pendingSyncQueueRepo = pendingSyncQueueRepo.value,
             preferencesRepository = preferencesRepo.value
         )

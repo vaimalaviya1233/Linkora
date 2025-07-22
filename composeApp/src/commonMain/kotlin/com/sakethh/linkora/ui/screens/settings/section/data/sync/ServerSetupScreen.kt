@@ -37,13 +37,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
@@ -55,7 +54,6 @@ import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.section.data.LogsScreen
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
 import com.sakethh.poppinsFontFamily
@@ -65,14 +63,7 @@ import com.sakethh.poppinsFontFamily
 fun ServerSetupScreen(
 ) {
     val navController = LocalNavController.current
-    val serverManagementViewModel =
-        viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
-            ServerManagementViewModel(
-                DependencyContainer.networkRepo.value,
-                DependencyContainer.preferencesRepo.value,
-                DependencyContainer.remoteSyncRepo.value
-            )
-        })
+    val serverManagementViewModel: ServerManagementViewModel = linkoraViewModel()
     val serverUrl = rememberSaveable {
         mutableStateOf(AppPreferences.serverBaseUrl.value)
     }

@@ -9,6 +9,7 @@ import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants.DEFAULT_APP_LANGUAGE_CODE
 import com.sakethh.linkora.common.utils.Constants.DEFAULT_APP_LANGUAGE_NAME
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import kotlinx.coroutines.runBlocking
 

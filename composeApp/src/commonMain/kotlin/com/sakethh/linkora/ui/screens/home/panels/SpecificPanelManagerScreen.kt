@@ -45,15 +45,14 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 
@@ -61,13 +60,7 @@ import com.sakethh.platform
 @Composable
 fun SpecificPanelManagerScreen(
     paddingValues: PaddingValues = PaddingValues(),
-    specificPanelManagerScreenVM: SpecificPanelManagerScreenVM = viewModel(factory = genericViewModelFactory {
-        SpecificPanelManagerScreenVM(
-            foldersRepo = DependencyContainer.localFoldersRepo.value,
-            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-            preferencesRepository = DependencyContainer.preferencesRepo.value
-        )
-    })
+    specificPanelManagerScreenVM: SpecificPanelManagerScreenVM = linkoraViewModel(factory = SpecificPanelManagerScreenVMAssistedFactory.createForSpecificPanelManagerScreen())
 ) {
     val navController = LocalNavController.current
     val foldersOfTheSelectedPanel =

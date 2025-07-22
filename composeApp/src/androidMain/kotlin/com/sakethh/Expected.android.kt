@@ -32,7 +32,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.R
-import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences

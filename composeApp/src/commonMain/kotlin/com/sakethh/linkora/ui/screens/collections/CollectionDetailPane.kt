@@ -40,13 +40,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.sakethh.PlatformSpecificBackHandler
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
@@ -64,7 +64,6 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.platform
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -75,23 +74,12 @@ import kotlinx.serialization.json.Json
 fun CollectionDetailPane(
     platform: Platform = platform(),
     navController: NavController = LocalNavController.current,
-    collectionsScreenVM: CollectionsScreenVM = viewModel(factory = genericViewModelFactory {
-        CollectionsScreenVM(
-            localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-            localLinksRepo = DependencyContainer.localLinksRepo.value,
-            loadNonArchivedRootFoldersOnInit = false,
-            loadArchivedRootFoldersOnInit = platform is Platform.Android.Mobile,
-            collectionDetailPaneInfo = if (platform is Platform.Android.Mobile) navController.previousBackStackEntry?.savedStateHandle?.get<String>(
-                Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-            ).run {
-                this as String
-                Json.decodeFromString<CollectionDetailPaneInfo>(this).also {
-                    if (it.currentFolder != null) {
-                        CollectionsScreenVM.updateCollectionDetailPaneInfo(it)
-                    }
-                }
-            } else CollectionsScreenVM.collectionDetailPaneInfo.value)
-    }),
+    collectionsScreenVM: CollectionsScreenVM = viewModel(
+        factory = CollectionScreenVMAssistedFactory.createForCollectionDetailPane(
+            platform,
+            navController
+        )
+    ),
 ) {
     val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
@@ -124,9 +112,9 @@ fun CollectionDetailPane(
 
                         if (platform is Platform.Android.Mobile) {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                    Json.encodeToString(parentFolderCollectionPane)
-                                )
+                                Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                Json.encodeToString(parentFolderCollectionPane)
+                            )
                             navController.navigateUp()
                         } else {
                             collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
@@ -146,8 +134,7 @@ fun CollectionDetailPane(
                     }
                 }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
                     )
                 }
             }, title = {
@@ -205,8 +192,7 @@ fun CollectionDetailPane(
                                 onLinkClick = {
                                     collectionsScreenVM.addANewLink(
                                         link = it.copy(
-                                            linkType = LinkType.HISTORY_LINK,
-                                            localId = 0
+                                            linkType = LinkType.HISTORY_LINK, localId = 0
                                         ), linkSaveConfig = LinkSaveConfig(
                                             forceAutoDetectTitle = false,
                                             forceSaveWithoutRetrievingData = true
@@ -402,9 +388,9 @@ fun CollectionDetailPane(
 
             if (platform is Platform.Android.Mobile) {
                 navController.currentBackStackEntry?.savedStateHandle?.set(
-                        Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                        Json.encodeToString(parentFolderCollectionPane)
-                    )
+                    Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                    Json.encodeToString(parentFolderCollectionPane)
+                )
                 navController.navigateUp()
             } else {
                 collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(

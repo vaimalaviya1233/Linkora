@@ -37,14 +37,13 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.model.link.Link
@@ -56,16 +55,12 @@ import com.sakethh.linkora.ui.domain.model.LinkPref
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LayoutSettingsScreen() {
     val navController = LocalNavController.current
-    val settingsScreenViewModel: SettingsScreenViewModel =
-        viewModel(factory = genericViewModelFactory {
-            SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
-        })
+    val settingsScreenViewModel: SettingsScreenViewModel = linkoraViewModel()
     val localUriHandler = LocalUriHandler.current
     val sampleList = remember {
         listOf(
@@ -449,7 +444,8 @@ fun LayoutSettingsScreen() {
             Layout.GRID_VIEW.name -> {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(150.dp),
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).addEdgeToEdgeScaffoldPadding(paddingValues)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                        .addEdgeToEdgeScaffoldPadding(paddingValues)
                         .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                 ) {
                     item(span = {
@@ -514,7 +510,8 @@ fun LayoutSettingsScreen() {
             else -> {
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Adaptive(150.dp),
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).addEdgeToEdgeScaffoldPadding(paddingValues)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                        .addEdgeToEdgeScaffoldPadding(paddingValues)
                         .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                 ) {
                     item(

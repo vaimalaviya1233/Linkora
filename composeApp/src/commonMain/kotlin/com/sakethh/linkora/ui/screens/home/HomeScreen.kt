@@ -49,13 +49,13 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.isNotNull
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
@@ -73,7 +73,6 @@ import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -83,14 +82,8 @@ import kotlinx.serialization.json.Json
 @Composable
 fun HomeScreen() {
     val navController = LocalNavController.current
-    val homeScreenVM: HomeScreenVM = viewModel(factory = genericViewModelFactory {
-        HomeScreenVM(
-            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-            localLinksRepo = DependencyContainer.localLinksRepo.value,
-            localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-            preferencesRepository = DependencyContainer.preferencesRepo.value
-        )
-    })
+    val homeScreenVM: HomeScreenVM =
+        linkoraViewModel(factory = HomeScreenVMAssistedFactory.createForHomeScreen())
     val shouldPanelsBtmSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
     }

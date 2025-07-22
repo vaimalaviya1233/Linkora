@@ -40,20 +40,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.github.GitHubReleaseDTOItem
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import kotlinx.coroutines.launch
 
@@ -70,12 +70,7 @@ fun AboutSettingsScreen() {
     val shouldBtmModalSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    val aboutSettingsScreenVM: AboutSettingsScreenVM = viewModel(factory = genericViewModelFactory {
-        AboutSettingsScreenVM(
-            localLinksRepo = DependencyContainer.localLinksRepo.value,
-            gitHubReleasesRepo = DependencyContainer.gitHubReleasesRepo.value
-        )
-    })
+    val aboutSettingsScreenVM: AboutSettingsScreenVM = linkoraViewModel()
     val retrievedAppVersionData = rememberDeserializableMutableObject {
         mutableStateOf(
             GitHubReleaseDTOItem(

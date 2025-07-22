@@ -19,12 +19,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.exportSnapshotData
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.ifNot
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.Platform
@@ -44,8 +45,6 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -60,7 +59,7 @@ class IntentActivity : ComponentActivity() {
         setContent {
             val localConfiguration = LocalConfiguration.current
             val navController = rememberNavController()
-            val intentActivityVM = viewModel<IntentActivityVM>(factory = genericViewModelFactory {
+            val intentActivityVM = viewModel<IntentActivityVM>(factory = viewModelFactory {
                 IntentActivityVM(
                     localLinksRepo = DependencyContainer.localLinksRepo.value,
                     localFoldersRepo = DependencyContainer.localFoldersRepo.value,

@@ -7,7 +7,7 @@ import android.content.Context
 import android.os.Build
 import androidx.room.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
-import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.data.local.LocalDatabase

@@ -10,7 +10,7 @@ import androidx.work.WorkerParameters
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.R
 import com.sakethh.linkora.RefreshAllLinksNotificationService
-import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.domain.onFailure

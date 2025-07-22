@@ -15,20 +15,18 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.common.composables.TextFieldForPreference
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,16 +46,15 @@ fun AdvancedSettingsScreen() {
     }
     val primaryJsoupUserAgentFocusRequester = remember { FocusRequester() }
     val localizationServerTextFieldFocusRequester = remember { FocusRequester() }
-    val settingsScreenVM: SettingsScreenViewModel = viewModel(factory = genericViewModelFactory {
-        SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
-    })
+    val settingsScreenVM: SettingsScreenViewModel = linkoraViewModel()
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.AdvancedSettingsScreen.toString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(30.dp)
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {
                 Spacer(Modifier)

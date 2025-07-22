@@ -31,19 +31,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
 import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch
 
@@ -53,9 +51,7 @@ fun SortingBottomSheetUI(
     sortingBottomSheetParam: SortingBottomSheetParam
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val sortingBtmSheetVM: SortingBtmSheetVM = viewModel(factory = genericViewModelFactory {
-        SortingBtmSheetVM(DependencyContainer.preferencesRepo.value)
-    })
+    val sortingBtmSheetVM: SortingBtmSheetVM = linkoraViewModel()
     LaunchedEffect(key1 = sortingBottomSheetParam.shouldBottomSheetBeVisible.value) {
         if (sortingBottomSheetParam.shouldBottomSheetBeVisible.value) {
             sortingBottomSheetParam.bottomModalSheetState.expand()

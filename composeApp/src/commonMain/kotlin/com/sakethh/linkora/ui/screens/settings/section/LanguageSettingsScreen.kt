@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -54,14 +53,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.inDoubleQuotes
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.ui.LocalNavController
@@ -69,7 +67,6 @@ import com.sakethh.linkora.ui.components.LoadingDialog
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 
@@ -77,12 +74,7 @@ import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 @Composable
 fun LanguageSettingsScreen() {
     val navController = LocalNavController.current
-    val languageSettingsScreenVM =
-        viewModel<LanguageSettingsScreenVM>(factory = genericViewModelFactory {
-            DependencyContainer.localizationRepo.value.let {
-                LanguageSettingsScreenVM(it, it)
-            }
-        })
+    val languageSettingsScreenVM: LanguageSettingsScreenVM = linkoraViewModel()
     val availableLanguages =
         languageSettingsScreenVM.availableLanguages.collectAsStateWithLifecycle()
     val isLanguageSelectionBtmSheetVisible = rememberSaveable {
@@ -129,7 +121,8 @@ fun LanguageSettingsScreen() {
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                 .padding(start = 15.dp, end = 15.dp)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(15.dp)
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             item {
                 Spacer(modifier = Modifier)
@@ -249,8 +242,7 @@ fun LanguageSettingsScreen() {
                     isRemoteLanguage = true,
                     localizationStatus = Localization.Key.StringsLocalizedStatus.rememberLocalizedString()
                         .replace(
-                            LinkoraPlaceHolder.First.value,
-                            it.localizedStringsCount.toString()
+                            LinkoraPlaceHolder.First.value, it.localizedStringsCount.toString()
                         ).replace(
                             LinkoraPlaceHolder.Second.value,
                             Localization.Key.entries.size.toString()
@@ -372,8 +364,7 @@ fun LanguageSettingsScreen() {
         shouldDialogBoxAppear = languageSettingsScreenVM.languageSettingsState.value.fetchingLanguageInfo || languageSettingsScreenVM.languageSettingsState.value.fetchingStrings,
         text = if (languageSettingsScreenVM.languageSettingsState.value.fetchingLanguageInfo) Localization.Key.FetchingAvailableLanguages.rememberLocalizedString() else Localization.Key.DownloadingStrings.rememberLocalizedString()
             .replace(
-                LinkoraPlaceHolder.First.value,
-                selectedLanguage.value.languageName.inDoubleQuotes()
+                LinkoraPlaceHolder.First.value, selectedLanguage.value.languageName.inDoubleQuotes()
             )
     )
 }

@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -16,20 +14,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.platform
 import com.sakethh.showDynamicThemingOption
 import com.sakethh.showFollowSystemThemeOption
@@ -38,10 +34,7 @@ import com.sakethh.showFollowSystemThemeOption
 @Composable
 fun ThemeSettingsScreen() {
     val navController = LocalNavController.current
-    val settingsScreenViewModel: SettingsScreenViewModel =
-        viewModel(factory = genericViewModelFactory {
-            SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
-        })
+    val settingsScreenViewModel: SettingsScreenViewModel = linkoraViewModel()
     val platform = platform()
     val isSystemInDarkTheme = isSystemInDarkTheme()
     SettingsSectionScaffold(
@@ -49,9 +42,7 @@ fun ThemeSettingsScreen() {
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .addEdgeToEdgeScaffoldPadding(paddingValues)
+            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
@@ -71,10 +62,10 @@ fun ThemeSettingsScreen() {
                                     booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),
                                     it
                                 )
-                            }, isIconNeeded = remember {
+                            },
+                            isIconNeeded = remember {
                                 mutableStateOf(false)
-                            }
-                        )
+                            })
                     )
                 }
             }
@@ -91,10 +82,10 @@ fun ThemeSettingsScreen() {
                                 AppPreferences.shouldUseForceDarkTheme.value =
                                     AppPreferences.shouldUseForceDarkTheme.value.not()
                                 settingsScreenViewModel.changeSettingPreferenceValue(
-                                    booleanPreferencesKey(AppPreferenceType.DARK_THEME.name),
-                                    it
+                                    booleanPreferencesKey(AppPreferenceType.DARK_THEME.name), it
                                 )
-                            }, isIconNeeded = remember {
+                            },
+                            isIconNeeded = remember {
                                 mutableStateOf(false)
                             })
                     )
@@ -116,7 +107,8 @@ fun ThemeSettingsScreen() {
                                     booleanPreferencesKey(AppPreferenceType.AMOLED_THEME_STATE.name),
                                     it
                                 )
-                            }, isIconNeeded = remember {
+                            },
+                            isIconNeeded = remember {
                                 mutableStateOf(false)
                             })
                     )
@@ -138,7 +130,8 @@ fun ThemeSettingsScreen() {
                                     booleanPreferencesKey(AppPreferenceType.DYNAMIC_THEMING.name),
                                     it
                                 )
-                            }, isIconNeeded = remember {
+                            },
+                            isIconNeeded = remember {
                                 mutableStateOf(false)
                             })
                     )

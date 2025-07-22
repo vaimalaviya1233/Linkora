@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -68,11 +67,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import com.sakethh.PlatformSpecificBackHandler
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
@@ -80,6 +77,7 @@ import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.currentSavedServerConfig
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
@@ -97,7 +95,6 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectio
 import com.sakethh.linkora.ui.screens.settings.section.data.components.ToggleButton
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.platform
 import com.sakethh.poppinsFontFamily
 import kotlinx.coroutines.launch
@@ -106,26 +103,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun DataSettingsScreen() {
     val navController = LocalNavController.current
-    val serverManagementViewModel =
-        viewModel<ServerManagementViewModel>(factory = genericViewModelFactory {
-            ServerManagementViewModel(
-                DependencyContainer.networkRepo.value,
-                DependencyContainer.preferencesRepo.value,
-                DependencyContainer.remoteSyncRepo.value
-            )
-        })
-    val dataSettingsScreenVM: DataSettingsScreenVM = viewModel(factory = genericViewModelFactory {
-        DataSettingsScreenVM(
-            exportDataRepo = DependencyContainer.exportDataRepo.value,
-            importDataRepo = DependencyContainer.importDataRepo.value,
-            linksRepo = DependencyContainer.localLinksRepo.value,
-            foldersRepo = DependencyContainer.localFoldersRepo.value,
-            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-            preferencesRepository = DependencyContainer.preferencesRepo.value,
-            pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo.value,
-            remoteSyncRepo = DependencyContainer.remoteSyncRepo.value
-        )
-    })
+    val serverManagementViewModel: ServerManagementViewModel = linkoraViewModel()
+    val dataSettingsScreenVM: DataSettingsScreenVM = linkoraViewModel()
     val isImportExportProgressUIVisible = rememberSaveable {
         mutableStateOf(false)
     }
@@ -162,7 +141,8 @@ fun DataSettingsScreen() {
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
-                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection), verticalArrangement = Arrangement.spacedBy(30.dp)
+                .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             item {
                 Spacer(modifier = Modifier)

@@ -35,9 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
+import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.ui.LocalNavController
@@ -50,7 +51,6 @@ import com.sakethh.linkora.ui.components.menu.IndividualMenuComponent
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.platform
@@ -60,16 +60,8 @@ import com.sakethh.platform
 fun PanelsManagerScreen() {
     val navController = LocalNavController.current
     val topAppBarState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val homeScreenVM: HomeScreenVM = viewModel(factory = genericViewModelFactory {
-        HomeScreenVM(
-            localLinksRepo = DependencyContainer.localLinksRepo.value,
-            localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-            triggerCollectionOfPanels = true,
-            triggerCollectionOfPanelFolders = false,
-            preferencesRepository = DependencyContainer.preferencesRepo.value
-        )
-    })
+    val homeScreenVM: HomeScreenVM =
+        viewModel(factory = HomeScreenVMAssistedFactory.createForPanelsManagerScreen())
     val panels = homeScreenVM.createdPanels.collectAsStateWithLifecycle()
     val selectedPanelForDetailView = rememberDeserializableMutableObject {
         mutableStateOf(Panel(localId = -1, panelName = ""))
@@ -87,14 +79,7 @@ fun PanelsManagerScreen() {
         mutableStateOf(false)
     }
     val specificPanelManagerScreenVM: SpecificPanelManagerScreenVM =
-        viewModel(factory = genericViewModelFactory {
-            SpecificPanelManagerScreenVM(
-                foldersRepo = DependencyContainer.localFoldersRepo.value,
-                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                initData = false,
-                preferencesRepository = DependencyContainer.preferencesRepo.value
-            )
-        })
+        viewModel(factory = SpecificPanelManagerScreenVMAssistedFactory.createForPanelsManagerScreen())
     val platform = platform()
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
         BottomAppBar(
@@ -162,8 +147,7 @@ fun PanelsManagerScreen() {
                         onRenameClick = {
                             selectedPanelForDialogBoxes.value = panel
                             isRenameAPanelDialogBoxVisible.value = true
-                        }
-                    )
+                        })
                 }
             }
             VerticalDivider()
@@ -178,8 +162,7 @@ fun PanelsManagerScreen() {
                 }
             } else {
                 SpecificPanelManagerScreen(
-                    paddingValues = it,
-                    specificPanelManagerScreenVM = specificPanelManagerScreenVM
+                    paddingValues = it, specificPanelManagerScreenVM = specificPanelManagerScreenVM
                 )
             }
         }
@@ -220,8 +203,8 @@ fun PanelsManagerScreen() {
                         )
                     )
                     isRenameAPanelDialogBoxVisible.value = false
-                }
-            )
-        }, panelName = selectedPanelForDialogBoxes.value.panelName
+                })
+        },
+        panelName = selectedPanelForDialogBoxes.value.panelName
     )
 }

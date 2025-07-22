@@ -81,7 +81,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sakethh.linkora.common.DependencyContainer
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.preferences.AppPreferences.serverBaseUrl
@@ -94,6 +94,8 @@ import com.sakethh.linkora.common.utils.inRootScreen
 import com.sakethh.linkora.common.utils.initializeIfServerConfigured
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
+import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
@@ -138,7 +140,6 @@ import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.genericViewModelFactory
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
@@ -151,18 +152,7 @@ import kotlinx.coroutines.launch
 fun App(
     modifier: Modifier = Modifier
 ) {
-    val appVM = viewModel<AppVM>(factory = genericViewModelFactory {
-        AppVM(
-            remoteSyncRepo = DependencyContainer.remoteSyncRepo.value,
-            preferencesRepository = DependencyContainer.preferencesRepo.value,
-            networkRepo = DependencyContainer.networkRepo.value,
-            linksRepo = DependencyContainer.localLinksRepo.value,
-            foldersRepo = DependencyContainer.localFoldersRepo.value,
-            localMultiActionRepo = DependencyContainer.localMultiActionRepo.value,
-            localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-            exportDataRepo = DependencyContainer.exportDataRepo.value
-        )
-    })
+    val appVM: AppVM = linkoraViewModel()
     val snackbarHostState = remember {
         SnackbarHostState()
     }
@@ -252,11 +242,7 @@ fun App(
             }
         }
     }
-    val collectionsScreenVM = viewModel<CollectionsScreenVM>(factory = genericViewModelFactory {
-        CollectionsScreenVM(
-            DependencyContainer.localFoldersRepo.value, DependencyContainer.localLinksRepo.value
-        )
-    })
+    val collectionsScreenVM : CollectionsScreenVM = linkoraViewModel(factory = CollectionScreenVMAssistedFactory.createForApp())
     val rootRouteList = rememberDeserializableObject {
         listOf(
             Navigation.Root.HomeScreen,
