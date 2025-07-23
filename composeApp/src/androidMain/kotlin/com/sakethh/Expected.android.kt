@@ -32,13 +32,13 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.R
-import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.Platform
@@ -65,7 +65,9 @@ import kotlinx.coroutines.launch
 import okio.Path.Companion.toPath
 import java.io.File
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 actual val showFollowSystemThemeOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
@@ -100,9 +102,11 @@ actual suspend fun writeRawExportStringToFile(
         ).mkdirs()
     }
 
-    val exportFileName = "LinkoraExport-${
-        DateFormat.getDateTimeInstance().format(Date()).replace(":", "").replace(" ", "")
-    }.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
+    val timestamp = simpleDateFormat.format(Date())
+    val exportFileName =
+        "LinkoraExport-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
+
 
     val file = File(defaultFolder, exportFileName)
     file.writeText(rawExportString)

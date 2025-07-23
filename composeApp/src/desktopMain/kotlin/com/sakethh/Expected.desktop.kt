@@ -35,8 +35,10 @@ import java.awt.Frame
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
+
 
 actual val showFollowSystemThemeOption: Boolean = true
 actual val BUILD_FLAVOUR: String = "desktop"
@@ -76,9 +78,10 @@ actual suspend fun writeRawExportStringToFile(
         exportsFolder.mkdirs()
     }
 
-    val exportFileName = "LinkoraExport-${
-        DateFormat.getDateTimeInstance().format(Date()).replace(":", "").replace(" ", "")
-    }.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
+    val timestamp = simpleDateFormat.format(Date())
+    val exportFileName =
+        "LinkoraExport-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
     val exportFilePath = Paths.get(exportsFolder.absolutePath, exportFileName)
 
