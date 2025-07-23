@@ -38,6 +38,7 @@ import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ExportFileType
@@ -58,6 +59,7 @@ import com.sakethh.linkora.utils.isTablet
 import com.sakethh.linkora.worker.RefreshAllLinksWorker
 import com.sakethh.linkora.worker.SnapshotWorker
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -351,21 +353,29 @@ actual fun getDefaultExportLocation(): String? {
 actual suspend fun deleteAutoBackups(
     backupLocation: String, threshold: Int, onCompletion: (deletionCount: Int) -> Unit
 ) {
-    DocumentFile.fromTreeUri(LinkoraApp.getContext(), backupLocation.toUri())?.listFiles()?.filter {
-        it.name?.startsWith("LinkoraSnapshot-") == true
-    }?.let { snapshots ->
-        val snapshotsCount = snapshots.count()
-        if (snapshotsCount > threshold) {
-            snapshots.sortedBy {
-                it.lastModified()
-            }.take(snapshotsCount - threshold).apply {
-                forEach {
-                    it.delete()
+    try {
+        withContext(Dispatchers.IO) {
+            DocumentFile.fromTreeUri(LinkoraApp.getContext(), backupLocation.toUri())?.listFiles()
+                ?.filter {
+                    it.name?.startsWith("LinkoraSnapshot-") == true
+                }?.let { snapshots ->
+                val snapshotsCount = snapshots.count()
+                if (snapshotsCount > threshold) {
+                    snapshots.sortedBy {
+                        it.lastModified()
+                    }.take(snapshotsCount - threshold).apply {
+                        forEach {
+                            it.delete()
+                        }
+                        onCompletion(count())
+                    }
+                } else {
+                    onCompletion(0)
                 }
-                onCompletion(count())
             }
-        } else {
-            onCompletion(0)
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        e.pushSnackbar()
     }
 }
