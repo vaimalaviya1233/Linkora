@@ -525,9 +525,9 @@ fun DataSettingsScreen() {
                                 backupAutoDeleteThreshold.intValue = try {
                                     it.toInt()
                                 } catch (_: Exception) {
-                                    1
+                                    0
                                 } catch (_: Error) {
-                                    1
+                                    0
                                 }
                             },
                             modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 15.dp)
