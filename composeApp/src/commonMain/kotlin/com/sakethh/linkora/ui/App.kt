@@ -868,7 +868,6 @@ fun App(
                                             ?: 0) > 0
                                     ) CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
                                 ), ignoreFolderAlreadyExistsThrowable = false, onCompletion = {
-                                    collectionsScreenVM.triggerFoldersSorting()
                                     onCompletion()
                                 })
                         }
@@ -904,7 +903,6 @@ fun App(
                                     }.invokeOnCompletion {
                                         menuBtmModalSheetVisible.value = false
                                     }
-                                    collectionsScreenVM.triggerFoldersSorting()
                                 })
                         } else {
                             collectionsScreenVM.archiveALink(
@@ -915,7 +913,6 @@ fun App(
                                     }.invokeOnCompletion {
                                         menuBtmModalSheetVisible.value = false
                                     }
-                                    collectionsScreenVM.triggerLinksSorting()
                                 })
                         }
                     },
@@ -1008,7 +1005,6 @@ fun App(
                                     }.invokeOnCompletion {
                                         menuBtmModalSheetVisible.value = false
                                     }
-                                    collectionsScreenVM.triggerFoldersSorting()
                                     onCompletion()
                                 })
                         } else {
@@ -1019,7 +1015,6 @@ fun App(
                                     }.invokeOnCompletion {
                                         menuBtmModalSheetVisible.value = false
                                     }
-                                    collectionsScreenVM.triggerLinksSorting()
                                     onCompletion()
                                 })
                         }
@@ -1064,7 +1059,6 @@ fun App(
                                 ignoreFolderAlreadyExistsThrowable = true,
                                 onCompletion = {
                                     onCompletion()
-                                    collectionsScreenVM.triggerFoldersSorting()
                                     showRenameDialogBox.value = false
                                 })
                         } else {
@@ -1081,7 +1075,6 @@ fun App(
                                 newTitle = title,
                                 onCompletion = {
                                     onCompletion()
-                                    collectionsScreenVM.triggerLinksSorting()
                                     showRenameDialogBox.value = false
                                 })
                         }
