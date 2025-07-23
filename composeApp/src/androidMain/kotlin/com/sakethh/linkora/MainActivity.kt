@@ -1,6 +1,8 @@
 package com.sakethh.linkora
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -88,20 +90,32 @@ class MainActivity : ComponentActivity() {
                         )
                     )
                 }
+            val localContext = LocalContext.current
             val activityResultLauncherForPickingADirectory =
-                rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
+                rememberLauncherForActivityResult(contract = OpenDocumentTreeWithPermissionsContract()) { uri: Uri? ->
+                    uri?.let {
+                        val flags =
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                        val isUriPermissionPersisted =
+                            contentResolver.persistedUriPermissions.any { uriPermission -> uriPermission.uri == uri }
+                        if (isUriPermissionPersisted) {
+                            localContext.contentResolver.releasePersistableUriPermission(uri, flags)
+                        }
+                        localContext.contentResolver.takePersistableUriPermission(uri, flags)
+                    }
                     coroutineScope.pushUIEvent(
                         AndroidUIEvent.Type.PickedDirectory(
                             uri
                         )
                     )
                 }
-            val localContext = LocalContext.current as Activity
+            val localActivity = LocalContext.current as Activity
             LaunchedEffect(Unit) {
                 launch {
                     UIEvent.uiEvents.collectLatest {
                         if (it is UIEvent.Type.MinimizeTheApp) {
-                            localContext.moveTaskToBack(true)
+                            localActivity.moveTaskToBack(true)
                         }
                     }
                 }
@@ -208,5 +222,20 @@ class MainActivity : ComponentActivity() {
             }
         }
         wasLaunched = true
+    }
+}
+
+class OpenDocumentTreeWithPermissionsContract() : ActivityResultContracts.OpenDocumentTree() {
+    override fun createIntent(context: Context, input: Uri?): Intent {
+        return super.createIntent(context, input).apply {
+            listOf(
+                Intent.FLAG_GRANT_PREFIX_URI_PERMISSION,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            ).forEach {
+                addFlags(it)
+            }
+        }
     }
 }
