@@ -23,6 +23,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +70,7 @@ actual val showDynamicThemingOption: Boolean = false
 actual suspend fun writeRawExportStringToFile(
     exportLocation: String,
     exportFileType: ExportFileType,
+    exportLocationType: ExportLocationType,
     rawExportString: RawExportString,
     onCompletion: suspend (String) -> Unit
 ) {
@@ -78,10 +80,11 @@ actual suspend fun writeRawExportStringToFile(
         exportsFolder.mkdirs()
     }
 
+    // kinda repeated in Expected.android, but alright
     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
     val timestamp = simpleDateFormat.format(Date())
     val exportFileName =
-        "LinkoraExport-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
+        "${if (exportLocationType == ExportLocationType.EXPORT) "LinkoraExport" else "LinkoraSnapshot"}-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
     val exportFilePath = Paths.get(exportsFolder.absolutePath, exportFileName)
 
@@ -162,7 +165,8 @@ actual suspend fun exportSnapshotData(
         exportLocation = exportLocation,
         exportFileType = fileType,
         rawExportString = rawExportString,
-        onCompletion = onCompletion
+        onCompletion = onCompletion,
+        exportLocationType = ExportLocationType.SNAPSHOT
     )
 }
 
@@ -188,4 +192,10 @@ actual suspend fun pickADirectory(): String? {
 actual fun getDefaultExportLocation(): String? {
     val userHomeDir = System.getProperty("user.home")
     return File(userHomeDir, "/Documents/Linkora/Exports").absolutePath
+}
+
+actual suspend fun deleteAutoBackups(
+    exportLocation: String, threshold: Int, onCompletion: () -> Unit
+) {
+
 }

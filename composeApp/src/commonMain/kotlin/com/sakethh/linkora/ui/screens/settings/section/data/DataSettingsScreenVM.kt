@@ -2,6 +2,8 @@ package com.sakethh.linkora.ui.screens.settings.section.data
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.cancelRefreshingLinks
@@ -169,7 +171,9 @@ class DataSettingsScreenVM(
                             rawExportString = it.data,
                             onCompletion = {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
-                            })
+                            },
+                            exportLocationType = ExportLocationType.EXPORT
+                        )
                     } catch (e: Exception) {
                         e.printStackTrace()
                         pushUIEvent(UIEvent.Type.ShowSnackbar(message = e.message.toString()))
@@ -298,6 +302,28 @@ class DataSettingsScreenVM(
                 e.printStackTrace()
                 pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
             }
+        }
+    }
+
+    fun updateAutoDeletionBackupsState(isEnabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = booleanPreferencesKey(
+                    AppPreferenceType.BACKUP_AUTO_DELETION_ENABLED.name
+                ), newValue = isEnabled
+            )
+            AppPreferences.isBackupAutoDeletionEnabled.value = isEnabled
+        }
+    }
+
+    fun updateAutoDeletionBackupsThreshold(count: Int) {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = intPreferencesKey(
+                    AppPreferenceType.BACKUP_AUTO_DELETION_THRESHOLD.name
+                ), newValue = count
+            )
+            AppPreferences.backupAutoDeleteThreshold.intValue = count
         }
     }
 }

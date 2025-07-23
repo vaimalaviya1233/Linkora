@@ -80,6 +80,8 @@ object AppPreferences {
 
     val currentExportLocation = mutableStateOf("")
     val currentBackupLocation = mutableStateOf("")
+    val backupAutoDeleteThreshold = mutableIntStateOf(10)
+    val isBackupAutoDeletionEnabled = mutableStateOf(false)
 
     suspend fun lastSyncedLocally(preferencesRepository: PreferencesRepository): Long {
         return preferencesRepository.readPreferenceValue(
@@ -381,6 +383,20 @@ object AppPreferences {
                             AppPreferenceType.SKIP_CERT_CHECK_FOR_SYNC_SERVER.name
                         )
                     ) == true
+                },
+                launch {
+                    isBackupAutoDeletionEnabled.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = booleanPreferencesKey(
+                            AppPreferenceType.BACKUP_AUTO_DELETION_ENABLED.name
+                        )
+                    ) == true
+                },
+                launch {
+                    backupAutoDeleteThreshold.intValue = preferencesRepository.readPreferenceValue(
+                        preferenceKey = intPreferencesKey(
+                            AppPreferenceType.BACKUP_AUTO_DELETION_THRESHOLD.name
+                        )
+                    ) ?: backupAutoDeleteThreshold.intValue
                 },
                 launch {
                     currentBackupLocation.value = preferencesRepository.readPreferenceValue(

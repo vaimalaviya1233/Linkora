@@ -11,6 +11,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
@@ -28,6 +29,7 @@ expect val poppinsFontFamily: FontFamily
 expect suspend fun writeRawExportStringToFile(
     exportLocation: String,
     exportFileType: ExportFileType,
+    exportLocationType: ExportLocationType,
     rawExportString: RawExportString,
     onCompletion: suspend (String) -> Unit
 )
@@ -66,10 +68,18 @@ expect class DataSyncingNotificationService() {
 
 expect suspend fun exportSnapshotData(
     exportLocation: String,
-    rawExportString: String, fileType: ExportFileType, onCompletion: suspend (String) -> Unit = {}
+    rawExportString: String,
+    fileType: ExportFileType,
+    onCompletion: suspend (String) -> Unit = {}
 )
 
 expect suspend fun pickADirectory(): String?
 
 
 expect fun getDefaultExportLocation(): String?
+
+expect suspend fun deleteAutoBackups(
+    exportLocation: String,
+    // maximum number of backups allowed to keep
+    threshold: Int, onCompletion: () -> Unit
+)

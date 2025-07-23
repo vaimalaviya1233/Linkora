@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoDelete
 import androidx.compose.material.icons.filled.BackupTable
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Cancel
@@ -55,6 +57,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,7 +69,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -149,12 +154,25 @@ fun DataSettingsScreen() {
     val backupLocation = rememberSaveable(AppPreferences.currentBackupLocation.value) {
         mutableStateOf(AppPreferences.currentBackupLocation.value)
     }
+
+    val backupAutoDeleteThreshold =
+        rememberSaveable(AppPreferences.backupAutoDeleteThreshold.intValue) {
+            mutableIntStateOf(AppPreferences.backupAutoDeleteThreshold.intValue)
+        }
+    val localFocusManager = LocalFocusManager.current
+
+    val isBackupAutoDeletionEnabled =
+        rememberSaveable(AppPreferences.isBackupAutoDeletionEnabled.value) {
+            mutableStateOf(AppPreferences.isBackupAutoDeletionEnabled.value)
+        }
+
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
+            modifier = Modifier.animateContentSize().fillMaxSize()
+                .addEdgeToEdgeScaffoldPadding(paddingValues)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
@@ -425,11 +443,9 @@ fun DataSettingsScreen() {
                                 style = MaterialTheme.typography.titleSmall
                             )
                         }
-                    },
-                        textStyle = MaterialTheme.typography.titleSmall,
-                        trailingIcon = {
-                            FilledTonalIconButton(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                    }, textStyle = MaterialTheme.typography.titleSmall, trailingIcon = {
+                        FilledTonalIconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                                 .pulsateEffect().padding(end = 5.dp), onClick = {
                                 dataSettingsScreenVM.changeExportLocation(
                                     exportLocation = backupLocation.value,
@@ -437,34 +453,84 @@ fun DataSettingsScreen() {
                                     exportLocationType = ExportLocationType.SNAPSHOT
                                 )
                             }) {
-                                Icon(
-                                    imageVector = if (platform is Platform.Android) Icons.Default.FolderOpen else Icons.Default.Save,
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        readOnly = platform is Platform.Android,
-                        label = {
-                            Text(
-                                text = "Current backup location",
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Start,
+                            Icon(
+                                imageVector = if (platform is Platform.Android) Icons.Default.FolderOpen else Icons.Default.Save,
+                                contentDescription = null
                             )
-                        },
-                        value = backupLocation.value,
-                        onValueChange = {
-                            backupLocation.value = it
-                        },
-                        modifier = Modifier.padding(top = 15.dp, start = 15.dp, end = 15.dp)
-                            .fillMaxWidth()
+                        }
+                    }, readOnly = platform is Platform.Android, label = {
+                        Text(
+                            text = "Current backup location",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Start,
+                        )
+                    }, value = backupLocation.value, onValueChange = {
+                        backupLocation.value = it
+                    }, modifier = Modifier.padding(15.dp).fillMaxWidth()
                     )
+                    SettingComponent(
+                        SettingComponentParam(
+                            isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                            title = "Enable Auto-Deletion of Old Snapshots",
+                            doesDescriptionExists = true,
+                            description = "When enabled, the app will automatically delete the oldest snapshots once they exceed the configured limit.",
+                            isSwitchNeeded = true,
+                            isSwitchEnabled = isBackupAutoDeletionEnabled,
+                            onSwitchStateChange = {
+                                dataSettingsScreenVM.updateAutoDeletionBackupsState(it)
+                            },
+                            icon = Icons.Default.AutoDelete,
+                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
+                    )
+
+                    if (isBackupAutoDeletionEnabled.value) {
+                        TextField(
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            textStyle = MaterialTheme.typography.titleSmall,
+                            trailingIcon = {
+                                FilledTonalIconButton(
+                                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                        .pulsateEffect().padding(end = 5.dp), onClick = {
+                                        dataSettingsScreenVM.updateAutoDeletionBackupsThreshold(
+                                            backupAutoDeleteThreshold.intValue
+                                        )
+                                        localFocusManager.clearFocus(force = true)
+                                    }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Save, contentDescription = null
+                                    )
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = "Auto-delete if snapshots count exceeds limit:",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Start,
+                                )
+                            },
+                            value = backupAutoDeleteThreshold.intValue.toString(),
+                            onValueChange = {
+                                backupAutoDeleteThreshold.intValue = try {
+                                    it.toInt()
+                                } catch (_: Exception) {
+                                    1
+                                } catch (_: Error) {
+                                    1
+                                }
+                            },
+                            modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 15.dp)
+                                .fillMaxWidth()
+                        )
+                    }
 
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(15.dp)
                     ) {
                         Text(
-                            text = "Export As:",
-                            style = MaterialTheme.typography.titleSmall,
+                            text = "Export As",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Row(
                             modifier = Modifier.padding(top = 10.dp),

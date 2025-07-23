@@ -49,6 +49,7 @@ import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -85,13 +86,14 @@ actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VE
 actual suspend fun writeRawExportStringToFile(
     exportLocation: String,
     exportFileType: ExportFileType,
+    exportLocationType: ExportLocationType,
     rawExportString: RawExportString,
     onCompletion: suspend (String) -> Unit
 ) {
     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
     val timestamp = simpleDateFormat.format(Date())
     val exportFileName =
-        "LinkoraExport-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
+        "${if (exportLocationType == ExportLocationType.EXPORT) "LinkoraExport" else "LinkoraSnapshot"}-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
     val directoryUri = exportLocation.toUri()
     val directory = DocumentFile.fromTreeUri(LinkoraApp.getContext(), directoryUri)
@@ -344,4 +346,9 @@ actual suspend fun pickADirectory(): String? {
 
 actual fun getDefaultExportLocation(): String? {
     return null
+}
+
+actual suspend fun deleteAutoBackups(
+    exportLocation: String, threshold: Int, onCompletion: () -> Unit
+) {
 }

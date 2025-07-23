@@ -6,6 +6,7 @@ import androidx.work.WorkerParameters
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.writeRawExportStringToFile
 
@@ -29,7 +30,9 @@ class SnapshotWorker(appContext: Context, workerParameters: WorkerParameters) :
                         e.printStackTrace()
                     }
                     linkoraLog("Snapshot saved as: $it")
-                })
+                },
+                exportLocationType = ExportLocationType.SNAPSHOT
+            )
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
