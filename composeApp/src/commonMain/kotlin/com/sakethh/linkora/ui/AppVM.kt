@@ -155,25 +155,18 @@ class AppVM(
                             .drop(1) // ignore the first emission which gets fired when the app launches
                             .debounce(1000).flowOn(Dispatchers.Default).collectLatest {
                                 if (pauseSnapshots || (it.links + it.folders + it.panelFolders + it.panels).isEmpty()) return@collectLatest
-                                launch {
-                                    if (AppPreferences.isBackupAutoDeletionEnabled.value) {
-                                        try {
-                                            deleteAutoBackups(
-                                                backupLocation = AppPreferences.currentBackupLocation.value,
-                                                threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
-                                                onCompletion = {
-                                                    linkoraLog(
-                                                        "Deleted $it snapshot files as the threshold was ${AppPreferences.backupAutoDeleteThreshold.intValue}"
-                                                    )
-                                                })
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                            e.pushSnackbar()
-                                        }
-                                    }
-                                }
                                 try {
                                     isAnySnapshotOngoing.value = true
+                                    if (AppPreferences.isBackupAutoDeletionEnabled.value) {
+                                        deleteAutoBackups(
+                                            backupLocation = AppPreferences.currentBackupLocation.value,
+                                            threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
+                                            onCompletion = {
+                                                linkoraLog(
+                                                    "Deleted $it snapshot files as the threshold was ${AppPreferences.backupAutoDeleteThreshold.intValue}"
+                                                )
+                                            })
+                                    }
                                     val serializedJsonExportString = JSONExportSchema(
                                         schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
                                         links = it.links.map {
