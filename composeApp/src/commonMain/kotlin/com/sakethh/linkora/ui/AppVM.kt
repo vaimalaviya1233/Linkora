@@ -185,13 +185,16 @@ class AppVM(
                                         awaitAll(async {
                                             com.sakethh.exportSnapshotData(
                                                 rawExportString = serializedJsonExportString,
-                                                fileType = FileType.JSON
+                                                fileType = FileType.JSON,
+                                                exportLocation = AppPreferences.currentBackupLocation.value
                                             )
                                         }, async {
                                             com.sakethh.exportSnapshotData(
                                                 rawExportString = exportDataRepo.rawExportDataAsHTML(
                                                     links = it.links, folders = it.folders
-                                                ), fileType = ExportFileType.HTML
+                                                ),
+                                                fileType = ExportFileType.HTML,
+                                                exportLocation = AppPreferences.currentBackupLocation.value
                                             )
                                         })
                                     }
@@ -199,7 +202,8 @@ class AppVM(
                                     if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = serializedJsonExportString,
-                                            fileType = FileType.JSON
+                                            fileType = FileType.JSON,
+                                            exportLocation = AppPreferences.currentBackupLocation.value
                                         )
                                     }
 
@@ -207,7 +211,9 @@ class AppVM(
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = exportDataRepo.rawExportDataAsHTML(
                                                 links = it.links, folders = it.folders
-                                            ), fileType = ExportFileType.HTML
+                                            ),
+                                            fileType = ExportFileType.HTML,
+                                            exportLocation = AppPreferences.currentBackupLocation.value
                                         )
                                     }
                                 } catch (e: Exception) {

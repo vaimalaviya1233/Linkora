@@ -26,6 +26,7 @@ expect val linkoraDataStore: DataStore<Preferences>
 expect val poppinsFontFamily: FontFamily
 
 expect suspend fun writeRawExportStringToFile(
+    exportLocation: String,
     exportFileType: ExportFileType,
     rawExportString: RawExportString,
     onCompletion: suspend (String) -> Unit
@@ -64,5 +65,11 @@ expect class DataSyncingNotificationService() {
 }
 
 expect suspend fun exportSnapshotData(
+    exportLocation: String,
     rawExportString: String, fileType: ExportFileType, onCompletion: suspend (String) -> Unit = {}
 )
+
+expect suspend fun pickADirectory(): String?
+
+
+expect fun getDefaultExportLocation(): String?

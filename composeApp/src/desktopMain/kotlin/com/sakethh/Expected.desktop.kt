@@ -67,12 +67,12 @@ actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsF
 actual val showDynamicThemingOption: Boolean = false
 
 actual suspend fun writeRawExportStringToFile(
+    exportLocation: String,
     exportFileType: ExportFileType,
     rawExportString: RawExportString,
     onCompletion: suspend (String) -> Unit
 ) {
-    val userHomeDir = System.getProperty("user.home")
-    val exportsFolder = File(userHomeDir, "/Documents/Linkora/Exports")
+    val exportsFolder = File(exportLocation)
 
     exportsFolder.exists().ifNot {
         exportsFolder.mkdirs()
@@ -153,10 +153,16 @@ actual class DataSyncingNotificationService actual constructor() {
 }
 
 actual suspend fun exportSnapshotData(
-    rawExportString: String, fileType: ExportFileType, onCompletion: suspend (String) -> Unit
+    exportLocation: String,
+    rawExportString: String,
+    fileType: ExportFileType,
+    onCompletion: suspend (String) -> Unit
 ) {
     writeRawExportStringToFile(
-        exportFileType = fileType, rawExportString = rawExportString, onCompletion = onCompletion
+        exportLocation = exportLocation,
+        exportFileType = fileType,
+        rawExportString = rawExportString,
+        onCompletion = onCompletion
     )
 }
 
@@ -173,4 +179,13 @@ actual suspend fun saveSyncServerCertificateInternally(
 
 actual suspend fun loadSyncServerCertificate(): File {
     return linkoraSpecificFolder.resolve("sync-server-cert.cer")
+}
+
+actual suspend fun pickADirectory(): String? {
+    return "https://music.youtube.com/watch?v=LWUgT34GYhU"
+}
+
+actual fun getDefaultExportLocation(): String? {
+    val userHomeDir = System.getProperty("user.home")
+    return File(userHomeDir, "/Documents/Linkora/Exports").absolutePath
 }

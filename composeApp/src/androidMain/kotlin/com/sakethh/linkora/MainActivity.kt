@@ -80,10 +80,18 @@ class MainActivity : ComponentActivity() {
             val isNotificationPermissionDialogVisible = rememberSaveable {
                 mutableStateOf(false)
             }
-            val activityResultLauncher =
+            val activityResultLauncherForFileImport =
                 rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                     coroutineScope.pushUIEvent(
                         AndroidUIEvent.Type.UriOfTheFileForImporting(
+                            uri
+                        )
+                    )
+                }
+            val activityResultLauncherForPickingADirectory =
+                rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
+                    coroutineScope.pushUIEvent(
+                        AndroidUIEvent.Type.PickedDirectory(
                             uri
                         )
                     )
@@ -115,7 +123,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             is AndroidUIEvent.Type.ImportAFile -> {
-                                activityResultLauncher.launch(it.fileType)
+                                activityResultLauncherForFileImport.launch(it.fileType)
                             }
 
                             is AndroidUIEvent.Type.ShowRuntimePermissionForNotifications -> {
@@ -128,6 +136,10 @@ class MainActivity : ComponentActivity() {
                                 it.isGranted.ifNot {
                                     pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.NotificationPermissionIsRequired.getLocalizedString()))
                                 }
+                            }
+
+                            is AndroidUIEvent.Type.PickADirectory -> {
+                                activityResultLauncherForPickingADirectory.launch(null)
                             }
 
                             else -> {}

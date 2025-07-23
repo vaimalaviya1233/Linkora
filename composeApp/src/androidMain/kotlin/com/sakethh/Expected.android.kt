@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
-import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -17,11 +16,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.documentfile.provider.DocumentFile
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -50,25 +51,27 @@ import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.theme.poppinsFontFamily
 import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.isTablet
 import com.sakethh.linkora.worker.RefreshAllLinksWorker
 import com.sakethh.linkora.worker.SnapshotWorker
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import okio.Path.Companion.toPath
 import java.io.File
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
 
 actual val showFollowSystemThemeOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 actual val platform: @Composable () -> Platform = {
@@ -80,37 +83,35 @@ actual val localDatabase: LocalDatabase? = LinkoraApp.getLocalDb()
 actual val poppinsFontFamily: FontFamily = poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 actual suspend fun writeRawExportStringToFile(
+    exportLocation: String,
     exportFileType: ExportFileType,
     rawExportString: RawExportString,
     onCompletion: suspend (String) -> Unit
 ) {
-    val defaultFolder = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-        File(Environment.getExternalStorageDirectory(), "Linkora/Exports")
-    } else {
-        File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
-            "Linkora/Exports"
-        )
-    }
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && defaultFolder.exists().not()) {
-        File(Environment.getExternalStorageDirectory(), "Linkora/Exports").mkdirs()
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && defaultFolder.exists().not()) {
-        File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
-            "Linkora/Exports"
-        ).mkdirs()
-    }
-
     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
     val timestamp = simpleDateFormat.format(Date())
     val exportFileName =
         "LinkoraExport-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
-
-    val file = File(defaultFolder, exportFileName)
-    file.writeText(rawExportString)
-    onCompletion(exportFileName)
+    val directoryUri = exportLocation.toUri()
+    val directory = DocumentFile.fromTreeUri(LinkoraApp.getContext(), directoryUri)
+    val newFile = directory?.createFile(
+        if (exportFileType == ExportFileType.HTML) "text/html" else "application/json",
+        exportFileName
+    )
+    newFile?.uri?.let { fileUri ->
+        try {
+            LinkoraApp.getContext().contentResolver.openOutputStream(fileUri)?.use { outputStream ->
+                outputStream.write(rawExportString.toByteArray())
+            }
+            onCompletion(exportFileName)
+        } catch (e: Exception) {
+            withContext(coroutineContext) {
+                pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+            }
+            e.printStackTrace()
+        }
+    }
 }
 
 actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean {
@@ -137,42 +138,44 @@ actual suspend fun pickAValidFileForImporting(
             }
         )
     )
-    val deferredFile = CompletableDeferred<File?>()
-    CoroutineScope(Dispatchers.IO).launch {
-        AndroidUIEvent.androidUIEventChannel.collectLatest {
-            if (it is AndroidUIEvent.Type.UriOfTheFileForImporting) {
-                try {
-                    if (it.uri == null) {
-                        throw NullPointerException()
-                    }
-                    onStart()
-                    val fileName = LinkoraApp.getContext().contentResolver.query(
-                        it.uri, null, null, null, null
-                    )?.use {
-                        val nameColumnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                        it.moveToFirst()
-                        it.getString(nameColumnIndex)
-                    } ?: ""
-                    val file = createTempFile(
-                        prefix = fileName.substringBeforeLast("."),
-                        suffix = fileName.substringAfterLast(".")
-                    )
-                    LinkoraApp.getContext().contentResolver.openInputStream(it.uri).use { input ->
-                        file.outputStream().use { output ->
-                            input?.copyTo(output)
-                        }
-                    }
-                    deferredFile.complete(file)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    deferredFile.complete(null)
-                } finally {
-                    this.cancel()
+    return suspendCancellableCoroutine { continuation ->
+        val listenerJob = CoroutineScope(continuation.context).launch {
+            try {
+                val uriEvent =
+                    AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.UriOfTheFileForImporting
+                if (uriEvent.uri == null) {
+                    // if picking the file didn't go as expected, then just return null
+                    // we can throw and catch and then resume with null but this is aight
+                    continuation.resume(null)
+                    return@launch
                 }
+                onStart()
+                val fileName = LinkoraApp.getContext().contentResolver.query(
+                    uriEvent.uri, null, null, null, null
+                )?.use {
+                    val nameColumnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    it.moveToFirst()
+                    it.getString(nameColumnIndex)
+                } ?: ""
+                val file = createTempFile(
+                    prefix = fileName.substringBeforeLast("."),
+                    suffix = fileName.substringAfterLast(".")
+                )
+                LinkoraApp.getContext().contentResolver.openInputStream(uriEvent.uri).use { input ->
+                    file.outputStream().use { output ->
+                        input?.copyTo(output)
+                    }
+                }
+                continuation.resume(file)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                continuation.cancel()
             }
         }
+        continuation.invokeOnCancellation {
+            listenerJob.cancel()
+        }
     }
-    return deferredFile.await()
 }
 
 actual fun onShare(url: String) {
@@ -289,7 +292,10 @@ actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory
     })
 
 actual suspend fun exportSnapshotData(
-    rawExportString: String, fileType: ExportFileType, onCompletion: suspend (String) -> Unit
+    exportLocation: String,
+    rawExportString: String,
+    fileType: ExportFileType,
+    onCompletion: suspend (String) -> Unit
 ) {
     val snapshotWorker = OneTimeWorkRequestBuilder<SnapshotWorker>()
     val rawExportStringID: Long =
@@ -314,4 +320,28 @@ actual suspend fun saveSyncServerCertificateInternally(
 
 actual suspend fun loadSyncServerCertificate(): File {
     return LinkoraApp.getContext().filesDir.resolve("sync-server-cert.cer")
+}
+
+
+actual suspend fun pickADirectory(): String? {
+    AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.PickADirectory)
+    return suspendCancellableCoroutine { continuation ->
+        val listenerJob = CoroutineScope(continuation.context).launch {
+            val eventDirectoryPick =
+                AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.PickedDirectory
+            try {
+                continuation.resume(eventDirectoryPick.uri?.toString())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                continuation.cancel()
+            }
+        }
+        continuation.invokeOnCancellation {
+            listenerJob.cancel()
+        }
+    }
+}
+
+actual fun getDefaultExportLocation(): String? {
+    return null
 }

@@ -27,6 +27,7 @@ ksp = "2.0.20-1.0.24"
 sqlite = "2.5.0-SNAPSHOT"
 androidx-room = "2.7.2"
 workRuntime = "2.10.0"
+documentfile = "1.1.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -58,6 +59,7 @@ navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-co
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidx-room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidx-room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

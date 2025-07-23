@@ -29,6 +29,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.accompanist.systemuicontroller)
             implementation(libs.androidx.work.runtime)
+            implementation(libs.androidx.documentfile)
         }
         commonMain.dependencies {
             implementation(compose.runtime)

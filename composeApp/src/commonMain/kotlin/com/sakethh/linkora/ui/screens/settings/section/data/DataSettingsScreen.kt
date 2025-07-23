@@ -26,8 +26,10 @@ import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Html
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.WbCloudy
@@ -49,6 +51,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -61,6 +64,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -95,6 +100,7 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectio
 import com.sakethh.linkora.ui.screens.settings.section.data.components.ToggleButton
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
+import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.platform
 import com.sakethh.poppinsFontFamily
 import kotlinx.coroutines.launch
@@ -134,6 +140,14 @@ fun DataSettingsScreen() {
     }
     val showDuplicateDeleteDialogBox = rememberSaveable {
         mutableStateOf(false)
+    }
+
+    val exportLocation = rememberSaveable(AppPreferences.currentExportLocation.value) {
+        mutableStateOf(AppPreferences.currentExportLocation.value)
+    }
+
+    val backupLocation = rememberSaveable(AppPreferences.currentBackupLocation.value) {
+        mutableStateOf(AppPreferences.currentBackupLocation.value)
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
@@ -279,6 +293,32 @@ fun DataSettingsScreen() {
                 }
             }
             item {
+                TextField(textStyle = MaterialTheme.typography.titleSmall, trailingIcon = {
+                    FilledTonalIconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .pulsateEffect().padding(end = 5.dp), onClick = {
+                            dataSettingsScreenVM.changeExportLocation(
+                                exportLocation = exportLocation.value,
+                                platform = platform,
+                                exportLocationType = ExportLocationType.EXPORT
+                            )
+                        }) {
+                        Icon(
+                            imageVector = if (platform is Platform.Android) Icons.Default.FolderOpen else Icons.Default.Save,
+                            contentDescription = null
+                        )
+                    }
+                }, readOnly = platform is Platform.Android, label = {
+                    Text(
+                        text = "Current export location",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Start,
+                    )
+                }, value = exportLocation.value, onValueChange = {
+                    exportLocation.value = it
+                }, modifier = Modifier.padding(start = 15.dp, end = 15.dp).fillMaxWidth())
+            }
+            item {
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
@@ -370,6 +410,40 @@ fun DataSettingsScreen() {
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
                 )
                 if (AppPreferences.areSnapshotsEnabled.value) {
+                    TextField(
+                        textStyle = MaterialTheme.typography.titleSmall,
+                        trailingIcon = {
+                            FilledTonalIconButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                .pulsateEffect().padding(end = 5.dp), onClick = {
+                                dataSettingsScreenVM.changeExportLocation(
+                                    exportLocation = backupLocation.value,
+                                    platform = platform,
+                                    exportLocationType = ExportLocationType.SNAPSHOT
+                                )
+                            }) {
+                                Icon(
+                                    imageVector = if (platform is Platform.Android) Icons.Default.FolderOpen else Icons.Default.Save,
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        readOnly = platform is Platform.Android,
+                        label = {
+                            Text(
+                                text = "Current backup location",
+                                style = MaterialTheme.typography.titleMedium,
+                                textAlign = TextAlign.Start,
+                            )
+                        },
+                        value = backupLocation.value,
+                        onValueChange = {
+                            backupLocation.value = it
+                        },
+                        modifier = Modifier.padding(top = 15.dp, start = 15.dp, end = 15.dp)
+                            .fillMaxWidth()
+                    )
+
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(15.dp)
                     ) {

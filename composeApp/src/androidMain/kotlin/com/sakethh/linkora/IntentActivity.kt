@@ -199,20 +199,26 @@ class IntentActivityVM(
             if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
                 awaitAll(async {
                     exportSnapshotData(
-                        rawExportString = serializedJsonExportString, fileType = FileType.JSON
+                        rawExportString = serializedJsonExportString,
+                        exportLocation = AppPreferences.currentBackupLocation.value,
+                        fileType = FileType.JSON
                     )
                 }, async {
                     exportSnapshotData(
+                        exportLocation = AppPreferences.currentBackupLocation.value,
                         rawExportString = exportDataRepo.rawExportDataAsHTML(
                             links = allLinks, folders = allFolders
-                        ), fileType = ExportFileType.HTML
+                        ),
+                        fileType = ExportFileType.HTML
                     )
                 })
             }
 
             if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
                 exportSnapshotData(
-                    rawExportString = serializedJsonExportString, fileType = FileType.JSON
+                    exportLocation = AppPreferences.currentBackupLocation.value,
+                    rawExportString = serializedJsonExportString,
+                    fileType = FileType.JSON
                 )
             }
 
@@ -220,7 +226,9 @@ class IntentActivityVM(
                 exportSnapshotData(
                     rawExportString = exportDataRepo.rawExportDataAsHTML(
                         links = allLinks, folders = allFolders
-                    ), fileType = ExportFileType.HTML
+                    ),
+                    fileType = ExportFileType.HTML,
+                    exportLocation = AppPreferences.currentBackupLocation.value,
                 )
             }
         }.invokeOnCompletion {

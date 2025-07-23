@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.BUILD_FLAVOUR
+import com.sakethh.getDefaultExportLocation
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.SyncType
@@ -77,6 +78,8 @@ object AppPreferences {
     const val WEB_SOCKET_SCHEME = "wss"
     private var correlation = Correlation.generateRandomCorrelation()
 
+    val currentExportLocation = mutableStateOf("")
+    val currentBackupLocation = mutableStateOf("")
 
     suspend fun lastSyncedLocally(preferencesRepository: PreferencesRepository): Long {
         return preferencesRepository.readPreferenceValue(
@@ -378,6 +381,22 @@ object AppPreferences {
                             AppPreferenceType.SKIP_CERT_CHECK_FOR_SYNC_SERVER.name
                         )
                     ) == true
+                },
+                launch {
+                    currentBackupLocation.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = stringPreferencesKey(
+                            AppPreferenceType.BACKUP_LOCATION.name
+                        )
+                    ) ?: (getDefaultExportLocation()
+                        ?: "Backups will only work if you pick a directory first.")
+                },
+                launch {
+                    currentExportLocation.value = preferencesRepository.readPreferenceValue(
+                        preferenceKey = stringPreferencesKey(
+                            AppPreferenceType.EXPORT_LOCATION.name
+                        )
+                    ) ?: (getDefaultExportLocation()
+                        ?: "You need to pick a directory before exporting.")
                 },
             ).joinAll()
         }

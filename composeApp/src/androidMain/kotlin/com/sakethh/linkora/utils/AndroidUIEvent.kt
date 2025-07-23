@@ -27,5 +27,7 @@ object AndroidUIEvent {
         data class NotificationPermissionState(val isGranted: Boolean) : Type
         data class UriOfTheFileForImporting(val uri: Uri?) : Type
         data class ImportAFile(val fileType: String) : Type
+        data object PickADirectory : Type
+        data class PickedDirectory(val uri: Uri?) : Type
     }
 }
