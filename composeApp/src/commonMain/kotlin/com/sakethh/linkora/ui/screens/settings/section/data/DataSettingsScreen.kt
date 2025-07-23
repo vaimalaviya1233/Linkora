@@ -443,9 +443,11 @@ fun DataSettingsScreen() {
                                 style = MaterialTheme.typography.titleSmall
                             )
                         }
-                    }, textStyle = MaterialTheme.typography.titleSmall, trailingIcon = {
-                        FilledTonalIconButton(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                    },
+                        textStyle = MaterialTheme.typography.titleSmall,
+                        trailingIcon = {
+                            FilledTonalIconButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                                 .pulsateEffect().padding(end = 5.dp), onClick = {
                                 dataSettingsScreenVM.changeExportLocation(
                                     exportLocation = backupLocation.value,
@@ -453,20 +455,30 @@ fun DataSettingsScreen() {
                                     exportLocationType = ExportLocationType.SNAPSHOT
                                 )
                             }) {
-                            Icon(
-                                imageVector = if (platform is Platform.Android) Icons.Default.FolderOpen else Icons.Default.Save,
-                                contentDescription = null
+                                Icon(
+                                    imageVector = if (platform is Platform.Android) Icons.Default.FolderOpen else Icons.Default.Save,
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        readOnly = platform is Platform.Android,
+                        label = {
+                            Text(
+                                text = "Current backup location",
+                                style = MaterialTheme.typography.titleMedium,
+                                textAlign = TextAlign.Start,
                             )
-                        }
-                    }, readOnly = platform is Platform.Android, label = {
-                        Text(
-                            text = "Current backup location",
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Start,
-                        )
-                    }, value = backupLocation.value, onValueChange = {
-                        backupLocation.value = it
-                    }, modifier = Modifier.padding(15.dp).fillMaxWidth()
+                        },
+                        value = backupLocation.value,
+                        onValueChange = {
+                            backupLocation.value = it
+                        },
+                        modifier = Modifier.padding(
+                            start = 15.dp,
+                            end = 15.dp,
+                            top = 15.dp,
+                            bottom = if (com.sakethh.platform is Platform.Android) 15.dp else 0.dp
+                        ).fillMaxWidth()
                     )
                     SettingComponent(
                         SettingComponentParam(

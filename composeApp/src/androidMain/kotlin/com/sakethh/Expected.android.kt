@@ -349,6 +349,6 @@ actual fun getDefaultExportLocation(): String? {
 }
 
 actual suspend fun deleteAutoBackups(
-    exportLocation: String, threshold: Int, onCompletion: () -> Unit
+    backupLocation: String, threshold: Int, onCompletion: (deletionCount: Int) -> Unit
 ) {
 }

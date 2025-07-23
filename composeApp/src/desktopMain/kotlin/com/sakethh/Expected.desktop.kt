@@ -195,7 +195,31 @@ actual fun getDefaultExportLocation(): String? {
 }
 
 actual suspend fun deleteAutoBackups(
-    exportLocation: String, threshold: Int, onCompletion: () -> Unit
+    backupLocation: String, threshold: Int, onCompletion: (deletionCount: Int) -> Unit
 ) {
-
+    try {
+        withContext(Dispatchers.IO) {
+            File(backupLocation).listFiles {
+                it.nameWithoutExtension.startsWith("LinkoraSnapshot-")
+            }?.let { snapshots ->
+                val snapshotsCount = snapshots.count()
+                if (snapshotsCount > threshold) {
+                    snapshots.sortBy {
+                        it.lastModified()
+                    }
+                    snapshots.take(snapshotsCount - threshold).apply {
+                        forEach {
+                            it.delete()
+                        }
+                        onCompletion(this.count())
+                    }
+                } else {
+                    onCompletion(0)
+                }
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+    }
 }

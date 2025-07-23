@@ -79,7 +79,7 @@ expect suspend fun pickADirectory(): String?
 expect fun getDefaultExportLocation(): String?
 
 expect suspend fun deleteAutoBackups(
-    exportLocation: String,
+    backupLocation: String,
     // maximum number of backups allowed to keep
-    threshold: Int, onCompletion: () -> Unit
+    threshold: Int, onCompletion: (deletionCount: Int) -> Unit
 )
