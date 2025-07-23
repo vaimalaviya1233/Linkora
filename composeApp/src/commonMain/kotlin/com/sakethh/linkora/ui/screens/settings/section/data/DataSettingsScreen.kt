@@ -294,10 +294,12 @@ fun DataSettingsScreen() {
             }
             item {
                 TextField(supportingText = {
-                    Text(
-                        text = "If the selected directory is deleted or moved, export will silently fail. Make sure the selected directory always exists.",
-                        style = MaterialTheme.typography.titleSmall
-                    )
+                    if (platform is Platform.Android) {
+                        Text(
+                            text = "If the selected directory is deleted or moved, export will silently fail. Make sure the selected directory always exists.",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
                 }, textStyle = MaterialTheme.typography.titleSmall, trailingIcon = {
                     FilledTonalIconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
@@ -417,10 +419,12 @@ fun DataSettingsScreen() {
                 if (AppPreferences.areSnapshotsEnabled.value) {
                     TextField(
                         supportingText = {
-                        Text(
-                            text = "If the selected directory is moved or deleted, backup will silently fail. Make sure the selected directory always exists.",
-                            style = MaterialTheme.typography.titleSmall
-                        )
+                        if (platform is Platform.Android) {
+                            Text(
+                                text = "If the selected directory is moved or deleted, backup will silently fail. Make sure the selected directory always exists.",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
                     },
                         textStyle = MaterialTheme.typography.titleSmall,
                         trailingIcon = {
