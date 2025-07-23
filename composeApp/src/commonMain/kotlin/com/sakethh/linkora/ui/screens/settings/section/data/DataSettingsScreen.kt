@@ -477,7 +477,7 @@ fun DataSettingsScreen() {
                             start = 15.dp,
                             end = 15.dp,
                             top = 15.dp,
-                            bottom = if (com.sakethh.platform is Platform.Android) 15.dp else 0.dp
+                            bottom = if (com.sakethh.platform() is Platform.Android) 15.dp else 0.dp
                         ).fillMaxWidth()
                     )
                     SettingComponent(

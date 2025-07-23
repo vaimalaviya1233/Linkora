@@ -351,4 +351,21 @@ actual fun getDefaultExportLocation(): String? {
 actual suspend fun deleteAutoBackups(
     backupLocation: String, threshold: Int, onCompletion: (deletionCount: Int) -> Unit
 ) {
+    DocumentFile.fromTreeUri(LinkoraApp.getContext(), backupLocation.toUri())?.listFiles()?.filter {
+        it.name?.startsWith("LinkoraSnapshot-") == true
+    }?.let { snapshots ->
+        val snapshotsCount = snapshots.count()
+        if (snapshotsCount > threshold) {
+            snapshots.sortedBy {
+                it.lastModified()
+            }.take(snapshotsCount - threshold).apply {
+                forEach {
+                    it.delete()
+                }
+                onCompletion(count())
+            }
+        } else {
+            onCompletion(0)
+        }
+    }
 }
