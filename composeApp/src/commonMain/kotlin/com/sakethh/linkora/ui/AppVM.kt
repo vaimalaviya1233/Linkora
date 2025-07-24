@@ -51,8 +51,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
@@ -167,50 +165,34 @@ class AppVM(
                                                 )
                                             })
                                     }
-                                    val serializedJsonExportString = JSONExportSchema(
-                                        schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
-                                        links = it.links.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        },
-                                        folders = it.folders.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        },
-                                        panels = PanelForJSONExportSchema(panels = it.panels.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        }, panelFolders = it.panelFolders.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        }),
-                                    ).run {
-                                        Json.encodeToString(this)
-                                    }
 
-                                    if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
-                                        awaitAll(async {
-                                            com.sakethh.exportSnapshotData(
-                                                rawExportString = serializedJsonExportString,
-                                                fileType = FileType.JSON,
-                                                exportLocation = AppPreferences.currentBackupLocation.value
-                                            )
-                                        }, async {
-                                            com.sakethh.exportSnapshotData(
-                                                rawExportString = exportDataRepo.rawExportDataAsHTML(
-                                                    links = it.links, folders = it.folders
-                                                ),
-                                                fileType = ExportFileType.HTML,
-                                                exportLocation = AppPreferences.currentBackupLocation.value
-                                            )
-                                        })
-                                    }
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
+                                        val serializedJsonExportString = JSONExportSchema(
+                                            schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                                            links = it.links.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            },
+                                            folders = it.folders.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            },
+                                            panels = PanelForJSONExportSchema(panels = it.panels.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            }, panelFolders = it.panelFolders.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            }),
+                                        ).run {
+                                            Json.encodeToString(this)
+                                        }
+
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = serializedJsonExportString,
                                             fileType = FileType.JSON,
@@ -218,7 +200,7 @@ class AppVM(
                                         )
                                     }
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = exportDataRepo.rawExportDataAsHTML(
                                                 links = it.links, folders = it.folders
