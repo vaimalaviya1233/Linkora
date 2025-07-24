@@ -137,6 +137,7 @@ import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.about.AboutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.snapshots.SnapshotsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -825,6 +826,9 @@ fun App(
                     }
                     composable<Navigation.Settings.AdvancedSettingsScreen> {
                         AdvancedSettingsScreen()
+                    }
+                    composable<Navigation.Settings.Data.SnapshotsScreen> {
+                        SnapshotsScreen()
                     }
                     composable<Navigation.Root.OnboardingSlidesScreen> {
                         OnboardingSlidesScreen(onOnboardingComplete = {

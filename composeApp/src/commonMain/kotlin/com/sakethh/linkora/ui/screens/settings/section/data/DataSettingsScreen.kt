@@ -17,17 +17,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoDelete
 import androidx.compose.material.icons.filled.BackupTable
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Html
 import androidx.compose.material.icons.filled.Refresh
@@ -48,7 +44,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -57,9 +52,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -69,19 +62,14 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import com.sakethh.PlatformSpecificBackHandler
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.currentSavedServerConfig
@@ -100,9 +88,10 @@ import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.settings.SettingSectionComponent
+import com.sakethh.linkora.ui.screens.settings.SettingSectionComponentParam
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.screens.settings.section.data.components.ToggleButton
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -150,21 +139,6 @@ fun DataSettingsScreen() {
     val exportLocation = rememberSaveable(AppPreferences.currentExportLocation.value) {
         mutableStateOf(AppPreferences.currentExportLocation.value)
     }
-
-    val backupLocation = rememberSaveable(AppPreferences.currentBackupLocation.value) {
-        mutableStateOf(AppPreferences.currentBackupLocation.value)
-    }
-
-    val backupAutoDeleteThreshold =
-        rememberSaveable(AppPreferences.backupAutoDeleteThreshold.intValue) {
-            mutableIntStateOf(AppPreferences.backupAutoDeleteThreshold.intValue)
-        }
-    val localFocusManager = LocalFocusManager.current
-
-    val isBackupAutoDeletionEnabled =
-        rememberSaveable(AppPreferences.isBackupAutoDeletionEnabled.value) {
-            mutableStateOf(AppPreferences.isBackupAutoDeletionEnabled.value)
-        }
 
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
@@ -394,212 +368,18 @@ fun DataSettingsScreen() {
                         icon = Icons.Default.Html,
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
                 )
-            }
-            item {
-                Text(
-                    text = "Snapshots",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.padding(start = 15.dp, end = 15.dp),
-                )
-            }
-
-            item {
-                SettingComponent(
-                    SettingComponentParam(
-                        isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "Use snapshots",
-                        doesDescriptionExists = true,
-                        description = "Links, folders, panels, and panel folders will be auto-exported in your chosen format.",
-                        isSwitchNeeded = true,
-                        isSwitchEnabled = AppPreferences.areSnapshotsEnabled,
-                        onSwitchStateChange = {
-                            var isStorageAccessPermitted = false
-                            coroutineScope.launch {
-                                isStorageAccessPermitted =
-                                    com.sakethh.isStorageAccessPermittedOnAndroid()
-                            }.invokeOnCompletion { _ ->
-                                if (isStorageAccessPermitted.not() && platform is Platform.Android) return@invokeOnCompletion
-
-                                AppPreferences.areSnapshotsEnabled.value = it
-                                dataSettingsScreenVM.changeSettingPreferenceValue(
-                                    preferenceKey = booleanPreferencesKey(
-                                        AppPreferenceType.USE_SNAPSHOTS.name
-                                    ), newValue = it
-                                )
-                            }
+                Spacer(modifier = Modifier.height(15.dp))
+                SettingSectionComponent(
+                    SettingSectionComponentParam(
+                        onClick = {
+                            navController.navigate(Navigation.Settings.Data.SnapshotsScreen)
                         },
-                        icon = Icons.Default.BackupTable,
-                        shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
-                )
-                if (AppPreferences.areSnapshotsEnabled.value) {
-                    TextField(
-                        supportingText = {
-                        if (platform is Platform.Android) {
-                            Text(
-                                text = "If the selected directory is moved or deleted, backup will silently fail. Make sure the selected directory always exists.",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                    },
-                        textStyle = MaterialTheme.typography.titleSmall,
-                        trailingIcon = {
-                            FilledTonalIconButton(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                                .pulsateEffect().padding(end = 5.dp), onClick = {
-                                dataSettingsScreenVM.changeExportLocation(
-                                    exportLocation = backupLocation.value,
-                                    platform = platform,
-                                    exportLocationType = ExportLocationType.SNAPSHOT
-                                )
-                            }) {
-                                Icon(
-                                    imageVector = if (platform is Platform.Android) Icons.Default.FolderOpen else Icons.Default.Save,
-                                    contentDescription = null
-                                )
-                            }
-                        },
-                        readOnly = platform is Platform.Android,
-                        label = {
-                            Text(
-                                text = "Current backup location",
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Start,
-                            )
-                        },
-                        value = backupLocation.value,
-                        onValueChange = {
-                            backupLocation.value = it
-                        },
-                        modifier = Modifier.padding(
-                            start = 15.dp,
-                            end = 15.dp,
-                            top = 15.dp,
-                            bottom = if (com.sakethh.platform() is Platform.Android) 15.dp else 0.dp
-                        ).fillMaxWidth()
+                        sectionTitle = "Snapshots",
+                        sectionIcon = Icons.Default.BackupTable,
+                        shouldArrowIconAppear = true,
+                        fontSize = 16.sp,
+                        bottomSpacing = 0.dp
                     )
-                    SettingComponent(
-                        SettingComponentParam(
-                            isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                            title = "Enable Auto-Deletion of Old Snapshots",
-                            doesDescriptionExists = true,
-                            description = "When enabled, the app will automatically delete the oldest snapshots once they exceed the configured limit.",
-                            isSwitchNeeded = true,
-                            isSwitchEnabled = isBackupAutoDeletionEnabled,
-                            onSwitchStateChange = {
-                                dataSettingsScreenVM.updateAutoDeletionBackupsState(it)
-                            },
-                            icon = Icons.Default.AutoDelete,
-                            shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
-                    )
-
-                    if (isBackupAutoDeletionEnabled.value) {
-                        TextField(
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            textStyle = MaterialTheme.typography.titleSmall,
-                            trailingIcon = {
-                                FilledTonalIconButton(
-                                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                                        .pulsateEffect().padding(end = 5.dp), onClick = {
-                                        dataSettingsScreenVM.updateAutoDeletionBackupsThreshold(
-                                            backupAutoDeleteThreshold.intValue
-                                        )
-                                        localFocusManager.clearFocus(force = true)
-                                    }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Save, contentDescription = null
-                                    )
-                                }
-                            },
-                            label = {
-                                Text(
-                                    text = "Auto-delete if snapshots count exceeds limit:",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    textAlign = TextAlign.Start,
-                                )
-                            },
-                            value = backupAutoDeleteThreshold.intValue.toString(),
-                            onValueChange = {
-                                backupAutoDeleteThreshold.intValue = try {
-                                    it.toInt()
-                                } catch (_: Exception) {
-                                    0
-                                } catch (_: Error) {
-                                    0
-                                }
-                            },
-                            modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 15.dp)
-                                .fillMaxWidth()
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(15.dp)
-                    ) {
-                        Text(
-                            text = "Export As",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Row(
-                            modifier = Modifier.padding(top = 10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            remember {
-                                ExportFileType.entries.map { it.name }
-                                    .filter { it != "CER" } + "Both"
-                            }.let {
-                                it.forEachIndexed { index, exportType ->
-                                    val checked =
-                                        exportType == AppPreferences.snapshotsExportType.value
-                                    ToggleButton(
-                                        shape = when (index) {
-                                            0 -> RoundedCornerShape(
-                                                topStart = 15.dp,
-                                                bottomStart = 15.dp,
-                                                topEnd = 5.dp,
-                                                bottomEnd = 5.dp
-                                            )
-
-                                            it.lastIndex -> RoundedCornerShape(
-                                                topStart = 5.dp,
-                                                bottomStart = 5.dp,
-                                                topEnd = 15.dp,
-                                                bottomEnd = 15.dp
-                                            )
-
-                                            else -> RoundedCornerShape(5.dp)
-                                        }, checked = checked, onCheckedChange = {
-                                            AppPreferences.snapshotsExportType.value = exportType
-                                            dataSettingsScreenVM.changeSettingPreferenceValue(
-                                                preferenceKey = stringPreferencesKey(
-                                                    AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
-                                                ), newValue = exportType
-                                            )
-                                        }) {
-                                        Text(
-                                            text = exportType,
-                                            style = if (checked) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
-                                            color = if (checked) MaterialTheme.colorScheme.onPrimary else LocalContentColor.current
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Spacer(modifier = Modifier.height(15.dp))
-                }
-                Text(
-                    text = if (platform !is Platform.Android) "Each create, update, or delete action on a link, folder, panel, or panel folder triggers an export. Progress is shown in the side navigation rail." else "Any time you add, edit, or delete a link, folder, panel, or panel folder, Linkora auto-exports in the background.",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.padding(start = 15.dp, end = 15.dp),
                 )
             }
             item {
@@ -708,29 +488,6 @@ fun DataSettingsScreen() {
                 )
             }
 
-            item {
-                HorizontalDivider(
-                    Modifier.padding(
-                        start = 15.dp,
-                        end = 15.dp,
-                        bottom = 30.dp,
-                    ), color = DividerDefaults.color.copy(0.5f)
-                )
-                SettingComponent(
-                    SettingComponentParam(
-                        isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = Localization.rememberLocalizedString(Localization.Key.DeleteEntireDataPermanently),
-                        doesDescriptionExists = true,
-                        description = Localization.rememberLocalizedString(Localization.Key.DeleteEntireDataPermanentlyDesc),
-                        isSwitchNeeded = false,
-                        isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
-                        onSwitchStateChange = {
-                            shouldDeleteEntireDialogBoxAppear.value = true
-                        },
-                        icon = Icons.Default.DeleteForever,
-                        shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
-                )
-            }
             item {
                 HorizontalDivider(
                     Modifier.padding(

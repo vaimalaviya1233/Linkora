@@ -14,14 +14,12 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @Composable
@@ -51,8 +49,8 @@ fun SettingSectionComponent(
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = settingSectionComponentParam.sectionTitle,
-                style = MaterialTheme.typography.titleMedium,
-                fontSize = 20.sp,
+                style = settingSectionComponentParam.textStyle(),
+                fontSize = settingSectionComponentParam.fontSize,
             )
             if (settingSectionComponentParam.shouldArrowIconAppear) {
                 Box(
@@ -72,7 +70,7 @@ fun SettingSectionComponent(
             }
         }
         if (settingSectionComponentParam.shouldArrowIconAppear) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(settingSectionComponentParam.bottomSpacing))
         }
     }
 }
