@@ -849,7 +849,8 @@ fun App(
 					}
 					composable<Navigation.Settings.Data.SnapshotsScreen> {
                         SnapshotsScreen()
-                    }composable<Navigation.Root.OnboardingSlidesScreen> {
+                    }
+					composable<Navigation.Root.OnboardingSlidesScreen> {
 						OnboardingSlidesScreen(onOnboardingComplete = {
 							appVM.markOnboardingComplete()
 						})
