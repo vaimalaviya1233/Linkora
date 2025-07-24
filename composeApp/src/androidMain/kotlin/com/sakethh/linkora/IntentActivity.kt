@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.deleteAutoBackups
@@ -61,12 +62,14 @@ class IntentActivity : ComponentActivity() {
             val localConfiguration = LocalConfiguration.current
             val navController = rememberNavController()
             val intentActivityVM = viewModel<IntentActivityVM>(factory = viewModelFactory {
-                IntentActivityVM(
-                    localLinksRepo = DependencyContainer.localLinksRepo.value,
-                    localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                    localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                    exportDataRepo = DependencyContainer.exportDataRepo.value
-                )
+                initializer {
+                    IntentActivityVM(
+                        localLinksRepo = DependencyContainer.localLinksRepo.value,
+                        localFoldersRepo = DependencyContainer.localFoldersRepo.value,
+                        localPanelsRepo = DependencyContainer.localPanelsRepo.value,
+                        exportDataRepo = DependencyContainer.exportDataRepo.value
+                    )
+                }
             })
             CompositionLocalProvider(
                 LocalNavController provides navController,
