@@ -19,8 +19,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
+import com.sakethh.deleteAutoBackups
 import com.sakethh.exportSnapshotData
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
@@ -45,9 +47,9 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -60,12 +62,14 @@ class IntentActivity : ComponentActivity() {
             val localConfiguration = LocalConfiguration.current
             val navController = rememberNavController()
             val intentActivityVM = viewModel<IntentActivityVM>(factory = viewModelFactory {
-                IntentActivityVM(
-                    localLinksRepo = DependencyContainer.localLinksRepo.value,
-                    localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                    localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                    exportDataRepo = DependencyContainer.exportDataRepo.value
-                )
+                initializer {
+                    IntentActivityVM(
+                        localLinksRepo = DependencyContainer.localLinksRepo.value,
+                        localFoldersRepo = DependencyContainer.localFoldersRepo.value,
+                        localPanelsRepo = DependencyContainer.localPanelsRepo.value,
+                        exportDataRepo = DependencyContainer.exportDataRepo.value
+                    )
+                }
             })
             CompositionLocalProvider(
                 LocalNavController provides navController,
@@ -168,59 +172,63 @@ class IntentActivityVM(
 ) : ViewModel() {
     fun createADataSnapshot(onCompletion: () -> Unit) {
         viewModelScope.launch {
-            val allLinks = localLinksRepo.getAllLinks()
-            val allFolders = localFoldersRepo.getAllFoldersAsList()
-            val allPanels = localPanelsRepo.getAllThePanelsAsAList()
-            val allPanelFolders = localPanelsRepo.getAllThePanelFoldersAsAList()
-            val serializedJsonExportString = JSONExportSchema(
-                schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
-                links = allLinks.map {
-                    it.copy(
-                        remoteId = null, lastModified = 0
-                    )
-                },
-                folders = allFolders.map {
-                    it.copy(
-                        remoteId = null, lastModified = 0
-                    )
-                },
-                panels = PanelForJSONExportSchema(panels = allPanels.map {
-                    it.copy(
-                        remoteId = null, lastModified = 0
-                    )
-                }, panelFolders = allPanelFolders.map {
-                    it.copy(
-                        remoteId = null, lastModified = 0
-                    )
-                }),
-            ).run {
-                Json.encodeToString(this)
-            }
-            if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
-                awaitAll(async {
-                    exportSnapshotData(
-                        rawExportString = serializedJsonExportString, fileType = FileType.JSON
-                    )
-                }, async {
-                    exportSnapshotData(
-                        rawExportString = exportDataRepo.rawExportDataAsHTML(
-                            links = allLinks, folders = allFolders
-                        ), fileType = ExportFileType.HTML
-                    )
-                })
+            val allLinks = async { localLinksRepo.getAllLinks() }
+            val allFolders = async { localFoldersRepo.getAllFoldersAsList() }
+            val allPanels = async { localPanelsRepo.getAllThePanelsAsAList() }
+            val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
+
+            if (AppPreferences.isBackupAutoDeletionEnabled.value) {
+                deleteAutoBackups(
+                    backupLocation = AppPreferences.currentBackupLocation.value,
+                    threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
+                    onCompletion = {
+                        linkoraLog(
+                            "Deleted $it snapshot files as the threshold was ${AppPreferences.backupAutoDeleteThreshold.intValue}"
+                        )
+                    })
             }
 
-            if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
+            if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+
+                val serializedJsonExportString = JSONExportSchema(
+                    schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                    links = allLinks.await().map {
+                        it.copy(
+                            remoteId = null, lastModified = 0
+                        )
+                    },
+                    folders = allFolders.await().map {
+                        it.copy(
+                            remoteId = null, lastModified = 0
+                        )
+                    },
+                    panels = PanelForJSONExportSchema(panels = allPanels.await().map {
+                        it.copy(
+                            remoteId = null, lastModified = 0
+                        )
+                    }, panelFolders = allPanelFolders.await().map {
+                        it.copy(
+                            remoteId = null, lastModified = 0
+                        )
+                    }),
+                ).run {
+                    Json.encodeToString(this)
+                }
+
                 exportSnapshotData(
-                    rawExportString = serializedJsonExportString, fileType = FileType.JSON
+                    exportLocation = AppPreferences.currentBackupLocation.value,
+                    rawExportString = serializedJsonExportString,
+                    fileType = FileType.JSON
                 )
             }
 
-            if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
+            if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
                 exportSnapshotData(
                     rawExportString = exportDataRepo.rawExportDataAsHTML(
-                        links = allLinks, folders = allFolders
-                    ), fileType = ExportFileType.HTML
+                        links = allLinks.await(), folders = allFolders.await()
+                    ),
+                    fileType = ExportFileType.HTML,
+                    exportLocation = AppPreferences.currentBackupLocation.value,
                 )
             }
         }.invokeOnCompletion {

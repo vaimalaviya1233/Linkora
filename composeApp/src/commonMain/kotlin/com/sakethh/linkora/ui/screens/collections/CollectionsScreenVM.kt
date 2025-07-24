@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -191,32 +190,26 @@ open class CollectionsScreenVM(
     private val _rootArchiveFolders = MutableStateFlow(emptyList<Folder>())
     val rootArchiveFolders = _rootArchiveFolders.asStateFlow()
 
-    private val triggerForFoldersSorting = mutableStateOf(false)
-    private val triggerForLinksSorting = mutableStateOf(false)
-
-    fun triggerFoldersSorting() {
-        triggerForFoldersSorting.value = triggerForFoldersSorting.value.not()
-    }
-
-    fun triggerLinksSorting() {
-        triggerForLinksSorting.value = triggerForLinksSorting.value.not()
-    }
-
     init {
-        if (loadNonArchivedRootFoldersOnInit && loadArchivedRootFoldersOnInit) {
-            loadFolders { folders ->
-                _rootArchiveFolders.emit(folders.filter { it.isArchived })
-                _rootRegularFolders.emit(folders.filterNot { it.isArchived })
+        viewModelScope.launch {
+
+            if (loadNonArchivedRootFoldersOnInit && loadArchivedRootFoldersOnInit) {
+                loadFolders { folders ->
+                    _rootArchiveFolders.emit(folders.filter { it.isArchived })
+                    _rootRegularFolders.emit(folders.filterNot { it.isArchived })
+                }
             }
-        }
-        if (loadArchivedRootFoldersOnInit && loadNonArchivedRootFoldersOnInit.not()) {
-            loadFolders { folders ->
-                _rootArchiveFolders.emit(folders.filter { it.isArchived })
+
+            if (loadArchivedRootFoldersOnInit && !loadNonArchivedRootFoldersOnInit) {
+                loadFolders { folders ->
+                    _rootArchiveFolders.emit(folders.filter { it.isArchived })
+                }
             }
-        }
-        if (loadArchivedRootFoldersOnInit.not() && loadNonArchivedRootFoldersOnInit) {
-            loadFolders { folders ->
-                _rootRegularFolders.emit(folders.filterNot { it.isArchived })
+
+            if (loadArchivedRootFoldersOnInit.not() && loadNonArchivedRootFoldersOnInit) {
+                loadFolders { folders ->
+                    _rootRegularFolders.emit(folders.filterNot { it.isArchived })
+                }
             }
         }
         if (collectionDetailPaneInfo.isNotNull()) {
@@ -224,18 +217,16 @@ open class CollectionsScreenVM(
         }
     }
 
-    private fun loadFolders(init: suspend (folders: List<Folder>) -> Unit) {
-        combine(snapshotFlow {
+    private suspend fun loadFolders(init: suspend (folders: List<Folder>) -> Unit) {
+        snapshotFlow {
             AppPreferences.selectedSortingTypeType.value
-        }, snapshotFlow {
-            triggerForFoldersSorting.value
-        }) { sortingType, _ ->
+        }.collectLatest { sortingType ->
             localFoldersRepo.getRootFolders(sortingType).collectLatest { result ->
                 result.onSuccess { folders ->
                     init(folders.data)
                 }.pushSnackbarOnFailure()
             }
-        }.launchIn(viewModelScope)
+        }
     }
 
     private val _childFolders = MutableStateFlow(emptyList<Folder>())
@@ -260,12 +251,8 @@ open class CollectionsScreenVM(
     private fun updateCollectableChildFolders(parentFolderId: Long) {
         collectableChildFoldersJob?.cancel()
         collectableChildFoldersJob = viewModelScope.launch {
-            combine(snapshotFlow {
+            snapshotFlow {
                 AppPreferences.selectedSortingTypeType.value
-            }, snapshotFlow {
-                triggerForFoldersSorting.value
-            }) { sortingType, _ ->
-                sortingType
             }.collectLatest { sortingType ->
                 localFoldersRepo.getChildFolders(parentFolderId, sortingType)
                     .collectAndEmitChildFolders()
@@ -583,12 +570,8 @@ open class CollectionsScreenVM(
         collectableLinksJob?.cancel()
         collectableLinksJob = viewModelScope.launch(Dispatchers.Main) {
             _links.emit(emptyList())
-            combine(snapshotFlow {
+            snapshotFlow {
                 AppPreferences.selectedSortingTypeType.value
-            }, snapshotFlow {
-                triggerForLinksSorting.value
-            }) { sortingType, _ ->
-                sortingType
             }.collectLatest { sortingType ->
                 if (folderId.isNull()) {
                     localLinksRepo.getSortedLinks(linkType, sortingType)

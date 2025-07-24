@@ -23,6 +23,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
@@ -35,8 +36,10 @@ import java.awt.Frame
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
+
 
 actual val showFollowSystemThemeOption: Boolean = true
 actual val BUILD_FLAVOUR: String = "desktop"
@@ -65,20 +68,23 @@ actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsF
 actual val showDynamicThemingOption: Boolean = false
 
 actual suspend fun writeRawExportStringToFile(
+    exportLocation: String,
     exportFileType: ExportFileType,
+    exportLocationType: ExportLocationType,
     rawExportString: RawExportString,
     onCompletion: suspend (String) -> Unit
 ) {
-    val userHomeDir = System.getProperty("user.home")
-    val exportsFolder = File(userHomeDir, "/Documents/Linkora/Exports")
+    val exportsFolder = File(exportLocation)
 
     exportsFolder.exists().ifNot {
         exportsFolder.mkdirs()
     }
 
-    val exportFileName = "LinkoraExport-${
-        DateFormat.getDateTimeInstance().format(Date()).replace(":", "").replace(" ", "")
-    }.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
+    // kinda repeated in Expected.android, but alright
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
+    val timestamp = simpleDateFormat.format(Date())
+    val exportFileName =
+        "${if (exportLocationType == ExportLocationType.EXPORT) "LinkoraExport" else "LinkoraSnapshot"}-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
     val exportFilePath = Paths.get(exportsFolder.absolutePath, exportFileName)
 
@@ -150,10 +156,17 @@ actual class DataSyncingNotificationService actual constructor() {
 }
 
 actual suspend fun exportSnapshotData(
-    rawExportString: String, fileType: ExportFileType, onCompletion: suspend (String) -> Unit
+    exportLocation: String,
+    rawExportString: String,
+    fileType: ExportFileType,
+    onCompletion: suspend (String) -> Unit
 ) {
     writeRawExportStringToFile(
-        exportFileType = fileType, rawExportString = rawExportString, onCompletion = onCompletion
+        exportLocation = exportLocation,
+        exportFileType = fileType,
+        rawExportString = rawExportString,
+        onCompletion = onCompletion,
+        exportLocationType = ExportLocationType.SNAPSHOT
     )
 }
 
@@ -170,4 +183,43 @@ actual suspend fun saveSyncServerCertificateInternally(
 
 actual suspend fun loadSyncServerCertificate(): File {
     return linkoraSpecificFolder.resolve("sync-server-cert.cer")
+}
+
+actual suspend fun pickADirectory(): String? {
+    return "https://music.youtube.com/watch?v=LWUgT34GYhU"
+}
+
+actual fun getDefaultExportLocation(): String? {
+    val userHomeDir = System.getProperty("user.home")
+    return File(userHomeDir, "/Documents/Linkora/Exports").absolutePath
+}
+
+actual suspend fun deleteAutoBackups(
+    backupLocation: String, threshold: Int, onCompletion: (deletionCount: Int) -> Unit
+) {
+    try {
+        withContext(Dispatchers.IO) {
+            File(backupLocation).listFiles {
+                it.nameWithoutExtension.startsWith("LinkoraSnapshot-")
+            }?.let { snapshots ->
+                val snapshotsCount = snapshots.count()
+                if (snapshotsCount > threshold) {
+                    snapshots.sortBy {
+                        it.lastModified()
+                    }
+                    snapshots.take(snapshotsCount - threshold).apply {
+                        forEach {
+                            it.delete()
+                        }
+                        onCompletion(this.count())
+                    }
+                } else {
+                    onCompletion(0)
+                }
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+    }
 }

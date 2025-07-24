@@ -84,7 +84,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
@@ -96,6 +95,7 @@ import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
+import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
@@ -562,10 +562,12 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 key(it) {
                     FolderSelectorComponent(
                         onItemClick = {
-                            isDropDownMenuIconClicked.value = false
-                            selectedFolderForSavingTheLink.value = it
+                        isDropDownMenuIconClicked.value = false
+                        selectedFolderForSavingTheLink.value = it
+                    },
+                        isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
+                            mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
                         },
-                        isCurrentFolderSelected = mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId),
                         folderName = it.name,
                         onSubDirectoryIconClick = {
                             AddANewLinkDialogBox.changeParentFolderId(
@@ -698,7 +700,6 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
                             forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
                         ), onCompletion = {
-                            collectionsScreenVM.triggerLinksSorting()
                             shouldBeVisible.value = false
                         })
                 }) {
@@ -790,15 +791,17 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     items(childFolders.value) {
                         FolderSelectorComponent(
                             onItemClick = {
-                                selectedFolderForSavingTheLink.value = it
-                                isDropDownMenuIconClicked.value = false
-                                AddANewLinkDialogBox.subFoldersList.clear()
-                                coroutineScope.launch {
-                                    btmSheetState.hide()
-                                }
-                                isChildFoldersBottomSheetExpanded.value = false
+                            selectedFolderForSavingTheLink.value = it
+                            isDropDownMenuIconClicked.value = false
+                            AddANewLinkDialogBox.subFoldersList.clear()
+                            coroutineScope.launch {
+                                btmSheetState.hide()
+                            }
+                            isChildFoldersBottomSheetExpanded.value = false
+                        },
+                            isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
+                                mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
                             },
-                            isCurrentFolderSelected = mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId),
                             folderName = it.name,
                             onSubDirectoryIconClick = {
                                 selectedFolderForSavingTheLink.value = it

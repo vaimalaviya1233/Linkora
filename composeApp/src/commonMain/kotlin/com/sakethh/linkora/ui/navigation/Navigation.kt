@@ -95,6 +95,11 @@ sealed interface Navigation {
                 override fun toString(): String =
                     Localization.getLocalizedString(Localization.Key.LinkoraServerSetup)
             }
+            @Serializable
+            data object SnapshotsScreen : Data {
+                override fun toString(): String =
+                    "Snapshots"
+            }
         }
     }
 

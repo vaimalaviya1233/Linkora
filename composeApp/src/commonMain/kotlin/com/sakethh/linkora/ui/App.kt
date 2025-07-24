@@ -138,6 +138,7 @@ import com.sakethh.linkora.ui.screens.settings.section.LayoutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.ThemeSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.about.AboutSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
+import com.sakethh.linkora.ui.screens.settings.section.data.snapshots.SnapshotsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -846,7 +847,9 @@ fun App(
 					composable<Navigation.Settings.AdvancedSettingsScreen> {
 						AdvancedSettingsScreen()
 					}
-					composable<Navigation.Root.OnboardingSlidesScreen> {
+					composable<Navigation.Settings.Data.SnapshotsScreen> {
+                        SnapshotsScreen()
+                    }composable<Navigation.Root.OnboardingSlidesScreen> {
 						OnboardingSlidesScreen(onOnboardingComplete = {
 							appVM.markOnboardingComplete()
 						})
@@ -888,7 +891,7 @@ fun App(
 											?: 0) > 0
 									) CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
 								), ignoreFolderAlreadyExistsThrowable = false, onCompletion = {
-									collectionsScreenVM.triggerFoldersSorting()
+
 									onCompletion()
 								})
 						}
@@ -924,7 +927,7 @@ fun App(
 									}.invokeOnCompletion {
 										menuBtmModalSheetVisible.value = false
 									}
-									collectionsScreenVM.triggerFoldersSorting()
+
 								})
 						} else {
 							collectionsScreenVM.archiveALink(
@@ -935,7 +938,7 @@ fun App(
 									}.invokeOnCompletion {
 										menuBtmModalSheetVisible.value = false
 									}
-									collectionsScreenVM.triggerLinksSorting()
+
 								})
 						}
 					},
@@ -1028,7 +1031,7 @@ fun App(
 									}.invokeOnCompletion {
 										menuBtmModalSheetVisible.value = false
 									}
-									collectionsScreenVM.triggerFoldersSorting()
+
 									onCompletion()
 								})
 						} else {
@@ -1039,7 +1042,7 @@ fun App(
 									}.invokeOnCompletion {
 										menuBtmModalSheetVisible.value = false
 									}
-									collectionsScreenVM.triggerLinksSorting()
+
 									onCompletion()
 								})
 						}
@@ -1084,7 +1087,7 @@ fun App(
 								ignoreFolderAlreadyExistsThrowable = true,
 								onCompletion = {
 									onCompletion()
-									collectionsScreenVM.triggerFoldersSorting()
+
 									showRenameDialogBox.value = false
 								})
 						} else {
@@ -1101,7 +1104,7 @@ fun App(
 								newTitle = title,
 								onCompletion = {
 									onCompletion()
-									collectionsScreenVM.triggerLinksSorting()
+
 									showRenameDialogBox.value = false
 								})
 						}

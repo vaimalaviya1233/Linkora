@@ -2,11 +2,16 @@ package com.sakethh.linkora.ui.screens.settings.section.data
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.cancelRefreshingLinks
 import com.sakethh.isAnyRefreshingScheduled
 import com.sakethh.isStorageAccessPermittedOnAndroid
 import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.common.preferences.AppPreferenceType
+import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.duplicate
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
@@ -36,6 +41,7 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.onRefreshAllLinks
 import com.sakethh.permittedToShowNotification
+import com.sakethh.pickADirectory
 import com.sakethh.pickAValidFileForImporting
 import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Dispatchers
@@ -160,11 +166,14 @@ class DataSettingsScreenVM(
                 }.onSuccess {
                     try {
                         writeRawExportStringToFile(
+                            exportLocation = AppPreferences.currentExportLocation.value,
                             exportFileType = exportFileType,
                             rawExportString = it.data,
                             onCompletion = {
                                 pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.ExportedSuccessfully.getLocalizedString()))
-                            })
+                            },
+                            exportLocationType = ExportLocationType.EXPORT
+                        )
                     } catch (e: Exception) {
                         e.printStackTrace()
                         pushUIEvent(UIEvent.Type.ShowSnackbar(message = e.message.toString()))
@@ -187,14 +196,15 @@ class DataSettingsScreenVM(
         AppVM.pauseSnapshots = true
         var remoteOperationFailed: Boolean? = null
         viewModelScope.launch {
-            remoteSyncRepo.deleteEverything(deleteOnRemote = deleteEverythingFromRemote).collectLatest {
-                it.onFailure {
-                    remoteOperationFailed = true
+            remoteSyncRepo.deleteEverything(deleteOnRemote = deleteEverythingFromRemote)
+                .collectLatest {
+                    it.onFailure {
+                        remoteOperationFailed = true
+                    }
+                    it.onSuccess {
+                        remoteOperationFailed = it.isRemoteExecutionSuccessful == false
+                    }
                 }
-                it.onSuccess {
-                    remoteOperationFailed = it.isRemoteExecutionSuccessful == false
-                }
-            }
         }.invokeOnCompletion {
             viewModelScope.launch {
                 pushUIEvent(
@@ -257,6 +267,63 @@ class DataSettingsScreenVM(
         }.invokeOnCompletion {
             AppVM.pauseSnapshots = false
             AppVM.forceSnapshot()
+        }
+    }
+
+    fun changeExportLocation(
+        platform: Platform,
+        // on desktop, exportLocation can be taken as direct string input, so this is fine
+        exportLocation: String, exportLocationType: ExportLocationType
+    ) {
+        viewModelScope.launch {
+
+            try {
+
+                val newExportLocation =
+                    if (platform == Platform.Desktop) exportLocation else pickADirectory()
+                        ?: throw NullPointerException("Looks like you skipped picking an export location.")
+
+                preferencesRepository.changePreferenceValue(
+                    preferenceKey = stringPreferencesKey(
+                        if (exportLocationType == ExportLocationType.EXPORT) {
+                            AppPreferenceType.EXPORT_LOCATION.name
+                        } else {
+                            AppPreferenceType.BACKUP_LOCATION.name
+                        }
+                    ), newValue = newExportLocation
+                )
+
+                if (exportLocationType == ExportLocationType.EXPORT) {
+                    AppPreferences.currentExportLocation.value = newExportLocation
+                } else {
+                    AppPreferences.currentBackupLocation.value = newExportLocation
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+            }
+        }
+    }
+
+    fun updateAutoDeletionBackupsState(isEnabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = booleanPreferencesKey(
+                    AppPreferenceType.BACKUP_AUTO_DELETION_ENABLED.name
+                ), newValue = isEnabled
+            )
+            AppPreferences.isBackupAutoDeletionEnabled.value = isEnabled
+        }
+    }
+
+    fun updateAutoDeletionBackupsThreshold(count: Int) {
+        viewModelScope.launch {
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = intPreferencesKey(
+                    AppPreferenceType.BACKUP_AUTO_DELETION_THRESHOLD.name
+                ), newValue = count
+            )
+            AppPreferences.backupAutoDeleteThreshold.intValue = count
         }
     }
 }

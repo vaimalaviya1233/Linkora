@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.DataSyncingNotificationService
+import com.sakethh.deleteAutoBackups
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferenceType
@@ -50,8 +51,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
@@ -156,58 +155,58 @@ class AppVM(
                                 if (pauseSnapshots || (it.links + it.folders + it.panelFolders + it.panels).isEmpty()) return@collectLatest
                                 try {
                                     isAnySnapshotOngoing.value = true
-                                    val serializedJsonExportString = JSONExportSchema(
-                                        schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
-                                        links = it.links.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        },
-                                        folders = it.folders.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        },
-                                        panels = PanelForJSONExportSchema(panels = it.panels.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        }, panelFolders = it.panelFolders.map {
-                                            it.copy(
-                                                remoteId = null, lastModified = 0
-                                            )
-                                        }),
-                                    ).run {
-                                        Json.encodeToString(this)
+                                    if (AppPreferences.isBackupAutoDeletionEnabled.value) {
+                                        deleteAutoBackups(
+                                            backupLocation = AppPreferences.currentBackupLocation.value,
+                                            threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
+                                            onCompletion = {
+                                                linkoraLog(
+                                                    "Deleted $it snapshot files as the threshold was ${AppPreferences.backupAutoDeleteThreshold.intValue}"
+                                                )
+                                            })
                                     }
 
-                                    if (AppPreferences.snapshotsExportType.value.lowercase() == "both") {
-                                        awaitAll(async {
-                                            com.sakethh.exportSnapshotData(
-                                                rawExportString = serializedJsonExportString,
-                                                fileType = FileType.JSON
-                                            )
-                                        }, async {
-                                            com.sakethh.exportSnapshotData(
-                                                rawExportString = exportDataRepo.rawExportDataAsHTML(
-                                                    links = it.links, folders = it.folders
-                                                ), fileType = ExportFileType.HTML
-                                            )
-                                        })
-                                    }
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name) {
+                                        val serializedJsonExportString = JSONExportSchema(
+                                            schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                                            links = it.links.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            },
+                                            folders = it.folders.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            },
+                                            panels = PanelForJSONExportSchema(panels = it.panels.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            }, panelFolders = it.panelFolders.map {
+                                                it.copy(
+                                                    remoteId = null, lastModified = 0
+                                                )
+                                            }),
+                                        ).run {
+                                            Json.encodeToString(this)
+                                        }
+
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = serializedJsonExportString,
-                                            fileType = FileType.JSON
+                                            fileType = FileType.JSON,
+                                            exportLocation = AppPreferences.currentBackupLocation.value
                                         )
                                     }
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name) {
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = exportDataRepo.rawExportDataAsHTML(
                                                 links = it.links, folders = it.folders
-                                            ), fileType = ExportFileType.HTML
+                                            ),
+                                            fileType = ExportFileType.HTML,
+                                            exportLocation = AppPreferences.currentBackupLocation.value
                                         )
                                     }
                                 } catch (e: Exception) {
