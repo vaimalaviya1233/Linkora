@@ -140,7 +140,7 @@ open class ServerManagementViewModel(
             _generatedServerCertificate?.let {
                 withContext(Dispatchers.IO) {
                     saveSyncServerCertificateInternally(file = it, onCompletion = {
-                        pushUIEvent(UIEvent.Type.ShowSnackbar("Server certificate saved successfully."))
+                        pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.ServerCertificateSavedSuccessfully)))
                     })
                 }
             }

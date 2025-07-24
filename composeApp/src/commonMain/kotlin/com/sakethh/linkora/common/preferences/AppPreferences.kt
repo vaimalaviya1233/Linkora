@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.BUILD_FLAVOUR
 import com.sakethh.getDefaultExportLocation
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.SyncType
@@ -404,7 +405,7 @@ object AppPreferences {
                             AppPreferenceType.BACKUP_LOCATION.name
                         )
                     ) ?: (getDefaultExportLocation()
-                        ?: "Backups will only work if you pick a directory first.")
+                        ?: Localization.getLocalizedString(Localization.Key.BackupsWorkOnlyWithDirectory))
                 },
                 launch {
                     currentExportLocation.value = preferencesRepository.readPreferenceValue(
@@ -412,7 +413,7 @@ object AppPreferences {
                             AppPreferenceType.EXPORT_LOCATION.name
                         )
                     ) ?: (getDefaultExportLocation()
-                        ?: "You need to pick a directory before exporting.")
+                        ?: Localization.getLocalizedString(Localization.Key.ExportRequiresDirectory))
                 },
             ).joinAll()
         }

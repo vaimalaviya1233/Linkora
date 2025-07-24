@@ -41,9 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.Platform
@@ -98,9 +101,9 @@ fun SnapshotsScreen() {
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "Use snapshots",
+                        title = Localization.rememberLocalizedString(Localization.Key.UseSnapshots),
                         doesDescriptionExists = true,
-                        description = "Links, folders, panels, and panel folders will be auto-exported in your chosen format.",
+                        description = Localization.rememberLocalizedString(Localization.Key.UseSnapshotsDescription),
                         isSwitchNeeded = true,
                         isSwitchEnabled = AppPreferences.areSnapshotsEnabled,
                         onSwitchStateChange = {
@@ -129,7 +132,7 @@ fun SnapshotsScreen() {
                         supportingText = {
                         if (platform is Platform.Android) {
                             Text(
-                                text = "If the selected directory is moved or deleted, backup will silently fail. Make sure the selected directory always exists.",
+                                text = Localization.rememberLocalizedString(Localization.Key.SnapshotsBackupLocationWarning),
                                 style = MaterialTheme.typography.titleSmall
                             )
                         }
@@ -150,7 +153,7 @@ fun SnapshotsScreen() {
                         }
                     }, readOnly = platform is Platform.Android, label = {
                         Text(
-                            text = "Current backup location",
+                            text = Localization.rememberLocalizedString(Localization.Key.SnapshotsBackupLocation),
                             style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Start,
                         )
@@ -166,9 +169,9 @@ fun SnapshotsScreen() {
                     SettingComponent(
                         SettingComponentParam(
                             isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                            title = "Enable Auto-Deletion of Old Snapshots",
+                            title = Localization.rememberLocalizedString(Localization.Key.EnableAutoDeleteSnapshots),
                             doesDescriptionExists = true,
-                            description = "When enabled, the app will automatically delete the oldest snapshots once they exceed the configured limit.",
+                            description = Localization.rememberLocalizedString(Localization.Key.EnableAutoDeleteSnapshotsDescription),
                             isSwitchNeeded = true,
                             isSwitchEnabled = isBackupAutoDeletionEnabled,
                             onSwitchStateChange = {
@@ -184,7 +187,7 @@ fun SnapshotsScreen() {
                         TextField(
                             supportingText = {
                                 Text(
-                                    text = "File limit is exclusive - checked before creating new backups, not after.",
+                                    text = Localization.rememberLocalizedString(Localization.Key.SnapshotsFileLimitWarning),
                                     style = MaterialTheme.typography.titleSmall
                                 )
                             },
@@ -206,7 +209,7 @@ fun SnapshotsScreen() {
                             },
                             label = {
                                 Text(
-                                    text = "Auto-delete if snapshots count exceeds limit:",
+                                    text = Localization.rememberLocalizedString(Localization.Key.SnapshotsFileLimit),
                                     style = MaterialTheme.typography.titleMedium,
                                     textAlign = TextAlign.Start,
                                 )
@@ -228,7 +231,7 @@ fun SnapshotsScreen() {
                 item {
                     Column(modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp)) {
                         Text(
-                            text = "Export As",
+                            text = Localization.rememberLocalizedString(Localization.Key.ExportAs),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.primary
@@ -239,7 +242,7 @@ fun SnapshotsScreen() {
                         ) {
                             remember {
                                 ExportFileType.entries.map { it.name }
-                                    .filter { it != "CER" } + "Both"
+                                    .filter { it != "CER" } + Localization.Key.Both.getLocalizedString()
                             }.let {
                                 it.forEachIndexed { index, exportType ->
                                     val checked =
@@ -283,7 +286,9 @@ fun SnapshotsScreen() {
             }
             item {
                 Text(
-                    text = if (platform !is Platform.Android) "Each create, update, or delete action on a link, folder, panel, or panel folder triggers an export. Progress is shown in the side navigation rail." else "Any time you add, edit, or delete a link, folder, panel, or panel folder, Linkora auto-exports in the background.",
+                    text = if (platform !is Platform.Android) Localization.rememberLocalizedString(
+                        Localization.Key.SnapshotsExportDescriptionDesktop
+                    ) else Localization.rememberLocalizedString(Localization.Key.SnapshotsExportDescriptionAndroid),
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,

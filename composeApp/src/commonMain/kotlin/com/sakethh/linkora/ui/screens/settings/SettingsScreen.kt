@@ -154,7 +154,7 @@ fun SettingsScreen() {
                         Icon(imageVector = Icons.Default.Translate, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
                         Text(
-                            text = "Translate",
+                            text = Localization.rememberLocalizedString(Localization.Key.Translate),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 16.5.sp
                         )
@@ -168,7 +168,7 @@ fun SettingsScreen() {
                         Icon(imageVector = Icons.Default.Coffee, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
                         Text(
-                            text = "Buy me a Coffee",
+                            text = Localization.rememberLocalizedString(Localization.Key.BuyMeACoffee),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 16.5.sp
                         )

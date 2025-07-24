@@ -166,7 +166,7 @@ class AppVM(
                                             })
                                     }
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value == Localization.Key.Both.getLocalizedString()) {
 
                                         val serializedJsonExportString = JSONExportSchema(
                                             schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
@@ -200,7 +200,7 @@ class AppVM(
                                         )
                                     }
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value == Localization.Key.Both.getLocalizedString()) {
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = exportDataRepo.rawExportDataAsHTML(
                                                 links = it.links, folders = it.folders
@@ -389,7 +389,7 @@ class AppVM(
                 folderIds = selectedFoldersViaLongClick.filter { it.isArchived.not() }
                     .map { it.localId }).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar("Archived successfully." + it.getRemoteOnlyFailureMsg()))
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.ArchivedSuccessfully) + it.getRemoteOnlyFailureMsg()))
                 }
                 it.pushSnackbarOnFailure()
             }
@@ -407,7 +407,7 @@ class AppVM(
                 .map { it.localId },
                 folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar("Deleted successfully." + it.getRemoteOnlyFailureMsg()))
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.DeletedSuccessfully) + it.getRemoteOnlyFailureMsg()))
                 }
                 it.pushSnackbarOnFailure()
             }

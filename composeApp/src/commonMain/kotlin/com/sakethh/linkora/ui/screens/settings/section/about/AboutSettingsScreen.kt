@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,12 +38,11 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
@@ -207,10 +205,10 @@ fun AboutSettingsScreen() {
                         aboutSettingsScreenVM.addANewLinkToHistory(
                             Link(
                                 linkType = LinkType.HISTORY_LINK,
-                                title = "Linkora on Twitter",
+                                title = Localization.Key.LinkoraOnTwitter.getLocalizedString(),
                                 url = url,
                                 imgURL = "",
-                                note = "Linkora on Twitter",
+                                note = Localization.Key.LinkoraOnTwitter.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
                             )
@@ -218,15 +216,7 @@ fun AboutSettingsScreen() {
                         uriHandler.openUri(url)
                     },
                 )
-            }/*HorizontalDivider(
-                modifier = Modifier.padding(
-                    start = 20.dp,
-                    top = 20.dp,
-                    end = 20.dp
-                ),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outline
-            )*/
+            }
             item {
                 SettingsAppInfoComponent(
                     hasDescription = false,
@@ -238,10 +228,10 @@ fun AboutSettingsScreen() {
                         aboutSettingsScreenVM.addANewLinkToHistory(
                             Link(
                                 linkType = LinkType.HISTORY_LINK,
-                                title = "Linkora on Discord",
+                                title = Localization.Key.LinkoraOnDiscord.getLocalizedString(),
                                 url = url,
                                 imgURL = "https://cdn.discordapp.com/assets/og_img_discord_home.png",
-                                note = "Linkora on Discord",
+                                note = Localization.Key.LinkoraOnDiscord.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
                             )
@@ -277,10 +267,10 @@ fun AboutSettingsScreen() {
                         aboutSettingsScreenVM.addANewLinkToHistory(
                             Link(
                                 linkType = LinkType.HISTORY_LINK,
-                                title = "Linkora on Github",
+                                title = Localization.Key.LinkoraOnGithub.getLocalizedString(),
                                 url = url,
                                 imgURL = "https://avatars.githubusercontent.com/u/183308434?s=280&v=4",
-                                note = "Linkora on Github",
+                                note = Localization.Key.LinkoraOnGithub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
                             )
@@ -306,10 +296,10 @@ fun AboutSettingsScreen() {
                         aboutSettingsScreenVM.addANewLinkToHistory(
                             Link(
                                 linkType = LinkType.HISTORY_LINK,
-                                title = "Issues · sakethpathike/Linkora",
+                                title = Localization.Key.LinkoraIssues.getLocalizedString(),
                                 url = url,
                                 imgURL = "https://repository-images.githubusercontent.com/648784316/df5ac80f-8d5a-4d8d-b7b5-6068ee49eb4b",
-                                note = "Issues · sakethpathike/Linkora on Github",
+                                note = Localization.Key.LinkoraIssuesOnGithub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
                             )
@@ -337,10 +327,10 @@ fun AboutSettingsScreen() {
                         aboutSettingsScreenVM.addANewLinkToHistory(
                             Link(
                                 linkType = LinkType.HISTORY_LINK,
-                                title = "Releases · sakethpathike/Linkora",
+                                title = Localization.Key.LinokraReleases.getLocalizedString(),
                                 url = url,
                                 imgURL = "https://repository-images.githubusercontent.com/648784316/df5ac80f-8d5a-4d8d-b7b5-6068ee49eb4b",
-                                note = "Releases · sakethpathike/Linkora on Github",
+                                note = Localization.Key.LinokraReleasesOnGitHub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
                             )

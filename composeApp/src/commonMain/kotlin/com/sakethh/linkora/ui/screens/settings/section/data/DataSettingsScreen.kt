@@ -288,7 +288,7 @@ fun DataSettingsScreen() {
                 TextField(supportingText = {
                     if (platform is Platform.Android) {
                         Text(
-                            text = "If the selected directory is deleted or moved, export will silently fail. Make sure the selected directory always exists.",
+                            text = Localization.Key.CurrentExportLocationSupportingText.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleSmall
                         )
                     }
@@ -309,7 +309,7 @@ fun DataSettingsScreen() {
                     }
                 }, readOnly = platform is Platform.Android, label = {
                     Text(
-                        text = "Current export location",
+                        text = Localization.Key.CurrentExportLocation.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Start,
                     )
@@ -374,7 +374,7 @@ fun DataSettingsScreen() {
                         onClick = {
                             navController.navigate(Navigation.Settings.Data.SnapshotsScreen)
                         },
-                        sectionTitle = "Snapshots",
+                        sectionTitle = Localization.Key.Snapshots.rememberLocalizedString(),
                         sectionIcon = Icons.Default.BackupTable,
                         shouldArrowIconAppear = true,
                         fontSize = 16.sp,

@@ -24,8 +24,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.deleteAutoBackups
 import com.sakethh.exportSnapshotData
+import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ExportFileType
@@ -188,7 +190,7 @@ class IntentActivityVM(
                     })
             }
 
-            if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+            if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value == Localization.Key.Both.getLocalizedString()) {
 
                 val serializedJsonExportString = JSONExportSchema(
                     schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
@@ -222,7 +224,7 @@ class IntentActivityVM(
                 )
             }
 
-            if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value.lowercase() == "both") {
+            if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value == Localization.Key.Both.getLocalizedString()) {
                 exportSnapshotData(
                     rawExportString = exportDataRepo.rawExportDataAsHTML(
                         links = allLinks.await(), folders = allFolders.await()
