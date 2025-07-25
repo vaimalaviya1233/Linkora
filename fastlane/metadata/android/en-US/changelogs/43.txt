@@ -1,0 +1,5 @@
+- Exports & backups now use a new timestamp pattern to prevent file system conflicts.
+- Export & snapshot locations are now customizable; you must individually select folders for exports and backups.
+- Added optional auto-deletion for old backups (disabled by default, only applies to backups made from this version onward).
+- Fixed duplicate screens in the backstack when navigating via the bottom bar (by @tuuhin).
+- Snapshots have been moved to a new screen: Data > Snapshots.
