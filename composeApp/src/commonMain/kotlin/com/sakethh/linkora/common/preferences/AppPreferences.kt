@@ -11,13 +11,14 @@ import com.sakethh.BUILD_FLAVOUR
 import com.sakethh.getDefaultExportLocation
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.domain.ExportFileType
+import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.showFollowSystemThemeOption
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -74,7 +75,10 @@ object AppPreferences {
     val forceShuffleLinks = mutableStateOf(false)
     val showNoteInListViewLayout = mutableStateOf(true)
     val areSnapshotsEnabled = mutableStateOf(false)
-    val snapshotsExportType = mutableStateOf(ExportFileType.JSON.name)
+
+    // String because snapshot types previously existed as raw strings, and we don't want to break that
+    val snapshotExportFormatID = mutableStateOf(SnapshotFormat.JSON.id.toString())
+
     val skipCertCheckForSync = mutableStateOf(false)
     const val WEB_SOCKET_SCHEME = "wss"
     private var correlation = Correlation.generateRandomCorrelation()
@@ -365,11 +369,31 @@ object AppPreferences {
                     ) == true
                 },
                 launch {
-                    snapshotsExportType.value = preferencesRepository.readPreferenceValue(
+                    snapshotExportFormatID.value = preferencesRepository.readPreferenceValue(
                         preferenceKey = stringPreferencesKey(
                             AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
                         )
-                    ) ?: ExportFileType.JSON.name
+                    ).run {
+                        if (this == null) {
+                            snapshotExportFormatID.value
+                        } else {
+                            when (this) {
+                                "Both" -> SnapshotFormat.BOTH.id.updateSnapshotExportType(
+                                    preferencesRepository
+                                )
+
+                                "JSON" -> SnapshotFormat.JSON.id.updateSnapshotExportType(
+                                    preferencesRepository
+                                )
+
+                                "HTML" -> SnapshotFormat.HTML.id.updateSnapshotExportType(
+                                    preferencesRepository
+                                )
+
+                                else -> this
+                            }.toString()
+                        }
+                    }
                 },
                 launch {
                     skipSavingExistingLink.value = preferencesRepository.readPreferenceValue(
@@ -419,3 +443,12 @@ object AppPreferences {
         }
     }
 }
+
+private suspend fun Int.updateSnapshotExportType(preferencesRepository: PreferencesRepository) =
+    this.also {
+        preferencesRepository.changePreferenceValue(
+            preferenceKey = stringPreferencesKey(
+                AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
+            ), newValue = it.toString()
+        )
+    }

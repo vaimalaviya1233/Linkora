@@ -17,6 +17,7 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.LinkType
@@ -166,7 +167,7 @@ class AppVM(
                                             })
                                     }
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.JSON.name || AppPreferences.snapshotsExportType.value == Localization.Key.Both.getLocalizedString()) {
+                                    if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.JSON.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
 
                                         val serializedJsonExportString = JSONExportSchema(
                                             schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
@@ -200,7 +201,7 @@ class AppVM(
                                         )
                                     }
 
-                                    if (AppPreferences.snapshotsExportType.value == ExportFileType.HTML.name || AppPreferences.snapshotsExportType.value == Localization.Key.Both.getLocalizedString()) {
+                                    if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.HTML.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
                                         com.sakethh.exportSnapshotData(
                                             rawExportString = exportDataRepo.rawExportDataAsHTML(
                                                 links = it.links, folders = it.folders
@@ -389,7 +390,13 @@ class AppVM(
                 folderIds = selectedFoldersViaLongClick.filter { it.isArchived.not() }
                     .map { it.localId }).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.ArchivedSuccessfully) + it.getRemoteOnlyFailureMsg()))
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.getLocalizedString(
+                                Localization.Key.ArchivedSuccessfully
+                            ) + it.getRemoteOnlyFailureMsg()
+                        )
+                    )
                 }
                 it.pushSnackbarOnFailure()
             }
@@ -407,7 +414,13 @@ class AppVM(
                 .map { it.localId },
                 folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.DeletedSuccessfully) + it.getRemoteOnlyFailureMsg()))
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.getLocalizedString(
+                                Localization.Key.DeletedSuccessfully
+                            ) + it.getRemoteOnlyFailureMsg()
+                        )
+                    )
                 }
                 it.pushSnackbarOnFailure()
             }

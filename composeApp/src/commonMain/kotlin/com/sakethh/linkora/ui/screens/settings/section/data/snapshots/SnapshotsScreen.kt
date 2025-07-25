@@ -45,11 +45,9 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
-import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
-import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -241,12 +239,11 @@ fun SnapshotsScreen() {
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             remember {
-                                ExportFileType.entries.map { it.name }
-                                    .filter { it != "CER" } + Localization.Key.Both.getLocalizedString()
+                                SnapshotFormat.entries
                             }.let {
-                                it.forEachIndexed { index, exportType ->
+                                it.forEachIndexed { index, snapshotFormat ->
                                     val checked =
-                                        exportType == AppPreferences.snapshotsExportType.value
+                                        snapshotFormat.id.toString() == AppPreferences.snapshotExportFormatID.value
                                     ToggleButton(
                                         shape = when (index) {
                                             0 -> RoundedCornerShape(
@@ -265,15 +262,16 @@ fun SnapshotsScreen() {
 
                                             else -> RoundedCornerShape(5.dp)
                                         }, checked = checked, onCheckedChange = {
-                                            AppPreferences.snapshotsExportType.value = exportType
+                                            AppPreferences.snapshotExportFormatID.value =
+                                                snapshotFormat.id.toString()
                                             dataSettingsScreenVM.changeSettingPreferenceValue(
                                                 preferenceKey = stringPreferencesKey(
                                                     AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
-                                                ), newValue = exportType
+                                                ), newValue = snapshotFormat.id.toString()
                                             )
                                         }) {
                                         Text(
-                                            text = exportType,
+                                            text = snapshotFormat.localizedValue,
                                             style = if (checked) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
                                             color = if (checked) MaterialTheme.colorScheme.onPrimary else LocalContentColor.current
                                         )
