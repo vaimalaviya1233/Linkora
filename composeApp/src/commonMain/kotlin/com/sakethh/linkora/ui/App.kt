@@ -6,52 +6,32 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.filled.AddLink
-import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.BackupTable
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.CopyAll
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -77,24 +57,16 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.preferences.AppPreferences.serverBaseUrl
 import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.common.utils.currentSavedServerConfig
-import com.sakethh.linkora.common.utils.defaultFolderIds
-import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.common.utils.inRootScreen
 import com.sakethh.linkora.common.utils.initializeIfServerConfigured
-import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
@@ -105,9 +77,12 @@ import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
+import com.sakethh.linkora.ui.components.BottomNavOnSelection
 import com.sakethh.linkora.ui.components.DeleteDialogBox
 import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
 import com.sakethh.linkora.ui.components.DeleteDialogBoxType
+import com.sakethh.linkora.ui.components.DesktopNavigationRail
+import com.sakethh.linkora.ui.components.MobileBottomNavBar
 import com.sakethh.linkora.ui.components.RenameDialogBox
 import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
@@ -141,7 +116,6 @@ import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.snapshots.SnapshotsScreen
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerSetupScreen
 import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.platform
@@ -152,987 +126,608 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
-	modifier: Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
-	val appVM: AppVM = linkoraViewModel()
-	val snackbarHostState = remember {
-		SnackbarHostState()
-	}
-	val showRenameDialogBox = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val showDeleteDialogBox = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val menuBtmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-	val selectedFolderForMenuBtmSheet = rememberDeserializableMutableObject {
-		mutableStateOf(
-			Folder(
-				name = "", note = "", parentFolderId = null, localId = 0L, isArchived = false
-			)
-		)
-	}
-	val selectedLinkForMenuBtmSheet = rememberDeserializableMutableObject {
-		mutableStateOf(
-			Link(
-				linkType = LinkType.SAVED_LINK,
-				localId = 0L,
-				title = "",
-				url = "",
-				baseURL = "",
-				imgURL = "",
-				note = "",
-				idOfLinkedFolder = null,
-				userAgent = null
-			)
-		)
-	}
-	val menuBtmModalSheetVisible = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val shouldShowAddLinkDialog = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val shouldShowNewFolderDialog = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val sortingBottomSheetVisible = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val sortingBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val appVM: AppVM = linkoraViewModel()
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+    val showRenameDialogBox = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val showDeleteDialogBox = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val menuBtmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val selectedFolderForMenuBtmSheet = rememberDeserializableMutableObject {
+        mutableStateOf(
+            Folder(
+                name = "", note = "", parentFolderId = null, localId = 0L, isArchived = false
+            )
+        )
+    }
+    val selectedLinkForMenuBtmSheet = rememberDeserializableMutableObject {
+        mutableStateOf(
+            Link(
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                title = "",
+                url = "",
+                baseURL = "",
+                imgURL = "",
+                note = "",
+                idOfLinkedFolder = null,
+                userAgent = null
+            )
+        )
+    }
+    val menuBtmModalSheetVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val shouldShowAddLinkDialog = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val shouldShowNewFolderDialog = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val sortingBottomSheetVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val sortingBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-	val menuBtmSheetFor: MutableState<MenuBtmSheetType> = rememberDeserializableMutableObject {
-		mutableStateOf(MenuBtmSheetType.Folder.RegularFolder)
-	}
+    val menuBtmSheetFor: MutableState<MenuBtmSheetType> = rememberDeserializableMutableObject {
+        mutableStateOf(MenuBtmSheetType.Folder.RegularFolder)
+    }
 
-	LaunchedEffect(Unit) {
-		UIEvent.uiEvents.collectLatest { eventType ->
-			when (eventType) {
-				is UIEvent.Type.ShowSnackbar -> {
-					snackbarHostState.showSnackbar(message = eventType.message)
-				}
+    LaunchedEffect(Unit) {
+        UIEvent.uiEvents.collectLatest { eventType ->
+            when (eventType) {
+                is UIEvent.Type.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(message = eventType.message)
+                }
 
-				is UIEvent.Type.ShowAddANewFolderDialogBox -> shouldShowNewFolderDialog.value = true
-				is UIEvent.Type.ShowAddANewLinkDialogBox -> shouldShowAddLinkDialog.value = true
-				is UIEvent.Type.ShowDeleteDialogBox -> showDeleteDialogBox.value = true
+                is UIEvent.Type.ShowAddANewFolderDialogBox -> shouldShowNewFolderDialog.value = true
+                is UIEvent.Type.ShowAddANewLinkDialogBox -> shouldShowAddLinkDialog.value = true
+                is UIEvent.Type.ShowDeleteDialogBox -> showDeleteDialogBox.value = true
 
-				is UIEvent.Type.ShowMenuBtmSheetUI -> {
-					menuBtmSheetFor.value = eventType.menuBtmSheetFor
-					if (eventType.selectedFolderForMenuBtmSheet != null) {
-						selectedFolderForMenuBtmSheet.value =
-							eventType.selectedFolderForMenuBtmSheet
-					}
-					if (eventType.selectedLinkForMenuBtmSheet != null) {
-						selectedLinkForMenuBtmSheet.value = eventType.selectedLinkForMenuBtmSheet
-					}
-					menuBtmModalSheetVisible.value = true
-					this.launch {
-						menuBtmModalSheetState.show()
-					}
-				}
+                is UIEvent.Type.ShowMenuBtmSheetUI -> {
+                    menuBtmSheetFor.value = eventType.menuBtmSheetFor
+                    if (eventType.selectedFolderForMenuBtmSheet != null) {
+                        selectedFolderForMenuBtmSheet.value =
+                            eventType.selectedFolderForMenuBtmSheet
+                    }
+                    if (eventType.selectedLinkForMenuBtmSheet != null) {
+                        selectedLinkForMenuBtmSheet.value = eventType.selectedLinkForMenuBtmSheet
+                    }
+                    menuBtmModalSheetVisible.value = true
+                    this.launch {
+                        menuBtmModalSheetState.show()
+                    }
+                }
 
-				is UIEvent.Type.ShowRenameDialogBox -> showRenameDialogBox.value = true
+                is UIEvent.Type.ShowRenameDialogBox -> showRenameDialogBox.value = true
 
-				is UIEvent.Type.ShowSortingBtmSheetUI -> {
-					sortingBottomSheetVisible.value = true
-					this.launch {
-						sortingBtmSheetState.show()
-					}
-				}
+                is UIEvent.Type.ShowSortingBtmSheetUI -> {
+                    sortingBottomSheetVisible.value = true
+                    this.launch {
+                        sortingBtmSheetState.show()
+                    }
+                }
 
-				else -> Unit
-			}
-		}
-	}
-	val collectionsScreenVM: CollectionsScreenVM =
-		linkoraViewModel(factory = CollectionScreenVMAssistedFactory.createForApp())
-	val rootRouteList = rememberDeserializableObject {
-		listOf(
-			Navigation.Root.HomeScreen,
-			Navigation.Root.SearchScreen,
-			Navigation.Root.CollectionsScreen,
-			Navigation.Root.SettingsScreen,
-		)
-	}
-	val localNavController = LocalNavController.current
-	val inRootScreen = localNavController.inRootScreen(includeSettingsScreen = true)
-	val currentBackStackEntryState by localNavController.currentBackStackEntryAsState()
-	val currentRoute = currentBackStackEntryState?.destination
+                else -> Unit
+            }
+        }
+    }
+    val collectionsScreenVM: CollectionsScreenVM =
+        linkoraViewModel(factory = CollectionScreenVMAssistedFactory.createForApp())
+    val rootRouteList = rememberDeserializableObject {
+        listOf(
+            Navigation.Root.HomeScreen,
+            Navigation.Root.SearchScreen,
+            Navigation.Root.CollectionsScreen,
+            Navigation.Root.SettingsScreen,
+        )
+    }
+    val localNavController = LocalNavController.current
+    val inRootScreen = localNavController.inRootScreen(includeSettingsScreen = true)
+    val currentBackStackEntryState by localNavController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntryState?.destination
 
-	val rotationAnimation = remember {
-		Animatable(0f)
-	}
-	val isReducedTransparencyBoxVisible = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val showBtmSheetForNewLinkAddition = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val coroutineScope = rememberCoroutineScope()
-	val showAddingLinkOrFoldersFAB = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val platform = LocalPlatform.current
-	LaunchedEffect(
-		key1 = currentBackStackEntryState,
-		key2 = CollectionsScreenVM.collectionDetailPaneInfo.value,
-		key3 = CollectionsScreenVM.isSelectionEnabled.value
-	) {
-		launch {
-			if (platform is Platform.Android.Mobile && currentBackStackEntryState?.destination?.hasRoute(
-					Navigation.Root.CollectionsScreen::class
-				) == true
-			) {
-				CollectionsScreenVM.resetCollectionDetailPaneInfo()
-			}
-			if (currentBackStackEntryState?.destination?.hasRoute(Navigation.Root.CollectionsScreen::class) == true && platform !is Platform.Android.Mobile && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
-				showAddingLinkOrFoldersFAB.value = false
-			}
-			showAddingLinkOrFoldersFAB.value = listOf(
-				Navigation.Root.HomeScreen,
-				Navigation.Root.SearchScreen,
-				Navigation.Root.CollectionsScreen,
-				Navigation.Collection.CollectionDetailPane
-			).any {
-				currentBackStackEntryState?.destination?.hasRoute(it::class) == true
-			} && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ARCHIVE_ID
-		}
-	}
+    val rotationAnimation = remember {
+        Animatable(0f)
+    }
+    val isReducedTransparencyBoxVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val showBtmSheetForNewLinkAddition = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    val showAddingLinkOrFoldersFAB = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val platform = LocalPlatform.current
+    LaunchedEffect(
+        key1 = currentBackStackEntryState,
+        key2 = CollectionsScreenVM.collectionDetailPaneInfo.value,
+        key3 = CollectionsScreenVM.isSelectionEnabled.value
+    ) {
+        launch {
+            if (platform is Platform.Android.Mobile && currentBackStackEntryState?.destination?.hasRoute(
+                    Navigation.Root.CollectionsScreen::class
+                ) == true
+            ) {
+                CollectionsScreenVM.resetCollectionDetailPaneInfo()
+            }
+            if (currentBackStackEntryState?.destination?.hasRoute(Navigation.Root.CollectionsScreen::class) == true && platform !is Platform.Android.Mobile && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
+                showAddingLinkOrFoldersFAB.value = false
+            }
+            showAddingLinkOrFoldersFAB.value = listOf(
+                Navigation.Root.HomeScreen,
+                Navigation.Root.SearchScreen,
+                Navigation.Root.CollectionsScreen,
+                Navigation.Collection.CollectionDetailPane
+            ).any {
+                currentBackStackEntryState?.destination?.hasRoute(it::class) == true
+            } && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ARCHIVE_ID
+        }
+    }
 
-	val isDataSyncingFromPullRefresh = rememberSaveable {
-		mutableStateOf(false)
-	}
-	val pullToRefreshState = rememberPullToRefreshState()
+    val isDataSyncingFromPullRefresh = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val pullToRefreshState = rememberPullToRefreshState()
 
-	LaunchedEffect(AppVM.isMainFabRotated.value) {
-		if (!AppVM.isMainFabRotated.value) {
-			isReducedTransparencyBoxVisible.value = false
-			rotationAnimation.animateTo(
-				-180f, animationSpec = tween(500)
-			)
-		}
-	}
-	Row(modifier = Modifier.fillMaxSize().then(modifier)) {
-		if (appVM.onBoardingCompleted.value && (platform() == Platform.Desktop || platform() == Platform.Android.Tablet)) {
-			Row {
-				Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-					Column(
-						modifier = Modifier.align(Alignment.Center),
-						horizontalAlignment = Alignment.CenterHorizontally
-					) {
-						rootRouteList.forEach { navRouteItem ->
-							if (AppPreferences.isHomeScreenEnabled.value.not() && navRouteItem.toString() == Navigation.Root.HomeScreen.toString()) return@forEach
+    LaunchedEffect(AppVM.isMainFabRotated.value) {
+        if (!AppVM.isMainFabRotated.value) {
+            isReducedTransparencyBoxVisible.value = false
+            rotationAnimation.animateTo(
+                -180f, animationSpec = tween(500)
+            )
+        }
+    }
+    Row(modifier = Modifier.fillMaxSize().then(modifier)) {
+        if (appVM.onBoardingCompleted.value && (platform() == Platform.Desktop || platform() == Platform.Android.Tablet)) {
+            DesktopNavigationRail(
+                rootRouteList = rootRouteList,
+                appVM = appVM,
+                currentRoute = currentRoute,
+                isDataSyncingFromPullRefresh = isDataSyncingFromPullRefresh
+            )
+        }
+        val showLoadingProgressBarOnTransferAction = rememberSaveable {
+            mutableStateOf(false)
+        }
+        val selectedAndInRoot = rememberSaveable(inRootScreen, appVM.transferActionType.value) {
+            mutableStateOf((inRootScreen == true) && (appVM.transferActionType.value != TransferActionType.NONE))
+        }
 
-							val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
-							NavigationRailItem(
-								modifier = Modifier.padding(
-									start = 15.dp, end = 15.dp, top = 15.dp
-								), selected = isSelected, onClick = {
-									if (currentRoute?.hasRoute(navRouteItem::class) == false) {
-										CollectionsScreenVM.resetCollectionDetailPaneInfo()
-										localNavController.navigate(navRouteItem)
-									}
-								}, icon = {
-									Icon(
-										imageVector = if (isSelected) {
-											when (navRouteItem) {
-												Navigation.Root.HomeScreen -> Icons.Filled.Home
-												Navigation.Root.SearchScreen -> Icons.Filled.Search
-												Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
-												Navigation.Root.SettingsScreen -> Icons.Filled.Settings
-												else -> return@NavigationRailItem
-											}
-										} else {
-											when (navRouteItem) {
-												Navigation.Root.HomeScreen -> Icons.Outlined.Home
-												Navigation.Root.SearchScreen -> Icons.Outlined.Search
-												Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
-												Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
-												else -> return@NavigationRailItem
-											}
-										}, contentDescription = null
-									)
-								}, label = {
-									Text(
-										text = navRouteItem.toString(),
-										style = MaterialTheme.typography.titleSmall,
-										maxLines = 1,
-										fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-									)
-								})
-						}
-					}
-					Box(
-						Modifier.fillMaxHeight(), contentAlignment = Alignment.BottomCenter
-					) {
-						if (platform() !is Platform.Android.Mobile && serverBaseUrl.value.isNotBlank()) {
-							Box(
-								contentAlignment = Alignment.Center,
-								modifier = Modifier.align(Alignment.BottomCenter)
-									.padding(bottom = 80.dp)
-							) {
-								IconButton(onClick = {
-									if (!appVM.isPerformingStartupSync.value && !isDataSyncingFromPullRefresh.value) {
-										appVM.saveServerConnectionAndSync(
-											serverConnection = currentSavedServerConfig(),
-											timeStampAfter = {
-												appVM.getLastSyncedTime()
-											},
-											onSyncStart = {
-												isDataSyncingFromPullRefresh.value = true
-											},
-											onCompletion = {
-												isDataSyncingFromPullRefresh.value = false
-											})
-									}
-								}) {
-									Icon(
-										imageVector = Icons.Default.CloudSync,
-										contentDescription = null
-									)
-								}
-								if (appVM.isPerformingStartupSync.value || isDataSyncingFromPullRefresh.value) {
-									CircularProgressIndicator()
-								}
-							}
-						}
-
-						if (AppPreferences.areSnapshotsEnabled.value && platform == Platform.Desktop) {
-							Box(
-								contentAlignment = Alignment.Center,
-								modifier = Modifier.align(Alignment.BottomCenter)
-									.padding(bottom = 20.dp)
-									.alpha(if (platform() !is Platform.Android.Mobile && appVM.isAnySnapshotOngoing.value) 1f else 0.25f)
-							) {
-								Icon(
-									imageVector = Icons.Default.BackupTable,
-									contentDescription = null
-								)
-
-								if (appVM.isAnySnapshotOngoing.value) CircularProgressIndicator()
-							}
-						}
-					}
-				}
-				VerticalDivider()
-			}
-		}
-		val showLoadingProgressBarOnTransferAction = rememberSaveable {
-			mutableStateOf(false)
-		}
-		val selectedAndInRoot = rememberSaveable(inRootScreen, appVM.transferActionType.value) {
-			mutableStateOf((inRootScreen == true) && (appVM.transferActionType.value != TransferActionType.NONE))
-		}
-
-		Scaffold(
-			bottomBar = {
-				Box(modifier = Modifier.animateContentSize()) {
-					if (CollectionsScreenVM.isSelectionEnabled.value) {
-						Column(
-							modifier = Modifier.fillMaxWidth().animateContentSize()
-								.background(NavigationBarDefaults.containerColor)
-								.navigationBarsPadding()
-						) {
-							HorizontalDivider()
-							Spacer(modifier = Modifier.height(5.dp))
-							if (showLoadingProgressBarOnTransferAction.value) {
-								Text(
-									text = if (appVM.transferActionType.value == TransferActionType.COPY) {
-										Localization.Key.Copying.rememberLocalizedString()
-									} else {
-										Localization.Key.Moving.rememberLocalizedString()
-									},
-									style = MaterialTheme.typography.titleMedium,
-									fontSize = 14.sp,
-									modifier = Modifier.padding(
-										start = 15.dp, bottom = 10.dp, top = 5.dp
-									)
-								)
-								LinearProgressIndicator(
-									Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp)
-								)
-								Spacer(Modifier.bottomNavPaddingAcrossPlatforms())
-								return@Column
-							}
-							Row(verticalAlignment = Alignment.CenterVertically) {
-								IconButton(onClick = {
-									CollectionsScreenVM.clearAllSelections()
-								}) {
-									Icon(
-										imageVector = Icons.Default.Close, contentDescription = null
-									)
-								}
-								Column {
-									Text(
-										text = Localization.Key.SelectedLinksCount.rememberLocalizedString()
-											.replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedLinksViaLongClick.size.toString()),
-										style = MaterialTheme.typography.titleSmall
-									)
-									Text(
-										text = Localization.Key.SelectedFoldersCount.rememberLocalizedString()
-											.replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedFoldersViaLongClick.size.toString()),
-										style = MaterialTheme.typography.titleSmall
-									)
-								}
-							}
-							val showPasteButton =
-								appVM.transferActionType.value != TransferActionType.NONE && (selectedAndInRoot.value.not() || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder != null) && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
-							if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds().dropWhile {
-									it == Constants.ARCHIVE_ID
-								}).not()) {
-								Row(
-									verticalAlignment = Alignment.CenterVertically,
-									horizontalArrangement = Arrangement.SpaceBetween,
-									modifier = Modifier.fillMaxWidth()
-								) {
-									if ((appVM.transferActionType.value == TransferActionType.NONE && showPasteButton.not()) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
-										Text(
-											text = Localization.Key.MultiActionsLabel.rememberLocalizedString(),
-											style = MaterialTheme.typography.titleSmall,
-											color = MaterialTheme.colorScheme.primary,
-											modifier = Modifier.padding(start = 15.dp)
-										)
-									}
-									Row(
-										verticalAlignment = Alignment.CenterVertically,
-										horizontalArrangement = Arrangement.SpaceBetween,
-										modifier = Modifier.animateContentSize()
-									) {
-										if (showPasteButton) {
-											IconButton(onClick = {
-												if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder == null) {
-													return@IconButton
-												}
-												if (appVM.transferActionType.value == TransferActionType.COPY) {
-													appVM.copySelectedItems(
-														folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
-														onStart = {
-															showLoadingProgressBarOnTransferAction.value =
-																true
-														},
-														onCompletion = {
-															showLoadingProgressBarOnTransferAction.value =
-																false
-														})
-												} else {
-													appVM.moveSelectedItems(
-														folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
-														onStart = {
-															showLoadingProgressBarOnTransferAction.value =
-																true
-														},
-														onCompletion = {
-															showLoadingProgressBarOnTransferAction.value =
-																false
-														})
-												}
-											}, modifier = Modifier.padding(end = 6.5.dp)) {
-												Icon(
-													imageVector = Icons.Default.ContentPaste,
-													contentDescription = null
-												)
-											}
-											return@Row
-										}
-										if (appVM.transferActionType.value != TransferActionType.NONE) {
-											return@Row
-										}
-										IconButton(onClick = {
-											coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
-										}) {
-											Icon(
-												imageVector = Icons.Default.Delete,
-												contentDescription = null
-											)
-										}
-										if (CollectionsScreenVM.selectedLinksViaLongClick.any {
-												it.linkType == LinkType.ARCHIVE_LINK
-											}
-												.not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
-												it.isArchived.not()
-											}) {
-											IconButton(onClick = {
-												appVM.archiveSelectedItems(onStart = {
-													showLoadingProgressBarOnTransferAction.value =
-														true
-												}, onCompletion = {
-													showLoadingProgressBarOnTransferAction.value =
-														false
-												})
-											}) {
-												Icon(
-													imageVector = Icons.Default.Archive,
-													contentDescription = null
-												)
-											}
-										}
-										if (CollectionsScreenVM.selectedFoldersViaLongClick.any {
-												it.isArchived
-											} || CollectionsScreenVM.selectedLinksViaLongClick.any {
-												it.linkType == LinkType.ARCHIVE_LINK
-											}) {
-											IconButton(onClick = {
-												appVM.markSelectedItemsAsRegular(onStart = {
-													showLoadingProgressBarOnTransferAction.value =
-														true
-												}, onCompletion = {
-													showLoadingProgressBarOnTransferAction.value =
-														false
-												})
-											}) {
-												Icon(
-													imageVector = Icons.Default.Unarchive,
-													contentDescription = null
-												)
-											}
-										}
-										IconButton(onClick = {
-											appVM.transferActionType.value = TransferActionType.COPY
-										}) {
-											Icon(
-												imageVector = Icons.Default.CopyAll,
-												contentDescription = null
-											)
-										}
-										IconButton(onClick = {
-											appVM.transferActionType.value = TransferActionType.MOVE
-										}) {
-											Icon(
-												imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
-												contentDescription = null
-											)
-										}
-									}
-								}
-							}
-							if (appVM.transferActionType.value != TransferActionType.NONE) {
-								Text(
-									text = if (appVM.transferActionType.value == TransferActionType.COPY) Localization.Key.NavigateAndCopyDesc.rememberLocalizedString() else Localization.Key.NavigateAndMoveDesc.rememberLocalizedString(),
-									style = MaterialTheme.typography.titleSmall,
-									modifier = Modifier.padding(start = 15.dp, end = 15.dp)
-								)
-							}
-							val showNavigateToCollectionScreen =
-								selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
-							if (CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.selectedFoldersViaLongClick.any {
-									it.parentFolderId != null
-								}) {
-								Button(
-									onClick = {
-										appVM.markSelectedFoldersAsRoot(onStart = {
-											showLoadingProgressBarOnTransferAction.value = true
-										}, onCompletion = {
-											showLoadingProgressBarOnTransferAction.value = false
-										})
-									}, modifier = Modifier.fillMaxWidth().padding(
-										start = 15.dp,
-										end = 15.dp,
-										top = 5.dp,
-										bottom = if (showNavigateToCollectionScreen.not()) 5.dp else 0.dp
-									)
-								) {
-									Text(
-										text = Localization.Key.MarkSelectedFoldersAsRoot.rememberLocalizedString(),
-										style = MaterialTheme.typography.titleSmall
-									)
-								}
-							}
-							if (showNavigateToCollectionScreen) {
-								Button(
-									onClick = {
-										localNavController.navigate(Navigation.Root.CollectionsScreen)
-									}, modifier = Modifier.fillMaxWidth().padding(
-										start = 15.dp, end = 15.dp, top = 5.dp, bottom = 5.dp
-									)
-								) {
-									Text(
-										text = Localization.Key.NavigateToCollectionsScreen.rememberLocalizedString(),
-										style = MaterialTheme.typography.titleSmall
-									)
-								}
-							}
-						}
-					}
-				}
-
-				// Bottom Nav Bar on Android Mobile:
-				AnimatedVisibility(
-					visible = platform == Platform.Android.Mobile && inRootScreen == true &&
-							!CollectionsScreenVM.isSelectionEnabled.value,
-					exit = slideOutVertically(targetOffsetY = { it }),
-					enter = slideInVertically(initialOffsetY = { it })
-				) {
-					Column(
-						modifier = Modifier.fillMaxWidth().animateContentSize()
-					) {
-						if (appVM.isPerformingStartupSync.value) {
-							LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-						}
-						NavigationBar {
-							rootRouteList.forEach { navRouteItem ->
-								if (AppPreferences.isHomeScreenEnabled.value.not()
-									&& navRouteItem.toString() == Navigation.Root.HomeScreen.toString()
-								) return@forEach
-
-								val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
-								NavigationBarItem(
-									selected = isSelected,
-									onClick = {
-										isSelected.ifNot {
-											CollectionsScreenVM.resetCollectionDetailPaneInfo()
-											localNavController.navigate(navRouteItem) {
-												// pop up to home screen on every navigation via bottom nav bar
-												popUpTo(localNavController.graph.findStartDestination().id) {
-													saveState = true
-												}
-												launchSingleTop = true
-												restoreState = true
-
-											}
-										}
-									},
-									icon = {
-										Icon(
-											imageVector = if (isSelected) {
-												when (navRouteItem) {
-													Navigation.Root.HomeScreen -> Icons.Filled.Home
-													Navigation.Root.SearchScreen -> Icons.Filled.Search
-													Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
-													Navigation.Root.SettingsScreen -> Icons.Filled.Settings
-													else -> return@NavigationBarItem
-												}
-											} else {
-												when (navRouteItem) {
-													Navigation.Root.HomeScreen -> Icons.Outlined.Home
-													Navigation.Root.SearchScreen -> Icons.Outlined.Search
-													Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
-													Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
-													else -> return@NavigationBarItem
-												}
-											}, contentDescription = null
-										)
-									},
-									label = {
-										Text(
-											text = navRouteItem.toString(),
-											style = MaterialTheme.typography.titleSmall,
-											maxLines = 1,
-											fontWeight = if (isSelected) FontWeight.SemiBold
-											else FontWeight.Normal
-										)
-									},
-								)
-							}
-						}
-					}
-				}
-			},
-			floatingActionButton = {
-				AnimatedVisibility(
-					enter = fadeIn(),
-					exit = fadeOut(),
-					visible = showAddingLinkOrFoldersFAB.value && !CollectionsScreenVM.isSelectionEnabled.value
-				) {
-					if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
-							Constants.SAVED_LINKS_ID,
-							Constants.IMPORTANT_LINKS_ID,
-							Constants.ALL_LINKS_ID
-						)
-					) {
-						FloatingActionButton(onClick = {
-							shouldShowAddLinkDialog.value = true
-						}) {
-							Icon(
-								imageVector = Icons.Default.AddLink, contentDescription = null
-							)
-						}
-						return@AnimatedVisibility
-					}
-					AddItemFab(
-						AddItemFABParam(
-							showBtmSheetForNewLinkAddition = showBtmSheetForNewLinkAddition,
-							isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
-							showDialogForNewFolder = shouldShowNewFolderDialog,
-							shouldShowAddLinkDialog = shouldShowAddLinkDialog,
-							isMainFabRotated = AppVM.isMainFabRotated,
-							rotationAnimation = rotationAnimation,
-							inASpecificScreen = false
-						)
-					)
-				}
-			},
-			snackbarHost = {
-				SnackbarHost(snackbarHostState, snackbar = {
-					Snackbar(
-						it,
-						containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-						contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-					)
-				})
-			},
-			modifier = Modifier.fillMaxSize(),
-		) {
-			Box(
-				modifier = Modifier.pullToRefresh(
-					isRefreshing = isDataSyncingFromPullRefresh.value,
-					state = pullToRefreshState,
-					enabled = rememberSaveable(serverBaseUrl.value) {
-						serverBaseUrl.value.isNotBlank() && platform == Platform.Android.Mobile
-					},
-					onRefresh = {
-						appVM.saveServerConnectionAndSync(
-							serverConnection = currentSavedServerConfig(),
-							timeStampAfter = {
-								appVM.getLastSyncedTime()
-							},
-							onSyncStart = {
-								isDataSyncingFromPullRefresh.value = true
-							},
-							onCompletion = {
-								isDataSyncingFromPullRefresh.value = false
-							})
-					})
-			) {
-				NavHost(
-					navController = localNavController,
-					startDestination = appVM.startDestination.value
-				) {
-					composable<Navigation.Root.HomeScreen> {
-						HomeScreen()
-					}
-					composable<Navigation.Root.SearchScreen> {
-						SearchScreen()
-					}
-					composable<Navigation.Root.CollectionsScreen> {
-						CollectionsScreen(
-							collectionsScreenVM = collectionsScreenVM
-						)
-					}
-					composable<Navigation.Root.SettingsScreen> {
-						SettingsScreen()
-					}
-					composable<Navigation.Settings.ThemeSettingsScreen> {
-						ThemeSettingsScreen()
-					}
-					composable<Navigation.Settings.GeneralSettingsScreen> {
-						GeneralSettingsScreen()
-					}
-					composable<Navigation.Settings.LayoutSettingsScreen> {
-						LayoutSettingsScreen()
-					}
-					composable<Navigation.Settings.DataSettingsScreen> {
-						DataSettingsScreen()
-					}
-					composable<Navigation.Settings.Data.ServerSetupScreen> {
-						ServerSetupScreen()
-					}
-					composable<Navigation.Settings.LanguageSettingsScreen> {
-						LanguageSettingsScreen()
-					}
-					composable<Navigation.Collection.CollectionDetailPane> {
-						CollectionDetailPane()
-					}
-					composable<Navigation.Home.PanelsManagerScreen> {
-						PanelsManagerScreen()
-					}
-					composable<Navigation.Home.SpecificPanelManagerScreen> {
-						SpecificPanelManagerScreen()
-					}
-					composable<Navigation.Settings.AboutSettingsScreen> {
-						AboutSettingsScreen()
-					}
-					composable<Navigation.Settings.AcknowledgementSettingsScreen> {
-						AcknowledgementSettingsScreen()
-					}
-					composable<Navigation.Settings.AdvancedSettingsScreen> {
-						AdvancedSettingsScreen()
-					}
-					composable<Navigation.Settings.Data.SnapshotsScreen> {
+        Scaffold(
+            bottomBar = {
+                Box(modifier = Modifier.animateContentSize()) {
+                    if (CollectionsScreenVM.isSelectionEnabled.value) {
+                        BottomNavOnSelection(
+                            showLoadingProgressBarOnTransferAction = showLoadingProgressBarOnTransferAction,
+                            appVM = appVM,
+                            selectedAndInRoot = selectedAndInRoot,
+                            currentRoute = currentRoute
+                        )
+                    }
+                }
+                MobileBottomNavBar(
+                    rootRouteList = rootRouteList,
+                    appVM = appVM,
+                    platform = platform,
+                    inRootScreen = inRootScreen,
+                    currentRoute = currentRoute
+                )
+            },
+            floatingActionButton = {
+                AnimatedVisibility(
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    visible = showAddingLinkOrFoldersFAB.value && !CollectionsScreenVM.isSelectionEnabled.value
+                ) {
+                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in listOf(
+                            Constants.SAVED_LINKS_ID,
+                            Constants.IMPORTANT_LINKS_ID,
+                            Constants.ALL_LINKS_ID
+                        )
+                    ) {
+                        FloatingActionButton(onClick = {
+                            shouldShowAddLinkDialog.value = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.AddLink, contentDescription = null
+                            )
+                        }
+                        return@AnimatedVisibility
+                    }
+                    AddItemFab(
+                        AddItemFABParam(
+                            showBtmSheetForNewLinkAddition = showBtmSheetForNewLinkAddition,
+                            isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
+                            showDialogForNewFolder = shouldShowNewFolderDialog,
+                            shouldShowAddLinkDialog = shouldShowAddLinkDialog,
+                            isMainFabRotated = AppVM.isMainFabRotated,
+                            rotationAnimation = rotationAnimation,
+                            inASpecificScreen = false
+                        )
+                    )
+                }
+            },
+            snackbarHost = {
+                SnackbarHost(snackbarHostState, snackbar = {
+                    Snackbar(
+                        it,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                })
+            },
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Box(
+                modifier = Modifier.pullToRefresh(
+                    isRefreshing = isDataSyncingFromPullRefresh.value,
+                    state = pullToRefreshState,
+                    enabled = rememberSaveable(serverBaseUrl.value) {
+                        serverBaseUrl.value.isNotBlank() && platform == Platform.Android.Mobile
+                    },
+                    onRefresh = {
+                        appVM.saveServerConnectionAndSync(
+                            serverConnection = currentSavedServerConfig(),
+                            timeStampAfter = {
+                                appVM.getLastSyncedTime()
+                            },
+                            onSyncStart = {
+                                isDataSyncingFromPullRefresh.value = true
+                            },
+                            onCompletion = {
+                                isDataSyncingFromPullRefresh.value = false
+                            })
+                    })
+            ) {
+                NavHost(
+                    navController = localNavController,
+                    startDestination = appVM.startDestination.value
+                ) {
+                    composable<Navigation.Root.HomeScreen> {
+                        HomeScreen()
+                    }
+                    composable<Navigation.Root.SearchScreen> {
+                        SearchScreen()
+                    }
+                    composable<Navigation.Root.CollectionsScreen> {
+                        CollectionsScreen(
+                            collectionsScreenVM = collectionsScreenVM
+                        )
+                    }
+                    composable<Navigation.Root.SettingsScreen> {
+                        SettingsScreen()
+                    }
+                    composable<Navigation.Settings.ThemeSettingsScreen> {
+                        ThemeSettingsScreen()
+                    }
+                    composable<Navigation.Settings.GeneralSettingsScreen> {
+                        GeneralSettingsScreen()
+                    }
+                    composable<Navigation.Settings.LayoutSettingsScreen> {
+                        LayoutSettingsScreen()
+                    }
+                    composable<Navigation.Settings.DataSettingsScreen> {
+                        DataSettingsScreen()
+                    }
+                    composable<Navigation.Settings.Data.ServerSetupScreen> {
+                        ServerSetupScreen()
+                    }
+                    composable<Navigation.Settings.LanguageSettingsScreen> {
+                        LanguageSettingsScreen()
+                    }
+                    composable<Navigation.Collection.CollectionDetailPane> {
+                        CollectionDetailPane()
+                    }
+                    composable<Navigation.Home.PanelsManagerScreen> {
+                        PanelsManagerScreen()
+                    }
+                    composable<Navigation.Home.SpecificPanelManagerScreen> {
+                        SpecificPanelManagerScreen()
+                    }
+                    composable<Navigation.Settings.AboutSettingsScreen> {
+                        AboutSettingsScreen()
+                    }
+                    composable<Navigation.Settings.AcknowledgementSettingsScreen> {
+                        AcknowledgementSettingsScreen()
+                    }
+                    composable<Navigation.Settings.AdvancedSettingsScreen> {
+                        AdvancedSettingsScreen()
+                    }
+                    composable<Navigation.Settings.Data.SnapshotsScreen> {
                         SnapshotsScreen()
                     }
-					composable<Navigation.Root.OnboardingSlidesScreen> {
-						OnboardingSlidesScreen(onOnboardingComplete = {
-							appVM.markOnboardingComplete()
-						})
-					}
-				}
-				Indicator(
-					state = pullToRefreshState,
-					isRefreshing = isDataSyncingFromPullRefresh.value,
-					modifier = Modifier.align(Alignment.TopCenter)
-				)
-			}
-			AnimatedVisibility(
-				visible = isReducedTransparencyBoxVisible.value, enter = fadeIn(), exit = fadeOut()
-			) {
-				Box(
-					modifier = Modifier.fillMaxSize()
-						.background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
-							AppVM.isMainFabRotated.value = false
-						})
-			}
-			AddANewLinkDialogBox(
-				shouldBeVisible = shouldShowAddLinkDialog,
-				screenType = ScreenType.ROOT_SCREEN,
-				currentFolder = if ((inRootScreen == true && platform is Platform.Android.Mobile) || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) null else CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
-				collectionsScreenVM
-			)
+                    composable<Navigation.Root.OnboardingSlidesScreen> {
+                        OnboardingSlidesScreen(onOnboardingComplete = {
+                            appVM.markOnboardingComplete()
+                        })
+                    }
+                }
+                Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = isDataSyncingFromPullRefresh.value,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            }
+            AnimatedVisibility(
+                visible = isReducedTransparencyBoxVisible.value, enter = fadeIn(), exit = fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
+                            AppVM.isMainFabRotated.value = false
+                        })
+            }
+            AddANewLinkDialogBox(
+                shouldBeVisible = shouldShowAddLinkDialog,
+                screenType = ScreenType.ROOT_SCREEN,
+                currentFolder = if ((inRootScreen == true && platform is Platform.Android.Mobile) || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) null else CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder,
+                collectionsScreenVM
+            )
 
-			AddANewFolderDialogBox(
-				AddNewFolderDialogBoxParam(
-					shouldBeVisible = shouldShowNewFolderDialog,
-					inAChildFolderScreen = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != null && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!! > 0,
-					onFolderCreateClick = { folderName, folderNote, onCompletion ->
-						if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-							collectionsScreenVM.insertANewFolder(
-								folder = Folder(
-									name = folderName,
-									note = folderNote,
-									parentFolderId = if ((CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
-											?: 0) > 0
-									) CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
-								), ignoreFolderAlreadyExistsThrowable = false, onCompletion = {
+            AddANewFolderDialogBox(
+                AddNewFolderDialogBoxParam(
+                    shouldBeVisible = shouldShowNewFolderDialog,
+                    inAChildFolderScreen = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != null && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!! > 0,
+                    onFolderCreateClick = { folderName, folderNote, onCompletion ->
+                        if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
+                            collectionsScreenVM.insertANewFolder(
+                                folder = Folder(
+                                    name = folderName,
+                                    note = folderNote,
+                                    parentFolderId = if ((CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
+                                            ?: 0) > 0
+                                    ) CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId else null
+                                ), ignoreFolderAlreadyExistsThrowable = false, onCompletion = {
 
-									onCompletion()
-								})
-						}
-					},
-					thisFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
-				)
-			)
-			val localUriHandler = LocalUriHandler.current
-			val showProgressBarDuringRemoteSave = rememberSaveable {
-				mutableStateOf(false)
-			}
-			MenuBtmSheetUI(
-				menuBtmSheetParam = MenuBtmSheetParam(
-					btmModalSheetState = menuBtmModalSheetState,
-					shouldBtmModalSheetBeVisible = menuBtmModalSheetVisible,
-					menuBtmSheetFor = menuBtmSheetFor.value,
-					onDelete = {
-						showDeleteDialogBox.value = true
-					},
-					onRename = {
-						showRenameDialogBox.value = true
-					},
-					onArchive = {
-						initializeIfServerConfigured {
-							showProgressBarDuringRemoteSave.value = true
-						}
-						if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-							collectionsScreenVM.archiveAFolder(
-								selectedFolderForMenuBtmSheet.value, onCompletion = {
-									showProgressBarDuringRemoteSave.value = false
-									coroutineScope.launch {
-										menuBtmModalSheetState.hide()
-									}.invokeOnCompletion {
-										menuBtmModalSheetVisible.value = false
-									}
+                                    onCompletion()
+                                })
+                        }
+                    },
+                    thisFolder = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
+                )
+            )
+            val localUriHandler = LocalUriHandler.current
+            val showProgressBarDuringRemoteSave = rememberSaveable {
+                mutableStateOf(false)
+            }
+            MenuBtmSheetUI(
+                menuBtmSheetParam = MenuBtmSheetParam(
+                    btmModalSheetState = menuBtmModalSheetState,
+                    shouldBtmModalSheetBeVisible = menuBtmModalSheetVisible,
+                    menuBtmSheetFor = menuBtmSheetFor.value,
+                    onDelete = {
+                        showDeleteDialogBox.value = true
+                    },
+                    onRename = {
+                        showRenameDialogBox.value = true
+                    },
+                    onArchive = {
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
+                        }
+                        if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
+                            collectionsScreenVM.archiveAFolder(
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        menuBtmModalSheetVisible.value = false
+                                    }
 
-								})
-						} else {
-							collectionsScreenVM.archiveALink(
-								selectedLinkForMenuBtmSheet.value, onCompletion = {
-									showProgressBarDuringRemoteSave.value = false
-									coroutineScope.launch {
-										menuBtmModalSheetState.hide()
-									}.invokeOnCompletion {
-										menuBtmModalSheetVisible.value = false
-									}
+                                })
+                        } else {
+                            collectionsScreenVM.archiveALink(
+                                selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        menuBtmModalSheetVisible.value = false
+                                    }
 
-								})
-						}
-					},
-					onDeleteNote = {
-						initializeIfServerConfigured {
-							showProgressBarDuringRemoteSave.value = true
-						}
-						if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-							collectionsScreenVM.deleteTheNote(
-								selectedFolderForMenuBtmSheet.value, onCompletion = {
-									showProgressBarDuringRemoteSave.value = false
-									coroutineScope.launch {
-										menuBtmModalSheetState.hide()
-									}.invokeOnCompletion {
-										menuBtmModalSheetVisible.value = false
-									}
-								})
-						} else {
-							collectionsScreenVM.deleteTheNote(
-								selectedLinkForMenuBtmSheet.value, onCompletion = {
-									showProgressBarDuringRemoteSave.value = false
-									coroutineScope.launch {
-										menuBtmModalSheetState.hide()
-									}.invokeOnCompletion {
-										menuBtmModalSheetVisible.value = false
-									}
-								})
-						}
-					},
-					onRefreshClick = {
-						initializeIfServerConfigured {
-							showProgressBarDuringRemoteSave.value = true
-						}
-						collectionsScreenVM.refreshLinkMetadata(
-							selectedLinkForMenuBtmSheet.value, onCompletion = {
-								showProgressBarDuringRemoteSave.value = false
-								coroutineScope.launch {
-									menuBtmModalSheetState.hide()
-								}.invokeOnCompletion {
-									menuBtmModalSheetVisible.value = false
-								}
-							})
-					},
-					onForceLaunchInAnExternalBrowser = {
-						localUriHandler.openUri(selectedLinkForMenuBtmSheet.value.url)
-					},
-					showQuickActions = rememberSaveable { mutableStateOf(false) },
-					shouldTransferringOptionShouldBeVisible = true,
-					link = selectedLinkForMenuBtmSheet,
-					folder = selectedFolderForMenuBtmSheet,
-					onAddToImportantLinks = {
-						initializeIfServerConfigured {
-							showProgressBarDuringRemoteSave.value = true
-						}
-						collectionsScreenVM.markALinkAsImp(
-							selectedLinkForMenuBtmSheet.value, onCompletion = {
-								showProgressBarDuringRemoteSave.value = false
-								coroutineScope.launch {
-									menuBtmModalSheetState.hide()
-								}.invokeOnCompletion {
-									menuBtmModalSheetVisible.value = false
-								}
-							})
-					},
-					shouldShowArchiveOption = {
-						selectedLinkForMenuBtmSheet.value.linkType == LinkType.ARCHIVE_LINK
-					},
-					showProgressBarDuringRemoteSave = showProgressBarDuringRemoteSave
-				)
-			)
-			DeleteDialogBox(
-				DeleteDialogBoxParam(
-					showDeleteDialogBox,
-					if (CollectionsScreenVM.isSelectionEnabled.value) DeleteDialogBoxType.SELECTED_DATA else if (menuBtmSheetFolderEntries().contains(
-							menuBtmSheetFor.value
-						)
-					) {
-						DeleteDialogBoxType.FOLDER
-					} else DeleteDialogBoxType.LINK,
-					onDeleteClick = { onCompletion, _ ->
-						if (CollectionsScreenVM.isSelectionEnabled.value) {
-							appVM.deleteSelectedItems(onStart = {}, onCompletion)
-							return@DeleteDialogBoxParam
-						}
-						if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-							collectionsScreenVM.deleteAFolder(
-								selectedFolderForMenuBtmSheet.value, onCompletion = {
-									coroutineScope.launch {
-										menuBtmModalSheetState.hide()
-									}.invokeOnCompletion {
-										menuBtmModalSheetVisible.value = false
-									}
+                                })
+                        }
+                    },
+                    onDeleteNote = {
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
+                        }
+                        if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
+                            collectionsScreenVM.deleteTheNote(
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        menuBtmModalSheetVisible.value = false
+                                    }
+                                })
+                        } else {
+                            collectionsScreenVM.deleteTheNote(
+                                selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                    showProgressBarDuringRemoteSave.value = false
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        menuBtmModalSheetVisible.value = false
+                                    }
+                                })
+                        }
+                    },
+                    onRefreshClick = {
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
+                        }
+                        collectionsScreenVM.refreshLinkMetadata(
+                            selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                showProgressBarDuringRemoteSave.value = false
+                                coroutineScope.launch {
+                                    menuBtmModalSheetState.hide()
+                                }.invokeOnCompletion {
+                                    menuBtmModalSheetVisible.value = false
+                                }
+                            })
+                    },
+                    onForceLaunchInAnExternalBrowser = {
+                        localUriHandler.openUri(selectedLinkForMenuBtmSheet.value.url)
+                    },
+                    showQuickActions = rememberSaveable { mutableStateOf(false) },
+                    shouldTransferringOptionShouldBeVisible = true,
+                    link = selectedLinkForMenuBtmSheet,
+                    folder = selectedFolderForMenuBtmSheet,
+                    onAddToImportantLinks = {
+                        initializeIfServerConfigured {
+                            showProgressBarDuringRemoteSave.value = true
+                        }
+                        collectionsScreenVM.markALinkAsImp(
+                            selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                showProgressBarDuringRemoteSave.value = false
+                                coroutineScope.launch {
+                                    menuBtmModalSheetState.hide()
+                                }.invokeOnCompletion {
+                                    menuBtmModalSheetVisible.value = false
+                                }
+                            })
+                    },
+                    shouldShowArchiveOption = {
+                        selectedLinkForMenuBtmSheet.value.linkType == LinkType.ARCHIVE_LINK
+                    },
+                    showProgressBarDuringRemoteSave = showProgressBarDuringRemoteSave
+                )
+            )
+            DeleteDialogBox(
+                DeleteDialogBoxParam(
+                    showDeleteDialogBox,
+                    if (CollectionsScreenVM.isSelectionEnabled.value) DeleteDialogBoxType.SELECTED_DATA else if (menuBtmSheetFolderEntries().contains(
+                            menuBtmSheetFor.value
+                        )
+                    ) {
+                        DeleteDialogBoxType.FOLDER
+                    } else DeleteDialogBoxType.LINK,
+                    onDeleteClick = { onCompletion, _ ->
+                        if (CollectionsScreenVM.isSelectionEnabled.value) {
+                            appVM.deleteSelectedItems(onStart = {}, onCompletion)
+                            return@DeleteDialogBoxParam
+                        }
+                        if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
+                            collectionsScreenVM.deleteAFolder(
+                                selectedFolderForMenuBtmSheet.value, onCompletion = {
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        menuBtmModalSheetVisible.value = false
+                                    }
 
-									onCompletion()
-								})
-						} else {
-							collectionsScreenVM.deleteALink(
-								selectedLinkForMenuBtmSheet.value, onCompletion = {
-									coroutineScope.launch {
-										menuBtmModalSheetState.hide()
-									}.invokeOnCompletion {
-										menuBtmModalSheetVisible.value = false
-									}
+                                    onCompletion()
+                                })
+                        } else {
+                            collectionsScreenVM.deleteALink(
+                                selectedLinkForMenuBtmSheet.value, onCompletion = {
+                                    coroutineScope.launch {
+                                        menuBtmModalSheetState.hide()
+                                    }.invokeOnCompletion {
+                                        menuBtmModalSheetVisible.value = false
+                                    }
 
-									onCompletion()
-								})
-						}
-					})
-			)
-			RenameDialogBox(
-				RenameDialogBoxParam(
-					onNoteChangeClick = { newNote, onCompletion ->
-						if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
-							collectionsScreenVM.updateFolderNote(
-								selectedFolderForMenuBtmSheet.value.localId,
-								newNote = newNote,
-								onCompletion = {
-									onCompletion()
-									showRenameDialogBox.value = false
-								})
-						} else {
-							collectionsScreenVM.updateLinkNote(
-								selectedLinkForMenuBtmSheet.value.localId,
-								newNote = newNote,
-								onCompletion = {
-									onCompletion()
-									showRenameDialogBox.value = false
-								})
-						}
-					},
-					shouldDialogBoxAppear = showRenameDialogBox,
-					existingFolderName = selectedFolderForMenuBtmSheet.value.name,
-					onBothTitleAndNoteChangeClick = { title, note, onCompletion ->
-						if (menuBtmSheetFor.value in menuBtmSheetFolderEntries()) {
-							collectionsScreenVM.updateFolderNote(
-								selectedFolderForMenuBtmSheet.value.localId,
-								newNote = note,
-								pushSnackbarOnSuccess = false,
-								onCompletion = {
-									onCompletion()
-									showRenameDialogBox.value = false
-								})
-							collectionsScreenVM.updateFolderName(
-								folder = selectedFolderForMenuBtmSheet.value,
-								newName = title,
-								ignoreFolderAlreadyExistsThrowable = true,
-								onCompletion = {
-									onCompletion()
+                                    onCompletion()
+                                })
+                        }
+                    })
+            )
+            RenameDialogBox(
+                RenameDialogBoxParam(
+                    onNoteChangeClick = { newNote, onCompletion ->
+                        if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) {
+                            collectionsScreenVM.updateFolderNote(
+                                selectedFolderForMenuBtmSheet.value.localId,
+                                newNote = newNote,
+                                onCompletion = {
+                                    onCompletion()
+                                    showRenameDialogBox.value = false
+                                })
+                        } else {
+                            collectionsScreenVM.updateLinkNote(
+                                selectedLinkForMenuBtmSheet.value.localId,
+                                newNote = newNote,
+                                onCompletion = {
+                                    onCompletion()
+                                    showRenameDialogBox.value = false
+                                })
+                        }
+                    },
+                    shouldDialogBoxAppear = showRenameDialogBox,
+                    existingFolderName = selectedFolderForMenuBtmSheet.value.name,
+                    onBothTitleAndNoteChangeClick = { title, note, onCompletion ->
+                        if (menuBtmSheetFor.value in menuBtmSheetFolderEntries()) {
+                            collectionsScreenVM.updateFolderNote(
+                                selectedFolderForMenuBtmSheet.value.localId,
+                                newNote = note,
+                                pushSnackbarOnSuccess = false,
+                                onCompletion = {
+                                    onCompletion()
+                                    showRenameDialogBox.value = false
+                                })
+                            collectionsScreenVM.updateFolderName(
+                                folder = selectedFolderForMenuBtmSheet.value,
+                                newName = title,
+                                ignoreFolderAlreadyExistsThrowable = true,
+                                onCompletion = {
+                                    onCompletion()
 
-									showRenameDialogBox.value = false
-								})
-						} else {
-							collectionsScreenVM.updateLinkNote(
-								linkId = selectedLinkForMenuBtmSheet.value.localId,
-								newNote = note,
-								pushSnackbarOnSuccess = false,
-								onCompletion = {
-									onCompletion()
-									showRenameDialogBox.value = false
-								})
-							collectionsScreenVM.updateLinkTitle(
-								linkId = selectedLinkForMenuBtmSheet.value.localId,
-								newTitle = title,
-								onCompletion = {
-									onCompletion()
+                                    showRenameDialogBox.value = false
+                                })
+                        } else {
+                            collectionsScreenVM.updateLinkNote(
+                                linkId = selectedLinkForMenuBtmSheet.value.localId,
+                                newNote = note,
+                                pushSnackbarOnSuccess = false,
+                                onCompletion = {
+                                    onCompletion()
+                                    showRenameDialogBox.value = false
+                                })
+                            collectionsScreenVM.updateLinkTitle(
+                                linkId = selectedLinkForMenuBtmSheet.value.localId,
+                                newTitle = title,
+                                onCompletion = {
+                                    onCompletion()
 
-									showRenameDialogBox.value = false
-								})
-						}
-						coroutineScope.launch {
-							menuBtmModalSheetState.hide()
-						}.invokeOnCompletion {
-							menuBtmModalSheetVisible.value = false
-						}
-					},
-					existingTitle = if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) selectedFolderForMenuBtmSheet.value.name else selectedLinkForMenuBtmSheet.value.title,
-					existingNote = if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) selectedFolderForMenuBtmSheet.value.note else selectedLinkForMenuBtmSheet.value.note
-				)
-			)
+                                    showRenameDialogBox.value = false
+                                })
+                        }
+                        coroutineScope.launch {
+                            menuBtmModalSheetState.hide()
+                        }.invokeOnCompletion {
+                            menuBtmModalSheetVisible.value = false
+                        }
+                    },
+                    existingTitle = if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) selectedFolderForMenuBtmSheet.value.name else selectedLinkForMenuBtmSheet.value.title,
+                    existingNote = if (menuBtmSheetFolderEntries().contains(menuBtmSheetFor.value)) selectedFolderForMenuBtmSheet.value.note else selectedLinkForMenuBtmSheet.value.note
+                )
+            )
 
-			SortingBottomSheetUI(
-				SortingBottomSheetParam(
-					shouldBottomSheetBeVisible = sortingBottomSheetVisible,
-					onSelected = { sortingPreferences, _, _ -> },
-					bottomModalSheetState = sortingBtmSheetState,
-					sortingBtmSheetType = SortingBtmSheetType.COLLECTIONS_SCREEN,
-					shouldFoldersSelectionBeVisible = rememberSaveable {
-						mutableStateOf(false)
-					},
-					shouldLinksSelectionBeVisible = rememberSaveable {
-						mutableStateOf(false)
-					})
-			)
-		}
-	}
+            SortingBottomSheetUI(
+                SortingBottomSheetParam(
+                    shouldBottomSheetBeVisible = sortingBottomSheetVisible,
+                    onSelected = { sortingPreferences, _, _ -> },
+                    bottomModalSheetState = sortingBtmSheetState,
+                    sortingBtmSheetType = SortingBtmSheetType.COLLECTIONS_SCREEN,
+                    shouldFoldersSelectionBeVisible = rememberSaveable {
+                        mutableStateOf(false)
+                    },
+                    shouldLinksSelectionBeVisible = rememberSaveable {
+                        mutableStateOf(false)
+                    })
+            )
+        }
+    }
 }
