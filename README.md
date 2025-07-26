@@ -65,4 +65,10 @@ height="80">](https://f-droid.org/packages/com.sakethh.linkora)
 
 ---
 
-**Contributing?** See the [contributing guide](CONTRIBUTING.md) · **License:** MIT
+**Contributing?** See the [contributing guide](CONTRIBUTING.md)
+
+### Localization
+
+Linkora supports multiple languages with remote strings that can be updated without requiring an app update. If you'd like to help translate Linkora into your language or improve existing translations, please go through the [localization server](https://github.com/LinkoraApp/localization-server)'s README to learn more about how localization is handled and how you can contribute.
+
+**License:** MIT
