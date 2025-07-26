@@ -25,49 +25,49 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T {
         return when (modelClass) {
 
-            SortingBtmSheetVM::class -> SortingBtmSheetVM(DependencyContainer.preferencesRepo.value)
+            SortingBtmSheetVM::class -> SortingBtmSheetVM(DependencyContainer.preferencesRepo)
 
             AppVM::class -> AppVM(
-                remoteSyncRepo = DependencyContainer.remoteSyncRepo.value,
-                preferencesRepository = DependencyContainer.preferencesRepo.value,
-                networkRepo = DependencyContainer.networkRepo.value,
-                linksRepo = DependencyContainer.localLinksRepo.value,
-                foldersRepo = DependencyContainer.localFoldersRepo.value,
-                localMultiActionRepo = DependencyContainer.localMultiActionRepo.value,
-                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                exportDataRepo = DependencyContainer.exportDataRepo.value
+                remoteSyncRepo = DependencyContainer.remoteSyncRepo,
+                preferencesRepository = DependencyContainer.preferencesRepo,
+                networkRepo = DependencyContainer.networkRepo,
+                linksRepo = DependencyContainer.localLinksRepo,
+                foldersRepo = DependencyContainer.localFoldersRepo,
+                localMultiActionRepo = DependencyContainer.localMultiActionRepo,
+                localPanelsRepo = DependencyContainer.localPanelsRepo,
+                exportDataRepo = DependencyContainer.exportDataRepo
             )
 
 
             SearchScreenVM::class -> SearchScreenVM(
-                DependencyContainer.localFoldersRepo.value, DependencyContainer.localLinksRepo.value
+                DependencyContainer.localFoldersRepo, DependencyContainer.localLinksRepo
             )
 
-            SettingsScreenViewModel::class -> SettingsScreenViewModel(DependencyContainer.preferencesRepo.value)
-            LanguageSettingsScreenVM::class -> DependencyContainer.localizationRepo.value.let {
+            SettingsScreenViewModel::class -> SettingsScreenViewModel(DependencyContainer.preferencesRepo)
+            LanguageSettingsScreenVM::class -> DependencyContainer.localizationRepo.let {
                 LanguageSettingsScreenVM(it, it)
             }
 
             AboutSettingsScreenVM::class -> AboutSettingsScreenVM(
-                localLinksRepo = DependencyContainer.localLinksRepo.value,
-                gitHubReleasesRepo = DependencyContainer.gitHubReleasesRepo.value
+                localLinksRepo = DependencyContainer.localLinksRepo,
+                gitHubReleasesRepo = DependencyContainer.gitHubReleasesRepo
             )
 
             ServerManagementViewModel::class -> ServerManagementViewModel(
-                DependencyContainer.networkRepo.value,
-                DependencyContainer.preferencesRepo.value,
-                DependencyContainer.remoteSyncRepo.value
+                DependencyContainer.networkRepo,
+                DependencyContainer.preferencesRepo,
+                DependencyContainer.remoteSyncRepo
             )
 
             DataSettingsScreenVM::class -> DataSettingsScreenVM(
-                exportDataRepo = DependencyContainer.exportDataRepo.value,
-                importDataRepo = DependencyContainer.importDataRepo.value,
-                linksRepo = DependencyContainer.localLinksRepo.value,
-                foldersRepo = DependencyContainer.localFoldersRepo.value,
-                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                preferencesRepository = DependencyContainer.preferencesRepo.value,
-                pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo.value,
-                remoteSyncRepo = DependencyContainer.remoteSyncRepo.value
+                exportDataRepo = DependencyContainer.exportDataRepo,
+                importDataRepo = DependencyContainer.importDataRepo,
+                linksRepo = DependencyContainer.localLinksRepo,
+                foldersRepo = DependencyContainer.localFoldersRepo,
+                localPanelsRepo = DependencyContainer.localPanelsRepo,
+                preferencesRepository = DependencyContainer.preferencesRepo,
+                pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo,
+                remoteSyncRepo = DependencyContainer.remoteSyncRepo
             )
 
             else -> error("Not sure how to create an instance of ${modelClass.simpleName}, maybe it's available in *AssistedFactory")

@@ -17,7 +17,7 @@ class SnapshotWorker(appContext: Context, workerParameters: WorkerParameters) :
         return try {
             val rawExportStringID = inputData.getLong(key = "rawExportStringID", defaultValue = 0)
             val rawExportString =
-                DependencyContainer.snapshotRepo.value.getASnapshot(rawExportStringID)
+                DependencyContainer.snapshotRepo.getASnapshot(rawExportStringID)
             val fileType = inputData.getString(key = "fileType")!!
             writeRawExportStringToFile(
                 exportLocation = AppPreferences.currentBackupLocation.value,
@@ -25,7 +25,7 @@ class SnapshotWorker(appContext: Context, workerParameters: WorkerParameters) :
                 rawExportString = rawExportString.content,
                 onCompletion = {
                     try {
-                        DependencyContainer.snapshotRepo.value.deleteASnapshot(rawExportStringID)
+                        DependencyContainer.snapshotRepo.deleteASnapshot(rawExportStringID)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

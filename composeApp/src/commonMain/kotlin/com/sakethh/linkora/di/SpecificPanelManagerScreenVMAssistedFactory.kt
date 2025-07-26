@@ -8,10 +8,10 @@ object SpecificPanelManagerScreenVMAssistedFactory {
     fun createForPanelsManagerScreen() = viewModelFactory {
         initializer {
             SpecificPanelManagerScreenVM(
-                foldersRepo = DependencyContainer.localFoldersRepo.value,
-                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
+                foldersRepo = DependencyContainer.localFoldersRepo,
+                localPanelsRepo = DependencyContainer.localPanelsRepo,
                 initData = false,
-                preferencesRepository = DependencyContainer.preferencesRepo.value
+                preferencesRepository = DependencyContainer.preferencesRepo
             )
         }
     }
@@ -19,9 +19,9 @@ object SpecificPanelManagerScreenVMAssistedFactory {
     fun createForSpecificPanelManagerScreen() = viewModelFactory {
         initializer {
             SpecificPanelManagerScreenVM(
-                foldersRepo = DependencyContainer.localFoldersRepo.value,
-                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                preferencesRepository = DependencyContainer.preferencesRepo.value
+                foldersRepo = DependencyContainer.localFoldersRepo,
+                localPanelsRepo = DependencyContainer.localPanelsRepo,
+                preferencesRepository = DependencyContainer.preferencesRepo
             )
         }
     }

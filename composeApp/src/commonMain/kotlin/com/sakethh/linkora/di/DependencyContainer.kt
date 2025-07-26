@@ -24,11 +24,11 @@ import com.sakethh.localDatabase
 
 object DependencyContainer {
 
-    val preferencesRepo = lazy {
+    val preferencesRepo by lazy {
         PreferencesImpl(linkoraDataStore)
     }
 
-    val localizationRepo = lazy {
+    val localizationRepo by lazy {
         LocalizationRepoImpl(
             standardClient = Network.standardClient, localizationServerURL = {
                 AppPreferences.localizationServerURL.value
@@ -36,13 +36,13 @@ object DependencyContainer {
         )
     }
 
-    val networkRepo = lazy {
+    val networkRepo by lazy {
         NetworkRepoImpl(syncServerClient = {
             Network.getSyncServerClient()
         })
     }
 
-    val remoteFoldersRepo = lazy {
+    val remoteFoldersRepo by lazy {
         RemoteFoldersRepoImpl(
             syncServerClient = {
                 Network.getSyncServerClient()
@@ -52,24 +52,24 @@ object DependencyContainer {
         )
     }
 
-    val remoteSyncRepo = lazy {
+    val remoteSyncRepo by lazy {
         RemoteSyncRepoImpl(
-            localFoldersRepo = localFoldersRepo.value,
-            localLinksRepo = localLinksRepo.value,
-            localPanelsRepo = localPanelsRepo.value,
+            localFoldersRepo = localFoldersRepo,
+            localLinksRepo = localLinksRepo,
+            localPanelsRepo = localPanelsRepo,
             authToken = {
                 AppPreferences.serverSecurityToken.value
             },
             baseUrl = {
                 AppPreferences.serverBaseUrl.value
             },
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
-            remoteFoldersRepo = remoteFoldersRepo.value,
-            remoteLinksRepo = remoteLinksRepo.value,
-            remotePanelsRepo = remotePanelsRepo.value,
-            preferencesRepository = preferencesRepo.value,
-            localMultiActionRepo = localMultiActionRepo.value,
-            remoteMultiActionRepo = remoteMultiActionRepo.value,
+            pendingSyncQueueRepo = pendingSyncQueueRepo,
+            remoteFoldersRepo = remoteFoldersRepo,
+            remoteLinksRepo = remoteLinksRepo,
+            remotePanelsRepo = remotePanelsRepo,
+            preferencesRepository = preferencesRepo,
+            localMultiActionRepo = localMultiActionRepo,
+            remoteMultiActionRepo = remoteMultiActionRepo,
             linksDao = localDatabase?.linksDao!!,
             foldersDao = localDatabase?.foldersDao!!,
             websocketScheme = {
@@ -77,21 +77,21 @@ object DependencyContainer {
             },
         )
     }
-    val pendingSyncQueueRepo = lazy {
+    val pendingSyncQueueRepo by lazy {
         PendingSyncQueueRepoImpl(localDatabase?.pendingSyncQueueDao!!)
     }
-    val localFoldersRepo = lazy {
+    val localFoldersRepo by lazy {
         LocalFoldersRepoImpl(
             foldersDao = localDatabase?.foldersDao!!,
-            remoteFoldersRepo = remoteFoldersRepo.value,
-            localLinksRepo = localLinksRepo.value,
-            localPanelsRepo = localPanelsRepo.value,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
-            preferencesRepository = preferencesRepo.value
+            remoteFoldersRepo = remoteFoldersRepo,
+            localLinksRepo = localLinksRepo,
+            localPanelsRepo = localPanelsRepo,
+            pendingSyncQueueRepo = pendingSyncQueueRepo,
+            preferencesRepository = preferencesRepo
         )
     }
 
-    val localLinksRepo = lazy {
+    val localLinksRepo by lazy {
         LocalLinksRepoImpl(
             linksDao = localDatabase?.linksDao!!,
             primaryUserAgent = {
@@ -100,15 +100,15 @@ object DependencyContainer {
             syncServerClient = {
                 Network.getSyncServerClient()
             },
-            remoteLinksRepo = remoteLinksRepo.value,
+            remoteLinksRepo = remoteLinksRepo,
             foldersDao = localDatabase?.foldersDao!!,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
-            preferencesRepository = preferencesRepo.value,
+            pendingSyncQueueRepo = pendingSyncQueueRepo,
+            preferencesRepository = preferencesRepo,
             standardClient = Network.standardClient
         )
     }
 
-    val remoteLinksRepo = lazy {
+    val remoteLinksRepo by lazy {
         RemoteLinksRepoImpl(syncServerClient = { Network.getSyncServerClient() }, baseUrl = {
             AppPreferences.serverBaseUrl.value
         }, authToken = {
@@ -116,11 +116,11 @@ object DependencyContainer {
         })
     }
 
-    val gitHubReleasesRepo = lazy {
+    val gitHubReleasesRepo by lazy {
         GitHubReleasesRepoImpl(standardClient = Network.standardClient)
     }
 
-    val remotePanelsRepo = lazy {
+    val remotePanelsRepo by lazy {
         RemotePanelsRepoImpl(syncServerClient = { Network.getSyncServerClient() }, baseUrl = {
             AppPreferences.serverBaseUrl.value
         }, authToken = {
@@ -128,29 +128,29 @@ object DependencyContainer {
         })
     }
 
-    val localPanelsRepo = lazy {
+    val localPanelsRepo by lazy {
         LocalPanelsRepoImpl(
             panelsDao = localDatabase?.panelsDao!!,
-            remotePanelsRepo = remotePanelsRepo.value,
+            remotePanelsRepo = remotePanelsRepo,
             foldersDao = localDatabase?.foldersDao!!,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
-            preferencesRepository = preferencesRepo.value
+            pendingSyncQueueRepo = pendingSyncQueueRepo,
+            preferencesRepository = preferencesRepo
         )
     }
 
-    val exportDataRepo = lazy {
-        ExportDataRepoImpl(localLinksRepo.value, localFoldersRepo.value, localPanelsRepo.value)
+    val exportDataRepo by lazy {
+        ExportDataRepoImpl(localLinksRepo, localFoldersRepo, localPanelsRepo)
     }
 
-    val importDataRepo = lazy {
+    val importDataRepo by lazy {
         ImportDataRepoImpl(
-            localLinksRepo.value, localFoldersRepo.value, localPanelsRepo.value, canPushToServer = {
+            localLinksRepo, localFoldersRepo, localPanelsRepo, canPushToServer = {
                 AppPreferences.canPushToServer()
-            }, remoteSyncRepo = remoteSyncRepo.value
+            }, remoteSyncRepo = remoteSyncRepo
         )
     }
 
-    private val remoteMultiActionRepo = lazy {
+    private val remoteMultiActionRepo by lazy {
         RemoteMultiActionRepoImpl(syncServerClient = { Network.getSyncServerClient() }, baseUrl = {
             AppPreferences.serverBaseUrl.value
         }, authToken = {
@@ -158,18 +158,18 @@ object DependencyContainer {
         })
     }
 
-    val localMultiActionRepo = lazy {
+    val localMultiActionRepo by lazy {
         LocalMultiActionRepoImpl(
             linksDao = localDatabase?.linksDao!!,
             foldersDao = localDatabase?.foldersDao!!,
-            preferencesRepository = preferencesRepo.value,
-            remoteMultiActionRepo = remoteMultiActionRepo.value,
-            pendingSyncQueueRepo = pendingSyncQueueRepo.value,
-            localFoldersRepo = localFoldersRepo.value
+            preferencesRepository = preferencesRepo,
+            remoteMultiActionRepo = remoteMultiActionRepo,
+            pendingSyncQueueRepo = pendingSyncQueueRepo,
+            localFoldersRepo = localFoldersRepo
         )
     }
 
-    val snapshotRepo = lazy {
+    val snapshotRepo by lazy {
         SnapshotRepoImpl(snapshotDao = localDatabase?.snapshotDao!!)
     }
 }

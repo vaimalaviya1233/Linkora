@@ -62,7 +62,7 @@ import kotlinx.coroutines.withContext
 suspend fun main() {
     withContext(Dispatchers.IO) {
         awaitAll(async {
-            AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
+            AppPreferences.readAll(DependencyContainer.preferencesRepo)
         }, async {
             Localization.loadLocalizedStrings(
                 AppPreferences.preferredAppLanguageCode.value

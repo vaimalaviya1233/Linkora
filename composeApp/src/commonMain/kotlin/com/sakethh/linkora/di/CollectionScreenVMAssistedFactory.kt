@@ -14,7 +14,7 @@ object CollectionScreenVMAssistedFactory {
     fun createForApp() = viewModelFactory {
         initializer {
             CollectionsScreenVM(
-                DependencyContainer.localFoldersRepo.value, DependencyContainer.localLinksRepo.value
+                DependencyContainer.localFoldersRepo, DependencyContainer.localLinksRepo
             )
         }
     }
@@ -23,8 +23,8 @@ object CollectionScreenVMAssistedFactory {
         viewModelFactory {
             initializer {
                 CollectionsScreenVM(
-                    localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                    localLinksRepo = DependencyContainer.localLinksRepo.value,
+                    localFoldersRepo = DependencyContainer.localFoldersRepo,
+                    localLinksRepo = DependencyContainer.localLinksRepo,
                     loadNonArchivedRootFoldersOnInit = false,
                     loadArchivedRootFoldersOnInit = platform is Platform.Android.Mobile,
                     collectionDetailPaneInfo = if (platform is Platform.Android.Mobile) navController.previousBackStackEntry?.savedStateHandle?.get<String>(

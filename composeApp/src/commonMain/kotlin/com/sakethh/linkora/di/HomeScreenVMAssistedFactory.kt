@@ -8,12 +8,12 @@ object HomeScreenVMAssistedFactory {
     fun createForPanelsManagerScreen() = viewModelFactory {
         initializer {
             HomeScreenVM(
-                localLinksRepo = DependencyContainer.localLinksRepo.value,
-                localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
+                localLinksRepo = DependencyContainer.localLinksRepo,
+                localFoldersRepo = DependencyContainer.localFoldersRepo,
+                localPanelsRepo = DependencyContainer.localPanelsRepo,
                 triggerCollectionOfPanels = true,
                 triggerCollectionOfPanelFolders = false,
-                preferencesRepository = DependencyContainer.preferencesRepo.value
+                preferencesRepository = DependencyContainer.preferencesRepo
             )
         }
     }
@@ -21,10 +21,10 @@ object HomeScreenVMAssistedFactory {
     fun createForHomeScreen() = viewModelFactory {
         initializer {
             HomeScreenVM(
-                localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                localLinksRepo = DependencyContainer.localLinksRepo.value,
-                localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                preferencesRepository = DependencyContainer.preferencesRepo.value
+                localPanelsRepo = DependencyContainer.localPanelsRepo,
+                localLinksRepo = DependencyContainer.localLinksRepo,
+                localFoldersRepo = DependencyContainer.localFoldersRepo,
+                preferencesRepository = DependencyContainer.preferencesRepo
             )
         }
     }

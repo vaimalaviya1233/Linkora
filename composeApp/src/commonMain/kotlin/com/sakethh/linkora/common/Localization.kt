@@ -27,16 +27,16 @@ object Localization {
                 if (languageCode == DEFAULT_APP_LANGUAGE_CODE) {
                     DEFAULT_APP_LANGUAGE_NAME
                 } else {
-                    DependencyContainer.localizationRepo.value.getLanguageNameForTheCode(
+                    DependencyContainer.localizationRepo.getLanguageNameForTheCode(
                         languageCode
                     )
                 }
             AppPreferences.preferredAppLanguageCode.value = languageCode
-            DependencyContainer.preferencesRepo.value.changePreferenceValue(
+            DependencyContainer.preferencesRepo.changePreferenceValue(
                 stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_NAME.name),
                 AppPreferences.preferredAppLanguageName.value
             )
-            DependencyContainer.preferencesRepo.value.changePreferenceValue(
+            DependencyContainer.preferencesRepo.changePreferenceValue(
                 stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_CODE.name),
                 AppPreferences.preferredAppLanguageCode.value
             )
@@ -46,7 +46,7 @@ object Localization {
                 if (languageCode == DEFAULT_APP_LANGUAGE_CODE || forceLoadDefaultValues) {
                     key.defaultValue
                 } else {
-                    DependencyContainer.localizationRepo.value.getLocalizedStringValueFor(
+                    DependencyContainer.localizationRepo.getLocalizedStringValueFor(
                         key.name, languageCode
                     ).run {
                         if (this == null || this.isBlank()) {

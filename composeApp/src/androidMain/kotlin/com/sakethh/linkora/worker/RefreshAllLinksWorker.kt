@@ -47,12 +47,12 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
 
     override suspend fun doWork(): Result {
         return try {
-            DependencyContainer.localLinksRepo.value.getAllLinks().let { allLinks ->
+            DependencyContainer.localLinksRepo.getAllLinks().let { allLinks ->
                 DataSettingsScreenVM.Companion.refreshLinksState.value =
                     DataSettingsScreenVM.Companion.refreshLinksState.value.copy(isInRefreshingState = true)
                 DataSettingsScreenVM.Companion.totalLinksForRefresh.value = allLinks.size
                 val lastRefreshedIndex =
-                    DependencyContainer.preferencesRepo.value.readPreferenceValue(
+                    DependencyContainer.preferencesRepo.readPreferenceValue(
                         longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name)
                     )
                 val startIndex = (lastRefreshedIndex?.plus(1) ?: 0).toInt()
@@ -60,14 +60,14 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
                 allLinks.subList(
                     fromIndex = startIndex, toIndex = allLinks.size
                 ).forEachIndexed { index, link ->
-                    DependencyContainer.localLinksRepo.value.refreshLinkMetadata(link)
+                    DependencyContainer.localLinksRepo.refreshLinkMetadata(link)
                         .collectLatest {
                             it.onSuccess {
                                 DataSettingsScreenVM.Companion.refreshLinksState.value =
                                     DataSettingsScreenVM.Companion.refreshLinksState.value.copy(
                                         currentIteration = index + 1
                                     )
-                                DependencyContainer.preferencesRepo.value.changePreferenceValue(
+                                DependencyContainer.preferencesRepo.changePreferenceValue(
                                     preferenceKey = longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name),
                                     newValue = index.toLong()
                                 )

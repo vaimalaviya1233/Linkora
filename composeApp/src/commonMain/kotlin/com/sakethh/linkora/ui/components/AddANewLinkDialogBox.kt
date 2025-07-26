@@ -992,7 +992,7 @@ object AddANewLinkDialogBox {
         changeParentFolderIdJob?.cancel()
         linkoraLog(parentFolderId)
         changeParentFolderIdJob = coroutineScope.launch {
-            DependencyContainer.localFoldersRepo.value.getChildFoldersOfThisParentIDAsFlow(
+            DependencyContainer.localFoldersRepo.getChildFoldersOfThisParentIDAsFlow(
                 parentFolderId
             ).cancellable().collectLatest {
                 it.onSuccess {

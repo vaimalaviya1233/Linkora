@@ -29,7 +29,7 @@ class LinkoraApp : Application() {
         super.onCreate()
         LinkoraApp.applicationContext = this.applicationContext
         localDatabase = buildLocalDatabase()
-        AppPreferences.readAll(DependencyContainer.preferencesRepo.value)
+        AppPreferences.readAll(DependencyContainer.preferencesRepo)
         Localization.loadLocalizedStrings(
             AppPreferences.preferredAppLanguageCode.value
         )

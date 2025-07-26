@@ -65,10 +65,10 @@ class IntentActivity : ComponentActivity() {
             val intentActivityVM = viewModel<IntentActivityVM>(factory = viewModelFactory {
                 initializer {
                     IntentActivityVM(
-                        localLinksRepo = DependencyContainer.localLinksRepo.value,
-                        localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                        localPanelsRepo = DependencyContainer.localPanelsRepo.value,
-                        exportDataRepo = DependencyContainer.exportDataRepo.value
+                        localLinksRepo = DependencyContainer.localLinksRepo,
+                        localFoldersRepo = DependencyContainer.localFoldersRepo,
+                        localPanelsRepo = DependencyContainer.localPanelsRepo,
+                        exportDataRepo = DependencyContainer.exportDataRepo
                     )
                 }
             })
@@ -149,8 +149,8 @@ class IntentActivity : ComponentActivity() {
                         screenType = ScreenType.ROOT_SCREEN,
                         currentFolder = null,
                         collectionsScreenVM = CollectionsScreenVM(
-                            localFoldersRepo = DependencyContainer.localFoldersRepo.value,
-                            localLinksRepo = DependencyContainer.localLinksRepo.value,
+                            localFoldersRepo = DependencyContainer.localFoldersRepo,
+                            localLinksRepo = DependencyContainer.localLinksRepo,
                             loadNonArchivedRootFoldersOnInit = true,
                             loadArchivedRootFoldersOnInit = false,
                             collectionDetailPaneInfo = null

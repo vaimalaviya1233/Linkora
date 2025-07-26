@@ -303,7 +303,7 @@ actual suspend fun exportSnapshotData(
 ) {
     val snapshotWorker = OneTimeWorkRequestBuilder<SnapshotWorker>()
     val rawExportStringID: Long =
-        DependencyContainer.snapshotRepo.value.addASnapshot(Snapshot(content = rawExportString))
+        DependencyContainer.snapshotRepo.addASnapshot(Snapshot(content = rawExportString))
 
     val parameters = Data.Builder().putLong(key = "rawExportStringID", value = rawExportStringID)
         .putString(key = "fileType", value = fileType.name).build()
