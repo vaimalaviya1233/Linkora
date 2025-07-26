@@ -23,6 +23,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.documentfile.provider.DocumentFile
+import androidx.room.Room
+import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -81,7 +83,25 @@ actual val platform: @Composable () -> Platform = {
     if (isTablet(LocalConfiguration.current) || LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) Platform.Android.Tablet else Platform.Android.Mobile
 }
 actual val BUILD_FLAVOUR: String = platform.toString()
-actual val localDatabase: LocalDatabase? = LinkoraApp.getLocalDb()
+actual val localDatabase: LocalDatabase = run {
+    val dbFile = LinkoraApp.getContext().applicationContext.getDatabasePath(LocalDatabase.NAME)
+    Room.databaseBuilder(
+        LinkoraApp.getContext().applicationContext,
+        LocalDatabase::class.java,
+        name = dbFile.absolutePath
+    ).setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).addMigrations(
+        LocalDatabase.MIGRATION_1_2,
+        LocalDatabase.MIGRATION_2_3,
+        LocalDatabase.MIGRATION_3_4,
+        LocalDatabase.MIGRATION_4_5,
+        LocalDatabase.MIGRATION_5_6,
+        LocalDatabase.MIGRATION_6_7,
+        LocalDatabase.MIGRATION_7_8,
+        LocalDatabase.MIGRATION_8_9,
+        LocalDatabase.MIGRATION_9_10,
+        LocalDatabase.MIGRATION_10_11
+    ).build()
+}
 
 actual val poppinsFontFamily: FontFamily = poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -359,20 +379,20 @@ actual suspend fun deleteAutoBackups(
                 ?.filter {
                     it.name?.startsWith("LinkoraSnapshot-") == true
                 }?.let { snapshots ->
-                val snapshotsCount = snapshots.count()
-                if (snapshotsCount > threshold) {
-                    snapshots.sortedBy {
-                        it.lastModified()
-                    }.take(snapshotsCount - threshold).apply {
-                        forEach {
-                            it.delete()
+                    val snapshotsCount = snapshots.count()
+                    if (snapshotsCount > threshold) {
+                        snapshots.sortedBy {
+                            it.lastModified()
+                        }.take(snapshotsCount - threshold).apply {
+                            forEach {
+                                it.delete()
+                            }
+                            onCompletion(count())
                         }
-                        onCompletion(count())
+                    } else {
+                        onCompletion(0)
                     }
-                } else {
-                    onCompletion(0)
                 }
-            }
         }
     } catch (e: Exception) {
         e.printStackTrace()

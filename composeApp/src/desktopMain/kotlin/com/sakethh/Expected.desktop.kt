@@ -54,7 +54,7 @@ private val linkoraSpecificFolder = System.getProperty("user.home").run {
     appDataDir
 }
 
-actual val localDatabase: LocalDatabase? =
+actual val localDatabase: LocalDatabase =
     File(linkoraSpecificFolder, "${LocalDatabase.NAME}.db").run {
         Room.databaseBuilder<LocalDatabase>(name = this.absolutePath)
             .setDriver(BundledSQLiteDriver()).addMigrations(

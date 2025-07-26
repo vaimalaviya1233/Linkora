@@ -21,7 +21,7 @@ expect val BUILD_FLAVOUR: String
 
 expect val platform: @Composable () -> Platform
 
-expect val localDatabase: LocalDatabase?
+expect val localDatabase: LocalDatabase
 expect val linkoraDataStore: DataStore<Preferences>
 
 expect val poppinsFontFamily: FontFamily
