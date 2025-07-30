@@ -72,6 +72,16 @@ object Localization {
         return localizedStrings[key.name] ?: key.defaultValue
     }
 
+    // very bad way but fine for now, will be replaced with build-time generation
+    /* fun generateKeysAndDefaultValues() {
+         File("/home/saketh/StudioProjects/Linkora/locales/default_en.json").writeText(
+             Key.entries.joinToString(
+                 separator = ",\n", prefix = "{", postfix = "}"
+             ) {
+                 """"${it.name}":"${it.defaultValue.replace("\n", "\\n").replace("\"", "\\\"")}""""
+             })
+     }*/
+
     enum class Key(val defaultValue: String) {
         /***** THE SACRED SCRAPING RITUAL BEGINS *****/
         Settings(defaultValue = "Settings"),
