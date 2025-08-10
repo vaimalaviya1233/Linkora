@@ -24,7 +24,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.FileManager
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.SharedSDK
@@ -194,7 +193,7 @@ class IntentActivityVM(
             if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.JSON.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
 
                 val serializedJsonExportString = JSONExportSchema(
-                    schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                    schemaVersion = JSONExportSchema.VERSION,
                     links = allLinks.await().map {
                         it.copy(
                             remoteId = null, lastModified = 0

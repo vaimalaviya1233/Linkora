@@ -1,7 +1,6 @@
 package com.sakethh.linkora.data
 
 import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.LinkoraExports
 import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
 import com.sakethh.linkora.common.utils.getLocalizedString
@@ -68,7 +67,7 @@ class ExportDataRepoImpl(
                 emit(Result.Loading(message = Localization.Key.SerializingCollectedDataForExport.getLocalizedString()))
 
                 val exportObject = JSONExportSchema(
-                    schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                    schemaVersion = JSONExportSchema.VERSION,
                     links = links.map { it.copy(remoteId = null, lastModified = 0) },
                     folders = folders.map { it.copy(remoteId = null, lastModified = 0) },
                     panels = PanelForJSONExportSchema(

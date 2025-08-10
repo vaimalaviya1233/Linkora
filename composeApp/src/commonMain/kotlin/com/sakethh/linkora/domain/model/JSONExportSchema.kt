@@ -11,7 +11,11 @@ data class JSONExportSchema(
     val links: List<Link>,
     val folders: List<Folder>,
     val panels: PanelForJSONExportSchema
-)
+) {
+    companion object {
+        const val VERSION = 12
+    }
+}
 
 @Serializable
 data class PanelForJSONExportSchema(

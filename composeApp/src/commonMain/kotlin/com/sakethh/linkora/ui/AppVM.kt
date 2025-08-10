@@ -13,7 +13,6 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbar
@@ -175,7 +174,7 @@ class AppVM(
                                     if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.JSON.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
 
                                         val serializedJsonExportString = JSONExportSchema(
-                                            schemaVersion = Constants.EXPORT_SCHEMA_VERSION,
+                                            schemaVersion = JSONExportSchema.VERSION,
                                             links = it.links.map {
                                                 it.copy(
                                                     remoteId = null, lastModified = 0
