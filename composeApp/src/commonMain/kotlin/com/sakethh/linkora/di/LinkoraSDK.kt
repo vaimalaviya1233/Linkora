@@ -7,21 +7,28 @@ import com.sakethh.NativeUtils
 import com.sakethh.PermissionManager
 import com.sakethh.linkora.data.local.LocalDatabase
 
-object SharedSDK {
-    private lateinit var shared: SDK
-    private var created = false
+object LinkoraSDKProvider {
+    private lateinit var shared: LinkoraSDK
+    private var assigned = false
 
-    fun getInstance(): SDK = shared
+    fun getInstance(): LinkoraSDK {
+        require(assigned) {
+            "LinkoraSDK has not been set. Call LinkoraSDKProvider.set() first."
+        }
+        return shared
+    }
 
-    fun create(sdk: SDK) {
-        if (created) return
+    fun set(linkoraSdk: LinkoraSDK) {
+        require(!assigned) {
+            "LinkoraSDK has already been set and can only be set once."
+        }
 
-        shared = sdk
-        created = true
+        shared = linkoraSdk
+        assigned = true
     }
 }
 
-class SDK(
+class LinkoraSDK(
     val nativeUtils: NativeUtils,
     val fileManager: FileManager,
     val permissionManager: PermissionManager,

@@ -23,14 +23,14 @@ import com.sakethh.linkora.data.remote.repository.RemoteSyncRepoImpl
 object DependencyContainer {
 
     val preferencesRepo by lazy {
-        PreferencesImpl(SharedSDK.getInstance().dataStore)
+        PreferencesImpl(LinkoraSDKProvider.getInstance().dataStore)
     }
 
     val localizationRepo by lazy {
         LocalizationRepoImpl(
             standardClient = Network.standardClient, localizationServerURL = {
                 AppPreferences.localizationServerURL.value
-            }, localizationDao = SharedSDK.getInstance().localDatabase.localizationDao
+            }, localizationDao = LinkoraSDKProvider.getInstance().localDatabase.localizationDao
         )
     }
 
@@ -68,19 +68,19 @@ object DependencyContainer {
             preferencesRepository = preferencesRepo,
             localMultiActionRepo = localMultiActionRepo,
             remoteMultiActionRepo = remoteMultiActionRepo,
-            linksDao = SharedSDK.getInstance().localDatabase.linksDao,
-            foldersDao = SharedSDK.getInstance().localDatabase.foldersDao,
+            linksDao = LinkoraSDKProvider.getInstance().localDatabase.linksDao,
+            foldersDao = LinkoraSDKProvider.getInstance().localDatabase.foldersDao,
             websocketScheme = {
                 AppPreferences.WEB_SOCKET_SCHEME
             },
         )
     }
     val pendingSyncQueueRepo by lazy {
-        PendingSyncQueueRepoImpl(SharedSDK.getInstance().localDatabase.pendingSyncQueueDao)
+        PendingSyncQueueRepoImpl(LinkoraSDKProvider.getInstance().localDatabase.pendingSyncQueueDao)
     }
     val localFoldersRepo by lazy {
         LocalFoldersRepoImpl(
-            foldersDao = SharedSDK.getInstance().localDatabase.foldersDao,
+            foldersDao = LinkoraSDKProvider.getInstance().localDatabase.foldersDao,
             remoteFoldersRepo = remoteFoldersRepo,
             localLinksRepo = localLinksRepo,
             localPanelsRepo = localPanelsRepo,
@@ -91,7 +91,7 @@ object DependencyContainer {
 
     val localLinksRepo by lazy {
         LocalLinksRepoImpl(
-            linksDao = SharedSDK.getInstance().localDatabase.linksDao,
+            linksDao = LinkoraSDKProvider.getInstance().localDatabase.linksDao,
             primaryUserAgent = {
                 AppPreferences.primaryJsoupUserAgent.value
             },
@@ -99,7 +99,7 @@ object DependencyContainer {
                 Network.getSyncServerClient()
             },
             remoteLinksRepo = remoteLinksRepo,
-            foldersDao = SharedSDK.getInstance().localDatabase.foldersDao,
+            foldersDao = LinkoraSDKProvider.getInstance().localDatabase.foldersDao,
             pendingSyncQueueRepo = pendingSyncQueueRepo,
             preferencesRepository = preferencesRepo,
             standardClient = Network.standardClient
@@ -128,9 +128,9 @@ object DependencyContainer {
 
     val localPanelsRepo by lazy {
         LocalPanelsRepoImpl(
-            panelsDao = SharedSDK.getInstance().localDatabase.panelsDao,
+            panelsDao = LinkoraSDKProvider.getInstance().localDatabase.panelsDao,
             remotePanelsRepo = remotePanelsRepo,
-            foldersDao = SharedSDK.getInstance().localDatabase.foldersDao,
+            foldersDao = LinkoraSDKProvider.getInstance().localDatabase.foldersDao,
             pendingSyncQueueRepo = pendingSyncQueueRepo,
             preferencesRepository = preferencesRepo
         )
@@ -158,8 +158,8 @@ object DependencyContainer {
 
     val localMultiActionRepo by lazy {
         LocalMultiActionRepoImpl(
-            linksDao = SharedSDK.getInstance().localDatabase.linksDao,
-            foldersDao = SharedSDK.getInstance().localDatabase.foldersDao,
+            linksDao = LinkoraSDKProvider.getInstance().localDatabase.linksDao,
+            foldersDao = LinkoraSDKProvider.getInstance().localDatabase.foldersDao,
             preferencesRepository = preferencesRepo,
             remoteMultiActionRepo = remoteMultiActionRepo,
             pendingSyncQueueRepo = pendingSyncQueueRepo,
@@ -168,6 +168,6 @@ object DependencyContainer {
     }
 
     val snapshotRepo by lazy {
-        SnapshotRepoImpl(snapshotDao = SharedSDK.getInstance().localDatabase.snapshotDao)
+        SnapshotRepoImpl(snapshotDao = LinkoraSDKProvider.getInstance().localDatabase.snapshotDao)
     }
 }

@@ -59,7 +59,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.di.SharedSDK
+import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -321,7 +321,7 @@ private fun Slide2() {
                     onLongClick = { -> },
                 ), forTitleOnlyView = false,
                 onShare = {
-                    SharedSDK.getInstance().nativeUtils.onShare(it)
+                    LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
                 }
             )
             LinkListItemComposable(
@@ -347,7 +347,7 @@ private fun Slide2() {
                 ), forTitleOnlyView = false,
                 imageAlignment = Alignment.TopCenter,
                 onShare = {
-                    SharedSDK.getInstance().nativeUtils.onShare(it)
+                    LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
                 }
             )
             Spacer(modifier = Modifier.height(5.dp))
@@ -484,7 +484,7 @@ private fun Slide3() {
                                 onLongClick = { -> },
                             ), forTitleOnlyView = false,
                             onShare = {
-                                SharedSDK.getInstance().nativeUtils.onShare(it)
+                                LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
                             }
                         )
                     }
@@ -539,7 +539,7 @@ private fun Slide3() {
                             forTitleOnlyView = false,
                             imageAlignment = Alignment.TopCenter,
                             onShare = {
-                                SharedSDK.getInstance().nativeUtils.onShare(it)
+                                LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
                             }
                         )
                     }

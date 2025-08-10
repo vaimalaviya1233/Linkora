@@ -26,7 +26,7 @@ import com.sakethh.FileManager
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.di.DependencyContainer
-import com.sakethh.linkora.di.SharedSDK
+import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.Platform
@@ -68,7 +68,7 @@ class IntentActivity : ComponentActivity() {
                         localFoldersRepo = DependencyContainer.localFoldersRepo,
                         localPanelsRepo = DependencyContainer.localPanelsRepo,
                         exportDataRepo = DependencyContainer.exportDataRepo,
-                        fileManager = SharedSDK.getInstance().fileManager
+                        fileManager = LinkoraSDKProvider.getInstance().fileManager
                     )
                 }
             })
