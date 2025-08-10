@@ -1,9 +1,9 @@
 package com.sakethh.linkora.data
 
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.LinkoraExports
-import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
-import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.LinkoraExports
+import com.sakethh.linkora.utils.catchAsExceptionAndEmitFailure
+import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.Result

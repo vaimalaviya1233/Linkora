@@ -24,11 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.ifNot
-import com.sakethh.linkora.common.utils.ifTrue
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.ifNot
+import com.sakethh.linkora.utils.ifTrue
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.App
 import com.sakethh.linkora.ui.LocalNavController

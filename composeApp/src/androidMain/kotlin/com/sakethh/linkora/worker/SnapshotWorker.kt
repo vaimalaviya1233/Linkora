@@ -3,7 +3,7 @@ package com.sakethh.linkora.worker
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.ExportFileType

@@ -2,10 +2,10 @@ package com.sakethh.linkora.domain.model.link
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.baseUrl
-import com.sakethh.linkora.common.utils.isATwitterUrl
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.baseUrl
+import com.sakethh.linkora.utils.isATwitterUrl
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import kotlinx.serialization.Serializable

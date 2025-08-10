@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common.utils
+package com.sakethh.linkora.utils
 
 enum class LinkoraExports {
     SAVED_LINKS__LINKORA_EXPORT,

@@ -14,8 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
 

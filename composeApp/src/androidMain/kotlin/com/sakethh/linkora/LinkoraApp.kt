@@ -7,12 +7,11 @@ import android.os.Build
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
-import com.sakethh.FileManager
-import com.sakethh.NativeUtils
-import com.sakethh.PermissionManager
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.platform.FileManager
+import com.sakethh.linkora.platform.NativeUtils
+import com.sakethh.linkora.platform.PermissionManager
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK

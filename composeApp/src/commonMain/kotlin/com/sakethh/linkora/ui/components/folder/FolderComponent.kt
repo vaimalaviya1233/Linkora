@@ -37,7 +37,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.platform
+import com.sakethh.linkora.platform.platform
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

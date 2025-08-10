@@ -2,8 +2,8 @@ package com.sakethh.linkora.ui.screens.settings.section.about
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
-import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
+import com.sakethh.linkora.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.github.GitHubReleaseDTOItem

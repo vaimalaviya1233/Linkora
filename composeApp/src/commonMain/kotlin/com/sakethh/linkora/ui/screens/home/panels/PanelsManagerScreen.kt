@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
 import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
 import com.sakethh.linkora.domain.Platform
@@ -53,7 +53,7 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
-import com.sakethh.platform
+import com.sakethh.linkora.platform.platform
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

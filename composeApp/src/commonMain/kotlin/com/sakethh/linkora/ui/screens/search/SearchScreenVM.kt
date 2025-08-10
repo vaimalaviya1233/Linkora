@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
-import com.sakethh.linkora.common.utils.ifNot
-import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
+import com.sakethh.linkora.utils.ifNot
+import com.sakethh.linkora.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.FolderType
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType

@@ -1,6 +1,6 @@
-package com.sakethh.linkora.common.network.repository
+package com.sakethh.linkora.network.repository
 
-import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
+import com.sakethh.linkora.utils.catchAsExceptionAndEmitFailure
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.repository.NetworkRepo
 import io.ktor.client.HttpClient

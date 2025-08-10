@@ -2,9 +2,9 @@ package com.sakethh.linkora.di
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.sakethh.FileManager
-import com.sakethh.NativeUtils
-import com.sakethh.PermissionManager
+import com.sakethh.linkora.platform.FileManager
+import com.sakethh.linkora.platform.NativeUtils
+import com.sakethh.linkora.platform.PermissionManager
 import com.sakethh.linkora.data.local.LocalDatabase
 
 object LinkoraSDKProvider {

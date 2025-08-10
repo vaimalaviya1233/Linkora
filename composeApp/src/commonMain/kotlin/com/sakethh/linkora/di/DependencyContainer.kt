@@ -1,8 +1,8 @@
 package com.sakethh.linkora.di
 
-import com.sakethh.linkora.common.network.Network
-import com.sakethh.linkora.common.network.repository.NetworkRepoImpl
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.network.Network
+import com.sakethh.linkora.network.repository.NetworkRepoImpl
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.data.ExportDataRepoImpl
 import com.sakethh.linkora.data.ImportDataRepoImpl
 import com.sakethh.linkora.data.LocalizationRepoImpl

@@ -22,9 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link

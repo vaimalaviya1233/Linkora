@@ -26,7 +26,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.poppinsFontFamily
+import com.sakethh.linkora.platform.poppinsFontFamily
 
 @Composable
 fun TextFieldForPreference(

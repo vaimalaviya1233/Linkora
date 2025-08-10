@@ -1,7 +1,7 @@
-package com.sakethh.linkora.common.utils
+package com.sakethh.linkora.utils
 
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.onFailure

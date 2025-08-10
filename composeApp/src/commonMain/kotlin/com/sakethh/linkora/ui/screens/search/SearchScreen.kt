@@ -34,9 +34,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform

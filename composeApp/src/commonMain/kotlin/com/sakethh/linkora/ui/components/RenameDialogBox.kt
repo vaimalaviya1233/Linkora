@@ -39,15 +39,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.rememberLocalizedString
+import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.platform
+import com.sakethh.linkora.platform.platform
 
 data class RenameDialogBoxParam(
     val shouldDialogBoxAppear: MutableState<Boolean>,

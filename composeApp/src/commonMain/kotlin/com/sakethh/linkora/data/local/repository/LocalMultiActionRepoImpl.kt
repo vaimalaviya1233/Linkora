@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data.local.repository
 
-import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
-import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
+import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO

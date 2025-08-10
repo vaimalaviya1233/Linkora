@@ -23,8 +23,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 

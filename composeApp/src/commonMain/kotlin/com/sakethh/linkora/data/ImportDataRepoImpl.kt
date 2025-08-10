@@ -1,8 +1,8 @@
 package com.sakethh.linkora.data
 
-import com.sakethh.linkora.common.utils.LinkoraExports
-import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.common.utils.isNull
+import com.sakethh.linkora.utils.LinkoraExports
+import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.utils.isNull
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result

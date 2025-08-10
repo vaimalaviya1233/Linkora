@@ -1,10 +1,7 @@
-package com.sakethh
+package com.sakethh.linkora.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.PermissionStatus

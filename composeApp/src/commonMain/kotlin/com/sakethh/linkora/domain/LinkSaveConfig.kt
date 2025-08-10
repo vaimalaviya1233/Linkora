@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain
 
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.preferences.AppPreferences
 
 data class LinkSaveConfig(
     val forceAutoDetectTitle: Boolean,

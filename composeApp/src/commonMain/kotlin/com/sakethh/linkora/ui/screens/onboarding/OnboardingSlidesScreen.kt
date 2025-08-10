@@ -55,10 +55,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder

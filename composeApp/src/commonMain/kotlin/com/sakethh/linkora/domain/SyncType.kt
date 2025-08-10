@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain
 
-import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.Localization
 
 enum class SyncType {
     ClientToServer {

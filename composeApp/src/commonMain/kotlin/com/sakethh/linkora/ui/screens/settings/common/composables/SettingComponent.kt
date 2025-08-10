@@ -29,8 +29,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.utils.pulsateEffect
 

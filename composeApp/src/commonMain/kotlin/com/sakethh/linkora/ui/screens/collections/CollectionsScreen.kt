@@ -51,12 +51,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sakethh.PlatformSpecificBackHandler
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.isNull
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.platform.PlatformSpecificBackHandler
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.isNull
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.ui.LocalNavController
@@ -71,7 +71,7 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.platform
+import com.sakethh.linkora.platform.platform
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

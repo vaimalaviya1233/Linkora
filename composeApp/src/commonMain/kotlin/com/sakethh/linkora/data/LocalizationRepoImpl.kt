@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data
 
-import com.sakethh.linkora.common.utils.catchAsExceptionAndEmitFailure
-import com.sakethh.linkora.common.utils.wrappedResultFlow
+import com.sakethh.linkora.utils.catchAsExceptionAndEmitFailure
+import com.sakethh.linkora.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.LocalizationDao
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.localization.LocalizationInfoDTO

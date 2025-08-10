@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.dto.server.link
 
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.dto.server.Correlation

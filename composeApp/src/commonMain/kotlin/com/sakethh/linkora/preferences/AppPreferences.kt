@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common.preferences
+package com.sakethh.linkora.preferences
 
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -7,9 +7,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sakethh.BUILD_FLAVOUR
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.platform.BUILD_FLAVOUR
+import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.dto.server.Correlation
@@ -17,7 +17,7 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.showFollowSystemThemeOption
+import com.sakethh.linkora.platform.showFollowSystemThemeOption
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

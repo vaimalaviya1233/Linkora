@@ -45,16 +45,16 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.platform
+import com.sakethh.linkora.platform.platform
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable

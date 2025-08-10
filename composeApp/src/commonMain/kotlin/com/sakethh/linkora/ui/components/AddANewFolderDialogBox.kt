@@ -20,9 +20,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.inDoubleQuotes
-import com.sakethh.linkora.common.utils.isNotNull
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.inDoubleQuotes
+import com.sakethh.linkora.utils.isNotNull
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.utils.pulsateEffect

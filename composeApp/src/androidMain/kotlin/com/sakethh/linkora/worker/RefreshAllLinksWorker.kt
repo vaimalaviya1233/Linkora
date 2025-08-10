@@ -7,12 +7,11 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.sakethh.linkora.LinkoraApp
 import com.sakethh.linkora.R
 import com.sakethh.linkora.RefreshAllLinksNotificationService
 import com.sakethh.linkora.di.DependencyContainer
-import com.sakethh.linkora.common.preferences.AppPreferenceType
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreenVM

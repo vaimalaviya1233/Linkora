@@ -49,17 +49,18 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.isNotNull
-import com.sakethh.linkora.common.utils.isNull
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.isNotNull
+import com.sakethh.linkora.utils.isNull
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asMenuBtmSheetType
+import com.sakethh.linkora.platform.PlatformSpecificBackHandler
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
@@ -323,7 +324,7 @@ fun HomeScreen() {
             }
         }
     }
-    com.sakethh.PlatformSpecificBackHandler {
+    PlatformSpecificBackHandler {
         navController.navigateUp()
     }
 }

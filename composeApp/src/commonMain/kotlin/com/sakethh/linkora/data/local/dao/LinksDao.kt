@@ -4,9 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.LinkType
-import com.sakethh.linkora.common.utils.Sorting
+import com.sakethh.linkora.utils.LinkType
+import com.sakethh.linkora.utils.Sorting
 import com.sakethh.linkora.domain.model.link.Link
 import kotlinx.coroutines.flow.Flow
 

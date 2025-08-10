@@ -1,38 +1,21 @@
-package com.sakethh
+package com.sakethh.linkora.platform
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.font.FontFamily
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.room.Room
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.sakethh.linkora.RefreshAllLinksService
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.duplicate
-import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.ifNot
-import com.sakethh.linkora.common.utils.isNotNull
-import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
-import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.duplicate
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.ifNot
+import com.sakethh.linkora.utils.isNotNull
+import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
-import com.sakethh.linkora.domain.PermissionStatus
-import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
-import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.linkoraSpecificFolder
 import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
-import okio.Path.Companion.toPath
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
@@ -41,31 +24,6 @@ import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-
-actual val showFollowSystemThemeOption: Boolean = true
-actual val BUILD_FLAVOUR: String = "desktop"
-actual val platform: @Composable () -> Platform = {
-    Platform.Desktop
-}
-
-actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsFontFamily
-actual val showDynamicThemingOption: Boolean = false
-
-
-@Composable
-actual fun PlatformSpecificBackHandler(init: () -> Unit) = Unit
-
-
-
-actual fun platformSpecificLogging(string: String) {
-    println("Linkora Log : $string")
-}
-
-actual class PermissionManager {
-    actual suspend fun permittedToShowNotification(): PermissionStatus = PermissionStatus.Granted
-    actual suspend fun isStorageAccessPermitted(): PermissionStatus = PermissionStatus.Granted
-}
 
 actual class FileManager {
 
@@ -196,30 +154,5 @@ actual class FileManager {
             e.printStackTrace()
             UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
         }
-    }
-}
-
-actual class NativeUtils {
-
-    actual fun onShare(url: String) = Unit
-
-    actual suspend fun onRefreshAllLinks(
-        localLinksRepo: LocalLinksRepo,
-        preferencesRepository: PreferencesRepository
-    ) {
-        RefreshAllLinksService.invoke(localLinksRepo)
-    }
-
-    actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
-        return emptyFlow()
-    }
-
-    actual fun cancelRefreshingLinks() {
-        RefreshAllLinksService.cancel()
-    }
-
-    actual class DataSyncingNotificationService {
-        actual fun showNotification() = Unit
-        actual fun clearNotification() = Unit
     }
 }

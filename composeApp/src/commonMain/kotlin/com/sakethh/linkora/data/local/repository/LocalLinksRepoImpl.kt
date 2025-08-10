@@ -1,14 +1,14 @@
 package com.sakethh.linkora.data.local.repository
 
-import com.sakethh.linkora.common.utils.baseUrl
-import com.sakethh.linkora.common.utils.defaultFolderIds
-import com.sakethh.linkora.common.utils.ifNot
-import com.sakethh.linkora.common.utils.isATwitterUrl
-import com.sakethh.linkora.common.utils.isAValidLink
-import com.sakethh.linkora.common.utils.isNotNullOrNotBlank
-import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
-import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
-import com.sakethh.linkora.common.utils.wrappedResultFlow
+import com.sakethh.linkora.utils.baseUrl
+import com.sakethh.linkora.utils.defaultFolderIds
+import com.sakethh.linkora.utils.ifNot
+import com.sakethh.linkora.utils.isATwitterUrl
+import com.sakethh.linkora.utils.isAValidLink
+import com.sakethh.linkora.utils.isNotNullOrNotBlank
+import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
+import com.sakethh.linkora.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.LinkSaveConfig

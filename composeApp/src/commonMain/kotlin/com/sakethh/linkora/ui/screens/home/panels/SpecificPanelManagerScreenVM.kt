@@ -5,13 +5,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferenceType
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
-import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
-import com.sakethh.linkora.common.utils.replaceFirstPlaceHolderWith
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
+import com.sakethh.linkora.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 class SpecificPanelManagerScreenVM(

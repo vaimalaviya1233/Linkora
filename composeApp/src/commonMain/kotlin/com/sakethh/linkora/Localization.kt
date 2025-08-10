@@ -1,16 +1,15 @@
-package com.sakethh.linkora.common
+package com.sakethh.linkora
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sakethh.linkora.common.preferences.AppPreferenceType
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.Constants.DEFAULT_APP_LANGUAGE_CODE
-import com.sakethh.linkora.common.utils.Constants.DEFAULT_APP_LANGUAGE_NAME
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
+import com.sakethh.linkora.utils.Constants
 import kotlinx.coroutines.runBlocking
 
 typealias LocalizedStringKey = String
@@ -21,11 +20,11 @@ object Localization {
     fun loadLocalizedStrings(
         languageCode: String, forceLoadDefaultValues: Boolean = false
     ) = runBlocking {
-        if (languageCode == DEFAULT_APP_LANGUAGE_CODE && forceLoadDefaultValues.not()) return@runBlocking
+        if (languageCode == Constants.DEFAULT_APP_LANGUAGE_CODE && forceLoadDefaultValues.not()) return@runBlocking
         if (AppPreferences.preferredAppLanguageCode.value != languageCode) {
             AppPreferences.preferredAppLanguageName.value =
-                if (languageCode == DEFAULT_APP_LANGUAGE_CODE) {
-                    DEFAULT_APP_LANGUAGE_NAME
+                if (languageCode == Constants.DEFAULT_APP_LANGUAGE_CODE) {
+                    Constants.DEFAULT_APP_LANGUAGE_NAME
                 } else {
                     DependencyContainer.localizationRepo.getLanguageNameForTheCode(
                         languageCode
@@ -43,7 +42,7 @@ object Localization {
         }
         Key.entries.forEach { key ->
             localizedStrings[key.name] =
-                if (languageCode == DEFAULT_APP_LANGUAGE_CODE || forceLoadDefaultValues) {
+                if (languageCode == Constants.DEFAULT_APP_LANGUAGE_CODE || forceLoadDefaultValues) {
                     key.defaultValue
                 } else {
                     DependencyContainer.localizationRepo.getLocalizedStringValueFor(

@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common.network
+package com.sakethh.linkora.network
 
 import com.sakethh.linkora.ui.utils.linkoraLog
 import io.ktor.client.HttpClient

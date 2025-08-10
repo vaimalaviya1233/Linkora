@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common.utils
+package com.sakethh.linkora.utils
 
 object Constants {
     const val APP_VERSION_NAME = "v0.13.7"

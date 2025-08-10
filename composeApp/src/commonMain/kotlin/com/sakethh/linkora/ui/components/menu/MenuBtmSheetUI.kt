@@ -44,17 +44,17 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
-import com.sakethh.linkora.common.utils.fillMaxWidthWithPadding
-import com.sakethh.linkora.common.utils.getLocalizedString
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
+import com.sakethh.linkora.utils.fillMaxWidthWithPadding
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.domain.Layout
-import com.sakethh.platform
+import com.sakethh.linkora.platform.platform
 import kotlinx.coroutines.launch
 
 

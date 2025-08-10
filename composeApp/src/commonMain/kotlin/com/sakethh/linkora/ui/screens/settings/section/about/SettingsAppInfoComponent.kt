@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.common.utils.isNotNull
+import com.sakethh.linkora.utils.isNotNull
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
 

@@ -1,7 +1,7 @@
 package com.sakethh.linkora.domain
 
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.getLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.getLocalizedString
 import kotlinx.serialization.Serializable
 
 @Serializable

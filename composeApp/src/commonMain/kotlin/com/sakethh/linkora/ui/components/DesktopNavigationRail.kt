@@ -32,15 +32,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.preferences.AppPreferences.serverBaseUrl
-import com.sakethh.linkora.common.utils.currentSavedServerConfig
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.preferences.AppPreferences.serverBaseUrl
+import com.sakethh.linkora.utils.currentSavedServerConfig
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
-import com.sakethh.platform
+import com.sakethh.linkora.platform.platform
 
 @Composable
 fun DesktopNavigationRail(

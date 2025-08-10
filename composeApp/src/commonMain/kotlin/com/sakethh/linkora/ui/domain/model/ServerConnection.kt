@@ -1,6 +1,6 @@
 package com.sakethh.linkora.ui.domain.model
 
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.SyncType
 
 data class ServerConnection(

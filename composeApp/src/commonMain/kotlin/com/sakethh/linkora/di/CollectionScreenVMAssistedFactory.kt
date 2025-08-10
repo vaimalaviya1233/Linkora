@@ -3,7 +3,7 @@ package com.sakethh.linkora.di
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
-import com.sakethh.linkora.common.utils.Constants
+import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM

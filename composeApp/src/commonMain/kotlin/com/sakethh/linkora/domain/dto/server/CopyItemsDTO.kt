@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.dto.server
 
-import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkType
 import kotlinx.serialization.Serializable
 

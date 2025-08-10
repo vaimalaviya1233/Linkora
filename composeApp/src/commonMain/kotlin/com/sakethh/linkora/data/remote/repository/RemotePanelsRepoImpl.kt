@@ -1,6 +1,6 @@
 package com.sakethh.linkora.data.remote.repository
 
-import com.sakethh.linkora.common.utils.postFlow
+import com.sakethh.linkora.utils.postFlow
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO

@@ -1,15 +1,15 @@
 package com.sakethh.linkora.data.remote.repository
 
 import androidx.datastore.preferences.core.longPreferencesKey
-import com.sakethh.linkora.common.network.Network
-import com.sakethh.linkora.common.preferences.AppPreferenceType
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.common.utils.isSameAsCurrentClient
-import com.sakethh.linkora.common.utils.performLocalOperationWithRemoteSyncFlow
-import com.sakethh.linkora.common.utils.postFlow
-import com.sakethh.linkora.common.utils.updateLastSyncedWithServerTimeStamp
-import com.sakethh.linkora.common.utils.wrappedResultFlow
+import com.sakethh.linkora.network.Network
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.utils.isSameAsCurrentClient
+import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.utils.postFlow
+import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
+import com.sakethh.linkora.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO

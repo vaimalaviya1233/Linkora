@@ -27,8 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.ifNot
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController

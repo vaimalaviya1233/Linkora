@@ -22,9 +22,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
-import com.sakethh.FileManager
-import com.sakethh.linkora.common.preferences.AppPreferences
-import com.sakethh.linkora.common.utils.ifNot
+import com.sakethh.linkora.platform.FileManager
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.ExportFileType

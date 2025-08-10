@@ -21,10 +21,10 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.common.Localization
-import com.sakethh.linkora.common.utils.Constants
-import com.sakethh.linkora.common.utils.bottomNavPaddingAcrossPlatforms
-import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
+import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import kotlinx.coroutines.launch

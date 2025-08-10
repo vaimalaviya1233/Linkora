@@ -1,6 +1,6 @@
 package com.sakethh.linkora.ui.navigation
 
-import com.sakethh.linkora.common.Localization
+import com.sakethh.linkora.Localization
 import kotlinx.serialization.Serializable
 
 @Serializable

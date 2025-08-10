@@ -1,4 +1,4 @@
-package com.sakethh.linkora.common.preferences
+package com.sakethh.linkora.preferences
 
 enum class AppPreferenceType {
     DARK_THEME, AMOLED_THEME_STATE, DYNAMIC_THEMING, JSOUP_USER_AGENT, SECONDARY_JSOUP_USER_AGENT, FOLLOW_SYSTEM_THEME, SETTING_COMPONENT_DESCRIPTION_STATE,
