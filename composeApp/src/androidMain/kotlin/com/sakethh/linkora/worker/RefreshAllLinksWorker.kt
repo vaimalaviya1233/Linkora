@@ -25,8 +25,8 @@ class RefreshAllLinksWorker(appContext: Context, workerParameters: WorkerParamet
     CoroutineWorker(appContext, workerParameters) {
 
     companion object {
-        fun cancelLinksRefreshing() {
-            WorkManager.Companion.getInstance(LinkoraApp.Companion.getContext())
+        fun cancelLinksRefreshing(appContext: Context) {
+            WorkManager.Companion.getInstance(appContext)
                 .cancelWorkById(UUID.fromString(AppPreferences.refreshLinksWorkerTag.value))
             DataSettingsScreenVM.Companion.refreshLinksState.value = RefreshLinksState(
                 isInRefreshingState = false, currentIteration = 0

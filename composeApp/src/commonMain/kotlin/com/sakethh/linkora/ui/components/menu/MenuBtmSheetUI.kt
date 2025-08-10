@@ -54,7 +54,6 @@ import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.domain.Layout
-import com.sakethh.onShare
 import com.sakethh.platform
 import kotlinx.coroutines.launch
 
@@ -291,7 +290,7 @@ fun MenuBtmSheetUI(
                     ) {
                         FilledTonalButton(
                             onClick = {
-                                onShare(url = menuBtmSheetParam.link!!.value.url)
+                                menuBtmSheetParam.onShare(menuBtmSheetParam.link!!.value.url)
                             },
                             modifier = Modifier.fillMaxWidthWithPadding()
                                 .bottomNavPaddingAcrossPlatforms()
@@ -342,7 +341,7 @@ fun MenuBtmSheetUI(
                             )
                         })*/
                         NavigationBarItem(selected = true, onClick = {
-                            onShare(url = menuBtmSheetParam.link!!.value.url)
+                            menuBtmSheetParam.onShare(menuBtmSheetParam.link!!.value.url)
                         }, icon = {
                             Icon(
                                 imageVector = Icons.Default.Share, contentDescription = null

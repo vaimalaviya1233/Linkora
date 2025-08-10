@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sakethh.FileManager
+import com.sakethh.PermissionManager
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferenceType
@@ -24,11 +26,6 @@ import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
-import com.sakethh.loadSyncServerCertificate
-import com.sakethh.permittedToShowNotification
-import com.sakethh.pickAValidFileForImporting
-import com.sakethh.saveSyncServerCertificateInternally
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -44,6 +41,8 @@ open class ServerManagementViewModel(
     private val networkRepo: NetworkRepo,
     val preferencesRepository: PreferencesRepository,
     private val remoteSyncRepo: RemoteSyncRepo,
+    private val fileManager: FileManager,
+    private val permissionManager: PermissionManager,
     loadExistingCertificateInfo: Boolean = true
 ) : ViewModel() {
     val serverSetupState = mutableStateOf(
@@ -84,7 +83,7 @@ open class ServerManagementViewModel(
                         serverSetupState.value = ServerSetupState(
                             isConnecting = false, isConnectedSuccessfully = true, isError = false
                         )
-                        permittedToShowNotification()
+                        permissionManager.permittedToShowNotification()
                     }.onFailure { failureMessage ->
                         serverSetupState.value = ServerSetupState(
                             isConnecting = false, isConnectedSuccessfully = false, isError = true
@@ -139,8 +138,14 @@ open class ServerManagementViewModel(
         saveServerConnectionAndSyncJob = viewModelScope.launch {
             _generatedServerCertificate?.let {
                 withContext(Dispatchers.IO) {
-                    saveSyncServerCertificateInternally(file = it, onCompletion = {
-                        pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.getLocalizedString(Localization.Key.ServerCertificateSavedSuccessfully)))
+                    fileManager.saveSyncServerCertificateInternally(file = it, onCompletion = {
+                        pushUIEvent(
+                            UIEvent.Type.ShowSnackbar(
+                                Localization.getLocalizedString(
+                                    Localization.Key.ServerCertificateSavedSuccessfully
+                                )
+                            )
+                        )
                     })
                 }
             }
@@ -213,7 +218,7 @@ open class ServerManagementViewModel(
     init {
         if (loadExistingCertificateInfo && !AppPreferences.skipCertCheckForSync.value) {
             viewModelScope.launch {
-                existingCertificateInfo.value = getExistingSyncServerCertificate().run {
+                existingCertificateInfo.value = getExistingSyncServerCertificate(fileManager).run {
                     if (this == null) {
                         ""
                     } else {
@@ -233,12 +238,12 @@ open class ServerManagementViewModel(
     }
 
     companion object {
-        suspend fun getExistingSyncServerCertificate(): X509Certificate? {
+        suspend fun getExistingSyncServerCertificate(fileManager: FileManager): X509Certificate? {
             return if (AppPreferences.isServerConfigured()) {
                 withContext(Dispatchers.IO) {
                     val certificateFactory = CertificateFactory.getInstance("X.509")
                     try {
-                        loadSyncServerCertificate().inputStream().use {
+                        fileManager.loadSyncServerCertificate().inputStream().use {
                             certificateFactory.generateCertificate(it) as X509Certificate
                         }
                     } catch (e: Exception) {
@@ -290,10 +295,11 @@ open class ServerManagementViewModel(
         certImportJob?.cancel()
         onStart()
         certImportJob = viewModelScope.launch {
-            val generatedServerCertificate = pickAValidFileForImporting(FileType.CER, onStart = {
-                onStart()
-                dataSyncLogs.add(Localization.Key.ReadingFile.getLocalizedString())
-            })
+            val generatedServerCertificate =
+                fileManager.pickAValidFileForImporting(FileType.CER, onStart = {
+                    onStart()
+                    dataSyncLogs.add(Localization.Key.ReadingFile.getLocalizedString())
+                })
             if (generatedServerCertificate == null) {
                 pushUIEvent(UIEvent.Type.ShowSnackbar("Could not import the certificate file."))
                 return@launch

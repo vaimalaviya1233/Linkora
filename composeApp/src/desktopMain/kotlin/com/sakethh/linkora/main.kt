@@ -35,13 +35,23 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.navigation.compose.rememberNavController
-import com.sakethh.linkora.di.DependencyContainer
+import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.sakethh.FileManager
+import com.sakethh.NativeUtils
+import com.sakethh.PermissionManager
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
+import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.inDoubleQuotes
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.di.DependencyContainer
+import com.sakethh.linkora.di.SDK
+import com.sakethh.linkora.di.SharedSDK
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.App
@@ -58,11 +68,37 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import okio.Path.Companion.toPath
+import java.io.File
+
+val linkoraSpecificFolder = System.getProperty("user.home").run {
+    val appDataDir = File(this, ".linkora")
+    if (appDataDir.exists().not()) {
+        appDataDir.mkdirs()
+    }
+    appDataDir
+}
 
 suspend fun main() {
+
+    SharedSDK.create(
+        sdk = SDK(
+            nativeUtils = NativeUtils(),
+            fileManager = FileManager(),
+            permissionManager = PermissionManager(),
+            localDatabase = File(linkoraSpecificFolder, "${LocalDatabase.NAME}.db").run {
+                Room.databaseBuilder<LocalDatabase>(name = this.absolutePath)
+                    .setDriver(BundledSQLiteDriver()).addMigrations(
+                        LocalDatabase.MIGRATION_9_10, LocalDatabase.MIGRATION_10_11
+                    ).build()
+            },
+            dataStore = PreferenceDataStoreFactory.createWithPath {
+                linkoraSpecificFolder.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
+            }, dataSyncingNotificationService = NativeUtils.DataSyncingNotificationService()))
+
     withContext(Dispatchers.IO) {
         awaitAll(async {
-            AppPreferences.readAll(DependencyContainer.preferencesRepo)
+            AppPreferences.readAll(defaultExportLocation = SharedSDK.getInstance().fileManager.getDefaultExportLocation(), preferencesRepository = DependencyContainer.preferencesRepo)
         }, async {
             Localization.loadLocalizedStrings(
                 AppPreferences.preferredAppLanguageCode.value

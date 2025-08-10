@@ -19,10 +19,12 @@ import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
+import com.sakethh.linkora.domain.PermissionStatus
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.linkoraSpecificFolder
 import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
@@ -46,180 +48,178 @@ actual val BUILD_FLAVOUR: String = "desktop"
 actual val platform: @Composable () -> Platform = {
     Platform.Desktop
 }
-private val linkoraSpecificFolder = System.getProperty("user.home").run {
-    val appDataDir = File(this, ".linkora")
-    if (appDataDir.exists().not()) {
-        appDataDir.mkdirs()
-    }
-    appDataDir
-}
 
-actual val localDatabase: LocalDatabase =
-    File(linkoraSpecificFolder, "${LocalDatabase.NAME}.db").run {
-        Room.databaseBuilder<LocalDatabase>(name = this.absolutePath)
-            .setDriver(BundledSQLiteDriver()).addMigrations(
-                LocalDatabase.MIGRATION_9_10, LocalDatabase.MIGRATION_10_11
-            ).build()
-    }
-actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath {
-    linkoraSpecificFolder.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
-}
 actual val poppinsFontFamily: FontFamily = com.sakethh.linkora.ui.theme.poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = false
 
-actual suspend fun writeRawExportStringToFile(
-    exportLocation: String,
-    exportFileType: ExportFileType,
-    exportLocationType: ExportLocationType,
-    rawExportString: RawExportString,
-    onCompletion: suspend (String) -> Unit
-) {
-    val exportsFolder = File(exportLocation)
-
-    exportsFolder.exists().ifNot {
-        exportsFolder.mkdirs()
-    }
-
-    // kinda repeated in Expected.android, but alright
-    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
-    val timestamp = simpleDateFormat.format(Date())
-    val exportFileName =
-        "${if (exportLocationType == ExportLocationType.EXPORT) "LinkoraExport" else "LinkoraSnapshot"}-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
-
-    val exportFilePath = Paths.get(exportsFolder.absolutePath, exportFileName)
-
-    withContext(Dispatchers.IO) {
-        Files.write(exportFilePath, rawExportString.toByteArray())
-    }
-    onCompletion(exportFileName)
-    linkoraLog(exportFileName)
-}
-
-actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean = false
-
-actual suspend fun pickAValidFileForImporting(
-    importFileType: ImportFileType, onStart: () -> Unit
-): File? {
-    val fileDialog = FileDialog(
-        Frame(),
-        Localization.Key.SelectAValidFile.getLocalizedString()
-            .replaceFirstPlaceHolderWith(importFileType.name),
-        FileDialog.LOAD
-    )
-    fileDialog.isVisible = true
-    val sourceFile = File(fileDialog.directory, fileDialog.file).duplicate()
-    return if (sourceFile.isNotNull() && sourceFile!!.extension == importFileType.name.lowercase()) {
-        onStart()
-        sourceFile
-    } else if (sourceFile.isNotNull() && sourceFile!!.extension != importFileType.name.lowercase()) {
-        UIEvent.pushUIEvent(
-            UIEvent.Type.ShowSnackbar(
-                Localization.Key.FileTypeNotSupportedOnDesktopImport.getLocalizedString()
-                    .replace(LinkoraPlaceHolder.First.value, sourceFile.extension)
-                    .replace(LinkoraPlaceHolder.Second.value, importFileType.name)
-            )
-        )
-        null
-    } else null
-}
-
-actual fun onShare(url: String) = Unit
-
-actual suspend fun onRefreshAllLinks(
-    localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
-) {
-    RefreshAllLinksService.invoke(localLinksRepo)
-}
-
-actual fun cancelRefreshingLinks() {
-    RefreshAllLinksService.cancel()
-}
-
-actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
-    return emptyFlow()
-}
 
 @Composable
 actual fun PlatformSpecificBackHandler(init: () -> Unit) = Unit
 
 
-actual suspend fun permittedToShowNotification(): Boolean = false
 
 actual fun platformSpecificLogging(string: String) {
     println("Linkora Log : $string")
 }
 
-
-actual class DataSyncingNotificationService actual constructor() {
-    actual fun showNotification() = Unit
-    actual fun clearNotification() = Unit
+actual class PermissionManager {
+    actual suspend fun permittedToShowNotification(): PermissionStatus = PermissionStatus.Granted
+    actual suspend fun isStorageAccessPermitted(): PermissionStatus = PermissionStatus.Granted
 }
 
-actual suspend fun exportSnapshotData(
-    exportLocation: String,
-    rawExportString: String,
-    fileType: ExportFileType,
-    onCompletion: suspend (String) -> Unit
-) {
-    writeRawExportStringToFile(
-        exportLocation = exportLocation,
-        exportFileType = fileType,
-        rawExportString = rawExportString,
-        onCompletion = onCompletion,
-        exportLocationType = ExportLocationType.SNAPSHOT
-    )
-}
+actual class FileManager {
 
-actual suspend fun saveSyncServerCertificateInternally(
-    file: File, onCompletion: () -> Unit
-) {
-    file.inputStream().use { inputStream ->
-        linkoraSpecificFolder.resolve("sync-server-cert.cer").outputStream().use {
-            inputStream.copyTo(it)
+    actual suspend fun writeRawExportStringToFile(
+        exportLocation: String,
+        exportFileType: ExportFileType,
+        exportLocationType: ExportLocationType,
+        rawExportString: RawExportString,
+        onCompletion: suspend (String) -> Unit
+    ) {
+
+        val exportsFolder = File(exportLocation)
+
+        exportsFolder.exists().ifNot {
+            exportsFolder.mkdirs()
         }
-    }
-    onCompletion()
-}
 
-actual suspend fun loadSyncServerCertificate(): File {
-    return linkoraSpecificFolder.resolve("sync-server-cert.cer")
-}
+        // kinda repeated in Expected.android, but alright
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
+        val timestamp = simpleDateFormat.format(Date())
+        val exportFileName =
+            "${if (exportLocationType == ExportLocationType.EXPORT) "LinkoraExport" else "LinkoraSnapshot"}-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
-actual suspend fun pickADirectory(): String? {
-    return "https://music.youtube.com/watch?v=LWUgT34GYhU"
-}
+        val exportFilePath = Paths.get(exportsFolder.absolutePath, exportFileName)
 
-actual fun getDefaultExportLocation(): String? {
-    val userHomeDir = System.getProperty("user.home")
-    return File(userHomeDir, "/Documents/Linkora/Exports").absolutePath
-}
-
-actual suspend fun deleteAutoBackups(
-    backupLocation: String, threshold: Int, onCompletion: (deletionCount: Int) -> Unit
-) {
-    try {
         withContext(Dispatchers.IO) {
-            File(backupLocation).listFiles {
-                it.nameWithoutExtension.startsWith("LinkoraSnapshot-")
-            }?.let { snapshots ->
-                val snapshotsCount = snapshots.count()
-                if (snapshotsCount > threshold) {
-                    snapshots.sortBy {
-                        it.lastModified()
-                    }
-                    snapshots.take(snapshotsCount - threshold).apply {
-                        forEach {
-                            it.delete()
-                        }
-                        onCompletion(this.count())
-                    }
-                } else {
-                    onCompletion(0)
-                }
+            Files.write(exportFilePath, rawExportString.toByteArray())
+        }
+        onCompletion(exportFileName)
+        linkoraLog(exportFileName)
+    }
+
+    actual suspend fun pickAValidFileForImporting(
+        importFileType: ImportFileType,
+        onStart: () -> Unit
+    ): File? {
+
+        val fileDialog = FileDialog(
+            Frame(),
+            Localization.Key.SelectAValidFile.getLocalizedString()
+                .replaceFirstPlaceHolderWith(importFileType.name),
+            FileDialog.LOAD
+        )
+        fileDialog.isVisible = true
+        val sourceFile = File(fileDialog.directory, fileDialog.file).duplicate()
+        return if (sourceFile.isNotNull() && sourceFile!!.extension == importFileType.name.lowercase()) {
+            onStart()
+            sourceFile
+        } else if (sourceFile.isNotNull() && sourceFile!!.extension != importFileType.name.lowercase()) {
+            UIEvent.pushUIEvent(
+                UIEvent.Type.ShowSnackbar(
+                    Localization.Key.FileTypeNotSupportedOnDesktopImport.getLocalizedString()
+                        .replace(LinkoraPlaceHolder.First.value, sourceFile.extension)
+                        .replace(LinkoraPlaceHolder.Second.value, importFileType.name)
+                )
+            )
+            null
+        } else null
+    }
+
+    actual suspend fun saveSyncServerCertificateInternally(
+        file: File,
+        onCompletion: () -> Unit
+    ) {
+        file.inputStream().use { inputStream ->
+            linkoraSpecificFolder.resolve("sync-server-cert.cer").outputStream().use {
+                inputStream.copyTo(it)
             }
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+        onCompletion()
+    }
+
+    actual suspend fun loadSyncServerCertificate(): File {
+        return linkoraSpecificFolder.resolve("sync-server-cert.cer")
+    }
+
+    actual suspend fun exportSnapshotData(
+        exportLocation: String,
+        rawExportString: String,
+        fileType: ExportFileType,
+        onCompletion: suspend (String) -> Unit
+    ) {
+        writeRawExportStringToFile(
+            exportLocation = exportLocation,
+            exportFileType = fileType,
+            rawExportString = rawExportString,
+            onCompletion = onCompletion,
+            exportLocationType = ExportLocationType.SNAPSHOT
+        )
+    }
+
+    actual suspend fun pickADirectory(): String? {
+        return "https://music.youtube.com/watch?v=LWUgT34GYhU"
+    }
+
+    actual fun getDefaultExportLocation(): String? {
+        val userHomeDir = System.getProperty("user.home")
+        return File(userHomeDir, "/Documents/Linkora/Exports").absolutePath
+    }
+
+    actual suspend fun deleteAutoBackups(
+        backupLocation: String,
+        threshold: Int,
+        onCompletion: (Int) -> Unit
+    ) {
+        try {
+            withContext(Dispatchers.IO) {
+                File(backupLocation).listFiles {
+                    it.nameWithoutExtension.startsWith("LinkoraSnapshot-")
+                }?.let { snapshots ->
+                    val snapshotsCount = snapshots.count()
+                    if (snapshotsCount > threshold) {
+                        snapshots.sortBy {
+                            it.lastModified()
+                        }
+                        snapshots.take(snapshotsCount - threshold).apply {
+                            forEach {
+                                it.delete()
+                            }
+                            onCompletion(this.count())
+                        }
+                    } else {
+                        onCompletion(0)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+        }
+    }
+}
+
+actual class NativeUtils {
+
+    actual fun onShare(url: String) = Unit
+
+    actual suspend fun onRefreshAllLinks(
+        localLinksRepo: LocalLinksRepo,
+        preferencesRepository: PreferencesRepository
+    ) {
+        RefreshAllLinksService.invoke(localLinksRepo)
+    }
+
+    actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
+        return emptyFlow()
+    }
+
+    actual fun cancelRefreshingLinks() {
+        RefreshAllLinksService.cancel()
+    }
+
+    actual class DataSyncingNotificationService {
+        actual fun showNotification() = Unit
+        actual fun clearNotification() = Unit
     }
 }

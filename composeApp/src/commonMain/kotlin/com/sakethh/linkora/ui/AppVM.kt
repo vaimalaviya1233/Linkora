@@ -6,8 +6,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
-import com.sakethh.DataSyncingNotificationService
-import com.sakethh.deleteAutoBackups
+import com.sakethh.FileManager
+import com.sakethh.NativeUtils
+import com.sakethh.PermissionManager
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.network.Network
 import com.sakethh.linkora.common.preferences.AppPreferenceType
@@ -17,11 +18,11 @@ import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.common.utils.pushSnackbar
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
-import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.asLinkType
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.model.JSONExportSchema
@@ -75,15 +76,19 @@ class AppVM(
     private val foldersRepo: LocalFoldersRepo,
     private val localMultiActionRepo: LocalMultiActionRepo,
     private val localPanelsRepo: LocalPanelsRepo,
-    private val exportDataRepo: ExportDataRepo
+    private val exportDataRepo: ExportDataRepo,
+    permissionManager: PermissionManager,
+    private val fileManager: FileManager,
+    private val dataSyncingNotificationService: NativeUtils.DataSyncingNotificationService
 ) : ServerManagementViewModel(
     networkRepo = networkRepo,
     preferencesRepository = preferencesRepository,
     remoteSyncRepo = remoteSyncRepo,
-    loadExistingCertificateInfo = false
+    loadExistingCertificateInfo = false,
+    permissionManager = permissionManager,
+    fileManager = fileManager,
 ) {
 
-    private val dataSyncingNotificationService = DataSyncingNotificationService()
     val isPerformingStartupSync = mutableStateOf(false)
 
     val transferActionType = mutableStateOf(TransferActionType.NONE)
@@ -157,7 +162,7 @@ class AppVM(
                                 try {
                                     isAnySnapshotOngoing.value = true
                                     if (AppPreferences.isBackupAutoDeletionEnabled.value) {
-                                        deleteAutoBackups(
+                                        fileManager.deleteAutoBackups(
                                             backupLocation = AppPreferences.currentBackupLocation.value,
                                             threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
                                             onCompletion = {
@@ -194,7 +199,7 @@ class AppVM(
                                             Json.encodeToString(this)
                                         }
 
-                                        com.sakethh.exportSnapshotData(
+                                        fileManager.exportSnapshotData(
                                             rawExportString = serializedJsonExportString,
                                             fileType = FileType.JSON,
                                             exportLocation = AppPreferences.currentBackupLocation.value
@@ -202,7 +207,7 @@ class AppVM(
                                     }
 
                                     if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.HTML.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
-                                        com.sakethh.exportSnapshotData(
+                                        fileManager.exportSnapshotData(
                                             rawExportString = exportDataRepo.rawExportDataAsHTML(
                                                 links = it.links, folders = it.folders
                                             ),
@@ -240,7 +245,7 @@ class AppVM(
             if (AppPreferences.isServerConfigured()) {
                 try {
                     Network.configureSyncServerClient(
-                        signedCertificate = getExistingSyncServerCertificate(),
+                        signedCertificate = getExistingSyncServerCertificate(fileManager),
                         bypassCertCheck = AppPreferences.skipCertCheckForSync.value
                     )
                 } catch (e: Exception) {

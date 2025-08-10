@@ -22,16 +22,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
-import com.sakethh.deleteAutoBackups
-import com.sakethh.exportSnapshotData
+import com.sakethh.FileManager
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.common.utils.ifNot
 import com.sakethh.linkora.di.DependencyContainer
-import com.sakethh.linkora.domain.SnapshotFormat
+import com.sakethh.linkora.di.SharedSDK
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.model.JSONExportSchema
 import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.repository.ExportDataRepo
@@ -68,7 +68,8 @@ class IntentActivity : ComponentActivity() {
                         localLinksRepo = DependencyContainer.localLinksRepo,
                         localFoldersRepo = DependencyContainer.localFoldersRepo,
                         localPanelsRepo = DependencyContainer.localPanelsRepo,
-                        exportDataRepo = DependencyContainer.exportDataRepo
+                        exportDataRepo = DependencyContainer.exportDataRepo,
+                        fileManager = SharedSDK.getInstance().fileManager
                     )
                 }
             })
@@ -169,7 +170,8 @@ class IntentActivityVM(
     private val localLinksRepo: LocalLinksRepo,
     private val localFoldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
-    private val exportDataRepo: ExportDataRepo
+    private val exportDataRepo: ExportDataRepo,
+    private val fileManager: FileManager
 ) : ViewModel() {
     fun createADataSnapshot(onCompletion: () -> Unit) {
         viewModelScope.launch {
@@ -179,7 +181,7 @@ class IntentActivityVM(
             val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
 
             if (AppPreferences.isBackupAutoDeletionEnabled.value) {
-                deleteAutoBackups(
+                fileManager.deleteAutoBackups(
                     backupLocation = AppPreferences.currentBackupLocation.value,
                     threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
                     onCompletion = {
@@ -216,7 +218,7 @@ class IntentActivityVM(
                     Json.encodeToString(this)
                 }
 
-                exportSnapshotData(
+                fileManager.exportSnapshotData(
                     exportLocation = AppPreferences.currentBackupLocation.value,
                     rawExportString = serializedJsonExportString,
                     fileType = FileType.JSON
@@ -224,7 +226,7 @@ class IntentActivityVM(
             }
 
             if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.HTML.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
-                exportSnapshotData(
+                fileManager.exportSnapshotData(
                     rawExportString = exportDataRepo.rawExportDataAsHTML(
                         links = allLinks.await(), folders = allFolders.await()
                     ),

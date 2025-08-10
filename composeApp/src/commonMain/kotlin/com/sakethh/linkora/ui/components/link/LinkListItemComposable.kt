@@ -51,7 +51,6 @@ import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.onShare
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -59,7 +58,8 @@ fun LinkListItemComposable(
     linkUIComponentParam: LinkUIComponentParam,
     forTitleOnlyView: Boolean,
     modifier: Modifier = Modifier,
-    imageAlignment: Alignment = Alignment.Center
+    imageAlignment: Alignment = Alignment.Center,
+    onShare:(url: String)-> Unit
 ) {
     val localClipBoardManager = LocalClipboardManager.current
     LocalUriHandler.current
@@ -198,7 +198,7 @@ fun LinkListItemComposable(
                         }
                         if (platform is Platform.Android) {
                             IconButton(onClick = {
-                                onShare(url = linkUIComponentParam.link.url)
+                                onShare(linkUIComponentParam.link.url)
                             }) {
                                 Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
                             }

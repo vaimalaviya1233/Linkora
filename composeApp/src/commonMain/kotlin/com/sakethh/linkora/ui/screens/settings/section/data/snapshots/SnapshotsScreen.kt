@@ -108,7 +108,7 @@ fun SnapshotsScreen() {
                             var isStorageAccessPermitted = false
                             coroutineScope.launch {
                                 isStorageAccessPermitted =
-                                    com.sakethh.isStorageAccessPermittedOnAndroid()
+                                    dataSettingsScreenVM.isStoragePermissionGranted()
                             }.invokeOnCompletion { _ ->
                                 if (isStorageAccessPermitted.not() && platform is Platform.Android) return@invokeOnCompletion
 

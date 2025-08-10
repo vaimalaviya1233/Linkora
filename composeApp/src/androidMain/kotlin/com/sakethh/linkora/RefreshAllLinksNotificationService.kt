@@ -63,6 +63,8 @@ class RefreshAllLinksNotificationService(private val context: Context) {
 
 class CancelRefreshingActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        RefreshAllLinksWorker.cancelLinksRefreshing()
+        if (context!=null){
+            RefreshAllLinksWorker.cancelLinksRefreshing(context)
+        }
     }
 }

@@ -6,32 +6,28 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.viewModelScope
-import com.sakethh.cancelRefreshingLinks
-import com.sakethh.isAnyRefreshingScheduled
-import com.sakethh.isStorageAccessPermittedOnAndroid
+import com.sakethh.FileManager
+import com.sakethh.NativeUtils
+import com.sakethh.PermissionManager
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferenceType
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.duplicate
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.getRemoteOnlyFailureMsg
-import com.sakethh.linkora.common.utils.ifNot
-import com.sakethh.linkora.common.utils.ifTrue
 import com.sakethh.linkora.common.utils.isNull
 import com.sakethh.linkora.common.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
+import com.sakethh.linkora.domain.PermissionStatus
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.ImportDataRepo
-import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
-import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.AppVM
@@ -39,11 +35,6 @@ import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.onRefreshAllLinks
-import com.sakethh.permittedToShowNotification
-import com.sakethh.pickADirectory
-import com.sakethh.pickAValidFileForImporting
-import com.sakethh.writeRawExportStringToFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -55,11 +46,11 @@ class DataSettingsScreenVM(
     private val exportDataRepo: ExportDataRepo,
     private val importDataRepo: ImportDataRepo,
     private val linksRepo: LocalLinksRepo,
-    private val foldersRepo: LocalFoldersRepo,
-    private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
-    private val pendingSyncQueueRepo: PendingSyncQueueRepo,
-    private val remoteSyncRepo: RemoteSyncRepo
+    private val remoteSyncRepo: RemoteSyncRepo,
+    private val nativeUtils: NativeUtils,
+    private val fileManager: FileManager,
+    private val permissionManager: PermissionManager
 ) : SettingsScreenViewModel(preferencesRepository) {
     val importExportProgressLogs = mutableStateListOf<String>()
 
@@ -69,7 +60,7 @@ class DataSettingsScreenVM(
 
     init {
         viewModelScope.launch {
-            isAnyRefreshingScheduled().collectLatest {
+            nativeUtils.isAnyRefreshingScheduled().collectLatest {
                 isAnyRefreshingScheduledOnAndroid.value = it == true
             }
         }
@@ -106,7 +97,7 @@ class DataSettingsScreenVM(
                         }
                     }?.duplicate()
                 } else {
-                    pickAValidFileForImporting(importFileType, onStart = {
+                    fileManager.pickAValidFileForImporting(importFileType, onStart = {
                         onStart()
                         importExportProgressLogs.add(Localization.Key.ReadingFile.getLocalizedString())
                     })
@@ -137,6 +128,10 @@ class DataSettingsScreenVM(
         }
     }
 
+    suspend fun isStoragePermissionGranted(): Boolean {
+        return permissionManager.isStorageAccessPermitted() is PermissionStatus.Granted
+    }
+
     fun exportDataToAFile(
         platform: Platform,
         exportFileType: ExportFileType,
@@ -147,10 +142,9 @@ class DataSettingsScreenVM(
         importExportJob = viewModelScope.launch {
             withContext(Dispatchers.Main) {
                 if (platform is Platform.Android) {
-                    isStorageAccessPermittedOnAndroid().ifTrue {
-                        onStart()
-                    }.ifNot {
-                        importExportJob?.cancel()
+                    when (permissionManager.isStorageAccessPermitted()) {
+                        PermissionStatus.Granted -> onStart()
+                        PermissionStatus.NeedsRequest -> importExportJob?.cancel()
                     }
                 } else {
                     onStart()
@@ -165,7 +159,7 @@ class DataSettingsScreenVM(
                     importExportProgressLogs.add(exportLogItem)
                 }.onSuccess {
                     try {
-                        writeRawExportStringToFile(
+                        fileManager.writeRawExportStringToFile(
                             exportLocation = AppPreferences.currentExportLocation.value,
                             exportFileType = exportFileType,
                             rawExportString = it.data,
@@ -209,7 +203,7 @@ class DataSettingsScreenVM(
             viewModelScope.launch {
                 pushUIEvent(
                     UIEvent.Type.ShowSnackbar(
-                        if (remoteOperationFailed == null || remoteOperationFailed == false) Localization.Key.DeletedEntireDataPermanently.getLocalizedString()
+                        if (remoteOperationFailed == null || !remoteOperationFailed) Localization.Key.DeletedEntireDataPermanently.getLocalizedString()
                         else Localization.Key.RemoteDataDeletionFailure.getLocalizedString()
                     )
                 )
@@ -232,10 +226,10 @@ class DataSettingsScreenVM(
         AppVM.pauseSnapshots = true
         viewModelScope.launch {
             launch {
-                permittedToShowNotification()
+                permissionManager.permittedToShowNotification()
             }
             launch {
-                onRefreshAllLinks(
+                nativeUtils.onRefreshAllLinks(
                     localLinksRepo = linksRepo, preferencesRepository = preferencesRepository
                 )
             }
@@ -245,7 +239,7 @@ class DataSettingsScreenVM(
     }
 
     fun cancelRefreshingAllLinks() {
-        cancelRefreshingLinks()
+        nativeUtils.cancelRefreshingLinks()
     }
 
     fun deleteDuplicates(onStart: () -> Unit, onCompletion: () -> Unit) {
@@ -280,7 +274,7 @@ class DataSettingsScreenVM(
             try {
 
                 val newExportLocation =
-                    if (platform == Platform.Desktop) exportLocation else pickADirectory()
+                    if (platform == Platform.Desktop) exportLocation else fileManager.pickADirectory()
                         ?: throw NullPointerException("Looks like you skipped picking an export location.")
 
                 preferencesRepository.changePreferenceValue(

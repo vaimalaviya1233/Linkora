@@ -35,7 +35,10 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
                 foldersRepo = DependencyContainer.localFoldersRepo,
                 localMultiActionRepo = DependencyContainer.localMultiActionRepo,
                 localPanelsRepo = DependencyContainer.localPanelsRepo,
-                exportDataRepo = DependencyContainer.exportDataRepo
+                exportDataRepo = DependencyContainer.exportDataRepo,
+                permissionManager = SharedSDK.getInstance().permissionManager,
+                fileManager = SharedSDK.getInstance().fileManager,
+                dataSyncingNotificationService = SharedSDK.getInstance().dataSyncingNotificationService,
             )
 
 
@@ -56,18 +59,20 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
             ServerManagementViewModel::class -> ServerManagementViewModel(
                 DependencyContainer.networkRepo,
                 DependencyContainer.preferencesRepo,
-                DependencyContainer.remoteSyncRepo
+                DependencyContainer.remoteSyncRepo,
+                fileManager = SharedSDK.getInstance().fileManager,
+                permissionManager = SharedSDK.getInstance().permissionManager,
             )
 
             DataSettingsScreenVM::class -> DataSettingsScreenVM(
                 exportDataRepo = DependencyContainer.exportDataRepo,
                 importDataRepo = DependencyContainer.importDataRepo,
                 linksRepo = DependencyContainer.localLinksRepo,
-                foldersRepo = DependencyContainer.localFoldersRepo,
-                localPanelsRepo = DependencyContainer.localPanelsRepo,
                 preferencesRepository = DependencyContainer.preferencesRepo,
-                pendingSyncQueueRepo = DependencyContainer.pendingSyncQueueRepo,
-                remoteSyncRepo = DependencyContainer.remoteSyncRepo
+                remoteSyncRepo = DependencyContainer.remoteSyncRepo,
+                nativeUtils = SharedSDK.getInstance().nativeUtils,
+                fileManager = SharedSDK.getInstance().fileManager,
+                permissionManager = SharedSDK.getInstance().permissionManager,
             )
 
             else -> error("Not sure how to create an instance of ${modelClass.simpleName}, maybe it's available in *AssistedFactory")

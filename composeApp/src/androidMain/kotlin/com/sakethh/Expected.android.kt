@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
+import android.print.PrinterId
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -45,6 +46,7 @@ import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
+import com.sakethh.linkora.domain.PermissionStatus
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.model.Snapshot
@@ -83,176 +85,9 @@ actual val platform: @Composable () -> Platform = {
     if (isTablet(LocalConfiguration.current) || LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) Platform.Android.Tablet else Platform.Android.Mobile
 }
 actual val BUILD_FLAVOUR: String = platform.toString()
-actual val localDatabase: LocalDatabase = run {
-    val dbFile = LinkoraApp.getContext().applicationContext.getDatabasePath(LocalDatabase.NAME)
-    Room.databaseBuilder(
-        LinkoraApp.getContext().applicationContext,
-        LocalDatabase::class.java,
-        name = dbFile.absolutePath
-    ).setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).addMigrations(
-        LocalDatabase.MIGRATION_1_2,
-        LocalDatabase.MIGRATION_2_3,
-        LocalDatabase.MIGRATION_3_4,
-        LocalDatabase.MIGRATION_4_5,
-        LocalDatabase.MIGRATION_5_6,
-        LocalDatabase.MIGRATION_6_7,
-        LocalDatabase.MIGRATION_7_8,
-        LocalDatabase.MIGRATION_8_9,
-        LocalDatabase.MIGRATION_9_10,
-        LocalDatabase.MIGRATION_10_11
-    ).build()
-}
 
 actual val poppinsFontFamily: FontFamily = poppinsFontFamily
 actual val showDynamicThemingOption: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-actual suspend fun writeRawExportStringToFile(
-    exportLocation: String,
-    exportFileType: ExportFileType,
-    exportLocationType: ExportLocationType,
-    rawExportString: RawExportString,
-    onCompletion: suspend (String) -> Unit
-) {
-    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
-    val timestamp = simpleDateFormat.format(Date())
-    val exportFileName =
-        "${if (exportLocationType == ExportLocationType.EXPORT) "LinkoraExport" else "LinkoraSnapshot"}-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
-
-    val directoryUri = exportLocation.toUri()
-    val directory = DocumentFile.fromTreeUri(LinkoraApp.getContext(), directoryUri)
-    val newFile = directory?.createFile(
-        if (exportFileType == ExportFileType.HTML) "text/html" else "application/json",
-        exportFileName
-    )
-    newFile?.uri?.let { fileUri ->
-        try {
-            LinkoraApp.getContext().contentResolver.openOutputStream(fileUri)?.use { outputStream ->
-                outputStream.write(rawExportString.toByteArray())
-            }
-            onCompletion(exportFileName)
-        } catch (e: Exception) {
-            withContext(coroutineContext) {
-                pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
-            }
-            e.printStackTrace()
-        }
-    }
-}
-
-actual suspend fun isStorageAccessPermittedOnAndroid(): Boolean {
-    return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(
-            LinkoraApp.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
-    ) {
-        true
-    } else {
-        AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForStorage)
-        false
-    }
-}
-
-actual suspend fun pickAValidFileForImporting(
-    importFileType: ImportFileType, onStart: () -> Unit
-): File? {
-    AndroidUIEvent.pushUIEvent(
-        AndroidUIEvent.Type.ImportAFile(
-            fileType = when (importFileType) {
-                ImportFileType.JSON -> "application/json"
-                ImportFileType.HTML -> "text/html"
-                else -> "*/*"
-            }
-        )
-    )
-    return suspendCancellableCoroutine { continuation ->
-        val listenerJob = CoroutineScope(continuation.context).launch {
-            try {
-                val uriEvent =
-                    AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.UriOfTheFileForImporting
-                if (uriEvent.uri == null) {
-                    // if picking the file didn't go as expected, then just return null
-                    // we can throw and catch and then resume with null but this is aight
-                    continuation.resume(null)
-                    return@launch
-                }
-                onStart()
-                val fileName = LinkoraApp.getContext().contentResolver.query(
-                    uriEvent.uri, null, null, null, null
-                )?.use {
-                    val nameColumnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    it.moveToFirst()
-                    it.getString(nameColumnIndex)
-                } ?: ""
-                val file = createTempFile(
-                    prefix = fileName.substringBeforeLast("."),
-                    suffix = fileName.substringAfterLast(".")
-                )
-                LinkoraApp.getContext().contentResolver.openInputStream(uriEvent.uri).use { input ->
-                    file.outputStream().use { output ->
-                        input?.copyTo(output)
-                    }
-                }
-                continuation.resume(file)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                continuation.cancel()
-            }
-        }
-        continuation.invokeOnCancellation {
-            listenerJob.cancel()
-        }
-    }
-}
-
-actual fun onShare(url: String) {
-    val intent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_TEXT, url)
-        type = "text/plain"
-    }
-    val shareIntent = Intent.createChooser(intent, null)
-    shareIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-    LinkoraApp.getContext().startActivity(shareIntent)
-}
-
-actual suspend fun onRefreshAllLinks(
-    localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
-) {
-    val workManager = WorkManager.getInstance(LinkoraApp.getContext())
-    val request = OneTimeWorkRequestBuilder<RefreshAllLinksWorker>().setConstraints(
-        Constraints(requiredNetworkType = NetworkType.CONNECTED)
-    ).setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST).build()
-
-    AppPreferences.refreshLinksWorkerTag.value = request.id.toString()
-    preferencesRepository.changePreferenceValue(
-        preferenceKey = stringPreferencesKey(
-            AppPreferenceType.CURRENT_WORK_MANAGER_WORK_UUID.name
-        ), newValue = AppPreferences.refreshLinksWorkerTag.value
-    )
-    preferencesRepository.changePreferenceValue(
-        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name),
-        newValue = -1
-    )
-    workManager.enqueueUniqueWork(
-        AppPreferences.refreshLinksWorkerTag.value, ExistingWorkPolicy.KEEP, request
-    )
-}
-
-actual fun cancelRefreshingLinks() {
-    RefreshAllLinksWorker.cancelLinksRefreshing()
-}
-
-actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
-    return channelFlow {
-        WorkManager.getInstance(LinkoraApp.getContext())
-            .getWorkInfoByIdFlow(UUID.fromString(AppPreferences.refreshLinksWorkerTag.value))
-            .collectLatest {
-                if (it != null) {
-                    send(it.state == WorkInfo.State.ENQUEUED)
-                } else {
-                    send(null)
-                }
-            }
-    }
-}
 
 @Composable
 actual fun PlatformSpecificBackHandler(init: () -> Unit) {
@@ -271,131 +106,286 @@ actual fun PlatformSpecificBackHandler(init: () -> Unit) {
     })
 }
 
-actual suspend fun permittedToShowNotification(): Boolean {
-    return if (Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
-            LinkoraApp.getContext(), Manifest.permission.POST_NOTIFICATIONS
-        ) == PackageManager.PERMISSION_GRANTED
-    ) {
-        true
-    } else {
-        AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForNotifications)
-        false
-    }
-}
-
 actual fun platformSpecificLogging(string: String) {
     Log.d("Linkora Log", string)
 }
 
-actual class DataSyncingNotificationService actual constructor() {
+actual class PermissionManager(private val context: Context) {
 
-    private val context = LinkoraApp.getContext()
-    private val notificationManager =
-        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-    actual fun showNotification() {
-        val notification =
-            NotificationCompat.Builder(context, "1").setSmallIcon(R.drawable.ic_stat_name)
-                .setContentTitle(Localization.Key.SyncingDataLabel.getLocalizedString())
-                .setProgress(
-                    0, 0, true
-                ).setPriority(NotificationCompat.PRIORITY_LOW).setSilent(true).build()
-
-        notificationManager.notify(1, notification)
-    }
-
-    actual fun clearNotification() {
-        notificationManager.cancelAll()
-    }
-
-}
-
-actual val linkoraDataStore: DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(
-    produceFile = {
-        LinkoraApp.getContext().applicationContext.filesDir.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
-    })
-
-actual suspend fun exportSnapshotData(
-    exportLocation: String,
-    rawExportString: String,
-    fileType: ExportFileType,
-    onCompletion: suspend (String) -> Unit
-) {
-    val snapshotWorker = OneTimeWorkRequestBuilder<SnapshotWorker>()
-    val rawExportStringID: Long =
-        DependencyContainer.snapshotRepo.addASnapshot(Snapshot(content = rawExportString))
-
-    val parameters = Data.Builder().putLong(key = "rawExportStringID", value = rawExportStringID)
-        .putString(key = "fileType", value = fileType.name).build()
-    snapshotWorker.setInputData(parameters)
-    WorkManager.getInstance(LinkoraApp.getContext()).enqueue(snapshotWorker.build())
-}
-
-actual suspend fun saveSyncServerCertificateInternally(
-    file: File, onCompletion: () -> Unit
-) {
-    file.inputStream().use { inputStream ->
-        LinkoraApp.getContext().filesDir.resolve("sync-server-cert.cer").outputStream().use {
-            inputStream.copyTo(it)
+    actual suspend fun permittedToShowNotification(): PermissionStatus {
+        return if (Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            PermissionStatus.Granted
+        } else {
+            AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForNotifications)
+            PermissionStatus.NeedsRequest
         }
     }
-    onCompletion()
+
+    actual suspend fun isStorageAccessPermitted(): PermissionStatus {
+        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q || ContextCompat.checkSelfPermission(
+                context, Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            PermissionStatus.Granted
+        } else {
+            AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.ShowRuntimePermissionForStorage)
+            PermissionStatus.NeedsRequest
+        }
+    }
 }
 
-actual suspend fun loadSyncServerCertificate(): File {
-    return LinkoraApp.getContext().filesDir.resolve("sync-server-cert.cer")
-}
+actual class FileManager(private val context: Context) {
+    actual suspend fun writeRawExportStringToFile(
+        exportLocation: String,
+        exportFileType: ExportFileType,
+        exportLocationType: ExportLocationType,
+        rawExportString: RawExportString,
+        onCompletion: suspend (String) -> Unit
+    ) {
 
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
+        val timestamp = simpleDateFormat.format(Date())
+        val exportFileName =
+            "${if (exportLocationType == ExportLocationType.EXPORT) "LinkoraExport" else "LinkoraSnapshot"}-$timestamp.${if (exportFileType == ExportFileType.HTML) "html" else "json"}"
 
-actual suspend fun pickADirectory(): String? {
-    AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.PickADirectory)
-    return suspendCancellableCoroutine { continuation ->
-        val listenerJob = CoroutineScope(continuation.context).launch {
-            val eventDirectoryPick =
-                AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.PickedDirectory
+        val directoryUri = exportLocation.toUri()
+        val directory = DocumentFile.fromTreeUri(context, directoryUri)
+        val newFile = directory?.createFile(
+            if (exportFileType == ExportFileType.HTML) "text/html" else "application/json",
+            exportFileName
+        )
+        newFile?.uri?.let { fileUri ->
             try {
-                continuation.resume(eventDirectoryPick.uri?.toString())
+                context.contentResolver.openOutputStream(fileUri)?.use { outputStream ->
+                    outputStream.write(rawExportString.toByteArray())
+                }
+                onCompletion(exportFileName)
             } catch (e: Exception) {
+                withContext(coroutineContext) {
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
+                }
                 e.printStackTrace()
-                continuation.cancel()
             }
         }
-        continuation.invokeOnCancellation {
-            listenerJob.cancel()
+    }
+
+    actual suspend fun pickAValidFileForImporting(
+        importFileType: ImportFileType,
+        onStart: () -> Unit
+    ): File? {
+
+        AndroidUIEvent.pushUIEvent(
+            AndroidUIEvent.Type.ImportAFile(
+                fileType = when (importFileType) {
+                    ImportFileType.JSON -> "application/json"
+                    ImportFileType.HTML -> "text/html"
+                    else -> "*/*"
+                }
+            )
+        )
+        return suspendCancellableCoroutine { continuation ->
+            val listenerJob = CoroutineScope(continuation.context).launch {
+                try {
+                    val uriEvent =
+                        AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.UriOfTheFileForImporting
+                    if (uriEvent.uri == null) {
+                        // if picking the file didn't go as expected, then just return null
+                        // we can throw and catch and then resume with null but this is aight
+                        continuation.resume(null)
+                        return@launch
+                    }
+                    onStart()
+                    val fileName = context.contentResolver.query(
+                        uriEvent.uri, null, null, null, null
+                    )?.use {
+                        val nameColumnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        it.moveToFirst()
+                        it.getString(nameColumnIndex)
+                    } ?: ""
+                    val file = createTempFile(
+                        prefix = fileName.substringBeforeLast("."),
+                        suffix = fileName.substringAfterLast(".")
+                    )
+                    context.contentResolver.openInputStream(uriEvent.uri).use { input ->
+                        file.outputStream().use { output ->
+                            input?.copyTo(output)
+                        }
+                    }
+                    continuation.resume(file)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    continuation.cancel()
+                }
+            }
+            continuation.invokeOnCancellation {
+                listenerJob.cancel()
+            }
+        }
+    }
+
+    actual suspend fun saveSyncServerCertificateInternally(
+        file: File,
+        onCompletion: () -> Unit
+    ) {
+        file.inputStream().use { inputStream ->
+            context.filesDir.resolve("sync-server-cert.cer").outputStream().use {
+                inputStream.copyTo(it)
+            }
+        }
+        onCompletion()
+    }
+
+    actual suspend fun loadSyncServerCertificate(): File {
+        return context.filesDir.resolve("sync-server-cert.cer")
+    }
+
+    actual suspend fun exportSnapshotData(
+        exportLocation: String,
+        rawExportString: String,
+        fileType: ExportFileType,
+        onCompletion: suspend (String) -> Unit
+    ) {
+        val snapshotWorker = OneTimeWorkRequestBuilder<SnapshotWorker>()
+        val rawExportStringID: Long =
+            DependencyContainer.snapshotRepo.addASnapshot(Snapshot(content = rawExportString))
+
+        val parameters = Data.Builder().putLong(key = "rawExportStringID", value = rawExportStringID)
+            .putString(key = "fileType", value = fileType.name).build()
+        snapshotWorker.setInputData(parameters)
+        WorkManager.getInstance(context).enqueue(snapshotWorker.build())
+    }
+
+    actual suspend fun pickADirectory(): String? {
+        AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.PickADirectory)
+        return suspendCancellableCoroutine { continuation ->
+            val listenerJob = CoroutineScope(continuation.context).launch {
+                val eventDirectoryPick =
+                    AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.PickedDirectory
+                try {
+                    continuation.resume(eventDirectoryPick.uri?.toString())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    continuation.cancel()
+                }
+            }
+            continuation.invokeOnCancellation {
+                listenerJob.cancel()
+            }
+        }
+    }
+
+    actual fun getDefaultExportLocation(): String? {
+        return null
+    }
+
+    actual suspend fun deleteAutoBackups(
+        backupLocation: String,
+        threshold: Int,
+        onCompletion: (Int) -> Unit
+    ) {
+        try {
+            withContext(Dispatchers.IO) {
+                DocumentFile.fromTreeUri(context, backupLocation.toUri())?.listFiles()
+                    ?.filter {
+                        it.name?.startsWith("LinkoraSnapshot-") == true
+                    }?.let { snapshots ->
+                        val snapshotsCount = snapshots.count()
+                        if (snapshotsCount > threshold) {
+                            snapshots.sortedBy {
+                                it.lastModified()
+                            }.take(snapshotsCount - threshold).apply {
+                                forEach {
+                                    it.delete()
+                                }
+                                onCompletion(count())
+                            }
+                        } else {
+                            onCompletion(0)
+                        }
+                    }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            e.pushSnackbar()
         }
     }
 }
 
-actual fun getDefaultExportLocation(): String? {
-    return null
-}
+actual class NativeUtils(private val context: Context) {
+    actual fun onShare(url: String) {
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, url)
+            type = "text/plain"
+        }
+        val shareIntent = Intent.createChooser(intent, null)
+        shareIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        context.startActivity(shareIntent)
+    }
 
-actual suspend fun deleteAutoBackups(
-    backupLocation: String, threshold: Int, onCompletion: (deletionCount: Int) -> Unit
-) {
-    try {
-        withContext(Dispatchers.IO) {
-            DocumentFile.fromTreeUri(LinkoraApp.getContext(), backupLocation.toUri())?.listFiles()
-                ?.filter {
-                    it.name?.startsWith("LinkoraSnapshot-") == true
-                }?.let { snapshots ->
-                    val snapshotsCount = snapshots.count()
-                    if (snapshotsCount > threshold) {
-                        snapshots.sortedBy {
-                            it.lastModified()
-                        }.take(snapshotsCount - threshold).apply {
-                            forEach {
-                                it.delete()
-                            }
-                            onCompletion(count())
-                        }
+    actual suspend fun onRefreshAllLinks(
+        localLinksRepo: LocalLinksRepo,
+        preferencesRepository: PreferencesRepository
+    ) {
+        val workManager = WorkManager.getInstance(context)
+        val request = OneTimeWorkRequestBuilder<RefreshAllLinksWorker>().setConstraints(
+            Constraints(requiredNetworkType = NetworkType.CONNECTED)
+        ).setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST).build()
+
+        AppPreferences.refreshLinksWorkerTag.value = request.id.toString()
+        preferencesRepository.changePreferenceValue(
+            preferenceKey = stringPreferencesKey(
+                AppPreferenceType.CURRENT_WORK_MANAGER_WORK_UUID.name
+            ), newValue = AppPreferences.refreshLinksWorkerTag.value
+        )
+        preferencesRepository.changePreferenceValue(
+            preferenceKey = longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name),
+            newValue = -1
+        )
+        workManager.enqueueUniqueWork(
+            AppPreferences.refreshLinksWorkerTag.value, ExistingWorkPolicy.KEEP, request
+        )
+    }
+
+    actual suspend fun isAnyRefreshingScheduled(): Flow<Boolean?> {
+        return channelFlow {
+            WorkManager.getInstance(context)
+                .getWorkInfoByIdFlow(UUID.fromString(AppPreferences.refreshLinksWorkerTag.value))
+                .collectLatest {
+                    if (it != null) {
+                        send(it.state == WorkInfo.State.ENQUEUED)
                     } else {
-                        onCompletion(0)
+                        send(null)
                     }
                 }
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        e.pushSnackbar()
+    }
+
+    actual fun cancelRefreshingLinks() {
+        RefreshAllLinksWorker.cancelLinksRefreshing(context)
+    }
+
+    actual class DataSyncingNotificationService(private val context: Context) {
+
+        private val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        actual fun showNotification() {
+            val notification =
+                NotificationCompat.Builder(context, "1").setSmallIcon(R.drawable.ic_stat_name)
+                    .setContentTitle(Localization.Key.SyncingDataLabel.getLocalizedString())
+                    .setProgress(
+                        0, 0, true
+                    ).setPriority(NotificationCompat.PRIORITY_LOW).setSilent(true).build()
+
+            notificationManager.notify(1, notification)
+        }
+
+        actual fun clearNotification() {
+            notificationManager.cancelAll()
+        }
     }
 }

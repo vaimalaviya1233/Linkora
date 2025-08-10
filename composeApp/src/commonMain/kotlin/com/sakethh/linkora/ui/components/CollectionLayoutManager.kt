@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.rememberLocalizedString
-import com.sakethh.linkora.common.utils.then
+import com.sakethh.linkora.di.SharedSDK
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -126,7 +126,13 @@ fun CollectionLayoutManager(
     when (AppPreferences.currentlySelectedLinkLayout.value) {
         Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> {
 
-            LazyColumn(modifier = Modifier.then(if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier).padding(paddingValues).fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.then(
+                    if (nestedScrollConnection != null) Modifier.nestedScroll(
+                        nestedScrollConnection
+                    ) else Modifier
+                ).padding(paddingValues).fillMaxSize()
+            ) {
                 items(folders) {
                     FolderComponent(folderComponentParam = folderComponentParam(it))
                 }
@@ -134,8 +140,10 @@ fun CollectionLayoutManager(
                 items(items = links) {
                     LinkListItemComposable(
                         linkUIComponentParam = linkUIComponentParam(it),
-                        forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
-                    )
+                        forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name,
+                        onShare = {
+                            SharedSDK.getInstance().nativeUtils.onShare(it)
+                        })
                 }
                 if ((folders.isEmpty() && links.isEmpty()) || (folders.isNotEmpty() && links.isEmpty())) {
                     item {
@@ -158,8 +166,11 @@ fun CollectionLayoutManager(
         Layout.GRID_VIEW.name -> {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
-                modifier = Modifier.padding(paddingValues).fillMaxSize()
-                    .then(if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier)
+                modifier = Modifier.padding(paddingValues).fillMaxSize().then(
+                        if (nestedScrollConnection != null) Modifier.nestedScroll(
+                            nestedScrollConnection
+                        ) else Modifier
+                    )
             ) {
                 items(items = folders, span = {
                     GridItemSpan(this.maxLineSpan)
@@ -192,7 +203,9 @@ fun CollectionLayoutManager(
         Layout.STAGGERED_VIEW.name -> {
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Adaptive(150.dp),
-                modifier = Modifier.padding(paddingValues).fillMaxSize().then(if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier)
+                modifier = Modifier.padding(paddingValues).fillMaxSize().then(
+                    if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier
+                )
             ) {
                 items(items = folders, span = { StaggeredGridItemSpan.Companion.FullLine }) {
                     FolderComponent(folderComponentParam = folderComponentParam(it))

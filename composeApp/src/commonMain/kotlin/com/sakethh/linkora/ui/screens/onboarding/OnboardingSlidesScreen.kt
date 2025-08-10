@@ -59,6 +59,7 @@ import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.SharedSDK
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -318,7 +319,10 @@ private fun Slide2() {
                     isSelectionModeEnabled = mutableStateOf(false),
                     isItemSelected = mutableStateOf(false),
                     onLongClick = { -> },
-                ), forTitleOnlyView = false
+                ), forTitleOnlyView = false,
+                onShare = {
+                    SharedSDK.getInstance().nativeUtils.onShare(it)
+                }
             )
             LinkListItemComposable(
                 linkUIComponentParam = LinkUIComponentParam(
@@ -341,7 +345,10 @@ private fun Slide2() {
                         localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
                     },
                 ), forTitleOnlyView = false,
-                imageAlignment = Alignment.TopCenter
+                imageAlignment = Alignment.TopCenter,
+                onShare = {
+                    SharedSDK.getInstance().nativeUtils.onShare(it)
+                }
             )
             Spacer(modifier = Modifier.height(5.dp))
             SlideTitle(
@@ -475,7 +482,10 @@ private fun Slide3() {
                                 isSelectionModeEnabled = mutableStateOf(false),
                                 isItemSelected = mutableStateOf(false),
                                 onLongClick = { -> },
-                            ), forTitleOnlyView = false
+                            ), forTitleOnlyView = false,
+                            onShare = {
+                                SharedSDK.getInstance().nativeUtils.onShare(it)
+                            }
                         )
                     }
 
@@ -527,7 +537,10 @@ private fun Slide3() {
                                 onLongClick = { -> },
                             ),
                             forTitleOnlyView = false,
-                            imageAlignment = Alignment.TopCenter
+                            imageAlignment = Alignment.TopCenter,
+                            onShare = {
+                                SharedSDK.getInstance().nativeUtils.onShare(it)
+                            }
                         )
                     }
                 }

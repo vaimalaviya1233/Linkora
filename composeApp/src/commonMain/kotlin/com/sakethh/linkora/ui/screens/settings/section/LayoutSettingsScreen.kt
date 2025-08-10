@@ -43,6 +43,7 @@ import com.sakethh.linkora.common.preferences.AppPreferences
 import com.sakethh.linkora.common.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.common.utils.getLocalizedString
 import com.sakethh.linkora.common.utils.rememberLocalizedString
+import com.sakethh.linkora.di.SharedSDK
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
@@ -432,6 +433,9 @@ fun LayoutSettingsScreen() {
                     items(sampleList) {
                         LinkListItemComposable(
                             linkUIComponentParam = it,
+                            onShare = {
+                                SharedSDK.getInstance().nativeUtils.onShare(it)
+                            },
                             forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
                         )
                     }

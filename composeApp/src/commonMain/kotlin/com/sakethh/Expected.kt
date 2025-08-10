@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
+import com.sakethh.linkora.domain.PermissionStatus
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -21,65 +22,68 @@ expect val BUILD_FLAVOUR: String
 
 expect val platform: @Composable () -> Platform
 
-expect val localDatabase: LocalDatabase
-expect val linkoraDataStore: DataStore<Preferences>
-
 expect val poppinsFontFamily: FontFamily
-
-expect suspend fun writeRawExportStringToFile(
-    exportLocation: String,
-    exportFileType: ExportFileType,
-    exportLocationType: ExportLocationType,
-    rawExportString: RawExportString,
-    onCompletion: suspend (String) -> Unit
-)
-
-expect suspend fun isStorageAccessPermittedOnAndroid(): Boolean
-
-expect suspend fun pickAValidFileForImporting(
-    importFileType: ImportFileType, onStart: () -> Unit
-): File?
-
-expect suspend fun saveSyncServerCertificateInternally(file: File, onCompletion: () -> Unit)
-
-expect suspend fun loadSyncServerCertificate(): File
-
-expect fun onShare(url: String)
-
-expect suspend fun onRefreshAllLinks(
-    localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
-)
-
-expect suspend fun isAnyRefreshingScheduled(): Flow<Boolean?>
-
-expect fun cancelRefreshingLinks()
 
 @Composable
 expect fun PlatformSpecificBackHandler(init: () -> Unit = {})
 
-expect suspend fun permittedToShowNotification(): Boolean
 
 expect fun platformSpecificLogging(string: String)
 
-expect class DataSyncingNotificationService() {
-    fun showNotification()
-    fun clearNotification()
+expect class PermissionManager {
+    suspend fun permittedToShowNotification(): PermissionStatus
+    suspend fun isStorageAccessPermitted(): PermissionStatus
 }
 
-expect suspend fun exportSnapshotData(
-    exportLocation: String,
-    rawExportString: String,
-    fileType: ExportFileType,
-    onCompletion: suspend (String) -> Unit = {}
-)
+expect class FileManager {
+    suspend fun writeRawExportStringToFile(
+        exportLocation: String,
+        exportFileType: ExportFileType,
+        exportLocationType: ExportLocationType,
+        rawExportString: RawExportString,
+        onCompletion: suspend (String) -> Unit
+    )
 
-expect suspend fun pickADirectory(): String?
 
+    suspend fun pickAValidFileForImporting(
+        importFileType: ImportFileType, onStart: () -> Unit
+    ): File?
 
-expect fun getDefaultExportLocation(): String?
+    suspend fun saveSyncServerCertificateInternally(file: File, onCompletion: () -> Unit)
 
-expect suspend fun deleteAutoBackups(
-    backupLocation: String,
-    // maximum number of backups allowed to keep
-    threshold: Int, onCompletion: (deletionCount: Int) -> Unit
-)
+    suspend fun loadSyncServerCertificate(): File
+
+    suspend fun exportSnapshotData(
+        exportLocation: String,
+        rawExportString: String,
+        fileType: ExportFileType,
+        onCompletion: suspend (String) -> Unit = {}
+    )
+
+    suspend fun pickADirectory(): String?
+
+    fun getDefaultExportLocation(): String?
+
+    suspend fun deleteAutoBackups(
+        backupLocation: String,
+        // maximum number of backups allowed to keep
+        threshold: Int, onCompletion: (deletionCount: Int) -> Unit
+    )
+}
+
+expect class NativeUtils {
+    fun onShare(url: String)
+
+    suspend fun onRefreshAllLinks(
+        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
+    )
+
+    suspend fun isAnyRefreshingScheduled(): Flow<Boolean?>
+
+    fun cancelRefreshingLinks()
+
+    class DataSyncingNotificationService {
+        fun showNotification()
+        fun clearNotification()
+    }
+}

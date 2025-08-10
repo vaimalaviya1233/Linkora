@@ -24,6 +24,7 @@ data class MenuBtmSheetParam @OptIn(ExperimentalMaterial3Api::class) constructor
     val onCopy: () -> Unit = {},
     val onMoveToRootFoldersClick: () -> Unit = {},
     val onMove: () -> Unit = {},
+    val onShare: (url: String) -> Unit = {},
     val shouldTransferringOptionShouldBeVisible: Boolean,
     val shouldShowArchiveOption: () -> Boolean,
     val showProgressBarDuringRemoteSave: MutableState<Boolean>,

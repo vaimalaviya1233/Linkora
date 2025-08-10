@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.BUILD_FLAVOUR
-import com.sakethh.getDefaultExportLocation
 import com.sakethh.linkora.common.Localization
 import com.sakethh.linkora.common.utils.Constants
 import com.sakethh.linkora.domain.SnapshotFormat
@@ -18,7 +17,6 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.showFollowSystemThemeOption
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -114,334 +112,346 @@ object AppPreferences {
         }
     }
 
-    fun readAll(preferencesRepository: PreferencesRepository) = runBlocking {
-        supervisorScope {
-            listOf(
-                launch {
-                    serverBaseUrl.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_URL.name),
-                    ) ?: serverBaseUrl.value
-                },
-                launch {
-                    serverSecurityToken.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_AUTH_TOKEN.name),
-                    ) ?: serverSecurityToken.value
-                },
-                launch {
-                    serverSyncType.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_SYNC_TYPE.name),
-                    )?.let { SyncType.valueOf(it) } ?: serverSyncType.value
-                },
-                launch {
-                    isHomeScreenEnabled.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.HOME_SCREEN_VISIBILITY.name),
-                    ) != false
-                },
-                launch {
-                    shouldFollowSystemTheme.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),
-                    ) ?: showFollowSystemThemeOption
-                },
-                launch {
-                    startDestination.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.INITIAL_ROUTE.name),
+    fun readAll(preferencesRepository: PreferencesRepository, defaultExportLocation: String?) =
+        runBlocking {
+            supervisorScope {
+                listOf(
+                    launch {
+                        serverBaseUrl.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_URL.name),
+                        ) ?: serverBaseUrl.value
+                    },
+                    launch {
+                        serverSecurityToken.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_AUTH_TOKEN.name),
+                        ) ?: serverSecurityToken.value
+                    },
+                    launch {
+                        serverSyncType.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_SYNC_TYPE.name),
+                        )?.let { SyncType.valueOf(it) } ?: serverSyncType.value
+                    },
+                    launch {
+                        isHomeScreenEnabled.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.HOME_SCREEN_VISIBILITY.name),
+                        ) != false
+                    },
+                    launch {
+                        shouldFollowSystemTheme.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),
+                        ) ?: showFollowSystemThemeOption
+                    },
+                    launch {
+                        startDestination.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.INITIAL_ROUTE.name),
 
-                        ) ?: startDestination.value
-                },
-                launch {
-                    shouldUseForceDarkTheme.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.DARK_THEME.name),
-                    ) ?: showFollowSystemThemeOption.not()
-                },
-                launch {
-                    shouldUseDynamicTheming.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.DYNAMIC_THEMING.name),
-                    ) == true
-                },
-                launch {
-                    primaryJsoupUserAgent.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.JSOUP_USER_AGENT.name),
+                            ) ?: startDestination.value
+                    },
+                    launch {
+                        shouldUseForceDarkTheme.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.DARK_THEME.name),
+                        ) ?: showFollowSystemThemeOption.not()
+                    },
+                    launch {
+                        shouldUseDynamicTheming.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.DYNAMIC_THEMING.name),
+                        ) == true
+                    },
+                    launch {
+                        primaryJsoupUserAgent.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.JSOUP_USER_AGENT.name),
 
-                        ) ?: primaryJsoupUserAgent.value
-                },
-                launch {
-                    secondaryJsoupUserAgent.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.SECONDARY_JSOUP_USER_AGENT.name),
+                            ) ?: primaryJsoupUserAgent.value
+                    },
+                    launch {
+                        secondaryJsoupUserAgent.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.SECONDARY_JSOUP_USER_AGENT.name),
 
-                        ) ?: secondaryJsoupUserAgent.value
-                },
-                launch {
-                    showDescriptionForSettingsState.value =
-                        preferencesRepository.readPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(AppPreferenceType.SETTING_COMPONENT_DESCRIPTION_STATE.name),
+                            ) ?: secondaryJsoupUserAgent.value
+                    },
+                    launch {
+                        showDescriptionForSettingsState.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.SETTING_COMPONENT_DESCRIPTION_STATE.name),
+
+                                ) != false
+                    },
+                    launch {
+                        isInAppWebTabEnabled.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.CUSTOM_TABS.name),
+
+                            ) == true
+                    },
+                    launch {
+                        didDataAutoDataMigratedFromV9.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.IS_DATA_MIGRATION_COMPLETED_FROM_V9.name),
+
+                                ) == true
+                    },
+                    launch {
+                        isAutoDetectTitleForLinksEnabled.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name),
+
+                                ) == true
+                    },
+                    launch {
+                        totalRemoteStrings.intValue = preferencesRepository.readPreferenceValue(
+                            preferenceKey = intPreferencesKey(AppPreferenceType.TOTAL_REMOTE_STRINGS.name),
+
+                            ) ?: 0
+                    },
+                    launch {
+                        isSendCrashReportsEnabled.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.SEND_CRASH_REPORTS.name),
 
                             ) != false
-                },
-                launch {
-                    isInAppWebTabEnabled.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.CUSTOM_TABS.name),
+                    },
+                    launch {
+                        isAutoCheckUpdatesEnabled.value =
+                            (preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.AUTO_CHECK_UPDATES.name),
+                            ) ?: BUILD_FLAVOUR) != "fdroid"
+                    },
+                    launch {
+                        selectedSortingTypeType.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.SORTING_PREFERENCE.name),
+                        ) ?: SortingType.NEW_TO_OLD.name
+                    },
+                    launch {
+                        showAssociatedImageInLinkMenu.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name),
 
-                        ) == true
-                },
-                launch {
-                    didDataAutoDataMigratedFromV9.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.IS_DATA_MIGRATION_COMPLETED_FROM_V9.name),
+                                ) != false
+                    },
+                    launch {
+                        isShelfMinimizedInHomeScreen.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.SHELF_VISIBLE_STATE.name),
 
-                        ) == true
-                },
-                launch {
-                    isAutoDetectTitleForLinksEnabled.value =
-                        preferencesRepository.readPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(AppPreferenceType.AUTO_DETECT_TITLE_FOR_LINK.name),
+                                ) == true
+                    },
+                    launch {
+                        forceSaveWithoutFetchingAnyMetaData.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name),
+
+                                ) ?: forceSaveWithoutFetchingAnyMetaData.value
+                    },
+                    launch {
+                        preferredAppLanguageName.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_NAME.name),
+
+                            ) ?: "English"
+                    },
+                    launch {
+                        preferredAppLanguageCode.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_CODE.name),
+
+                            ) ?: "en"
+                    },
+                    launch {
+                        lastSelectedPanelID.longValue = (preferencesRepository.readPreferenceValue(
+                            preferenceKey = longPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name),
+
+                            ) ?: -1).toLong()
+                    },
+                    launch {
+                        useLanguageStringsBasedOnFetchedValuesFromServer.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.USE_REMOTE_LANGUAGE_STRINGS.name),
+
+                                ) == true
+                    },
+                    launch {
+                        enableBorderForNonListViews.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.BORDER_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+
+                                ) ?: enableBorderForNonListViews.value
+                    },
+                    launch {
+                        enableTitleForNonListViews.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.TITLE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+
+                                ) ?: enableTitleForNonListViews.value
+                    },
+                    launch {
+                        enableBaseURLForLinkViews.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.BASE_URL_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+
+                            ) ?: enableBaseURLForLinkViews.value
+                    },
+                    launch {
+                        enableFadedEdgeForNonListViews.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.FADED_EDGE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+
+                                ) ?: enableFadedEdgeForNonListViews.value
+                    },
+                    launch {
+                        localizationServerURL.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.LOCALIZATION_SERVER_URL.name),
+                        ) ?: Constants.LOCALIZATION_SERVER_URL
+                    },
+                    launch {
+                        remoteStringsLastUpdatedOn.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = stringPreferencesKey(AppPreferenceType.REMOTE_STRINGS_LAST_UPDATED_ON.name),
+
+                                ) ?: ""
+                    },
+                    launch {
+                        currentlySelectedLinkLayout.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
+
+                                ) ?: currentlySelectedLinkLayout.value
+                    },
+                    launch {
+                        shouldFollowAmoledTheme.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(AppPreferenceType.AMOLED_THEME_STATE.name),
 
                             ) == true
-                },
-                launch {
-                    totalRemoteStrings.intValue = preferencesRepository.readPreferenceValue(
-                        preferenceKey = intPreferencesKey(AppPreferenceType.TOTAL_REMOTE_STRINGS.name),
-
-                        ) ?: 0
-                },
-                launch {
-                    isSendCrashReportsEnabled.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.SEND_CRASH_REPORTS.name),
-
-                        ) != false
-                },
-                launch {
-                    isAutoCheckUpdatesEnabled.value = (preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.AUTO_CHECK_UPDATES.name),
-                    ) ?: BUILD_FLAVOUR) != "fdroid"
-                },
-                launch {
-                    selectedSortingTypeType.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.SORTING_PREFERENCE.name),
-                    ) ?: SortingType.NEW_TO_OLD.name
-                },
-                launch {
-                    showAssociatedImageInLinkMenu.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.ASSOCIATED_IMAGES_IN_LINK_MENU_VISIBILITY.name),
-
-                        ) != false
-                },
-                launch {
-                    isShelfMinimizedInHomeScreen.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.SHELF_VISIBLE_STATE.name),
-
-                        ) == true
-                },
-                launch {
-                    forceSaveWithoutFetchingAnyMetaData.value =
-                        preferencesRepository.readPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(AppPreferenceType.FORCE_SAVE_WITHOUT_FETCHING_META_DATA.name),
-
-                            ) ?: forceSaveWithoutFetchingAnyMetaData.value
-                },
-                launch {
-                    preferredAppLanguageName.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_NAME.name),
-
-                        ) ?: "English"
-                },
-                launch {
-                    preferredAppLanguageCode.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.APP_LANGUAGE_CODE.name),
-
-                        ) ?: "en"
-                },
-                launch {
-                    lastSelectedPanelID.longValue = (preferencesRepository.readPreferenceValue(
-                        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_SELECTED_PANEL_ID.name),
-
-                        ) ?: -1).toLong()
-                },
-                launch {
-                    useLanguageStringsBasedOnFetchedValuesFromServer.value =
-                        preferencesRepository.readPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(AppPreferenceType.USE_REMOTE_LANGUAGE_STRINGS.name),
-
-                            ) == true
-                },
-                launch {
-                    enableBorderForNonListViews.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.BORDER_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-
-                        ) ?: enableBorderForNonListViews.value
-                },
-                launch {
-                    enableTitleForNonListViews.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.TITLE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-
-                        ) ?: enableTitleForNonListViews.value
-                },
-                launch {
-                    enableBaseURLForLinkViews.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.BASE_URL_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-
-                        ) ?: enableBaseURLForLinkViews.value
-                },
-                launch {
-                    enableFadedEdgeForNonListViews.value =
-                        preferencesRepository.readPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(AppPreferenceType.FADED_EDGE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
-
-                            ) ?: enableFadedEdgeForNonListViews.value
-                },
-                launch {
-                    localizationServerURL.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.LOCALIZATION_SERVER_URL.name),
-                    ) ?: Constants.LOCALIZATION_SERVER_URL
-                },
-                launch {
-                    remoteStringsLastUpdatedOn.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.REMOTE_STRINGS_LAST_UPDATED_ON.name),
-
-                        ) ?: ""
-                },
-                launch {
-                    currentlySelectedLinkLayout.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
-
-                        ) ?: currentlySelectedLinkLayout.value
-                },
-                launch {
-                    shouldFollowAmoledTheme.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.AMOLED_THEME_STATE.name),
-
-                        ) == true
-                },
-                launch {
-                    useLinkoraTopDecoratorOnDesktop.value =
-                        preferencesRepository.readPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(AppPreferenceType.DESKTOP_TOP_DECORATOR.name)
-                        ) ?: useLinkoraTopDecoratorOnDesktop.value
-                },
-                launch {
-                    refreshLinksWorkerTag.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENT_WORK_MANAGER_WORK_UUID.name)
-                    ) ?: refreshLinksWorkerTag.value
-                },
-                launch {
-                    shouldUseAmoledTheme.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(
-                            AppPreferenceType.AMOLED_THEME_STATE.name
-                        )
-                    ) ?: shouldFollowAmoledTheme.value
-                },
-                launch {
-                    preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_CORRELATION.name)
-                    ).let {
-                        if (it != null) {
-                            correlation = Json.decodeFromString<Correlation>(it)
-                        } else {
-                            preferencesRepository.changePreferenceValue(
-                                preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_CORRELATION.name),
-                                newValue = Json.encodeToString(correlation)
+                    },
+                    launch {
+                        useLinkoraTopDecoratorOnDesktop.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.DESKTOP_TOP_DECORATOR.name)
+                            ) ?: useLinkoraTopDecoratorOnDesktop.value
+                    },
+                    launch {
+                        refreshLinksWorkerTag.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENT_WORK_MANAGER_WORK_UUID.name)
+                        ) ?: refreshLinksWorkerTag.value
+                    },
+                    launch {
+                        shouldUseAmoledTheme.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.AMOLED_THEME_STATE.name
                             )
+                        ) ?: shouldFollowAmoledTheme.value
+                    },
+                    launch {
+                        preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_CORRELATION.name)
+                        ).let {
+                            if (it != null) {
+                                correlation = Json.decodeFromString<Correlation>(it)
+                            } else {
+                                preferencesRepository.changePreferenceValue(
+                                    preferenceKey = stringPreferencesKey(AppPreferenceType.SERVER_CORRELATION.name),
+                                    newValue = Json.encodeToString(correlation)
+                                )
+                            }
                         }
-                    }
-                },
-                launch {
-                    showVideoTagOnUIIfApplicable.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(AppPreferenceType.SHOW_VIDEO_TAG_IF_APPLICABLE.name)
-                    ) ?: showVideoTagOnUIIfApplicable.value
-                },
-                launch {
-                    forceShuffleLinks.value = preferencesRepository.readPreferenceValue(
-                        booleanPreferencesKey(
-                            AppPreferenceType.FORCE_SHUFFLE_LINKS.name
-                        )
-                    ) == true
-                },
-                launch {
-                    showNoteInListViewLayout.value = preferencesRepository.readPreferenceValue(
-                        booleanPreferencesKey(
-                            AppPreferenceType.NOTE_VISIBILITY_IN_LIST_VIEWS.name
-                        )
-                    ) != false
-                },
-                launch {
-                    areSnapshotsEnabled.value = preferencesRepository.readPreferenceValue(
-                        booleanPreferencesKey(
-                            AppPreferenceType.USE_SNAPSHOTS.name
-                        )
-                    ) == true
-                },
-                launch {
-                    snapshotExportFormatID.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(
-                            AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
-                        )
-                    ).run {
-                        if (this == null) {
-                            snapshotExportFormatID.value
-                        } else {
-                            when (this) {
-                                "Both" -> SnapshotFormat.BOTH.id.updateSnapshotExportType(
-                                    preferencesRepository
-                                )
+                    },
+                    launch {
+                        showVideoTagOnUIIfApplicable.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(AppPreferenceType.SHOW_VIDEO_TAG_IF_APPLICABLE.name)
+                            ) ?: showVideoTagOnUIIfApplicable.value
+                    },
+                    launch {
+                        forceShuffleLinks.value = preferencesRepository.readPreferenceValue(
+                            booleanPreferencesKey(
+                                AppPreferenceType.FORCE_SHUFFLE_LINKS.name
+                            )
+                        ) == true
+                    },
+                    launch {
+                        showNoteInListViewLayout.value = preferencesRepository.readPreferenceValue(
+                            booleanPreferencesKey(
+                                AppPreferenceType.NOTE_VISIBILITY_IN_LIST_VIEWS.name
+                            )
+                        ) != false
+                    },
+                    launch {
+                        areSnapshotsEnabled.value = preferencesRepository.readPreferenceValue(
+                            booleanPreferencesKey(
+                                AppPreferenceType.USE_SNAPSHOTS.name
+                            )
+                        ) == true
+                    },
+                    launch {
+                        snapshotExportFormatID.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(
+                                AppPreferenceType.SNAPSHOTS_EXPORT_TYPE.name
+                            )
+                        ).run {
+                            if (this == null) {
+                                snapshotExportFormatID.value
+                            } else {
+                                when (this) {
+                                    "Both" -> SnapshotFormat.BOTH.id.updateSnapshotExportType(
+                                        preferencesRepository
+                                    )
 
-                                "JSON" -> SnapshotFormat.JSON.id.updateSnapshotExportType(
-                                    preferencesRepository
-                                )
+                                    "JSON" -> SnapshotFormat.JSON.id.updateSnapshotExportType(
+                                        preferencesRepository
+                                    )
 
-                                "HTML" -> SnapshotFormat.HTML.id.updateSnapshotExportType(
-                                    preferencesRepository
-                                )
+                                    "HTML" -> SnapshotFormat.HTML.id.updateSnapshotExportType(
+                                        preferencesRepository
+                                    )
 
-                                else -> this
-                            }.toString()
+                                    else -> this
+                                }.toString()
+                            }
                         }
-                    }
-                },
-                launch {
-                    skipSavingExistingLink.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(
-                            AppPreferenceType.SKIP_SAVING_EXISTING_LINK.name
-                        )
-                    ) != false
-                },
-                launch {
-                    skipCertCheckForSync.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(
-                            AppPreferenceType.SKIP_CERT_CHECK_FOR_SYNC_SERVER.name
-                        )
-                    ) == true
-                },
-                launch {
-                    isBackupAutoDeletionEnabled.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(
-                            AppPreferenceType.BACKUP_AUTO_DELETION_ENABLED.name
-                        )
-                    ) == true
-                },
-                launch {
-                    backupAutoDeleteThreshold.intValue = preferencesRepository.readPreferenceValue(
-                        preferenceKey = intPreferencesKey(
-                            AppPreferenceType.BACKUP_AUTO_DELETION_THRESHOLD.name
-                        )
-                    ) ?: backupAutoDeleteThreshold.intValue
-                },
-                launch {
-                    currentBackupLocation.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(
-                            AppPreferenceType.BACKUP_LOCATION.name
-                        )
-                    ) ?: (getDefaultExportLocation()
-                        ?: Localization.getLocalizedString(Localization.Key.BackupsWorkOnlyWithDirectory))
-                },
-                launch {
-                    currentExportLocation.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = stringPreferencesKey(
-                            AppPreferenceType.EXPORT_LOCATION.name
-                        )
-                    ) ?: (getDefaultExportLocation()
-                        ?: Localization.getLocalizedString(Localization.Key.ExportRequiresDirectory))
-                },
-            ).joinAll()
+                    },
+                    launch {
+                        skipSavingExistingLink.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.SKIP_SAVING_EXISTING_LINK.name
+                            )
+                        ) != false
+                    },
+                    launch {
+                        skipCertCheckForSync.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.SKIP_CERT_CHECK_FOR_SYNC_SERVER.name
+                            )
+                        ) == true
+                    },
+                    launch {
+                        isBackupAutoDeletionEnabled.value =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = booleanPreferencesKey(
+                                    AppPreferenceType.BACKUP_AUTO_DELETION_ENABLED.name
+                                )
+                            ) == true
+                    },
+                    launch {
+                        backupAutoDeleteThreshold.intValue =
+                            preferencesRepository.readPreferenceValue(
+                                preferenceKey = intPreferencesKey(
+                                    AppPreferenceType.BACKUP_AUTO_DELETION_THRESHOLD.name
+                                )
+                            ) ?: backupAutoDeleteThreshold.intValue
+                    },
+                    launch {
+                        currentBackupLocation.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(
+                                AppPreferenceType.BACKUP_LOCATION.name
+                            )
+                        ) ?: (defaultExportLocation
+                            ?: Localization.getLocalizedString(Localization.Key.BackupsWorkOnlyWithDirectory))
+                    },
+                    launch {
+                        currentExportLocation.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(
+                                AppPreferenceType.EXPORT_LOCATION.name
+                            )
+                        ) ?: (defaultExportLocation
+                            ?: Localization.getLocalizedString(Localization.Key.ExportRequiresDirectory))
+                    },
+                ).joinAll()
+            }
         }
-    }
 }
 
 private suspend fun Int.updateSnapshotExportType(preferencesRepository: PreferencesRepository) =
