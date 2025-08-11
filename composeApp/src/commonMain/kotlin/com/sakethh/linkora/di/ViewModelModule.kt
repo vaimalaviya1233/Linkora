@@ -36,9 +36,9 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
                 localMultiActionRepo = DependencyContainer.localMultiActionRepo,
                 localPanelsRepo = DependencyContainer.localPanelsRepo,
                 exportDataRepo = DependencyContainer.exportDataRepo,
-                permissionManager = LinkoraSDKProvider.getInstance().permissionManager,
-                fileManager = LinkoraSDKProvider.getInstance().fileManager,
-                dataSyncingNotificationService = LinkoraSDKProvider.getInstance().dataSyncingNotificationService,
+                permissionManager = LinkoraSDK.getInstance().permissionManager,
+                fileManager = LinkoraSDK.getInstance().fileManager,
+                dataSyncingNotificationService = LinkoraSDK.getInstance().dataSyncingNotificationService,
             )
 
 
@@ -60,8 +60,8 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
                 DependencyContainer.networkRepo,
                 DependencyContainer.preferencesRepo,
                 DependencyContainer.remoteSyncRepo,
-                fileManager = LinkoraSDKProvider.getInstance().fileManager,
-                permissionManager = LinkoraSDKProvider.getInstance().permissionManager,
+                fileManager = LinkoraSDK.getInstance().fileManager,
+                permissionManager = LinkoraSDK.getInstance().permissionManager,
             )
 
             DataSettingsScreenVM::class -> DataSettingsScreenVM(
@@ -70,9 +70,9 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
                 linksRepo = DependencyContainer.localLinksRepo,
                 preferencesRepository = DependencyContainer.preferencesRepo,
                 remoteSyncRepo = DependencyContainer.remoteSyncRepo,
-                nativeUtils = LinkoraSDKProvider.getInstance().nativeUtils,
-                fileManager = LinkoraSDKProvider.getInstance().fileManager,
-                permissionManager = LinkoraSDKProvider.getInstance().permissionManager,
+                nativeUtils = LinkoraSDK.getInstance().nativeUtils,
+                fileManager = LinkoraSDK.getInstance().fileManager,
+                permissionManager = LinkoraSDK.getInstance().permissionManager,
             )
 
             else -> error("Not sure how to create an instance of ${modelClass.simpleName}, maybe it's available in *AssistedFactory")

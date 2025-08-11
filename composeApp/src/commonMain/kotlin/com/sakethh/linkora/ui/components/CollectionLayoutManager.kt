@@ -23,9 +23,9 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -142,7 +142,7 @@ fun CollectionLayoutManager(
                         linkUIComponentParam = linkUIComponentParam(it),
                         forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name,
                         onShare = {
-                            LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
+                            LinkoraSDK.getInstance().nativeUtils.onShare(it)
                         })
                 }
                 if ((folders.isEmpty() && links.isEmpty()) || (folders.isNotEmpty() && links.isEmpty())) {

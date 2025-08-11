@@ -50,7 +50,6 @@ import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
-import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.App
@@ -80,7 +79,7 @@ val linkoraSpecificFolder = System.getProperty("user.home").run {
 
 suspend fun main() {
 
-    LinkoraSDKProvider.set(
+    LinkoraSDK.set(
         linkoraSdk = LinkoraSDK(
             nativeUtils = NativeUtils(),
             fileManager = FileManager(),
@@ -97,7 +96,7 @@ suspend fun main() {
 
     withContext(Dispatchers.IO) {
         awaitAll(async {
-            AppPreferences.readAll(defaultExportLocation = LinkoraSDKProvider.getInstance().fileManager.getDefaultExportLocation(), preferencesRepository = DependencyContainer.preferencesRepo)
+            AppPreferences.readAll(defaultExportLocation = LinkoraSDK.getInstance().fileManager.getDefaultExportLocation(), preferencesRepository = DependencyContainer.preferencesRepo)
         }, async {
             Localization.loadLocalizedStrings(
                 AppPreferences.preferredAppLanguageCode.value

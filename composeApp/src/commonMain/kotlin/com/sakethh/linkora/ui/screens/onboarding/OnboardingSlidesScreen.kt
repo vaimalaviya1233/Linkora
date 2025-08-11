@@ -56,13 +56,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.di.LinkoraSDKProvider
+import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -72,6 +70,8 @@ import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 
 private data class OnboardingSlide(val screen: @Composable () -> Unit)
@@ -82,20 +82,15 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val slides = remember {
-        listOf(
-            OnboardingSlide {
-                Slide1()
-            },
-            OnboardingSlide {
-                Slide2()
-            },
-            OnboardingSlide {
-                Slide3()
-            },
-            OnboardingSlide {
-                Slide4()
-            }
-        )
+        listOf(OnboardingSlide {
+            Slide1()
+        }, OnboardingSlide {
+            Slide2()
+        }, OnboardingSlide {
+            Slide3()
+        }, OnboardingSlide {
+            Slide4()
+        })
     }
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
@@ -109,8 +104,7 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
                         val scale = lerp(1f, 2f, pageOffset)
                         scaleX = scale
                         scaleY = scale
-                    }
-            ) {
+                    }) {
                 slides[it].screen()
             }
         }
@@ -183,7 +177,8 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
 @Composable
 private fun Slide1() {
     Column(
-        modifier = Modifier.padding(15.dp).fillMaxSize(), verticalArrangement = Arrangement.Bottom,
+        modifier = Modifier.padding(15.dp).fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.Start
     ) {
         CoilImage(
@@ -253,10 +248,10 @@ private fun Slide2() {
             FolderComponent(
                 FolderComponentParam(
                     folder = Folder(
-                        name = Localization.Key.AppIntroSlide2Folder1Name.rememberLocalizedString(),
-                        note = Localization.Key.AppIntroSlide2Folder1Note.rememberLocalizedString(),
-                        parentFolderId = null
-                    ),
+                    name = Localization.Key.AppIntroSlide2Folder1Name.rememberLocalizedString(),
+                    note = Localization.Key.AppIntroSlide2Folder1Note.rememberLocalizedString(),
+                    parentFolderId = null
+                ),
                     onClick = {},
                     onLongClick = {},
                     onMoreIconClick = {},
@@ -277,10 +272,10 @@ private fun Slide2() {
             FolderComponent(
                 FolderComponentParam(
                     folder = Folder(
-                        name = Localization.Key.AppIntroSlide2Folder2Name.rememberLocalizedString(),
-                        note = Localization.Key.AppIntroSlide2Folder2Note.rememberLocalizedString(),
-                        parentFolderId = null
-                    ),
+                    name = Localization.Key.AppIntroSlide2Folder2Name.rememberLocalizedString(),
+                    note = Localization.Key.AppIntroSlide2Folder2Note.rememberLocalizedString(),
+                    parentFolderId = null
+                ),
                     onClick = {},
                     onLongClick = {},
                     onMoreIconClick = {},
@@ -316,14 +311,16 @@ private fun Slide2() {
                         localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
                     },
                     onForceOpenInExternalBrowserClicked = { -> },
-                    isSelectionModeEnabled = mutableStateOf(false),
-                    isItemSelected = mutableStateOf(false),
+                    isSelectionModeEnabled = rememberSaveable {
+                        mutableStateOf(false)
+                    },
+                    isItemSelected = rememberSaveable {
+                        mutableStateOf(false)
+                    },
                     onLongClick = { -> },
-                ), forTitleOnlyView = false,
-                onShare = {
-                    LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
-                }
-            )
+                ), forTitleOnlyView = false, onShare = {
+                    LinkoraSDK.getInstance().nativeUtils.onShare(it)
+                })
             LinkListItemComposable(
                 linkUIComponentParam = LinkUIComponentParam(
                     link = Link(
@@ -338,18 +335,19 @@ private fun Slide2() {
                         idOfLinkedFolder = null
                     ),
                     onForceOpenInExternalBrowserClicked = { -> },
-                    isSelectionModeEnabled = mutableStateOf(false),
-                    isItemSelected = mutableStateOf(false),
+                    isSelectionModeEnabled = rememberSaveable {
+                        mutableStateOf(false)
+                    },
+                    isItemSelected = rememberSaveable {
+                        mutableStateOf(false)
+                    },
                     onLongClick = { -> }, onMoreIconClick = { -> },
                     onLinkClick = { ->
                         localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
                     },
-                ), forTitleOnlyView = false,
-                imageAlignment = Alignment.TopCenter,
-                onShare = {
-                    LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
-                }
-            )
+                ), forTitleOnlyView = false, imageAlignment = Alignment.TopCenter, onShare = {
+                    LinkoraSDK.getInstance().nativeUtils.onShare(it)
+                })
             Spacer(modifier = Modifier.height(5.dp))
             SlideTitle(
                 string = Localization.Key.AppIntroSlide2MainLabel.rememberLocalizedString(),
@@ -397,9 +395,9 @@ private fun Slide3() {
             )
         }
         ScrollableTabRow(
-            modifier = Modifier.fillMaxWidth(), selectedTabIndex = pagerState.currentPage,
-            divider = {}
-        ) {
+            modifier = Modifier.fillMaxWidth(),
+            selectedTabIndex = pagerState.currentPage,
+            divider = {}) {
             (0..1).forEach {
                 key(it) {
                     Tab(selected = pagerState.currentPage == it, onClick = {
@@ -427,10 +425,10 @@ private fun Slide3() {
                         FolderComponent(
                             FolderComponentParam(
                                 folder = Folder(
-                                    name = Localization.Key.AppIntroSlide3Folder2_1Name.rememberLocalizedString(),
-                                    note = Localization.Key.AppIntroSlide3Folder2_1Note.rememberLocalizedString(),
-                                    parentFolderId = null
-                                ),
+                                name = Localization.Key.AppIntroSlide3Folder2_1Name.rememberLocalizedString(),
+                                note = Localization.Key.AppIntroSlide3Folder2_1Note.rememberLocalizedString(),
+                                parentFolderId = null
+                            ),
                                 onClick = {},
                                 onLongClick = {},
                                 onMoreIconClick = {},
@@ -479,24 +477,22 @@ private fun Slide3() {
                                     localUriHandler.openUri("https://store.epicgames.com/en-US/p/a-plague-tale-requiem")
                                 },
                                 onForceOpenInExternalBrowserClicked = { -> },
-                                isSelectionModeEnabled = mutableStateOf(false),
-                                isItemSelected = mutableStateOf(false),
+                                isSelectionModeEnabled = rememberSaveable { mutableStateOf(false) },
+                                isItemSelected = rememberSaveable { mutableStateOf(false) },
                                 onLongClick = { -> },
-                            ), forTitleOnlyView = false,
-                            onShare = {
-                                LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
-                            }
-                        )
+                            ), forTitleOnlyView = false, onShare = {
+                                LinkoraSDK.getInstance().nativeUtils.onShare(it)
+                            })
                     }
 
                     1 -> {
                         FolderComponent(
                             FolderComponentParam(
                                 folder = Folder(
-                                    name = Localization.Key.AppIntroSlide3Folder3_1Name.rememberLocalizedString(),
-                                    note = Localization.Key.AppIntroSlide3Folder3_1Note.rememberLocalizedString(),
-                                    parentFolderId = null
-                                ),
+                                name = Localization.Key.AppIntroSlide3Folder3_1Name.rememberLocalizedString(),
+                                note = Localization.Key.AppIntroSlide3Folder3_1Note.rememberLocalizedString(),
+                                parentFolderId = null
+                            ),
                                 onClick = {},
                                 onLongClick = {},
                                 onMoreIconClick = {},
@@ -532,16 +528,17 @@ private fun Slide3() {
                                     localUriHandler.openUri("https://www.youtube.com/watch?v=OFWMtmqocV8")
                                 },
                                 onForceOpenInExternalBrowserClicked = { -> },
-                                isSelectionModeEnabled = mutableStateOf(false),
-                                isItemSelected = mutableStateOf(false),
+                                isSelectionModeEnabled = rememberSaveable { mutableStateOf(false) },
+                                isItemSelected = rememberSaveable {
+                                    mutableStateOf(false)
+                                },
                                 onLongClick = { -> },
                             ),
                             forTitleOnlyView = false,
                             imageAlignment = Alignment.TopCenter,
                             onShare = {
-                                LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
-                            }
-                        )
+                                LinkoraSDK.getInstance().nativeUtils.onShare(it)
+                            })
                     }
                 }
             }

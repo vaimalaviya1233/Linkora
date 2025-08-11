@@ -5,7 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.di.DependencyContainer
-import com.sakethh.linkora.di.LinkoraSDKProvider
+import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.utils.linkoraLog
@@ -19,7 +19,7 @@ class SnapshotWorker(appContext: Context, workerParameters: WorkerParameters) :
             val rawExportString =
                 DependencyContainer.snapshotRepo.getASnapshot(rawExportStringID)
             val fileType = inputData.getString(key = "fileType")!!
-            LinkoraSDKProvider.getInstance().fileManager.writeRawExportStringToFile(
+            LinkoraSDK.getInstance().fileManager.writeRawExportStringToFile(
                 exportLocation = AppPreferences.currentBackupLocation.value,
                 exportFileType = ExportFileType.valueOf(fileType),
                 rawExportString = rawExportString.content,

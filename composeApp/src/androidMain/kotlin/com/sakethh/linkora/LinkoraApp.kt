@@ -15,7 +15,6 @@ import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
-import com.sakethh.linkora.di.LinkoraSDKProvider
 import kotlinx.coroutines.Dispatchers
 import okio.Path.Companion.toPath
 
@@ -23,7 +22,7 @@ class LinkoraApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        LinkoraSDKProvider.set(linkoraSdk = LinkoraSDK(
+        LinkoraSDK.set(linkoraSdk = LinkoraSDK(
             nativeUtils = NativeUtils(applicationContext),
             fileManager = FileManager(applicationContext),
             permissionManager = PermissionManager(applicationContext),
@@ -51,7 +50,7 @@ class LinkoraApp : Application() {
                     applicationContext.filesDir.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
                 }), dataSyncingNotificationService = NativeUtils.DataSyncingNotificationService(applicationContext)
         ))
-        AppPreferences.readAll(defaultExportLocation = LinkoraSDKProvider.getInstance().fileManager.getDefaultExportLocation(),preferencesRepository = DependencyContainer.preferencesRepo)
+        AppPreferences.readAll(defaultExportLocation = LinkoraSDK.getInstance().fileManager.getDefaultExportLocation(),preferencesRepository = DependencyContainer.preferencesRepo)
         Localization.loadLocalizedStrings(
             AppPreferences.preferredAppLanguageCode.value
         )

@@ -108,7 +108,6 @@ android {
             )
             applicationIdSuffix = ".preview"
             versionNameSuffix = "-preview"
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

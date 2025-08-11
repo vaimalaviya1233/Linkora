@@ -38,12 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.di.LinkoraSDKProvider
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
@@ -434,7 +434,7 @@ fun LayoutSettingsScreen() {
                         LinkListItemComposable(
                             linkUIComponentParam = it,
                             onShare = {
-                                LinkoraSDKProvider.getInstance().nativeUtils.onShare(it)
+                                LinkoraSDK.getInstance().nativeUtils.onShare(it)
                             },
                             forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name
                         )
