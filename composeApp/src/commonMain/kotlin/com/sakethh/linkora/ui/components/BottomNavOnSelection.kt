@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.filled.Archive
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -36,19 +38,22 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
-import com.sakethh.linkora.utils.defaultFolderIds
-import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
+import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.domain.TransferActionType
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
+import com.sakethh.linkora.utils.defaultFolderIds
+import com.sakethh.linkora.utils.rememberLocalizedString
+import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 
 @Composable
 fun BottomNavOnSelection(
@@ -59,6 +64,7 @@ fun BottomNavOnSelection(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val localNavController = LocalNavController.current
+    val platform = LocalPlatform.current
     Column(
         modifier = Modifier.fillMaxWidth().animateContentSize()
             .background(NavigationBarDefaults.containerColor).navigationBarsPadding()
@@ -217,6 +223,23 @@ fun BottomNavOnSelection(
                             imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
                             contentDescription = null
                         )
+                    }
+                    if (platform is Platform.Android) {
+                        Spacer(
+                            modifier = Modifier.height(20.dp).width(2.dp).background(
+                                MaterialTheme.colorScheme.outline
+                            )
+                        )
+                        IconButton(onClick = {
+                            LinkoraSDK.getInstance().nativeUtils.onShare(
+                                CollectionsScreenVM.selectedLinksViaLongClick.joinToString(
+                                    "\n"
+                                ) { it.url })
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Share, contentDescription = null
+                            )
+                        }
                     }
                 }
             }
