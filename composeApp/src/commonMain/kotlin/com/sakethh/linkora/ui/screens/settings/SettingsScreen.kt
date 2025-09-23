@@ -50,7 +50,7 @@ import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.screens.collections.ItemDivider
+import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import linkora.composeapp.generated.resources.Res
 import linkora.composeapp.generated.resources.discord

@@ -480,9 +480,9 @@ object Localization {
             defaultValue = "Change Name and Note"
         ),
         ChangeNoteOnly(defaultValue = "Change Note"),
-        RenameFolder(defaultValue = "Rename Folder ${LinkoraPlaceHolder.First.value}:"),
+        RenameFolder(defaultValue = "Rename Folder ${LinkoraPlaceHolder.First.value}"),
         ChangeLinkData(
-            defaultValue = "Change Link data:"
+            defaultValue = "Change Link data"
         ),
         NewName(defaultValue = "New Name"),
         NewTitle(defaultValue = "New Title"),

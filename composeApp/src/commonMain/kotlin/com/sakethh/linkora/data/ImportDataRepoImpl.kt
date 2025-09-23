@@ -1,14 +1,12 @@
 package com.sakethh.linkora.data
 
-import com.sakethh.linkora.utils.LinkoraExports
-import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.utils.isNull
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asJSONExportSchema
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.JSONExportSchema
+import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.model.legacy.LegacyExportSchema
 import com.sakethh.linkora.domain.model.link.Link
@@ -19,7 +17,11 @@ import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.utils.LinkoraExports
+import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.utils.isNull
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -36,6 +38,7 @@ class ImportDataRepoImpl(
     private val localLinksRepo: LocalLinksRepo,
     private val localFoldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
+    private val localTagsRepo: LocalTagsRepo,
     private val remoteSyncRepo: RemoteSyncRepo,
     private val canPushToServer: () -> Boolean,
 ) : ImportDataRepo {
@@ -62,15 +65,21 @@ class ImportDataRepoImpl(
             } else rawImportString.run {
                 json.decodeFromString<JSONExportSchema>(this)
             }.run {
-                JSONExportSchema(schemaVersion = schemaVersion, links = links.map {
-                    it.copy(remoteId = null, lastModified = 0)
-                }, folders = folders.map {
-                    it.copy(remoteId = null, lastModified = 0)
-                }, panels = PanelForJSONExportSchema(panels = panels.panels.map {
-                    it.copy(remoteId = null, lastModified = 0)
-                }, panelFolders = panels.panelFolders.map {
-                    it.copy(remoteId = null, lastModified = 0)
-                }))
+                JSONExportSchema(
+                    schemaVersion = schemaVersion,
+                    links = links.map {
+                        it.copy(remoteId = null, lastModified = 0)
+                    },
+                    folders = folders.map {
+                        it.copy(remoteId = null, lastModified = 0)
+                    },
+                    panels = PanelForJSONExportSchema(panels = panels.panels.map {
+                        it.copy(remoteId = null, lastModified = 0)
+                    }, panelFolders = panels.panelFolders.map {
+                        it.copy(remoteId = null, lastModified = 0)
+                    }),
+                    tags = tags.map { it.copy(remoteId = null, lastModified = 0) },
+                    linkTags = linkTags.map { it.copy(remoteId = null, lastModified = 0) })
             }
 
             send(
@@ -86,14 +95,25 @@ class ImportDataRepoImpl(
             send(Result.Loading(message = "Deserialization completed: Links=${deserializedData.links.size}, Folders=${deserializedData.folders.size}, Panels=${deserializedData.panels.panels.size}, PanelFolders=${deserializedData.panels.panelFolders.size}"))
 
             send(Result.Loading(message = "Filtering non-folder linked links."))
-            val nonFolderLinkedLinks = deserializedData.links.filter {
+            val srcNonFolderLinks = deserializedData.links.filter {
                 it.linkType != LinkType.FOLDER_LINK
-            }.map {
+            }
+            val destNonFolderLinks = srcNonFolderLinks.map {
                 it.copy(localId = 0)
             }
+            val updatedLinkTags = mutableListOf<LinkTag>()
 
             send(Result.Loading(message = "Adding non-folder linked links to local repository."))
-            localLinksRepo.addMultipleLinks(nonFolderLinkedLinks)
+            localLinksRepo.addMultipleLinks(destNonFolderLinks).let { newLinkIds ->
+
+                val newTagLinkIds = deserializedData.linkTags.filter {
+                    it.linkId in srcNonFolderLinks.map { it.localId }
+                }.mapIndexed { index, linkTag ->
+                    linkTag.copy(linkId = newLinkIds[index])
+                }
+
+                updatedLinkTags.addAll(newTagLinkIds)
+            }
 
             var latestFolderId = localFoldersRepo.getLatestFoldersTableID()
             send(Result.Loading(message = "Retrieved latest folder ID: $latestFolderId"))
@@ -127,13 +147,23 @@ class ImportDataRepoImpl(
                             }
                         }
 
-                        val updatedLinks = deserializedData.links.filter {
+                        val srcFolderLinks = deserializedData.links.filter {
                             it.idOfLinkedFolder == childFolder.localId && it.linkType == LinkType.FOLDER_LINK
-                        }.map {
+                        }
+
+                        val destFolderLinks = srcFolderLinks.map {
                             it.copy(localId = 0, idOfLinkedFolder = newChildFolderId)
                         }
 
-                        localLinksRepo.addMultipleLinks(updatedLinks)
+                        localLinksRepo.addMultipleLinks(destFolderLinks).let { newLinkIds ->
+                            val newLinkTags = deserializedData.linkTags.filter {
+                                it.linkId in srcFolderLinks.map { it.localId }
+                            }.mapIndexed { index, linkTag ->
+                                linkTag.copy(linkId = newLinkIds[index])
+                            }
+
+                            updatedLinkTags.addAll(newLinkTags)
+                        }
 
                         updatedPanelFolders.addAll(deserializedData.panels.panelFolders.filter {
                             it.folderId == childFolder.localId
@@ -149,13 +179,22 @@ class ImportDataRepoImpl(
                     it.parentFolderId == currentFolder.localId
                 }, newParentFolderId)
 
-                val updatedLinks = deserializedData.links.filter {
+                val srcFolderLinks = deserializedData.links.filter {
                     it.idOfLinkedFolder == currentFolder.localId && it.linkType == LinkType.FOLDER_LINK
-                }.map {
+                }
+                val destFolderLinks = srcFolderLinks.map {
                     it.copy(localId = 0, idOfLinkedFolder = newParentFolderId)
                 }
 
-                localLinksRepo.addMultipleLinks(updatedLinks)
+                localLinksRepo.addMultipleLinks(destFolderLinks).let { newLinkIds ->
+                    val newLinkTags = deserializedData.linkTags.filter {
+                        it.linkId in srcFolderLinks.map { it.localId }
+                    }.mapIndexed { index, linkTag ->
+                        linkTag.copy(linkId = newLinkIds[index])
+                    }
+
+                    updatedLinkTags.addAll(newLinkTags)
+                }
 
                 updatedPanelFolders.addAll(deserializedData.panels.panelFolders.filter {
                     it.folderId == currentFolder.localId
@@ -184,6 +223,19 @@ class ImportDataRepoImpl(
                     it.copy(connectedPanelId = latestPanelId, localId = 0)
                 })
             }
+
+            deserializedData.tags.forEach { currentTag ->
+                localTagsRepo.createATag(currentTag.copy(localId = 0)).collectLatest {
+                    it.onSuccess {currTagNewId->
+                        localTagsRepo.createLinkTags(updatedLinkTags.filter {
+                            it.tagId == currentTag.localId
+                        }.map {
+                            it.copy(tagId = currTagNewId.data)
+                        })
+                    }
+                }
+            }
+
             if (canPushToServer()) {
                 send(Result.Loading(message = "Server is configured. Initiating push."))
                 with(remoteSyncRepo) {
@@ -258,7 +310,9 @@ class ImportDataRepoImpl(
                                         imgURL = "",
                                         note = "",
                                         idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
-                                    ), linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving()
+                                    ),
+                                    linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
+                                    selectedTagIds = null
                                 ).collect()
                             } catch (e: Exception) {
                                 e.printStackTrace()
@@ -274,7 +328,9 @@ class ImportDataRepoImpl(
                                         imgURL = "",
                                         note = "",
                                         idOfLinkedFolder = if (parentFolderId == (-1).toLong()) null else parentFolderId,
-                                    ), linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving()
+                                    ),
+                                    linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
+                                    selectedTagIds = null
                                 ).collect()
                             } catch (e: Exception) {
                                 e.printStackTrace()

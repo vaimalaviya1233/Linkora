@@ -25,7 +25,7 @@ class RemoteMultiActionRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name,
-            body = archiveMultipleItemsDTO
+            outgoingBody = archiveMultipleItemsDTO
         )
     }
 
@@ -35,7 +35,7 @@ class RemoteMultiActionRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
-            body = deleteMultipleItemsDTO
+            outgoingBody = deleteMultipleItemsDTO
         )
     }
 
@@ -45,7 +45,7 @@ class RemoteMultiActionRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name,
-            body = moveItemsDTO
+            outgoingBody = moveItemsDTO
         )
     }
 
@@ -55,7 +55,7 @@ class RemoteMultiActionRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name,
-            body = copyItemsDTO
+            outgoingBody = copyItemsDTO
         )
     }
 
@@ -65,7 +65,7 @@ class RemoteMultiActionRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name,
-            body = markItemsRegularDTO
+            outgoingBody = markItemsRegularDTO
         )
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -62,11 +63,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,7 +86,22 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.di.DependencyContainer
+import com.sakethh.linkora.domain.LinkSaveConfig
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.onSuccess
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
+import com.sakethh.linkora.ui.domain.ScreenType
+import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
+import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.defaultFolderIds
 import com.sakethh.linkora.utils.defaultImpLinksFolder
@@ -95,21 +111,6 @@ import com.sakethh.linkora.utils.isNull
 import com.sakethh.linkora.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
-import com.sakethh.linkora.di.DependencyContainer
-import com.sakethh.linkora.domain.LinkSaveConfig
-import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.link.Link
-import com.sakethh.linkora.domain.onSuccess
-import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
-import com.sakethh.linkora.ui.domain.ScreenType
-import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
-import com.sakethh.linkora.ui.utils.linkoraLog
-import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
-import com.sakethh.linkora.platform.platform
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -212,7 +213,7 @@ fun AddANewLinkDialogBox(
                             lazyRowState = lazyRowState,
                             addTheFolderInRoot = addTheFolderInRoot,
                             collectionsScreenVM = collectionsScreenVM,
-                            currentFolder
+                            currentlyInFolder = currentFolder,
                         )
                         Spacer(Modifier.height(50.dp))
                     }
@@ -442,7 +443,9 @@ private fun TopPartOfAddANewLinkDialogBox(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class
+)
 @Composable
 private fun BottomPartOfAddANewLinkDialogBox(
     shouldBeVisible: MutableState<Boolean>,
@@ -459,13 +462,15 @@ private fun BottomPartOfAddANewLinkDialogBox(
     lazyRowState: LazyListState,
     addTheFolderInRoot: MutableState<Boolean>,
     collectionsScreenVM: CollectionsScreenVM,
-    currentlyInFolder: Folder?
+    currentlyInFolder: Folder?,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val shouldShowNewFolderDialog = rememberSaveable {
         mutableStateOf(false)
     }
+
+    val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
     val selectedFolderForSavingTheLink = rememberDeserializableMutableObject {
         mutableStateOf(
             Folder(
@@ -486,14 +491,36 @@ private fun BottomPartOfAddANewLinkDialogBox(
         ),
         verticalArrangement = if (platform() is Platform.Android.Mobile) Arrangement.Top else Arrangement.Center
     ) {
+        Text(
+            text = "Attach Tags",
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = 18.sp,
+            modifier = Modifier.padding(
+                start = 20.dp, top = 10.dp, end = 20.dp
+            )
+        )
+
+        TagSelectionComponent(
+            allTags = allTags,
+            selectedTags = collectionsScreenVM.selectedTags,
+            onClick = {
+                if (collectionsScreenVM.selectedTags.contains(it)) {
+                    collectionsScreenVM.unSelectATag(it)
+                } else {
+                    collectionsScreenVM.selectATag(it)
+                }
+            }
+        )
+
         if (currentlyInFolder.isNull()) {
             Text(
                 text = Localization.rememberLocalizedString(Localization.Key.AddIn),
-                color = contentColorFor(backgroundColor = AlertDialogDefaults.containerColor),
+                color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 18.sp,
                 modifier = Modifier.padding(
-                    start = 20.dp, top = 20.dp, end = 20.dp
+                    start = 20.dp, top = 10.dp, end = 20.dp
                 )
             )
             Row(
@@ -664,6 +691,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 ), modifier = Modifier.padding(
                     end = 20.dp, start = 20.dp
                 ).fillMaxWidth().pulsateEffect(), onClick = {
+                    collectionsScreenVM.clearSelectedTags()
                     shouldBeVisible.value = false
                     isForceSaveWithoutFetchingMetaDataEnabled.value = false
                 }) {
@@ -701,7 +729,8 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
                         ), onCompletion = {
                             shouldBeVisible.value = false
-                        })
+                        }, selectedTags = collectionsScreenVM.selectedTags
+                    )
                 }) {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.Save),

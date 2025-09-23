@@ -39,11 +39,13 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
                 permissionManager = LinkoraSDK.getInstance().permissionManager,
                 fileManager = LinkoraSDK.getInstance().fileManager,
                 dataSyncingNotificationService = LinkoraSDK.getInstance().dataSyncingNotificationService,
+                localTagsRepo = DependencyContainer.localTagsRepo
             )
 
 
             SearchScreenVM::class -> SearchScreenVM(
-                DependencyContainer.localFoldersRepo, DependencyContainer.localLinksRepo
+                localFoldersRepo = DependencyContainer.localFoldersRepo, localLinksRepo =  DependencyContainer.localLinksRepo,
+                localTagsRepo = DependencyContainer.localTagsRepo
             )
 
             SettingsScreenViewModel::class -> SettingsScreenViewModel(DependencyContainer.preferencesRepo)

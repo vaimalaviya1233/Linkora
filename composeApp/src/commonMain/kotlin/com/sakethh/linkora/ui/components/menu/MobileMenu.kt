@@ -21,6 +21,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -50,7 +53,7 @@ import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.ui.components.CoilImage
-import com.sakethh.linkora.ui.screens.collections.ItemDivider
+import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.fadedEdges
@@ -137,8 +140,8 @@ fun MobileMenu(
                         )
                     )
                 },
-                menuBtmSheetType = MenuBtmSheetType.Link.FolderLink,
-                text = menuBtmSheetParam.link.value.title.toString()
+                leadingIcon = Icons.Default.Link,
+                text = menuBtmSheetParam.link.value.title
             )
             ItemDivider(
                 colorOpacity = 0.25f, paddingValues = PaddingValues(start = 15.dp, end = 15.dp)
@@ -155,8 +158,8 @@ fun MobileMenu(
                         )
                     )
                 },
-                menuBtmSheetType = MenuBtmSheetType.Folder.RegularFolder,
-                text = menuBtmSheetParam.folder!!.value.name.toString()
+                leadingIcon = Icons.Outlined.Folder,
+                text = menuBtmSheetParam.folder!!.value.name
             )
             ItemDivider(
                 colorOpacity = 0.25f, paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
@@ -222,7 +225,7 @@ fun MobileMenu(
 
 @ExperimentalFoundationApi
 @Composable
-fun MenuNonImageHeader(onClick: () -> Unit, menuBtmSheetType: MenuBtmSheetType, text: String) {
+fun MenuNonImageHeader(onClick: () -> Unit, leadingIcon: ImageVector, text: String) {
     Row(
         modifier = Modifier.combinedClickable(interactionSource = remember {
             MutableInteractionSource()
@@ -230,7 +233,7 @@ fun MenuNonImageHeader(onClick: () -> Unit, menuBtmSheetType: MenuBtmSheetType, 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = if (menuBtmSheetType == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.Folder else Icons.Outlined.Link,
+            imageVector = leadingIcon,
             null,
             modifier = Modifier.padding(20.dp).size(28.dp)
         )

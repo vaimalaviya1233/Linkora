@@ -1,8 +1,10 @@
 package com.sakethh.linkora.preferences
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -85,6 +87,7 @@ object AppPreferences {
     val currentBackupLocation = mutableStateOf("")
     val backupAutoDeleteThreshold = mutableIntStateOf(10)
     val isBackupAutoDeletionEnabled = mutableStateOf(false)
+    var selectedCollectionSourceId by mutableIntStateOf(0)
 
     suspend fun lastSyncedLocally(preferencesRepository: PreferencesRepository): Long {
         return preferencesRepository.readPreferenceValue(
@@ -448,7 +451,13 @@ object AppPreferences {
                             )
                         ) ?: (defaultExportLocation
                             ?: Localization.getLocalizedString(Localization.Key.ExportRequiresDirectory))
-                    },
+                    }, launch {
+                        selectedCollectionSourceId = preferencesRepository.readPreferenceValue(
+                            preferenceKey = intPreferencesKey(
+                                AppPreferenceType.COLLECTION_SOURCE_ID.name
+                            )
+                        ) ?: 0
+                    }
                 ).joinAll()
             }
         }

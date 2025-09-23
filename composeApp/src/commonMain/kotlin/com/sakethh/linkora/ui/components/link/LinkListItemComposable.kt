@@ -20,13 +20,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ImageNotSupported
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,12 +49,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
-import com.sakethh.linkora.ui.screens.collections.ItemDivider
+import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -59,7 +64,7 @@ fun LinkListItemComposable(
     forTitleOnlyView: Boolean,
     modifier: Modifier = Modifier,
     imageAlignment: Alignment = Alignment.Center,
-    onShare:(url: String)-> Unit
+    onShare: (url: String) -> Unit
 ) {
     val localClipBoardManager = LocalClipboardManager.current
     LocalUriHandler.current
@@ -147,11 +152,43 @@ fun LinkListItemComposable(
                 color = MaterialTheme.colorScheme.onSurface.copy(0.75f)
             )
         }
+        if (linkUIComponentParam.tags != null) {
+            LazyRow(
+                modifier = Modifier.padding(top = 5.dp, end = 15.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(linkUIComponentParam.tags) { tag ->
+                    AssistChip(
+                        colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                            0.5f
+                        )
+                    ), border = AssistChipDefaults.assistChipBorder(
+                        enabled = true,
+                        borderColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f)
+                    ), onClick = {
+                        linkUIComponentParam.onTagClick(tag)
+                    }, label = {
+                        Text(
+                            text = tag.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }, leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Tag,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    })
+                }
+            }
+        }
 
         if (AppPreferences.enableBaseURLForLinkViews.value) {
             Text(
                 modifier = Modifier.padding(
-                    top = 15.dp,
+                    top = if (linkUIComponentParam.tags != null) 5.dp else 15.dp,
                     end = 15.dp,
                     bottom = if (linkUIComponentParam.isSelectionModeEnabled.value) 15.dp else 0.dp
                 ).background(
@@ -164,7 +201,7 @@ fun LinkListItemComposable(
                 maxLines = 1,
                 textAlign = TextAlign.Start,
                 overflow = TextOverflow.Ellipsis,
-                 fontSize = 12.sp
+                fontSize = 12.sp
             )
         } else {
             Spacer(modifier = Modifier.height(10.dp))

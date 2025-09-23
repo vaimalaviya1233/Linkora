@@ -87,16 +87,23 @@ suspend fun main() {
             localDatabase = File(linkoraSpecificFolder, "${LocalDatabase.NAME}.db").run {
                 Room.databaseBuilder<LocalDatabase>(name = this.absolutePath)
                     .setDriver(BundledSQLiteDriver()).addMigrations(
-                        LocalDatabase.MIGRATION_9_10, LocalDatabase.MIGRATION_10_11
+                        LocalDatabase.MIGRATION_9_10,
+                        LocalDatabase.MIGRATION_10_11,
+                        LocalDatabase.MIGRATION_11_12
                     ).build()
             },
             dataStore = PreferenceDataStoreFactory.createWithPath {
                 linkoraSpecificFolder.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
-            }, dataSyncingNotificationService = NativeUtils.DataSyncingNotificationService()))
+            }, dataSyncingNotificationService = NativeUtils.DataSyncingNotificationService()
+        )
+    )
 
     withContext(Dispatchers.IO) {
         awaitAll(async {
-            AppPreferences.readAll(defaultExportLocation = LinkoraSDK.getInstance().fileManager.getDefaultExportLocation(), preferencesRepository = DependencyContainer.preferencesRepo)
+            AppPreferences.readAll(
+                defaultExportLocation = LinkoraSDK.getInstance().fileManager.getDefaultExportLocation(),
+                preferencesRepository = DependencyContainer.preferencesRepo
+            )
         }, async {
             Localization.loadLocalizedStrings(
                 AppPreferences.preferredAppLanguageCode.value

@@ -203,7 +203,7 @@ fun AboutSettingsScreen() {
                     onClick = {
                         val url = "https://www.twitter.com/LinkoraApp"
                         aboutSettingsScreenVM.addANewLinkToHistory(
-                            Link(
+                           link =  Link(
                                 linkType = LinkType.HISTORY_LINK,
                                 title = Localization.Key.LinkoraOnTwitter.getLocalizedString(),
                                 url = url,
@@ -211,7 +211,8 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraOnTwitter.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            )
+                            ),
+                            tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -226,7 +227,7 @@ fun AboutSettingsScreen() {
                     onClick = {
                         val url = "https://discord.gg/ZDBXNtv8MD"
                         aboutSettingsScreenVM.addANewLinkToHistory(
-                            Link(
+                            link = Link(
                                 linkType = LinkType.HISTORY_LINK,
                                 title = Localization.Key.LinkoraOnDiscord.getLocalizedString(),
                                 url = url,
@@ -234,7 +235,8 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraOnDiscord.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            )
+                            ),
+                            tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -265,7 +267,7 @@ fun AboutSettingsScreen() {
                     onClick = {
                         val url = "https://www.github.com/LinkoraApp"
                         aboutSettingsScreenVM.addANewLinkToHistory(
-                            Link(
+                           link =  Link(
                                 linkType = LinkType.HISTORY_LINK,
                                 title = Localization.Key.LinkoraOnGithub.getLocalizedString(),
                                 url = url,
@@ -273,7 +275,8 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraOnGithub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            )
+                            ),
+                            tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -294,7 +297,7 @@ fun AboutSettingsScreen() {
                     onClick = {
                         val url = "https://github.com/sakethpathike/Linkora/issues/new"
                         aboutSettingsScreenVM.addANewLinkToHistory(
-                            Link(
+                            link = Link(
                                 linkType = LinkType.HISTORY_LINK,
                                 title = Localization.Key.LinkoraIssues.getLocalizedString(),
                                 url = url,
@@ -302,7 +305,8 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraIssuesOnGithub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            )
+                            ),
+                            tagIds =emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -325,7 +329,7 @@ fun AboutSettingsScreen() {
                     onClick = {
                         val url = "https://github.com/sakethpathike/Linkora/releases"
                         aboutSettingsScreenVM.addANewLinkToHistory(
-                            Link(
+                            link = Link(
                                 linkType = LinkType.HISTORY_LINK,
                                 title = Localization.Key.LinokraReleases.getLocalizedString(),
                                 url = url,
@@ -333,7 +337,8 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinokraReleasesOnGitHub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            )
+                            ),
+                            tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },

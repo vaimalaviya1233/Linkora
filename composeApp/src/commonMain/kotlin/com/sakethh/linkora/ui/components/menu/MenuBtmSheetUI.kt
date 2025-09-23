@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.StarOutline
@@ -45,16 +46,16 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.domain.ComposableContent
-import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.ui.domain.Layout
-import com.sakethh.linkora.platform.platform
 import kotlinx.coroutines.launch
 
 
@@ -109,9 +110,7 @@ fun MenuBtmSheetUI(
                                 menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
                             }
                             menuBtmSheetParam.onRename()
-                        },
-                        elementName = Localization.Key.Rename.getLocalizedString(),
-                        elementImageVector = Icons.Outlined.DriveFileRenameOutline
+                        }, elementName = "Edit", elementImageVector = Icons.Outlined.Edit
                     )
 
                     if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {

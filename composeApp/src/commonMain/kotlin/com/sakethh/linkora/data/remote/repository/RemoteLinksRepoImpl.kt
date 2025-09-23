@@ -26,7 +26,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
-            body = addLinkDTO
+            outgoingBody = addLinkDTO
         )
     }
 
@@ -36,7 +36,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.DELETE_A_LINK.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -48,7 +48,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
-            body = updateTitleOfTheLinkDTO
+            outgoingBody = updateTitleOfTheLinkDTO
         )
     }
 
@@ -60,7 +60,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
-            body = updateNoteOfALinkDTO
+            outgoingBody = updateNoteOfALinkDTO
         )
     }
 
@@ -70,7 +70,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.ARCHIVE_LINK.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -80,7 +80,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UNARCHIVE_LINK.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -90,7 +90,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.MARK_AS_IMP.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -100,7 +100,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UNMARK_AS_IMP.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -110,7 +110,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.UPDATE_LINK.name,
-            body = linkDTO
+            outgoingBody = linkDTO
         )
     }
 
@@ -120,7 +120,7 @@ class RemoteLinksRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
-            body = deleteDuplicateLinksDTO
+            outgoingBody = deleteDuplicateLinksDTO
         )
     }
 }

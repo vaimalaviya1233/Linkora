@@ -1,10 +1,11 @@
 package com.sakethh.linkora.ui.utils
 
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
+import com.sakethh.linkora.utils.getLocalizedString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,7 +18,8 @@ So this setup feels fine for now. Even though there are two different event obje
 I could eventually merge them into this single `UIEvent` object. For now, it's not a problem.
  **/
 object UIEvent {
-    private val _uiEvents = MutableSharedFlow<Type>() // `StateFlow` won't emit the same value again, so to make sure we're playing it safe, `SharedFlow` is the way 🤪
+    private val _uiEvents =
+        MutableSharedFlow<Type>() // `StateFlow` won't emit the same value again, so to make sure we're playing it safe, `SharedFlow` is the way 🤪
     val uiEvents = _uiEvents.asSharedFlow()
 
     suspend fun pushUIEvent(type: Type) {
@@ -41,13 +43,19 @@ object UIEvent {
 
         data object ShowAddANewFolderDialogBox : Type
 
-        data class ShowMenuBtmSheetUI(
+        data class ShowMenuBtmSheet(
             val menuBtmSheetFor: MenuBtmSheetType,
-            val selectedLinkForMenuBtmSheet: Link?,
+            val selectedLinkForMenuBtmSheet: LinkTagsPair?,
             val selectedFolderForMenuBtmSheet: Folder?
         ) : Type
 
-        data object ShowSortingBtmSheetUI : Type
+        data class ShowTagMenuBtmSheet(
+            val selectedTag: Tag
+        ) : Type
+
+        data object ShowCreateTagBtmSheet: Type
+
+        data object ShowSortingBtmSheet : Type
 
         data object ShowDeleteDialogBox : Type
 

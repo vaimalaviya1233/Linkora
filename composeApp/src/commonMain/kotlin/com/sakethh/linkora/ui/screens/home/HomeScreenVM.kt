@@ -5,11 +5,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferenceType
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.isNull
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -18,16 +13,25 @@ import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.state.ProcessedPanelFolders
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.isNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -35,6 +39,7 @@ import java.util.Calendar
 class HomeScreenVM(
     localFoldersRepo: LocalFoldersRepo,
     localLinksRepo: LocalLinksRepo,
+    localTagsRepo: LocalTagsRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     triggerCollectionOfPanels: Boolean = true,
@@ -43,7 +48,8 @@ class HomeScreenVM(
     localFoldersRepo = localFoldersRepo,
     localLinksRepo = localLinksRepo,
     loadNonArchivedRootFoldersOnInit = false,
-    loadArchivedRootFoldersOnInit = false
+    loadArchivedRootFoldersOnInit = false,
+    localTagsRepo = localTagsRepo
 ) {
     val currentPhaseOfTheDay = mutableStateOf("")
 
@@ -60,7 +66,8 @@ class HomeScreenVM(
     val activePanelAssociatedFolders = _activePanelAssociatedFolders.asStateFlow()
 
     // holds links data
-    private val _activePanelAssociatedFolderLinks = MutableStateFlow(emptyList<List<Link>>())
+    private val _activePanelAssociatedFolderLinks =
+        MutableStateFlow(emptyList<List<LinkTagsPair>>())
     val activePanelAssociatedFolderLinks = _activePanelAssociatedFolderLinks.asStateFlow()
 
     private val defaultPanelFolders = listOf(
@@ -95,10 +102,32 @@ class HomeScreenVM(
         Pair(shuffleLinks, sortingType)
     }
 
+    private fun getLinksWithTags(
+        nestedLinks: List<List<Link>>,
+    ): Flow<List<List<LinkTagsPair>>> {
+        val allLinks = nestedLinks.flatten()
+
+        if (allLinks.isEmpty()) {
+            return flowOf(nestedLinks.map { emptyList() })
+        }
+
+        val allLinkIds = allLinks.map { it.localId }
+
+        return localTagsRepo.getTagsForLinks(allLinkIds).map { tagsMap ->
+                nestedLinks.map { sublist ->
+                    sublist.map { link ->
+                        LinkTagsPair(
+                            link = link, tags = tagsMap[link.localId] ?: emptyList()
+                        )
+                    }
+                }
+            }
+    }
+
     fun updatePanelFolders(panelId: Long) {
         _activePanelAssociatedFoldersJob?.cancel()
 
-        _activePanelAssociatedFoldersJob = viewModelScope.launch(Dispatchers.IO) {
+        _activePanelAssociatedFoldersJob = viewModelScope.launch(Dispatchers.Default) {
 
             launch {
                 preferencesRepository.changePreferenceValue(
@@ -109,7 +138,7 @@ class HomeScreenVM(
             }
 
             appPreferencesCombined.flatMapLatest { (shuffleLinks, sortingType) ->
-                if (panelId == Constants.DEFAULT_PANELS_ID) {
+                val processedFoldersFlow = if (panelId == Constants.DEFAULT_PANELS_ID) {
                     combine(
                         localLinksRepo.sortLinksAsNonResultFlow(
                             linkType = LinkType.SAVED_LINK, sortOption = sortingType
@@ -118,17 +147,16 @@ class HomeScreenVM(
                         )
                     ) { savedLinks, impLinks ->
                         ProcessedPanelFolders(
-                            panelFolders = defaultPanelFolders,
-                            links = listOf(
+                            panelFolders = defaultPanelFolders, links = listOf(
                                 if (shuffleLinks) savedLinks.shuffled() else savedLinks,
-                                if (shuffleLinks) impLinks.shuffled() else impLinks),
-                            folders = listOf(emptyList(), emptyList())
+                                if (shuffleLinks) impLinks.shuffled() else impLinks
+                            ), folders = listOf(emptyList(), emptyList())
                         )
                     }
                 } else {
                     localPanelsRepo.getAllTheFoldersFromAPanel(panelId)
                         .flatMapLatest { panelFolders ->
-                            if (panelFolders.isEmpty()){
+                            if (panelFolders.isEmpty()) {
                                 _activePanelAssociatedPanelFolders.emit(emptyList())
                             }
                             val childFolders = combine(panelFolders.map {
@@ -158,10 +186,40 @@ class HomeScreenVM(
                             }
                         }
                 }
-            }.collectLatest {
-                _activePanelAssociatedPanelFolders.emit(it.panelFolders.distinctBy { it.folderId })
-                _activePanelAssociatedFolders.emit(it.folders)
-                _activePanelAssociatedFolderLinks.emit(it.links)
+
+                processedFoldersFlow.flatMapLatest { processedData ->
+                    val nestedLinks = processedData.links
+                    val allLinks = nestedLinks.flatten()
+                    if (allLinks.isEmpty()) {
+                        flowOf(
+                            Triple(
+                                processedData.panelFolders,
+                                processedData.folders,
+                                emptyList()
+                            )
+                        )
+                    } else {
+                        val linkIds = allLinks.map { it.localId }
+                        localTagsRepo.getTagsForLinks(linkIds).map { tagsMap ->
+                                val linksWithTags = nestedLinks.map { sublist ->
+                                    sublist.map { link ->
+                                        LinkTagsPair(
+                                            link = link, tags = tagsMap[link.localId] ?: emptyList()
+                                        )
+                                    }
+                                }
+                                Triple(
+                                    processedData.panelFolders,
+                                    processedData.folders,
+                                    linksWithTags
+                                )
+                            }
+                    }
+                }
+            }.collectLatest { (panelFolders, folders, linksWithTags) ->
+                _activePanelAssociatedPanelFolders.emit(panelFolders.distinctBy { it.folderId })
+                _activePanelAssociatedFolders.emit(folders)
+                _activePanelAssociatedFolderLinks.emit(linksWithTags)
             }
         }
     }

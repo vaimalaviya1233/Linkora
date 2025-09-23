@@ -8,13 +8,20 @@ import kotlinx.coroutines.flow.Flow
 
 interface LocalLinksRepo {
     suspend fun addANewLink(
-        link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean = false
+        link: Link,
+        selectedTagIds: List<Long>?,
+        linkSaveConfig: LinkSaveConfig,
+        viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
-    suspend fun addMultipleLinks(links: List<Link>)
+    suspend fun addMultipleLinks(links: List<Link>): List<Long>
 
     suspend fun getSortedLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String
+    ): Flow<Result<List<Link>>>
+
+    suspend fun getSortedLinks(
+        tagId: Long, sortOption: String
     ): Flow<Result<List<Link>>>
 
     fun sortLinksAsNonResultFlow(

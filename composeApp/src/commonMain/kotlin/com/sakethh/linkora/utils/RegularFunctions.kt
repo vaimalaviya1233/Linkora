@@ -1,11 +1,12 @@
 package com.sakethh.linkora.utils
 
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.Quadruple
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
@@ -16,6 +17,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 
@@ -46,12 +48,29 @@ fun defaultImpLinksFolder(): Folder = Folder(
     isArchived = false
 )
 
+fun <T1, T2, T3, T4, T5, T6, T7, M> septetCombine(
+    flow: Flow<T1>,
+    flow2: Flow<T2>,
+    flow3: Flow<T3>,
+    flow4: Flow<T4>,
+    flow5: Flow<T5>,
+    flow6: Flow<T6>,
+    flow7: Flow<T7>,
+    transform: suspend (T1, T2, T3, T4, T5, T6, T7) -> M
+): Flow<M> = combine(
+    combine(flow, flow2, flow3, ::Triple), combine(flow4, flow5, flow6, flow7, ::Quadruple)
+) { t1, t2 ->
+    transform(
+        t1.first, t1.second, t1.third, t2.first, t2.second, t2.third, t2.fourth
+    )
+}
+
 inline fun <reified OutgoingBody, reified IncomingBody> postFlow(
     crossinline syncServerClient: () -> HttpClient,
     crossinline baseUrl: () -> String,
     crossinline authToken: () -> String,
     endPoint: String,
-    body: OutgoingBody,
+    outgoingBody: OutgoingBody,
     contentType: ContentType = ContentType.Application.Json
 ): Flow<Result<IncomingBody>> {
     return flow {
@@ -59,7 +78,7 @@ inline fun <reified OutgoingBody, reified IncomingBody> postFlow(
         syncServerClient().post(baseUrl() + endPoint) {
             bearerAuth(authToken())
             contentType(contentType)
-            setBody(body)
+            setBody(outgoingBody)
         }.handleResponseBody<IncomingBody>().run {
             emit(this)
         }

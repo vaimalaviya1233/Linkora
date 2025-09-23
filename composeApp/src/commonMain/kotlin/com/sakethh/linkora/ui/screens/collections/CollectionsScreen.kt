@@ -1,11 +1,15 @@
 package com.sakethh.linkora.ui.screens.collections
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,12 +18,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.DatasetLinked
 import androidx.compose.material.icons.outlined.Link
@@ -28,7 +35,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
@@ -36,55 +43,75 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sakethh.linkora.platform.PlatformSpecificBackHandler
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.isNull
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.platform.PlatformSpecificBackHandler
+import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
+import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
+import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
+import com.sakethh.linkora.ui.screens.collections.components.RootCollectionSwitcher
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.isNull
+import com.sakethh.linkora.utils.rememberLocalizedString
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CollectionsScreen(
     collectionsScreenVM: CollectionsScreenVM
 ) {
-    val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
+    val rootFolders by collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val platform = LocalPlatform.current
     val topAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    var isRootContentSwitcherBtmSheetVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val rootContentPagerState =
+        rememberPagerState(initialPage = AppPreferences.selectedCollectionSourceId) { 2 }
+    val rootContentSwitcherBtmSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    LaunchedEffect(rootContentPagerState.currentPage) {
+        AppPreferences.selectedCollectionSourceId = rootContentPagerState.currentPage
+        rootContentPagerState.animateScrollToPage(AppPreferences.selectedCollectionSourceId)
+    }
+    val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
+
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
@@ -116,7 +143,10 @@ fun CollectionsScreen(
                                     note = "",
                                     parentFolderId = null,
                                     localId = Constants.ALL_LINKS_ID
-                                ), isAnyCollectionSelected = true
+                                ),
+                                currentTag = null,
+                                collectionType = CollectionType.FOLDER,
+                                isAnyCollectionSelected = true
                             )
                             if (platform is Platform.Android.Mobile) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -149,7 +179,10 @@ fun CollectionsScreen(
                                     note = "",
                                     parentFolderId = null,
                                     localId = Constants.SAVED_LINKS_ID
-                                ), isAnyCollectionSelected = true
+                                ),
+                                isAnyCollectionSelected = true,
+                                currentTag = null,
+                                collectionType = CollectionType.FOLDER,
                             )
                             if (platform is Platform.Android.Mobile) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -179,7 +212,10 @@ fun CollectionsScreen(
                                     note = "",
                                     parentFolderId = null,
                                     localId = Constants.IMPORTANT_LINKS_ID
-                                ), isAnyCollectionSelected = true
+                                ),
+                                isAnyCollectionSelected = true,
+                                currentTag = null,
+                                collectionType = CollectionType.FOLDER,
                             )
                             if (platform is Platform.Android.Mobile) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -209,7 +245,10 @@ fun CollectionsScreen(
                                     note = "",
                                     parentFolderId = null,
                                     localId = Constants.ARCHIVE_ID
-                                ), isAnyCollectionSelected = true
+                                ),
+                                isAnyCollectionSelected = true,
+                                currentTag = null,
+                                collectionType = CollectionType.FOLDER,
                             )
                             if (platform is Platform.Android.Mobile) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -227,21 +266,48 @@ fun CollectionsScreen(
                         },
                         isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID
                     )
+                    Spacer(modifier = Modifier.height(15.dp))
                 }
 
-                item {
+                stickyHeader {
                     Row(
-                        modifier = Modifier.padding(top = 15.dp).fillMaxWidth(),
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            text = Localization.rememberLocalizedString(Localization.Key.Folders),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 20.sp,
+                        Row(
                             modifier = Modifier.padding(start = 15.dp)
-                        )
+                            .clickable(indication = null, interactionSource = remember {
+                                MutableInteractionSource()
+                            }) {
+                                isRootContentSwitcherBtmSheetVisible = true
+                                coroutineScope.launch {
+                                    rootContentSwitcherBtmSheetState.show()
+                                }
+                            }, verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            FilledTonalIconButton(onClick = {
+                                isRootContentSwitcherBtmSheetVisible = true
+                                coroutineScope.launch {
+                                    rootContentSwitcherBtmSheetState.show()
+                                }
+                            }, modifier = Modifier.size(22.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDownward,
+                                    contentDescription = null
+                                )
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            AnimatedContent(targetState = collectionsScreenVM.currentCollectionSource) { currentCollectionSource ->
+                                Text(
+                                    text = currentCollectionSource,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 20.sp,
+                                )
+                            }
+                        }
                         Row {
                             SortingIconButton()
                             if (platform == Platform.Android.Mobile) {
@@ -250,81 +316,180 @@ fun CollectionsScreen(
                         }
                     }
                 }
-                if (rootFolders.value.isEmpty()) {
-                    item {
-                        DataEmptyScreen(
-                            text = Localization.Key.NoFoldersFound.rememberLocalizedString(),
-                            paddingValues = PaddingValues(top = 50.dp, start = 15.dp)
-                        )
+                item {
+                    HorizontalPager(
+                        state = rootContentPagerState,
+                        modifier = Modifier.animateContentSize().fillMaxSize(),
+                        verticalAlignment = Alignment.Top
+                    ) { currentPage ->
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            when (currentPage) {
+                                0 -> {
+                                    if (rootFolders.isEmpty()) {
+                                        DataEmptyScreen(
+                                            text = Localization.Key.NoFoldersFound.rememberLocalizedString(),
+                                            paddingValues = PaddingValues(
+                                                top = 50.dp, start = 15.dp
+                                            )
+                                        )
+                                        return@HorizontalPager
+                                    }
+
+                                    rootFolders.forEach { folder ->
+                                        key(folder) {
+                                            FolderComponent(
+                                                FolderComponentParam(
+                                                    name = folder.name,
+                                                    note = folder.note,
+                                                    onClick = { ->
+                                                        if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                                                folder
+                                                            )
+                                                        ) {
+                                                            return@FolderComponentParam
+                                                        }
+                                                        val collectionDetailPaneInfo =
+                                                            CollectionDetailPaneInfo(
+                                                                currentFolder = folder,
+                                                                isAnyCollectionSelected = true,
+                                                                currentTag = null,
+                                                                collectionType = CollectionType.FOLDER,
+                                                            )
+                                                        if (platform is Platform.Android.Mobile) {
+                                                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                                key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                                                value = Json.encodeToString(
+                                                                    collectionDetailPaneInfo
+                                                                )
+                                                            )
+                                                            navController.navigate(
+                                                                Navigation.Collection.CollectionDetailPane
+                                                            )
+                                                        } else {
+                                                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                                                collectionDetailPaneInfo
+                                                            )
+                                                        }
+                                                    },
+                                                    onLongClick = { ->
+                                                        if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
+                                                            CollectionsScreenVM.isSelectionEnabled.value =
+                                                                true
+                                                            CollectionsScreenVM.selectedFoldersViaLongClick.add(
+                                                                folder
+                                                            )
+                                                        }
+                                                    },
+                                                    onMoreIconClick = { ->
+                                                        coroutineScope.pushUIEvent(
+                                                            UIEvent.Type.ShowMenuBtmSheet(
+                                                                menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
+                                                                selectedLinkForMenuBtmSheet = null,
+                                                                selectedFolderForMenuBtmSheet = folder
+                                                            )
+                                                        )
+                                                    },
+                                                    isCurrentlyInDetailsView = remember(
+                                                        CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
+                                                    ) {
+                                                        mutableStateOf(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == folder.localId)
+                                                    },
+                                                    showMoreIcon = rememberSaveable {
+                                                        mutableStateOf(true)
+                                                    },
+                                                    isSelectedForSelection = rememberSaveable(
+                                                        CollectionsScreenVM.isSelectionEnabled.value,
+                                                        CollectionsScreenVM.selectedFoldersViaLongClick.size
+                                                    ) {
+                                                        mutableStateOf(
+                                                            CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                                                folder
+                                                            )
+                                                        )
+                                                    },
+                                                    showCheckBox = CollectionsScreenVM.isSelectionEnabled,
+                                                    onCheckBoxChanged = { bool ->
+                                                        if (bool) {
+                                                            CollectionsScreenVM.selectedFoldersViaLongClick.add(
+                                                                folder
+                                                            )
+                                                        } else {
+                                                            CollectionsScreenVM.selectedFoldersViaLongClick.remove(
+                                                                folder
+                                                            )
+                                                        }
+                                                    })
+                                            )
+                                        }
+                                    }
+                                }
+
+                                1 -> {
+                                    if (allTags.isEmpty()) {
+                                        DataEmptyScreen(text = "No tags found")
+                                        return@HorizontalPager
+                                    }
+                                    allTags.forEach { currentTag ->
+                                        key(currentTag) {
+                                            FolderComponent(
+                                                FolderComponentParam(
+                                                    name = currentTag.name,
+                                                    note = "",
+                                                    leadingIcon = Icons.Default.Tag,
+                                                    onClick = {
+                                                        val collectionDetailPaneInfo =
+                                                            CollectionDetailPaneInfo(
+                                                                currentFolder = null,
+                                                                isAnyCollectionSelected = true,
+                                                                currentTag = currentTag,
+                                                                collectionType = CollectionType.TAG,
+                                                            )
+                                                        if (platform is Platform.Android.Mobile) {
+                                                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                                key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                                                value = Json.encodeToString(
+                                                                    collectionDetailPaneInfo
+                                                                )
+                                                            )
+                                                            navController.navigate(
+                                                                Navigation.Collection.CollectionDetailPane
+                                                            )
+                                                        } else {
+                                                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                                                collectionDetailPaneInfo
+                                                            )
+                                                        }
+                                                    },
+                                                    onLongClick = {},
+                                                    onMoreIconClick = {
+                                                        coroutineScope.pushUIEvent(
+                                                            UIEvent.Type.ShowTagMenuBtmSheet(
+                                                                selectedTag = currentTag
+                                                            )
+                                                        )
+                                                    },
+                                                    isCurrentlyInDetailsView = rememberSaveable {
+                                                        mutableStateOf(false)
+                                                    },
+                                                    showMoreIcon = rememberSaveable {
+                                                        mutableStateOf(true)
+                                                    },
+                                                    isSelectedForSelection = rememberSaveable {
+                                                        mutableStateOf(false)
+                                                    },
+                                                    showCheckBox = rememberSaveable {
+                                                        mutableStateOf(false)
+                                                    },
+                                                    onCheckBoxChanged = {})
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-                items(rootFolders.value) { folder ->
-                    FolderComponent(
-                        FolderComponentParam(
-                            folder = folder,
-                            onClick = { ->
-                                if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(folder)) {
-                                    return@FolderComponentParam
-                                }
-                                val collectionDetailPaneInfo = CollectionDetailPaneInfo(
-                                    currentFolder = folder, isAnyCollectionSelected = true
-                                )
-                                if (platform is Platform.Android.Mobile) {
-                                    navController.currentBackStackEntry?.savedStateHandle?.set(
-                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                        value = Json.encodeToString(collectionDetailPaneInfo)
-                                    )
-                                    navController.navigate(
-                                        Navigation.Collection.CollectionDetailPane
-                                    )
-                                } else {
-                                    collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                        collectionDetailPaneInfo
-                                    )
-                                }
-                            },
-                            onLongClick = { ->
-                                if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
-                                    CollectionsScreenVM.isSelectionEnabled.value = true
-                                    CollectionsScreenVM.selectedFoldersViaLongClick.add(folder)
-                                }
-                            },
-                            onMoreIconClick = { ->
-                                coroutineScope.pushUIEvent(
-                                    UIEvent.Type.ShowMenuBtmSheetUI(
-                                        menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
-                                        selectedLinkForMenuBtmSheet = null,
-                                        selectedFolderForMenuBtmSheet = folder
-                                    )
-                                )
-                            },
-                            isCurrentlyInDetailsView = remember(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
-                                mutableStateOf(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == folder.localId)
-                            },
-                            showMoreIcon = rememberSaveable {
-                                mutableStateOf(true)
-                            },
-                            isSelectedForSelection = rememberSaveable(
-                                CollectionsScreenVM.isSelectionEnabled.value,
-                                CollectionsScreenVM.selectedFoldersViaLongClick.size
-                            ) {
-                                mutableStateOf(
-                                    CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
-                                        folder
-                                    )
-                                )
-                            },
-                            showCheckBox = CollectionsScreenVM.isSelectionEnabled,
-                            onCheckBoxChanged = { bool ->
-                                if (bool) {
-                                    CollectionsScreenVM.selectedFoldersViaLongClick.add(folder)
-                                } else {
-                                    CollectionsScreenVM.selectedFoldersViaLongClick.remove(
-                                        folder
-                                    )
-                                }
-                            })
-                    )
                 }
                 item {
                     Spacer(Modifier.height(250.dp))
@@ -348,6 +513,25 @@ fun CollectionsScreen(
             }
         }
     }
+    val hideCollectionSwitcher: () -> Unit = {
+        coroutineScope.launch {
+            rootContentSwitcherBtmSheetState.hide()
+        }.invokeOnCompletion {
+            isRootContentSwitcherBtmSheetVisible = false
+        }
+    }
+    RootCollectionSwitcher(
+        isRootContentSwitcherBtmSheetVisible = isRootContentSwitcherBtmSheetVisible,
+        rootContentSwitcherBtmSheetState = rootContentSwitcherBtmSheetState,
+        onHide = hideCollectionSwitcher,
+        onSourceClick = { currCollectionSourceId ->
+            AppPreferences.selectedCollectionSourceId = currCollectionSourceId
+            coroutineScope.launch {
+                rootContentPagerState.animateScrollToPage(currCollectionSourceId)
+            }
+            hideCollectionSwitcher()
+        })
+
     PlatformSpecificBackHandler {
         if (CollectionsScreenVM.isSelectionEnabled.value) {
             CollectionsScreenVM.clearAllSelections()
@@ -356,7 +540,6 @@ fun CollectionsScreen(
         }
     }
 }
-
 
 @Composable
 private fun DefaultFolderComponent(
@@ -388,20 +571,4 @@ private fun DefaultFolderComponent(
             )
         }
     }
-}
-
-@Composable
-fun ItemDivider(
-    colorOpacity: Float = 0.35f,
-    thickness: Dp = 1.5.dp,
-    paddingValues: PaddingValues = PaddingValues(
-        top = 15.dp, start = 20.dp, end = if (platform() is Platform.Android.Mobile) 20.dp else 5.dp
-    ),
-    color: Color = MaterialTheme.colorScheme.outline
-) {
-    HorizontalDivider(
-        modifier = Modifier.padding(
-            paddingValues
-        ).clip(RoundedCornerShape(25.dp)), thickness = thickness, color = color.copy(colorOpacity)
-    )
 }

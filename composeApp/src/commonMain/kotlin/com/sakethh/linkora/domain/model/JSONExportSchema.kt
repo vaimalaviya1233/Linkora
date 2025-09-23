@@ -3,6 +3,8 @@ package com.sakethh.linkora.domain.model
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
+import com.sakethh.linkora.domain.model.tag.LinkTag
+import com.sakethh.linkora.domain.model.tag.Tag
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,10 +12,12 @@ data class JSONExportSchema(
     val schemaVersion: Int,
     val links: List<Link>,
     val folders: List<Folder>,
-    val panels: PanelForJSONExportSchema
+    val panels: PanelForJSONExportSchema,
+    val tags: List<Tag> = emptyList(),
+    val linkTags: List<LinkTag> = emptyList()
 ) {
     companion object {
-        const val VERSION = 12
+        const val VERSION = 13
     }
 }
 

@@ -25,7 +25,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
-            body = addANewPanelDTO
+            outgoingBody = addANewPanelDTO
         )
     }
 
@@ -35,7 +35,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
-            body = addANewPanelFolderDTO
+            outgoingBody = addANewPanelFolderDTO
         )
     }
 
@@ -45,7 +45,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_PANEL.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -55,7 +55,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
-            body = updatePanelNameDTO
+            outgoingBody = updatePanelNameDTO
         )
     }
 
@@ -65,7 +65,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -75,7 +75,7 @@ class RemotePanelsRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
-            body = deleteAFolderFromAPanelDTO
+            outgoingBody = deleteAFolderFromAPanelDTO
         )
     }
 }

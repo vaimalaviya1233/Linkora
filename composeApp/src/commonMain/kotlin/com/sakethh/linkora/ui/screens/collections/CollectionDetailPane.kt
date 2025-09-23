@@ -16,6 +16,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,10 +29,12 @@ import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
@@ -39,32 +42,33 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.sakethh.linkora.platform.PlatformSpecificBackHandler
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.isNotNull
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
+import com.sakethh.linkora.platform.PlatformSpecificBackHandler
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
+import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.isNotNull
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -76,12 +80,11 @@ fun CollectionDetailPane(
     navController: NavController = LocalNavController.current,
     collectionsScreenVM: CollectionsScreenVM = viewModel(
         factory = CollectionScreenVMAssistedFactory.createForCollectionDetailPane(
-            platform,
-            navController
+            platform, navController
         )
     ),
 ) {
-    val links = collectionsScreenVM.links.collectAsStateWithLifecycle()
+    val links = collectionsScreenVM.linkTagsPairs.collectAsStateWithLifecycle()
     val childFolders = collectionsScreenVM.childFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
@@ -97,7 +100,7 @@ fun CollectionDetailPane(
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
-                    if (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId) {
+                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG || (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId)) {
                         CollectionsScreenVM.resetSearchNavigated()
                         navController.navigateUp()
                         return@IconButton
@@ -107,7 +110,9 @@ fun CollectionDetailPane(
 
                         val parentFolderCollectionPane = CollectionDetailPaneInfo(
                             currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
-                            isAnyCollectionSelected = true
+                            isAnyCollectionSelected = true,
+                            collectionType = CollectionType.FOLDER,
+                            currentTag = null
                         )
 
                         if (platform is Platform.Android.Mobile) {
@@ -127,7 +132,10 @@ fun CollectionDetailPane(
                         } else {
                             collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                                 CollectionDetailPaneInfo(
-                                    currentFolder = null, isAnyCollectionSelected = false
+                                    currentFolder = null,
+                                    isAnyCollectionSelected = false,
+                                    collectionType = CollectionType.FOLDER,
+                                    currentTag = null
                                 )
                             )
                         }
@@ -138,12 +146,23 @@ fun CollectionDetailPane(
                     )
                 }
             }, title = {
-                Text(
-                    text = currentlyInFolder?.name ?: "",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontSize = 18.sp
-                )
+                val isTag = rememberSaveable(CollectionsScreenVM.collectionDetailPaneInfo.value) {
+                    CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (isTag) {
+                        Icon(imageVector = Icons.Default.Tag, contentDescription = null)
+                        Spacer(modifier = Modifier.width(5.dp))
+                    }
+                    Text(text = if (isTag) rememberSaveable {
+                        collectionsScreenVM.popFromTagNavStack()?.name
+                            ?: CollectionsScreenVM.collectionDetailPaneInfo.value.currentTag?.name
+                            ?: ""
+                    } else currentlyInFolder?.name ?: "",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 18.sp)
+                }
             })
         }
     }) { paddingValues ->
@@ -176,12 +195,12 @@ fun CollectionDetailPane(
                         0 -> {
                             CollectionLayoutManager(
                                 folders = emptyList(),
-                                links = links.value,
+                                linksTagsPairs = links.value,
                                 paddingValues = PaddingValues(0.dp),
                                 linkMoreIconClick = {
                                     coroutineScope.pushUIEvent(
-                                        UIEvent.Type.ShowMenuBtmSheetUI(
-                                            menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                                        UIEvent.Type.ShowMenuBtmSheet(
+                                            menuBtmSheetFor = it.link.linkType.asMenuBtmSheetType(),
                                             selectedLinkForMenuBtmSheet = it,
                                             selectedFolderForMenuBtmSheet = null
                                         )
@@ -191,21 +210,53 @@ fun CollectionDetailPane(
                                 onFolderClick = {},
                                 onLinkClick = {
                                     collectionsScreenVM.addANewLink(
-                                        link = it.copy(
+                                        link = it.link.copy(
                                             linkType = LinkType.HISTORY_LINK, localId = 0
-                                        ), linkSaveConfig = LinkSaveConfig(
+                                        ),
+                                        linkSaveConfig = LinkSaveConfig(
                                             forceAutoDetectTitle = false,
                                             forceSaveWithoutRetrievingData = true
-                                        ), onCompletion = {}, pushSnackbarOnSuccess = false
+                                        ),
+                                        onCompletion = {},
+                                        pushSnackbarOnSuccess = false,
+                                        selectedTags = it.tags
                                     )
-                                    localUriHandler.openUri(it.url)
+                                    localUriHandler.openUri(it.link.url)
                                 },
                                 isCurrentlyInDetailsView = {
                                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
                                 },
                                 emptyDataText = Localization.Key.NoArchiveLinksFound.getLocalizedString(),
-                                nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection
-                            )
+                                nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection,
+                                onAttachedTagClick = {
+                                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentTag?.localId == it.localId) {
+                                        return@CollectionLayoutManager
+                                    }
+                                    val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                        currentFolder = null,
+                                        isAnyCollectionSelected = true,
+                                        currentTag = it,
+                                        collectionType = CollectionType.TAG,
+                                    )
+                                    if (platform is Platform.Android.Mobile) {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                            value = Json.encodeToString(
+                                                collectionDetailPaneInfo
+                                            )
+                                        )
+                                        navController.navigate(
+                                            Navigation.Collection.CollectionDetailPane
+                                        )
+                                    } else {
+                                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                            collectionDetailPaneInfo
+                                        )
+                                    }
+                                },
+                                tags = emptyList(),
+                                tagMoreIconClick = {},
+                                onTagClick = {})
                         }
 
                         1 -> {
@@ -219,7 +270,8 @@ fun CollectionDetailPane(
                                 items(rootArchiveFolders.value) { rootArchiveFolder ->
                                     FolderComponent(
                                         FolderComponentParam(
-                                            folder = rootArchiveFolder,
+                                            name = rootArchiveFolder.name,
+                                            note = rootArchiveFolder.note,
                                             onClick = { ->
                                                 if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(
                                                         rootArchiveFolder
@@ -230,7 +282,9 @@ fun CollectionDetailPane(
                                                 val collectionDetailPaneInfo =
                                                     CollectionDetailPaneInfo(
                                                         currentFolder = rootArchiveFolder,
-                                                        isAnyCollectionSelected = true
+                                                        isAnyCollectionSelected = true,
+                                                        collectionType = CollectionType.FOLDER,
+                                                        currentTag = null
                                                     )
                                                 if (platform is Platform.Android.Mobile) {
                                                     navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -257,7 +311,7 @@ fun CollectionDetailPane(
                                             },
                                             onMoreIconClick = { ->
                                                 coroutineScope.pushUIEvent(
-                                                    UIEvent.Type.ShowMenuBtmSheetUI(
+                                                    UIEvent.Type.ShowMenuBtmSheet(
                                                         menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
                                                         selectedLinkForMenuBtmSheet = null,
                                                         selectedFolderForMenuBtmSheet = rootArchiveFolder
@@ -270,11 +324,18 @@ fun CollectionDetailPane(
                                             showMoreIcon = rememberSaveable {
                                                 mutableStateOf(true)
                                             },
-                                            isSelectedForSelection = mutableStateOf(
-                                                CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                            isSelectedForSelection = rememberSaveable(
+                                                CollectionsScreenVM.isSelectionEnabled.value,
+                                                CollectionsScreenVM.selectedFoldersViaLongClick.contains(
                                                     rootArchiveFolder
                                                 )
-                                            ),
+                                            ) {
+                                                mutableStateOf(
+                                                    CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                                        rootArchiveFolder
+                                                    )
+                                                )
+                                            },
                                             showCheckBox = CollectionsScreenVM.isSelectionEnabled,
                                             onCheckBoxChanged = { bool ->
                                                 if (bool) {
@@ -296,11 +357,11 @@ fun CollectionDetailPane(
             }
             return@Scaffold
         }
-
+        val availableFiltersForAllLinks by collectionsScreenVM.availableFiltersForAllLinks.collectAsStateWithLifecycle()
         Column(modifier = Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxSize()) {
             if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                    collectionsScreenVM.availableFiltersForAllLinks.forEach {
+                    availableFiltersForAllLinks.forEach {
                         FilterChip(
                             text = it.asLocalizedString(),
                             isSelected = collectionsScreenVM.appliedFiltersForAllLinks.contains(
@@ -315,12 +376,12 @@ fun CollectionDetailPane(
             }
             CollectionLayoutManager(
                 folders = childFolders.value,
-                links = links.value,
+                linksTagsPairs = links.value,
                 paddingValues = PaddingValues(0.dp),
                 linkMoreIconClick = {
                     coroutineScope.pushUIEvent(
-                        UIEvent.Type.ShowMenuBtmSheetUI(
-                            menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                        UIEvent.Type.ShowMenuBtmSheet(
+                            menuBtmSheetFor = it.link.linkType.asMenuBtmSheetType(),
                             selectedLinkForMenuBtmSheet = it,
                             selectedFolderForMenuBtmSheet = null
                         )
@@ -328,7 +389,7 @@ fun CollectionDetailPane(
                 },
                 folderMoreIconClick = {
                     coroutineScope.pushUIEvent(
-                        UIEvent.Type.ShowMenuBtmSheetUI(
+                        UIEvent.Type.ShowMenuBtmSheet(
                             menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
                             selectedLinkForMenuBtmSheet = null,
                             selectedFolderForMenuBtmSheet = it
@@ -337,7 +398,10 @@ fun CollectionDetailPane(
                 },
                 onFolderClick = {
                     val collectionDetailPaneInfo = CollectionDetailPaneInfo(
-                        currentFolder = it, isAnyCollectionSelected = true
+                        currentFolder = it,
+                        isAnyCollectionSelected = true,
+                        collectionType = CollectionType.FOLDER,
+                        currentTag = null
                     )
 
                     if (platform is Platform.Android.Mobile) {
@@ -356,24 +420,53 @@ fun CollectionDetailPane(
                 },
                 onLinkClick = {
                     collectionsScreenVM.addANewLink(
-                        link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0),
+                        link = it.link.copy(linkType = LinkType.HISTORY_LINK, localId = 0),
                         linkSaveConfig = LinkSaveConfig(
                             forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                         ),
                         onCompletion = {},
-                        pushSnackbarOnSuccess = false
+                        pushSnackbarOnSuccess = false,
+                        selectedTags = it.tags
                     )
-                    localUriHandler.openUri(it.url)
+                    localUriHandler.openUri(it.link.url)
                 },
                 isCurrentlyInDetailsView = {
                     CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
                 },
-                nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection
-            )
+                nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection,
+                emptyDataText = if (CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG) "This tag wasn't attached to any links." else "",
+                onAttachedTagClick = {
+                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentTag?.localId == it.localId) {
+                        return@CollectionLayoutManager
+                    }
+                    val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                        currentFolder = null,
+                        isAnyCollectionSelected = true,
+                        currentTag = it,
+                        collectionType = CollectionType.TAG,
+                    )
+                    collectionsScreenVM.pushIntoTagNavStack(it)
+                    if (platform is Platform.Android.Mobile) {
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                            value = Json.encodeToString(
+                                collectionDetailPaneInfo
+                            )
+                        )
+                        navController.navigate(
+                            Navigation.Collection.CollectionDetailPane
+                        )
+                    } else {
+                        CollectionsScreenVM.updateCollectionDetailPaneInfo(collectionDetailPaneInfo)
+                    }
+                },
+                tags = emptyList(),
+                tagMoreIconClick = {},
+                onTagClick = {})
         }
     }
     PlatformSpecificBackHandler {
-        if (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId) {
+        if (CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG || (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId)) {
             CollectionsScreenVM.resetSearchNavigated()
             navController.navigateUp()
             return@PlatformSpecificBackHandler
@@ -383,7 +476,9 @@ fun CollectionDetailPane(
 
             val parentFolderCollectionPane = CollectionDetailPaneInfo(
                 currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
-                isAnyCollectionSelected = true
+                isAnyCollectionSelected = true,
+                collectionType = CollectionType.FOLDER,
+                currentTag = null
             )
 
             if (platform is Platform.Android.Mobile) {
@@ -403,7 +498,10 @@ fun CollectionDetailPane(
             } else {
                 collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
                     CollectionDetailPaneInfo(
-                        currentFolder = null, isAnyCollectionSelected = false
+                        currentFolder = null,
+                        isAnyCollectionSelected = false,
+                        collectionType = CollectionType.FOLDER,
+                        currentTag = null
                     )
                 )
             }

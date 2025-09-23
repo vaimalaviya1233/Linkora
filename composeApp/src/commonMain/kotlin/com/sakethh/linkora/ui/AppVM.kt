@@ -6,17 +6,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
-import com.sakethh.linkora.platform.FileManager
-import com.sakethh.linkora.platform.NativeUtils
-import com.sakethh.linkora.platform.PermissionManager
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.network.Network
-import com.sakethh.linkora.preferences.AppPreferenceType
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
-import com.sakethh.linkora.utils.pushSnackbar
-import com.sakethh.linkora.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.LinkType
@@ -35,8 +25,15 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.network.Network
+import com.sakethh.linkora.platform.FileManager
+import com.sakethh.linkora.platform.NativeUtils
+import com.sakethh.linkora.platform.PermissionManager
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.TransferActionType
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
@@ -47,6 +44,11 @@ import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagemen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
+import com.sakethh.linkora.utils.pushSnackbar
+import com.sakethh.linkora.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.utils.septetCombine
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +58,6 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flowOn
@@ -76,6 +77,7 @@ class AppVM(
     private val localMultiActionRepo: LocalMultiActionRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val exportDataRepo: ExportDataRepo,
+    private val localTagsRepo: LocalTagsRepo,
     permissionManager: PermissionManager,
     private val fileManager: FileManager,
     private val dataSyncingNotificationService: NativeUtils.DataSyncingNotificationService
@@ -138,21 +140,26 @@ class AppVM(
                 AppPreferences.areSnapshotsEnabled.value
             }.debounce(1000).collectLatest {
                 if (it) {
-                    snapshotsJob = this.launch {
+                    snapshotsJob = this.launch(Dispatchers.Default) {
                         linkoraLog("data checks for snapshots are now live")
-                        combine(
+                        septetCombine(
                             linksRepo.getAllLinksAsFlow(),
                             foldersRepo.getAllFoldersAsFlow(),
                             localPanelsRepo.getAllThePanels(),
                             localPanelsRepo.getAllThePanelFoldersAsAFlow(),
                             snapshotFlow {
                                 forceSnapshot.value
-                            }) { links, folders, panels, panelFolders, _ ->
+                            },
+                            localTagsRepo.getAllTags(),
+                            localTagsRepo.getAllLinkTags()
+                        ) { links, folders, panels, panelFolders, _, tags, linkTags ->
                             AllTablesDTO(
                                 links = links,
                                 folders = folders,
                                 panels = panels,
-                                panelFolders = panelFolders
+                                panelFolders = panelFolders,
+                                tags = tags,
+                                linkTagsPairs = linkTags,
                             )
                         }.cancellable()
                             .drop(1) // ignore the first emission which gets fired when the app launches
@@ -194,7 +201,12 @@ class AppVM(
                                                     remoteId = null, lastModified = 0
                                                 )
                                             }),
-                                        ).run {
+                                            tags = it.tags.map {
+                                                it.copy(remoteId = null, lastModified = 0)
+                                            },
+                                            linkTags = it.linkTagsPairs.map {
+                                                it.copy(remoteId = null, lastModified = 0)
+                                            }).run {
                                             Json.encodeToString(this)
                                         }
 

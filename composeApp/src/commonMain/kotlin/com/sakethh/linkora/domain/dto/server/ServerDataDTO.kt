@@ -5,6 +5,8 @@ import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelFolderDTO
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.tag.LinkTag
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
@@ -23,5 +25,7 @@ data class AllTablesDTO(
     val links: List<Link>,
     val folders: List<Folder>,
     val panels: List<Panel>,
-    val panelFolders: List<PanelFolder>
+    val panelFolders: List<PanelFolder>,
+    val tags: List<Tag>,
+    val linkTagsPairs: List<LinkTag>
 )

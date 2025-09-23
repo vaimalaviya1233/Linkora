@@ -1,8 +1,5 @@
 package com.sakethh.linkora.di
 
-import com.sakethh.linkora.network.Network
-import com.sakethh.linkora.network.repository.NetworkRepoImpl
-import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.data.ExportDataRepoImpl
 import com.sakethh.linkora.data.ImportDataRepoImpl
 import com.sakethh.linkora.data.LocalizationRepoImpl
@@ -10,6 +7,7 @@ import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalMultiActionRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalPanelsRepoImpl
+import com.sakethh.linkora.data.local.repository.LocalTagsRepoImpl
 import com.sakethh.linkora.data.local.repository.PendingSyncQueueRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
 import com.sakethh.linkora.data.local.repository.SnapshotRepoImpl
@@ -19,6 +17,10 @@ import com.sakethh.linkora.data.remote.repository.RemoteLinksRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteMultiActionRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemotePanelsRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteSyncRepoImpl
+import com.sakethh.linkora.data.remote.repository.RemoteTagsRepoImpl
+import com.sakethh.linkora.network.Network
+import com.sakethh.linkora.network.repository.NetworkRepoImpl
+import com.sakethh.linkora.preferences.AppPreferences
 
 object DependencyContainer {
 
@@ -73,6 +75,7 @@ object DependencyContainer {
             websocketScheme = {
                 AppPreferences.WEB_SOCKET_SCHEME
             },
+            localTagsRepo = localTagsRepo,
         )
     }
     val pendingSyncQueueRepo by lazy {
@@ -95,14 +98,31 @@ object DependencyContainer {
             primaryUserAgent = {
                 AppPreferences.primaryJsoupUserAgent.value
             },
-            syncServerClient = {
-                Network.getSyncServerClient()
-            },
             remoteLinksRepo = remoteLinksRepo,
             foldersDao = LinkoraSDK.getInstance().localDatabase.foldersDao,
             pendingSyncQueueRepo = pendingSyncQueueRepo,
             preferencesRepository = preferencesRepo,
-            standardClient = Network.standardClient
+            standardClient = Network.standardClient,
+            tagsDao = LinkoraSDK.getInstance().localDatabase.tagsDao,
+        )
+    }
+
+    val remoteTagsRepo by lazy {
+        RemoteTagsRepoImpl(syncServerClient = {
+            Network.getSyncServerClient()
+        }, baseUrl = {
+            AppPreferences.serverBaseUrl.value
+        }, authToken = {
+            AppPreferences.serverSecurityToken.value
+        })
+    }
+
+    val localTagsRepo by lazy {
+        LocalTagsRepoImpl(
+            tagsDao = LinkoraSDK.getInstance().localDatabase.tagsDao,
+            remoteTagsRepo = remoteTagsRepo,
+            preferencesRepository = preferencesRepo,
+            pendingSyncQueueRepo = pendingSyncQueueRepo
         )
     }
 
@@ -137,14 +157,14 @@ object DependencyContainer {
     }
 
     val exportDataRepo by lazy {
-        ExportDataRepoImpl(localLinksRepo, localFoldersRepo, localPanelsRepo)
+        ExportDataRepoImpl(localLinksRepo, localFoldersRepo, localPanelsRepo, localTagsRepo)
     }
 
     val importDataRepo by lazy {
         ImportDataRepoImpl(
             localLinksRepo, localFoldersRepo, localPanelsRepo, canPushToServer = {
                 AppPreferences.canPushToServer()
-            }, remoteSyncRepo = remoteSyncRepo
+            }, remoteSyncRepo = remoteSyncRepo, localTagsRepo = localTagsRepo
         )
     }
 

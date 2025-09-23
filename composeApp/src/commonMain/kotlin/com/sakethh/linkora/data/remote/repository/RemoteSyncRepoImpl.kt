@@ -1,15 +1,6 @@
 package com.sakethh.linkora.data.remote.repository
 
 import androidx.datastore.preferences.core.longPreferencesKey
-import com.sakethh.linkora.network.Network
-import com.sakethh.linkora.preferences.AppPreferenceType
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.utils.isSameAsCurrentClient
-import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
-import com.sakethh.linkora.utils.postFlow
-import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
-import com.sakethh.linkora.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
@@ -46,8 +37,10 @@ import com.sakethh.linkora.domain.dto.server.panel.DeleteAFolderFromAPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.PanelFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
+import com.sakethh.linkora.domain.dto.server.tag.TagDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.PendingSyncQueue
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
@@ -57,6 +50,7 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
@@ -64,7 +58,16 @@ import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteMultiActionRepo
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
+import com.sakethh.linkora.network.Network
+import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.utils.isSameAsCurrentClient
+import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.utils.postFlow
+import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
+import com.sakethh.linkora.utils.wrappedResultFlow
 import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.bearerAuth
@@ -105,7 +108,8 @@ class RemoteSyncRepoImpl(
     private val localMultiActionRepo: LocalMultiActionRepo,
     private val remoteMultiActionRepo: RemoteMultiActionRepo,
     private val linksDao: LinksDao,
-    private val foldersDao: FoldersDao
+    private val foldersDao: FoldersDao,
+    private val localTagsRepo: LocalTagsRepo
 ) : RemoteSyncRepo {
     private val json = Json {
         this.ignoreUnknownKeys = true
@@ -727,6 +731,20 @@ class RemoteSyncRepoImpl(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+            RemoteRoute.Tag.CREATE_TAG.name -> {
+                val tagDto = Json.decodeFromJsonElement<TagDTO>(deserializedWebSocketEvent.payload)
+                if (tagDto.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(tagDto.eventTimestamp)
+                    return
+                }
+                localTagsRepo.createATag(
+                    viaSocket = true, tag = Tag(
+                        remoteId = tagDto.id,
+                        lastModified = tagDto.eventTimestamp,
+                        name = tagDto.name
+                    )
+                ).collect()
+            }
 
             RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name -> {
                 val copyItemsSocketResponseDTO =
@@ -1133,7 +1151,8 @@ class RemoteSyncRepoImpl(
                     localLinksRepo.addANewLink(
                         link = link.copy(linkType = LinkType.IMPORTANT_LINK),
                         linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
-                        viaSocket = true
+                        viaSocket = true,
+                        selectedTagIds = TODO()
                     ).collectAndUpdateTimestamp(idBasedDTO.eventTimestamp)
                 }
             }
@@ -1212,7 +1231,8 @@ class RemoteSyncRepoImpl(
                         lastModified = linkDTO.eventTimestamp
                     ),
                     linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
-                    viaSocket = true
+                    viaSocket = true,
+                    selectedTagIds = TODO()
                 ).collectAndUpdateTimestamp(linkDTO.eventTimestamp)
             }
 
@@ -1428,7 +1448,7 @@ class RemoteSyncRepoImpl(
                     baseUrl = baseUrl,
                     authToken = authToken,
                     endPoint = RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name,
-                    body = DeleteEverythingDTO()
+                    outgoingBody = DeleteEverythingDTO()
                 )
             },
             remoteOperationOnSuccess = {

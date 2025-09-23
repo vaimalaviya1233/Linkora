@@ -27,6 +27,7 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
@@ -48,6 +47,7 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
+import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
@@ -55,6 +55,8 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -63,14 +65,17 @@ import kotlinx.serialization.json.Json
 fun SearchScreen() {
     val searchScreenVM: SearchScreenVM = linkoraViewModel()
     val platform = LocalPlatform.current
-    val historyLinks = searchScreenVM.links.collectAsStateWithLifecycle()
+    val historyLinkTagsPairs = searchScreenVM.linkTagsPairs.collectAsStateWithLifecycle()
     val searchQueryLinkResults = searchScreenVM.linkQueryResults.collectAsStateWithLifecycle()
     val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
+    val searchQueryTagResults = searchScreenVM.tagQueryResults.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val localUriHandler = LocalUriHandler.current
     val navController = LocalNavController.current
     val searchBarPadding =
         animateDpAsState(if (searchScreenVM.isSearchActive.value.not()) 15.dp else 0.dp)
+    val availableFolderFilters by searchScreenVM.availableFolderFilters.collectAsStateWithLifecycle()
+    val availableLinkFilters by searchScreenVM.availableLinkFilters.collectAsStateWithLifecycle()
     Column(modifier = Modifier.fillMaxSize()) {
         ProvideTextStyle(MaterialTheme.typography.titleSmall) {
             SearchBar(
@@ -119,7 +124,7 @@ fun SearchScreen() {
                 } else {
                     Column {
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                            searchScreenVM.availableFolderFilters.forEach {
+                            availableFolderFilters.forEach {
                                 FilterChip(
                                     text = it.asLocalizedString(),
                                     isSelected = searchScreenVM.appliedFolderFilters.contains(
@@ -129,7 +134,7 @@ fun SearchScreen() {
                                         searchScreenVM.toggleFolderFilter(it)
                                     })
                             }
-                            searchScreenVM.availableLinkFilters.forEach {
+                            availableLinkFilters.forEach {
                                 FilterChip(
                                     text = it.asLocalizedString(),
                                     isSelected = searchScreenVM.appliedLinkFilters.contains(
@@ -139,16 +144,24 @@ fun SearchScreen() {
                                         searchScreenVM.toggleLinkFilter(it)
                                     })
                             }
+                            if (searchScreenVM.tagsAvailableForFiltering) {
+                                FilterChip(
+                                    text = "Tags",
+                                    isSelected = searchScreenVM.appliedTagFiltering,
+                                    onClick = {
+                                        searchScreenVM.toggleTagFilter()
+                                    })
+                            }
                             Spacer(modifier = Modifier.width(10.dp))
                         }
                         CollectionLayoutManager(
                             emptyDataText = Localization.Key.NoSearchResults.rememberLocalizedString(),
                             folders = searchQueryFolderResults.value,
-                            links = searchQueryLinkResults.value,
+                            linksTagsPairs = searchQueryLinkResults.value,
                             paddingValues = PaddingValues(0.dp),
                             folderMoreIconClick = {
                                 coroutineScope.pushUIEvent(
-                                    UIEvent.Type.ShowMenuBtmSheetUI(
+                                    UIEvent.Type.ShowMenuBtmSheet(
                                         menuBtmSheetFor = if (it.isArchived) MenuBtmSheetType.Folder.ArchiveFolder else MenuBtmSheetType.Folder.RegularFolder,
                                         selectedLinkForMenuBtmSheet = null,
                                         selectedFolderForMenuBtmSheet = it
@@ -157,7 +170,10 @@ fun SearchScreen() {
                             },
                             onFolderClick = { folder ->
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
-                                    currentFolder = folder, isAnyCollectionSelected = true
+                                    currentFolder = folder,
+                                    isAnyCollectionSelected = true,
+                                    currentTag = null,
+                                    collectionType = CollectionType.FOLDER
                                 )
                                 CollectionsScreenVM.updateSearchNavigated(
                                     SearchNavigated(
@@ -182,27 +198,76 @@ fun SearchScreen() {
                             },
                             linkMoreIconClick = {
                                 coroutineScope.pushUIEvent(
-                                    UIEvent.Type.ShowMenuBtmSheetUI(
-                                        menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                                    UIEvent.Type.ShowMenuBtmSheet(
+                                        menuBtmSheetFor = it.link.linkType.asMenuBtmSheetType(),
                                         selectedLinkForMenuBtmSheet = it,
                                         selectedFolderForMenuBtmSheet = null
                                     )
                                 )
                             },
                             onLinkClick = {
-                                localUriHandler.openUri(it.url)
+                                localUriHandler.openUri(it.link.url)
                                 searchScreenVM.addANewLinkToHistory(
-                                    link = it.copy(
-                                        linkType = com.sakethh.linkora.domain.LinkType.HISTORY_LINK,
-                                        localId = 0
-                                    )
-                                )
+                                    link = it.link.copy(
+                                        linkType = LinkType.HISTORY_LINK, localId = 0
+                                    ), tagIds = it.tags.map { it.localId })
                             },
                             isCurrentlyInDetailsView = {
                                 false
                             },
-                            nestedScrollConnection = null
-                        )
+                            nestedScrollConnection = null,
+                            onAttachedTagClick = {
+                                val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                    currentFolder = null,
+                                    isAnyCollectionSelected = true,
+                                    currentTag = it,
+                                    collectionType = CollectionType.TAG,
+                                )
+                                if (platform is Platform.Android.Mobile) {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                        value = Json.encodeToString(
+                                            collectionDetailPaneInfo
+                                        )
+                                    )
+                                }
+                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    collectionDetailPaneInfo
+                                )
+                                navController.navigate(
+                                    Navigation.Collection.CollectionDetailPane
+                                )
+                            },
+                            tags = searchQueryTagResults.value,
+                            onTagClick = {
+                                val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                                    currentFolder = null,
+                                    isAnyCollectionSelected = false,
+                                    currentTag = it,
+                                    collectionType = CollectionType.TAG
+                                )
+                                try {
+                                    if (platform is Platform.Android.Mobile) {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                            value = Json.encodeToString(collectionDetailPaneInfo)
+                                        )
+                                    } else {
+                                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                            collectionDetailPaneInfo
+                                        )
+                                    }
+                                } finally {
+                                    navController.navigate(Navigation.Collection.CollectionDetailPane)
+                                }
+                            },
+                            tagMoreIconClick = {
+                                coroutineScope.pushUIEvent(
+                                    UIEvent.Type.ShowTagMenuBtmSheet(
+                                        selectedTag = it
+                                    )
+                                )
+                            })
                     }
                 }
             }
@@ -227,13 +292,13 @@ fun SearchScreen() {
         CollectionLayoutManager(
             emptyDataText = Localization.Key.NoHistoryFound.rememberLocalizedString(),
             folders = emptyList(),
-            links = historyLinks.value,
+            linksTagsPairs = historyLinkTagsPairs.value,
             paddingValues = PaddingValues(0.dp),
             folderMoreIconClick = {},
             onFolderClick = {},
             linkMoreIconClick = {
                 coroutineScope.pushUIEvent(
-                    UIEvent.Type.ShowMenuBtmSheetUI(
+                    UIEvent.Type.ShowMenuBtmSheet(
                         menuBtmSheetFor = MenuBtmSheetType.Link.HistoryLink,
                         selectedLinkForMenuBtmSheet = it,
                         selectedFolderForMenuBtmSheet = null
@@ -241,16 +306,38 @@ fun SearchScreen() {
                 )
             },
             onLinkClick = {
-                localUriHandler.openUri(it.url)
+                localUriHandler.openUri(it.link.url)
                 searchScreenVM.addANewLinkToHistory(
-                    link = it.copy(linkType = LinkType.HISTORY_LINK, localId = 0)
-                )
+                    link = it.link.copy(linkType = LinkType.HISTORY_LINK, localId = 0),
+                    tagIds = it.tags.map { it.localId })
             },
             isCurrentlyInDetailsView = {
                 false
             },
-            nestedScrollConnection = null
-        )
+            nestedScrollConnection = null,
+            onAttachedTagClick = {
+                val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                    currentFolder = null,
+                    isAnyCollectionSelected = true,
+                    currentTag = it,
+                    collectionType = CollectionType.TAG,
+                )
+                if (platform is Platform.Android.Mobile) {
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                        value = Json.encodeToString(
+                            collectionDetailPaneInfo
+                        )
+                    )
+                }
+                CollectionsScreenVM.updateCollectionDetailPaneInfo(collectionDetailPaneInfo)
+                navController.navigate(
+                    Navigation.Collection.CollectionDetailPane
+                )
+            },
+            tags = emptyList(),
+            tagMoreIconClick = {},
+            onTagClick = {})
     }
 }
 

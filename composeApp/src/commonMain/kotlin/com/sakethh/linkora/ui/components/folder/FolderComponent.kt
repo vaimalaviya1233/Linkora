@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,10 +33,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.ui.domain.model.FolderComponentParam
-import com.sakethh.linkora.ui.screens.collections.ItemDivider
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
+import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -47,8 +46,7 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
             if (folderComponentParam.isSelectedForSelection.value) Modifier.background(
                 MaterialTheme.colorScheme.primary.copy(0.25f)
             ) else Modifier
-        )
-            .then(
+        ).then(
                 if (platform() is Platform.Android.Mobile) Modifier else Modifier.background(
                     if (folderComponentParam.isCurrentlyInDetailsView.value) MaterialTheme.colorScheme.primary.copy(
                         0.25f
@@ -57,19 +55,13 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
             ).animateContentSize()
     ) {
         Row(
-            modifier = Modifier
-                .combinedClickable(
-                    interactionSource = remember {
-                        MutableInteractionSource()
-                    }, indication = null,
-                    onClick = {
-                        folderComponentParam.onClick()
-                    },
-                    onLongClick = {
-                        folderComponentParam.onLongClick()
-                    })
-                .pulsateEffect()
-                .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.combinedClickable(interactionSource = remember {
+                    MutableInteractionSource()
+                }, indication = null, onClick = {
+                    folderComponentParam.onClick()
+                }, onLongClick = {
+                    folderComponentParam.onLongClick()
+                }).pulsateEffect().fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
             if (folderComponentParam.showCheckBox.value) {
                 Checkbox(
@@ -79,18 +71,17 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Outlined.Folder,
+                    imageVector = folderComponentParam.leadingIcon,
                     contentDescription = null,
                     modifier = Modifier.padding(20.dp).size(28.dp)
                 )
             }
             Column(
-                modifier = Modifier
-                    .fillMaxWidth(if (folderComponentParam.showMoreIcon.value) 0.80f else 1f),
+                modifier = Modifier.fillMaxWidth(if (folderComponentParam.showMoreIcon.value) 0.80f else 1f),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 Text(
-                    text = folderComponentParam.folder.name,
+                    text = folderComponentParam.name,
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 16.sp,
@@ -101,9 +92,9 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = if (!folderComponentParam.showMoreIcon.value) 20.sp else TextUnit.Unspecified
                 )
-                if (folderComponentParam.folder.note.isNotEmpty()) {
+                if (folderComponentParam.note.isNotEmpty()) {
                     Text(
-                        text = folderComponentParam.folder.note,
+                        text = folderComponentParam.note,
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleSmall,
                         fontSize = 12.sp,
@@ -114,16 +105,14 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                 }
             }
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .padding(end = if (platform() == Platform.Android.Mobile) 15.dp else 0.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 if (folderComponentParam.showMoreIcon.value && folderComponentParam.showCheckBox.value.not()) {
                     IconButton(onClick = { folderComponentParam.onMoreIconClick() }) {
                         Icon(
-                            imageVector = Icons.Filled.MoreVert,
-                            contentDescription = null
+                            imageVector = Icons.Filled.MoreVert, contentDescription = null
                         )
                     }
                 }

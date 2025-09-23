@@ -23,15 +23,17 @@ class AboutSettingsScreenVM(
 ) : ViewModel() {
 
 
-    fun addANewLinkToHistory(link: Link) {
+    fun addANewLinkToHistory(link: Link, tagIds: List<Long>?) {
         viewModelScope.launch {
             localLinksRepo.addANewLink(
                 link = link.copy(
                     linkType = LinkType.HISTORY_LINK,
                     idOfLinkedFolder = null,
-                ), linkSaveConfig = LinkSaveConfig(
+                ),
+                linkSaveConfig = LinkSaveConfig(
                     forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
-                )
+                ),
+                selectedTagIds = tagIds
             ).collectLatest {
                 it.onSuccess {
                     if (it.isRemoteExecutionSuccessful.not()) {

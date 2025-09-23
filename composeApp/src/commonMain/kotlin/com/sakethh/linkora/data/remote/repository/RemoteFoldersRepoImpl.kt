@@ -27,7 +27,7 @@ class RemoteFoldersRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.CREATE_FOLDER.name,
-            body = addFolderDTO,
+            outgoingBody = addFolderDTO,
         )
     }
 
@@ -36,7 +36,7 @@ class RemoteFoldersRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER.name,
-            body = idBasedDTO,
+            outgoingBody = idBasedDTO,
         )
     }
 
@@ -46,7 +46,7 @@ class RemoteFoldersRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -55,7 +55,7 @@ class RemoteFoldersRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -66,7 +66,7 @@ class RemoteFoldersRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.CHANGE_PARENT_FOLDER.name,
-            body = changeParentFolderDTO
+            outgoingBody = changeParentFolderDTO
         )
     }
 
@@ -77,7 +77,7 @@ class RemoteFoldersRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
-            body = updateFolderNameDTO
+            outgoingBody = updateFolderNameDTO
         )
     }
 
@@ -88,7 +88,7 @@ class RemoteFoldersRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name,
-            body = updateFolderNoteDTO
+            outgoingBody = updateFolderNoteDTO
         )
     }
 
@@ -97,7 +97,7 @@ class RemoteFoldersRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
-            body = idBasedDTO
+            outgoingBody = idBasedDTO
         )
     }
 
@@ -107,7 +107,7 @@ class RemoteFoldersRepoImpl(
             baseUrl = baseUrl,
             authToken = authToken,
             endPoint = RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name,
-            body = markSelectedFoldersAsRootDTO
+            outgoingBody = markSelectedFoldersAsRootDTO
         )
     }
 }

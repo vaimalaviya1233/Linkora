@@ -8,13 +8,17 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.CreateNewFolder
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -39,7 +43,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 data class AddItemFABParam @OptIn(ExperimentalMaterial3Api::class) constructor(
-    val showBtmSheetForNewLinkAddition: MutableState<Boolean>,
+    val showDialogForNewLinkAddition: MutableState<Boolean>,
+    val onCreateATagClick:()-> Unit,
     val isReducedTransparencyBoxVisible: MutableState<Boolean>,
     val showDialogForNewFolder: MutableState<Boolean>,
     val shouldShowAddLinkDialog: MutableState<Boolean>,
@@ -67,8 +72,8 @@ fun AddItemFab(
         )
     }
     val coroutineScope = rememberCoroutineScope()
-    val navController = LocalNavController.current
-    val rootRouteList = rememberDeserializableObject {
+    LocalNavController.current
+    rememberDeserializableObject {
         listOf(
             Navigation.Root.HomeScreen,
             Navigation.Root.SearchScreen,
@@ -76,9 +81,72 @@ fun AddItemFab(
             Navigation.Root.SettingsScreen,
         )
     }
+
     Column {
-        androidx.compose.foundation.layout.Row(
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.align(Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (addItemFABParam.isMainFabRotated.value) {
+                AnimatedVisibility(
+                    visible = addItemFABParam.isMainFabRotated.value, enter = fadeIn(
+                        tween(
+                            200
+                        )
+                    ), exit = fadeOut(
+                        tween(
+                            200
+                        )
+                    )
+                ) {
+                    Text(
+                        text = "Create A New Tag",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(
+                            end = 15.dp
+                        )
+                    )
+                }
+            }
+            AnimatedVisibility(
+                visible = addItemFABParam.isMainFabRotated.value,
+                enter = androidx.compose.animation.scaleIn(
+                    animationSpec = tween(
+                        300
+                    )
+                ),
+                exit = androidx.compose.animation.scaleOut(
+                    tween(300)
+                )
+            ) {
+                FloatingActionButton(
+                    modifier = Modifier.pulsateEffect(), onClick = {
+                        addItemFABParam.isReducedTransparencyBoxVisible.value = false
+                        addItemFABParam.onCreateATagClick()
+                        addItemFABParam.isMainFabRotated.value = false
+                        coroutineScope.launch {
+                            addItemFABParam.rotationAnimation.snapTo(-180f)
+                        }
+                    }) {
+                    Icon(
+                        imageVector = Icons.Default.Tag, contentDescription = null
+                    )
+                }
+            }
+
+        }
+        Spacer(
+            modifier = Modifier.height(
+                15.dp
+            )
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier.align(Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -132,13 +200,13 @@ fun AddItemFab(
             }
 
         }
-        androidx.compose.foundation.layout.Spacer(
+        Spacer(
             modifier = Modifier.height(
                 15.dp
             )
         )
-        androidx.compose.foundation.layout.Row(
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+        Row(
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier.align(Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -167,8 +235,8 @@ fun AddItemFab(
             }
             FloatingActionButton(
                 modifier = Modifier.rotate(
-                        addItemFABParam.rotationAnimation.value
-                    ).pulsateEffect(), onClick = {
+                    addItemFABParam.rotationAnimation.value
+                ).pulsateEffect(), onClick = {
                     if (addItemFABParam.isMainFabRotated.value) {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.shouldShowAddLinkDialog.value = true

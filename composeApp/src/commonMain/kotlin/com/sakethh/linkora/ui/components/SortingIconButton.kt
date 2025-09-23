@@ -15,7 +15,7 @@ import com.sakethh.linkora.ui.utils.pulsateEffect
 fun SortingIconButton() {
     val coroutineScope = rememberCoroutineScope()
     IconButton(modifier = Modifier.pulsateEffect(), onClick = {
-        coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheetUI)
+        coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheet)
     }) {
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.Sort,

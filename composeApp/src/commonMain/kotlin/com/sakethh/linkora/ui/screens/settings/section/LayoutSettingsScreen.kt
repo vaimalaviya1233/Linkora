@@ -85,6 +85,8 @@ fun LayoutSettingsScreen() {
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
                 onLongClick = { -> },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -107,7 +109,7 @@ fun LayoutSettingsScreen() {
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "The plague ravages the Kingdom of France. Amicia and her younger brother Hugo are pursued by the Inquisition through villages devastated by the disease.",
-                    idOfLinkedFolder = null
+                    idOfLinkedFolder = null,
                 ),
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
@@ -117,6 +119,8 @@ fun LayoutSettingsScreen() {
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
                 onLongClick = { -> },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -137,6 +141,8 @@ fun LayoutSettingsScreen() {
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
                 onLongClick = { -> },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -157,6 +163,8 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
                 },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -177,6 +185,8 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/")
                 },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -197,6 +207,8 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://twitter.com/CatWorkers/status/1819121250226127061")
                 },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -218,6 +230,8 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.youtube.com/watch?v=3vlqI5TPVjQ")
                 },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -239,6 +253,8 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.youtube.com/watch?v=scCey_wI46w")
                 },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -260,6 +276,8 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.youtube.com/watch?v=66OFYWBrg3o")
                 },
+                tags = null,
+                onTagClick = {}
             ),
             LinkUIComponentParam(
                 link = Link(
@@ -281,6 +299,8 @@ fun LayoutSettingsScreen() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://store.steampowered.com/app/2713000/Resonance_A_Plague_Tale_Legacy/")
                 },
+                tags = null,
+                onTagClick = {}
             ),
         ).sortedBy {
             it.link.title

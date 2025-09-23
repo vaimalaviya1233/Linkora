@@ -22,9 +22,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
-import com.sakethh.linkora.platform.FileManager
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.ExportFileType
@@ -37,6 +34,9 @@ import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
+import com.sakethh.linkora.platform.FileManager
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
@@ -48,6 +48,7 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
@@ -68,7 +69,8 @@ class IntentActivity : ComponentActivity() {
                         localFoldersRepo = DependencyContainer.localFoldersRepo,
                         localPanelsRepo = DependencyContainer.localPanelsRepo,
                         exportDataRepo = DependencyContainer.exportDataRepo,
-                        fileManager = LinkoraSDK.getInstance().fileManager
+                        fileManager = LinkoraSDK.getInstance().fileManager,
+                        localTagsRepo = DependencyContainer.localTagsRepo
                     )
                 }
             })
@@ -153,7 +155,8 @@ class IntentActivity : ComponentActivity() {
                             localLinksRepo = DependencyContainer.localLinksRepo,
                             loadNonArchivedRootFoldersOnInit = true,
                             loadArchivedRootFoldersOnInit = false,
-                            collectionDetailPaneInfo = null
+                            collectionDetailPaneInfo = null,
+                            localTagsRepo = DependencyContainer.localTagsRepo
                         ),
                         url = this@IntentActivity.intent?.getStringExtra(
                             Intent.EXTRA_TEXT
@@ -169,6 +172,7 @@ class IntentActivityVM(
     private val localLinksRepo: LocalLinksRepo,
     private val localFoldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
+    private val localTagsRepo: LocalTagsRepo,
     private val exportDataRepo: ExportDataRepo,
     private val fileManager: FileManager
 ) : ViewModel() {
@@ -178,7 +182,8 @@ class IntentActivityVM(
             val allFolders = async { localFoldersRepo.getAllFoldersAsList() }
             val allPanels = async { localPanelsRepo.getAllThePanelsAsAList() }
             val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
-
+            val allTags = async { localTagsRepo.getAllTagsAsList() }
+            val allLinkTagsPairs = async { localTagsRepo.getAllLinkTagsAsList() }
             if (AppPreferences.isBackupAutoDeletionEnabled.value) {
                 fileManager.deleteAutoBackups(
                     backupLocation = AppPreferences.currentBackupLocation.value,
@@ -213,7 +218,12 @@ class IntentActivityVM(
                             remoteId = null, lastModified = 0
                         )
                     }),
-                ).run {
+                    tags = allTags.await().map {
+                        it.copy(remoteId = null, lastModified = 0)
+                    },
+                    linkTags = allLinkTagsPairs.await().map {
+                        it.copy(remoteId = null, lastModified = 0)
+                    }).run {
                     Json.encodeToString(this)
                 }
 

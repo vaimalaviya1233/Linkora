@@ -1,9 +1,6 @@
 package com.sakethh.linkora.data
 
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.LinkoraExports
-import com.sakethh.linkora.utils.catchAsExceptionAndEmitFailure
-import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.Result
@@ -15,6 +12,10 @@ import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
+import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
+import com.sakethh.linkora.utils.LinkoraExports
+import com.sakethh.linkora.utils.catchAsExceptionAndEmitFailure
+import com.sakethh.linkora.utils.getLocalizedString
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.SendChannel
@@ -28,7 +29,8 @@ import kotlinx.serialization.json.Json
 class ExportDataRepoImpl(
     private val localLinksRepo: LocalLinksRepo,
     private val localFoldersRepo: LocalFoldersRepo,
-    private val localPanelsRepo: LocalPanelsRepo
+    private val localPanelsRepo: LocalPanelsRepo,
+    private val localTagsRepo: LocalTagsRepo
 ) : ExportDataRepo {
 
     override suspend fun rawExportDataAsJSON(): Flow<Result<RawExportString>> {
@@ -47,7 +49,12 @@ class ExportDataRepoImpl(
                 val deferredPanelFolders = async {
                     localPanelsRepo.getAllThePanelFoldersAsAList()
                 }
-
+                val deferredTags = async {
+                    localTagsRepo.getAllTagsAsList()
+                }
+                val deferredLinkTags = async {
+                    localTagsRepo.getAllLinkTagsAsList()
+                }
                 emit(Result.Loading(message = Localization.Key.CollectingLinksForExport.getLocalizedString()))
                 val links = deferredLinks.await()
 
@@ -66,6 +73,10 @@ class ExportDataRepoImpl(
 
                 emit(Result.Loading(message = Localization.Key.SerializingCollectedDataForExport.getLocalizedString()))
 
+                val tags = deferredTags.await()
+
+                val linkTags = deferredLinkTags.await()
+
                 val exportObject = JSONExportSchema(
                     schemaVersion = JSONExportSchema.VERSION,
                     links = links.map { it.copy(remoteId = null, lastModified = 0) },
@@ -77,7 +88,9 @@ class ExportDataRepoImpl(
                                 remoteId = null, lastModified = 0
                             )
                         }),
-                )
+                    tags = tags.map { it.copy(remoteId = null, lastModified = 0) },
+                    linkTags = linkTags.map { it.copy(remoteId = null, lastModified = 0) })
+
                 val requiredRawExportString = Json.encodeToString(exportObject)
                 emit(Result.Success(data = requiredRawExportString))
             }

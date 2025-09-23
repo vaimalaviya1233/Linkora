@@ -50,10 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.isNotNull
-import com.sakethh.linkora.utils.isNull
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkSaveConfig
@@ -67,6 +63,7 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
+import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
@@ -75,6 +72,8 @@ import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -168,12 +167,12 @@ fun HomeScreen() {
             }
         }
     }) { paddingValues ->
-        if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNull()) {
+        if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value == null) {
             LoadingScreen(paddingValues = PaddingValues(25.dp))
             return@Scaffold
         }
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value.isNotNull()) {
+            if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value != null) {
                 DataEmptyScreen(text = Localization.Key.NoFoldersInThePanel.rememberLocalizedString())
                 return@Scaffold
             }
@@ -203,7 +202,7 @@ fun HomeScreen() {
             HorizontalPager(state = pagerState) { pageIndex ->
                 CollectionLayoutManager(
                     folders = activePanelAssociatedFolders[pageIndex],
-                    links = if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
+                    linksTagsPairs = if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
                         when (pageIndex) {
                             0 -> activePanelAssociatedFolderLinks[0]
 
@@ -213,7 +212,7 @@ fun HomeScreen() {
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
                         coroutineScope.pushUIEvent(
-                            UIEvent.Type.ShowMenuBtmSheetUI(
+                            UIEvent.Type.ShowMenuBtmSheet(
                                 menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
                                 selectedLinkForMenuBtmSheet = null,
                                 selectedFolderForMenuBtmSheet = it
@@ -224,6 +223,8 @@ fun HomeScreen() {
                         val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                             currentFolder = folder,
                             isAnyCollectionSelected = true,
+                            currentTag = null,
+                            collectionType = CollectionType.FOLDER,
                         )
                         CollectionsScreenVM.updateSearchNavigated(
                             SearchNavigated(
@@ -248,8 +249,8 @@ fun HomeScreen() {
                     },
                     linkMoreIconClick = {
                         coroutineScope.pushUIEvent(
-                            UIEvent.Type.ShowMenuBtmSheetUI(
-                                menuBtmSheetFor = it.linkType.asMenuBtmSheetType(),
+                            UIEvent.Type.ShowMenuBtmSheet(
+                                menuBtmSheetFor = it.link.linkType.asMenuBtmSheetType(),
                                 selectedLinkForMenuBtmSheet = it,
                                 selectedFolderForMenuBtmSheet = null
                             )
@@ -257,20 +258,50 @@ fun HomeScreen() {
                     },
                     onLinkClick = {
                         homeScreenVM.addANewLink(
-                            link = it.copy(
+                            link = it.link.copy(
                                 linkType = LinkType.HISTORY_LINK, localId = 0
-                            ), linkSaveConfig = LinkSaveConfig(
+                            ),
+                            linkSaveConfig = LinkSaveConfig(
                                 forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
-                            ), onCompletion = {}, pushSnackbarOnSuccess = false
+                            ),
+                            onCompletion = {},
+                            pushSnackbarOnSuccess = false,
+                            selectedTags = it.tags
                         )
-                        localUriHandler.openUri(it.url)
+                        localUriHandler.openUri(it.link.url)
                     },
                     isCurrentlyInDetailsView = {
                         false
                     },
                     nestedScrollConnection = null,
                     emptyDataText = if (activePanelAssociatedPanelFolders.value.map { it.folderId }
-                            .contains(Constants.SAVED_LINKS_ID)) Localization.Key.NoLinksFound.rememberLocalizedString() else "")
+                            .contains(Constants.SAVED_LINKS_ID)) Localization.Key.NoLinksFound.rememberLocalizedString() else "",
+                    onAttachedTagClick = {
+                        val collectionDetailPaneInfo = CollectionDetailPaneInfo(
+                            currentFolder = null,
+                            isAnyCollectionSelected = true,
+                            currentTag = it,
+                            collectionType = CollectionType.TAG,
+                        )
+                        if (platform is Platform.Android.Mobile) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                value = Json.encodeToString(
+                                    collectionDetailPaneInfo
+                                )
+                            )
+                            navController.navigate(
+                                Navigation.Collection.CollectionDetailPane
+                            )
+                        } else {
+                            CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                collectionDetailPaneInfo
+                            )
+                        }
+                    },
+                    tags = emptyList(),
+                    onTagClick = {},
+                    tagMoreIconClick = {})
             }
         }
     }

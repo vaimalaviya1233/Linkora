@@ -2,6 +2,7 @@ package com.sakethh.linkora.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,12 +27,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,23 +42,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.model.tag.Tag
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.utils.pulsateEffect
-import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
+import com.sakethh.linkora.utils.rememberLocalizedString
+import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 
-data class RenameDialogBoxParam(
-    val shouldDialogBoxAppear: MutableState<Boolean>,
-    val renameDialogBoxFor: MenuBtmSheetType = MenuBtmSheetType.Folder.RegularFolder,
-    val onNoteChangeClick: ((newNote: String, onCompletion: () -> Unit) -> Unit),
-    val onBothTitleAndNoteChangeClick: ((newTitle: String, newNote: String, onCompletion: () -> Unit) -> Unit),
+data class RenameDialogBoxParam @OptIn(ExperimentalMaterial3Api::class) constructor(
+    val showDialogBox: Boolean,
+    val sheetState: SheetState,
+    val onHide: () -> Unit,
+    val dialogBoxFor: MenuBtmSheetType = MenuBtmSheetType.Folder.RegularFolder,
+    val onSave: (newTitle: String, newNote: String, selectedTags: List<Tag>, onCompletion: () -> Unit) -> Unit,
     val existingFolderName: String?,
     val existingTitle: String,
-    val existingNote: String
+    val existingNote: String,
+    val allTags: List<Tag>,
+    val selectedTags: List<Tag>,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,14 +71,17 @@ data class RenameDialogBoxParam(
 fun RenameDialogBox(
     renameDialogBoxParam: RenameDialogBoxParam
 ) {
-    if (renameDialogBoxParam.shouldDialogBoxAppear.value) {
-        val newFolderOrTitleName = rememberSaveable(renameDialogBoxParam.existingTitle) {
+    if (renameDialogBoxParam.showDialogBox) {
+        var selectedTags by rememberDeserializableMutableObject {
+            mutableStateOf(renameDialogBoxParam.selectedTags)
+        }
+        var newFolderOrTitleName by rememberSaveable(renameDialogBoxParam.existingTitle) {
             mutableStateOf(renameDialogBoxParam.existingTitle)
         }
-        val newNote = rememberSaveable(renameDialogBoxParam.existingNote) {
+        var newNote by rememberSaveable(renameDialogBoxParam.existingNote) {
             mutableStateOf(renameDialogBoxParam.existingNote)
         }
-        val showProgressBar = rememberSaveable {
+        var showProgressBar by rememberSaveable {
             mutableStateOf(false)
         }
         val content: ComposableContent = {
@@ -90,7 +100,7 @@ fun RenameDialogBox(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.renameDialogBoxFor) && renameDialogBoxParam.existingFolderName?.isNotBlank() == true) Localization.Key.RenameFolder.rememberLocalizedString()
+                            text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.dialogBoxFor) && renameDialogBoxParam.existingFolderName?.isNotBlank() == true) Localization.Key.RenameFolder.rememberLocalizedString()
                                 .replaceFirstPlaceHolderWith(renameDialogBoxParam.existingFolderName) else Localization.Key.ChangeLinkData.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 22.sp,
@@ -99,11 +109,10 @@ fun RenameDialogBox(
                             modifier = Modifier.fillMaxWidth(if (platform() != Platform.Android.Mobile) 0.85f else 1f)
                         )
 
-                        if (platform() != Platform.Android.Mobile && showProgressBar.value.not()) {
+                        if (platform() != Platform.Android.Mobile && !showProgressBar) {
                             IconButton(
-                                onClick = {
-                                    renameDialogBoxParam.shouldDialogBoxAppear.value = false
-                                }) {
+                                onClick = renameDialogBoxParam.onHide
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Close, contentDescription = null
                                 )
@@ -115,19 +124,19 @@ fun RenameDialogBox(
                     OutlinedTextField(
                         label = {
                             Text(
-                                text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.renameDialogBoxFor)) Localization.Key.NewName.rememberLocalizedString()
+                                text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.dialogBoxFor)) Localization.Key.NewName.rememberLocalizedString()
                                 else Localization.Key.NewTitle.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp
                             )
                         },
                         textStyle = MaterialTheme.typography.titleSmall,
-                        value = newFolderOrTitleName.value,
+                        value = newFolderOrTitleName,
                         onValueChange = {
-                            newFolderOrTitleName.value = it
+                            newFolderOrTitleName = it
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        readOnly = showProgressBar.value
+                        readOnly = showProgressBar
                     )
                 }
                 item {
@@ -140,15 +149,41 @@ fun RenameDialogBox(
                             )
                         },
                         textStyle = MaterialTheme.typography.titleSmall,
-                        value = newNote.value,
+                        value = newNote,
                         onValueChange = {
-                            newNote.value = it
+                            newNote = it
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        readOnly = showProgressBar.value
+                        readOnly = showProgressBar
                     )
                 }
-                if (showProgressBar.value) {
+
+                if (renameDialogBoxParam.dialogBoxFor is MenuBtmSheetType.Link) {
+                    item {
+                        Text(
+                            text = "Attach Tags",
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontSize = 18.sp
+                        )
+
+                        TagSelectionComponent(
+                            paddingValues = PaddingValues(),
+                            allTags = renameDialogBoxParam.allTags,
+                            selectedTags = selectedTags,
+                            onClick = { currTag ->
+                                if (selectedTags.contains(currTag)) {
+                                    selectedTags = selectedTags.filterNot {
+                                        currTag == it
+                                    }
+                                } else {
+                                    selectedTags += currTag
+                                }
+                            })
+                    }
+                }
+
+                if (showProgressBar) {
                     item {
                         Spacer(modifier = Modifier.height(10.dp))
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -157,39 +192,26 @@ fun RenameDialogBox(
                     return@LazyColumn
                 }
                 item {
-                    Button(
-                        modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                            showProgressBar.value = true
-                            renameDialogBoxParam.onNoteChangeClick(newNote.value, {
-                                showProgressBar.value = false
-                            })
-                        }) {
-                        Text(
-                            text = Localization.Key.ChangeNoteOnly.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 16.sp
-                        )
-                    }
                     Spacer(modifier = Modifier.height(2.dp))
                     Button(
                         modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                            showProgressBar.value = true
-                            renameDialogBoxParam.onBothTitleAndNoteChangeClick(
-                                newFolderOrTitleName.value, newNote.value, {
-                                    showProgressBar.value = false
+                            showProgressBar = true
+                            renameDialogBoxParam.onSave(
+                                newFolderOrTitleName, newNote, selectedTags, {
+                                    showProgressBar = true
                                 })
                         }) {
                         Text(
-                            text = Localization.rememberLocalizedString(Localization.Key.ChangeBothNameAndNote),
+                            text = Localization.rememberLocalizedString(Localization.Key.Save),
                             style = MaterialTheme.typography.titleSmall,
                             fontSize = 16.sp
                         )
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     OutlinedButton(
-                        modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                            renameDialogBoxParam.shouldDialogBoxAppear.value = false
-                        }) {
+                        modifier = Modifier.fillMaxWidth().pulsateEffect(),
+                        onClick = renameDialogBoxParam.onHide
+                    ) {
                         Text(
                             text = Localization.Key.Cancel.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleSmall,
@@ -201,15 +223,12 @@ fun RenameDialogBox(
         }
         if (platform() == Platform.Android.Mobile) {
             ModalBottomSheet(
-                sheetState = rememberModalBottomSheetState(
-                    skipPartiallyExpanded = true, confirmValueChange = {
-                        !showProgressBar.value
-                    }),
+                sheetState = renameDialogBoxParam.sheetState,
                 modifier = Modifier.imePadding(),
                 properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
                 onDismissRequest = {
-                    if (showProgressBar.value.not()) {
-                        renameDialogBoxParam.shouldDialogBoxAppear.value = false
+                    if (showProgressBar.not()) {
+                        renameDialogBoxParam.onHide()
                     }
                 }) {
                 content()
@@ -221,8 +240,8 @@ fun RenameDialogBox(
                 ).clip(RoundedCornerShape(10.dp)).background(AlertDialogDefaults.containerColor),
                 properties = DialogProperties(usePlatformDefaultWidth = false),
                 onDismissRequest = {
-                    if (showProgressBar.value.not()) {
-                        renameDialogBoxParam.shouldDialogBoxAppear.value = false
+                    if (showProgressBar.not()) {
+                        renameDialogBoxParam.onHide()
                     }
                 }) {
                 content()

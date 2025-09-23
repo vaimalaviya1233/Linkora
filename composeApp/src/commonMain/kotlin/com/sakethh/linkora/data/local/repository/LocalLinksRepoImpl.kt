@@ -11,6 +11,7 @@ import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
+import com.sakethh.linkora.data.local.dao.TagsDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
@@ -24,6 +25,7 @@ import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
 import com.sakethh.linkora.domain.mapToResultFlow
+import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
@@ -49,19 +51,21 @@ import java.time.Instant
 class LocalLinksRepoImpl(
     private val linksDao: LinksDao,
     private val primaryUserAgent: () -> String,
-    private val syncServerClient: () -> HttpClient,
     private val standardClient: HttpClient,
     private val remoteLinksRepo: RemoteLinksRepo,
     private val foldersDao: FoldersDao,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val tagsDao: TagsDao
 ) : LocalLinksRepo {
     override suspend fun changeIdOfALink(existingId: Long, newId: Long) {
         linksDao.changeIdOfALink(existingId, newId)
     }
 
     override suspend fun addANewLink(
-        link: Link, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
+        link: Link,
+        selectedTagIds: List<Long>?,
+        linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         if (link.linkType == LinkType.HISTORY_LINK) {
             linksDao.deleteLinksFromHistory(link.url)
@@ -150,42 +154,56 @@ class LocalLinksRepoImpl(
                 }
             }
 
-            if (linkSaveConfig.forceSaveWithoutRetrievingData) {
+            newLinkId = if (linkSaveConfig.forceSaveWithoutRetrievingData) {
                 link.url.isAValidLink().ifNot {
                     throw Link.Invalid()
                 }
-                newLinkId =
-                    linksDao.addANewLink(link.copy(lastModified = eventTimestamp, localId = 0))
-                return@performLocalOperationWithRemoteSyncFlow
-            }
-            if (link.url.isATwitterUrl()) {
-                retrieveFromVxTwitterApi(link.url)
+
+                linksDao.addANewLink(link.copy(lastModified = eventTimestamp, localId = 0))
             } else {
-                scrapeLinkData(
-                    link.url, link.userAgent ?: primaryUserAgent()
-                )
-            }.let { scrapedLinkInfo ->
-                newLinkId = linksDao.addANewLink(
-                    link.copy(
-                        title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
-                        imgURL = scrapedLinkInfo.imgUrl,
-                        localId = 0,
-                        mediaType = scrapedLinkInfo.mediaType,
-                        lastModified = eventTimestamp
+                if (link.url.isATwitterUrl()) {
+                    retrieveFromVxTwitterApi(link.url)
+                } else {
+                    scrapeLinkData(
+                        link.url, link.userAgent ?: primaryUserAgent()
                     )
-                )
+                }.let { scrapedLinkInfo ->
+                    linksDao.addANewLink(
+                        link.copy(
+                            title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
+                            imgURL = scrapedLinkInfo.imgUrl,
+                            localId = 0,
+                            mediaType = scrapedLinkInfo.mediaType,
+                            lastModified = eventTimestamp
+                        )
+                    )
+                }
+            }
+
+            selectedTagIds?.let { selectedTagIds ->
+                tagsDao.createLinkTags(
+                    linksTags = selectedTagIds.map { tagId ->
+                        LinkTag(
+                            linkId = newLinkId,
+                            tagId = tagId
+                        )
+                    })
             }
         }
     }
 
-    override suspend fun addMultipleLinks(links: List<Link>) {
-        linksDao.addMultipleLinks(links)
+    override suspend fun addMultipleLinks(links: List<Link>): List<Long> {
+       return linksDao.addMultipleLinks(links)
     }
 
     override suspend fun getSortedLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>> {
         return linksDao.getSortedLinks(linkType, parentFolderId, sortOption).mapToResultFlow()
+    }
+
+    override suspend fun getSortedLinks(tagId: Long, sortOption: String): Flow<Result<List<Link>>> {
+        return linksDao.getSortedLinks(tagId = tagId, sortOption = sortOption).mapToResultFlow()
     }
 
     override fun sortLinksAsNonResultFlow(
@@ -633,10 +651,11 @@ class LocalLinksRepoImpl(
                         operation = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
                         payload = Json.encodeToString(
                             DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filterNot {
-                            it.remoteId == null
-                        }.map {
-                            it.remoteId!!
-                        }, eventTimestamp = eventTimestamp))
+                                it.remoteId == null
+                            }.map {
+                                it.remoteId!!
+                            }, eventTimestamp = eventTimestamp)
+                        )
                     )
                 )
             },

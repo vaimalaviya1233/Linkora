@@ -1,56 +1,76 @@
 package com.sakethh.linkora.ui.screens.collections
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
-import com.sakethh.linkora.utils.isNotNull
-import com.sakethh.linkora.utils.isNull
-import com.sakethh.linkora.utils.pushSnackbarOnFailure
-import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.tag.LinkTag
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
+import com.sakethh.linkora.ui.domain.model.CollectionType
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
+import com.sakethh.linkora.utils.isNull
+import com.sakethh.linkora.utils.pushSnackbarOnFailure
+import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.util.Stack
 
 open class CollectionsScreenVM(
     val localFoldersRepo: LocalFoldersRepo,
     val localLinksRepo: LocalLinksRepo,
+    val localTagsRepo: LocalTagsRepo,
     loadNonArchivedRootFoldersOnInit: Boolean = true,
     loadArchivedRootFoldersOnInit: Boolean = true,
-    val collectionDetailPaneInfo: CollectionDetailPaneInfo? = null
+    val collectionDetailPaneInfo: CollectionDetailPaneInfo? = null,
+    preferencesRepo: PreferencesRepository? = null
 ) : ViewModel() {
 
     companion object {
         private val _collectionDetailPaneInfo = mutableStateOf(
             CollectionDetailPaneInfo(
-                currentFolder = null, isAnyCollectionSelected = false
+                currentFolder = null,
+                isAnyCollectionSelected = false,
+                collectionType = null,
+                currentTag = null
             )
         )
         val collectionDetailPaneInfo = _collectionDetailPaneInfo
@@ -79,7 +99,10 @@ open class CollectionsScreenVM(
 
         fun resetCollectionDetailPaneInfo() {
             _collectionDetailPaneInfo.value = CollectionDetailPaneInfo(
-                currentFolder = null, isAnyCollectionSelected = false
+                currentFolder = null,
+                isAnyCollectionSelected = false,
+                collectionType = null,
+                currentTag = null
             )
         }
 
@@ -101,6 +124,11 @@ open class CollectionsScreenVM(
 
         emptyCollectableLinks()
         emptyCollectableChildFolders()
+
+        if (collectionDetailPaneInfo.collectionType == CollectionType.TAG && collectionDetailPaneInfo.currentTag != null) {
+            updateCollectableLinks(tagId = collectionDetailPaneInfo.currentTag.localId)
+            return
+        }
 
         when (collectionDetailPaneInfo.currentFolder?.localId) {
             Constants.SAVED_LINKS_ID -> {
@@ -132,8 +160,8 @@ open class CollectionsScreenVM(
         }
     }
 
-    private val _availableFiltersForAllLinks = mutableStateListOf<LinkType>()
-    val availableFiltersForAllLinks = _availableFiltersForAllLinks
+    private val _availableFiltersForAllLinks = MutableStateFlow(emptySet<LinkType>())
+    val availableFiltersForAllLinks = _availableFiltersForAllLinks.asStateFlow()
 
     private val _appliedFiltersForAllLinks = mutableStateListOf<LinkType>()
     val appliedFiltersForAllLinks = _appliedFiltersForAllLinks
@@ -162,19 +190,29 @@ open class CollectionsScreenVM(
             ) { appliedFilters, sortingType, forceShuffleLinks ->
                 Triple(appliedFilters, sortingType, forceShuffleLinks)
             }.collectLatest { (appliedFilters, sortingType, forceShuffleLinks) ->
-                _availableFiltersForAllLinks.clear()
                 localLinksRepo.sortAllLinks(sortingType).collectLatest {
                     it.onSuccess { result ->
-                        _availableFiltersForAllLinks.addAll(result.data.map { it.linkType }
-                            .distinct())
+                        _availableFiltersForAllLinks.emit(result.data.map { it.linkType }.toSet())
                         val filteredResults = result.data.filter {
                             appliedFilters.isEmpty() || it.linkType in appliedFilters
                         }
-                        _links.apply {
+                        _linkTagsPairs.apply {
                             if (forceShuffleLinks) {
-                                emit(filteredResults.shuffled())
+                                emit(filteredResults.shuffled().map {
+                                    LinkTagsPair(
+                                        link = it,
+                                        tags = localTagsRepo.getTagsBasedOnTheLinkId(it.localId)
+                                            .first()
+                                    )
+                                })
                             } else {
-                                emit(filteredResults)
+                                emit(filteredResults.map {
+                                    LinkTagsPair(
+                                        link = it,
+                                        tags = localTagsRepo.getTagsBasedOnTheLinkId(it.localId)
+                                            .first()
+                                    )
+                                })
                             }
                         }
                     }
@@ -190,7 +228,54 @@ open class CollectionsScreenVM(
     private val _rootArchiveFolders = MutableStateFlow(emptyList<Folder>())
     val rootArchiveFolders = _rootArchiveFolders.asStateFlow()
 
+    private val _allTags = MutableStateFlow<List<Tag>>(value = emptyList())
+    val allTags = _allTags.asStateFlow()
+
+    private val _selectedTags = mutableStateListOf<Tag>()
+    val selectedTags: List<Tag> = _selectedTags
+
+    fun selectATag(tag: Tag) {
+        if (!_selectedTags.contains(tag)) {
+            _selectedTags.add(tag)
+        }
+    }
+
+    fun unSelectATag(tag: Tag) {
+        _selectedTags.remove(tag)
+    }
+
+    fun createATag(tagName: String, onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            localTagsRepo.createATag(Tag(name = tagName)).collect()
+        }.invokeOnCompletion {
+            onCompletion()
+        }
+    }
+
+    private val _currentCollectionSource get() = if (AppPreferences.selectedCollectionSourceId == 0) Localization.Key.Folders.getLocalizedString() else "Tags"
+    var currentCollectionSource by mutableStateOf(_currentCollectionSource)
+
     init {
+        if (preferencesRepo != null) {
+            viewModelScope.launch {
+                snapshotFlow {
+                    AppPreferences.selectedCollectionSourceId
+                }.cancellable().collectLatest {
+                    currentCollectionSource = _currentCollectionSource
+                    preferencesRepo.changePreferenceValue(
+                        preferenceKey = intPreferencesKey(
+                            AppPreferenceType.COLLECTION_SOURCE_ID.name
+                        ), newValue = it
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            localTagsRepo.getAllTags().collectLatest {
+                _allTags.emit(it)
+            }
+        }
+
         viewModelScope.launch {
 
             if (loadNonArchivedRootFoldersOnInit && loadArchivedRootFoldersOnInit) {
@@ -212,8 +297,8 @@ open class CollectionsScreenVM(
                 }
             }
         }
-        if (collectionDetailPaneInfo.isNotNull()) {
-            updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo!!)
+        if (collectionDetailPaneInfo != null) {
+            updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo)
         }
     }
 
@@ -393,7 +478,7 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun markALinkAsImp(link: Link, onCompletion: () -> Unit) {
+    fun markALinkAsImp(link: Link, tagIds: List<Long>?, onCompletion: () -> Unit) {
         viewModelScope.launch {
             if (link.linkType == LinkType.IMPORTANT_LINK) {
                 deleteALink(link, onCompletion = {})
@@ -403,7 +488,9 @@ open class CollectionsScreenVM(
                 link = link.copy(
                     idOfLinkedFolder = Constants.IMPORTANT_LINKS_ID,
                     localId = 0, linkType = LinkType.IMPORTANT_LINK,
-                ), linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving()
+                ),
+                linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
+                selectedTagIds = tagIds
             ).collectLatest {
                 it.onSuccess {
                     pushUIEvent(UIEvent.Type.ShowSnackbar("Added Copy to Important Links"))
@@ -453,123 +540,81 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun updateFolderNote(
-        folderId: Long,
-        newNote: String,
-        onCompletion: () -> Unit,
-        pushSnackbarOnSuccess: Boolean = true
-    ) {
+    fun updateLink(updatedLinkTagsPair: LinkTagsPair, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            localFoldersRepo.renameAFolderNote(folderId, newNote).collectLatest {
-                it.onSuccess {
-                    if (pushSnackbarOnSuccess) {
-                        pushUIEvent(
-                            UIEvent.Type.ShowSnackbar(
-                                Localization.getLocalizedString(
-                                    Localization.Key.UpdatedTheNote
-                                ) + it.getRemoteOnlyFailureMsg()
-                            )
-                        )
-                    }
-                }.pushSnackbarOnFailure()
-            }
-        }.invokeOnCompletion {
-            onCompletion()
-        }
-    }
-
-    fun updateLinkNote(
-        linkId: Long,
-        newNote: String,
-        onCompletion: () -> Unit,
-        pushSnackbarOnSuccess: Boolean = true
-    ) {
-        viewModelScope.launch {
-            localLinksRepo.updateLinkNote(linkId, newNote).collectLatest {
-                it.onSuccess {
-                    if (pushSnackbarOnSuccess) {
-                        Localization.Key.UpdatedTheNote.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
-                    }
-                }.pushSnackbarOnFailure()
-            }
-        }.invokeOnCompletion {
-            onCompletion()
-        }
-    }
-
-    fun updateLinkTitle(linkId: Long, newTitle: String, onCompletion: () -> Unit) {
-        viewModelScope.launch {
-            localLinksRepo.updateLinkTitle(linkId, newTitle).collectLatest {
-                it.onSuccess {
-                    Localization.Key.UpdatedTheTitle.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
-                }.pushSnackbarOnFailure()
-            }
-        }.invokeOnCompletion {
-            onCompletion()
-        }
-    }
-
-    fun updateFolderName(
-        folder: Folder,
-        newName: String,
-        ignoreFolderAlreadyExistsThrowable: Boolean,
-        onCompletion: () -> Unit
-    ) {
-        viewModelScope.launch {
-            localFoldersRepo.renameAFolderName(
-                folderID = folder.localId,
-                existingFolderName = folder.name,
-                newFolderName = newName,
-                ignoreFolderAlreadyExistsException = ignoreFolderAlreadyExistsThrowable
+            localLinksRepo.updateALink(
+                link = updatedLinkTagsPair.link,
             ).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(
-                        UIEvent.Type.ShowSnackbar(
-                            Localization.getLocalizedString(
-                                Localization.Key.UpdatedTheFolderData
-                            ) + it.getRemoteOnlyFailureMsg()
+                    val tagsAttachedToTheLink =
+                        localTagsRepo.getTagsBasedOnTheLinkId(linkId = updatedLinkTagsPair.link.localId)
+                            .first()
+                    val newlySelectedTags = updatedLinkTagsPair.tags.filter { curFilterTag ->
+                        curFilterTag !in tagsAttachedToTheLink
+                    }
+                    val unselectedTags = tagsAttachedToTheLink.filter { curFilterTag ->
+                        curFilterTag !in updatedLinkTagsPair.tags
+                    }
+                    localTagsRepo.deleteLinkTagsBasedOnTags(unselectedTags.map { it.localId })
+                    localTagsRepo.createLinkTags(newlySelectedTags.map {
+                        LinkTag(
+                            linkId = updatedLinkTagsPair.link.localId, tagId = it.localId
                         )
-                    )
-                }.pushSnackbarOnFailure()
+                    })
+                }
             }
         }.invokeOnCompletion {
             onCompletion()
         }
     }
 
-    private val _links = MutableStateFlow(emptyList<Link>())
-    val links = _links.asStateFlow()
+    private val _linkTagsPairs = MutableStateFlow(emptyList<LinkTagsPair>())
+    val linkTagsPairs = _linkTagsPairs.asStateFlow()
 
     private var collectableLinksJob: Job? = null
 
     private fun emptyCollectableLinks() {
         viewModelScope.launch(Dispatchers.Main) {
-            _links.emit(emptyList())
+            _linkTagsPairs.emit(emptyList())
         }
     }
 
-    private suspend fun Flow<Result<List<Link>>>.collectAndEmitLinks() {
-        return snapshotFlow {
-            AppPreferences.forceShuffleLinks.value
-        }.collectLatest { forceShuffleLinks ->
-            this.cancellable().collectLatest {
-                it.onSuccess {
-                    _links.apply {
-                        if (forceShuffleLinks) {
-                            emit(it.data.shuffled())
-                        } else {
-                            emit(it.data)
+
+    suspend fun Flow<Result<List<Link>>>.collectAndEmitLinks(emitter: MutableStateFlow<List<LinkTagsPair>>) {
+        val shufflePreferenceFlow = snapshotFlow { AppPreferences.forceShuffleLinks.value }
+
+        val linkTagsPairFlow = combine(this, shufflePreferenceFlow) { linksResult, shouldShuffle ->
+            linksResult to shouldShuffle
+        }.flatMapLatest { (linksResult, shouldShuffle) ->
+            when (linksResult) {
+                is Result.Loading, is Result.Failure -> flowOf(emptyList())
+                is Result.Success -> {
+                    val links = linksResult.data
+                    if (links.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        val linksIds = links.map { it.localId }
+                        localTagsRepo.getTagsForLinks(linksIds).map { tagsMap ->
+                            val pairs = links.map { link ->
+                                LinkTagsPair(
+                                    link = link, tags = tagsMap[link.localId] ?: emptyList()
+                                )
+                            }
+                            if (shouldShuffle) pairs.shuffled() else pairs
                         }
                     }
-                }.pushSnackbarOnFailure()
+                }
             }
+        }
+        linkTagsPairFlow.collectLatest {
+            emitter.emit(it)
         }
     }
 
     private fun updateCollectableLinks(linkType: LinkType, folderId: Long? = null) {
         collectableLinksJob?.cancel()
         collectableLinksJob = viewModelScope.launch(Dispatchers.Main) {
-            _links.emit(emptyList())
+            _linkTagsPairs.emit(emptyList())
             snapshotFlow {
                 AppPreferences.selectedSortingTypeType.value
             }.collectLatest { sortingType ->
@@ -577,29 +622,85 @@ open class CollectionsScreenVM(
                     localLinksRepo.getSortedLinks(linkType, sortingType)
                 } else {
                     localLinksRepo.getSortedLinks(linkType, folderId!!, sortingType)
-                }.collectAndEmitLinks()
+                }.collectAndEmitLinks(_linkTagsPairs)
             }
+        }
+    }
+
+    private fun updateCollectableLinks(tagId: Long) {
+        collectableLinksJob?.cancel()
+        collectableLinksJob = viewModelScope.launch(Dispatchers.Main) {
+            _linkTagsPairs.emit(emptyList())
+            snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }.collectLatest { sortingType ->
+                localLinksRepo.getSortedLinks(tagId = tagId, sortOption = sortingType)
+                    .collectAndEmitLinks(emitter = _linkTagsPairs)
+            }
+        }
+    }
+
+    fun clearSelectedTags() {
+        _selectedTags.clear()
+    }
+
+    fun deleteATag(tagId: Long, onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            localTagsRepo.deleteATag(tagId).collect()
+        }.invokeOnCompletion {
+            onCompletion()
+        }
+    }
+
+    fun renameATag(localId: Long, newName: String, onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            localTagsRepo.renameATag(
+                localTagId = localId, newName = newName
+            ).collect()
+        }.invokeOnCompletion {
+            onCompletion()
         }
     }
 
     fun addANewLink(
         link: Link,
+        selectedTags: List<Tag>?,
         linkSaveConfig: LinkSaveConfig,
         onCompletion: () -> Unit,
         pushSnackbarOnSuccess: Boolean = true
     ) {
         viewModelScope.launch {
-            localLinksRepo.addANewLink(link, linkSaveConfig).collectLatest {
+            localLinksRepo.addANewLink(
+                link = link, selectedTagIds = selectedTags?.map {
+                    it.localId
+                }, linkSaveConfig = linkSaveConfig
+            ).collectLatest {
                 it.onSuccess {
                     onCompletion()
                     if (pushSnackbarOnSuccess) {
                         Localization.Key.SavedTheLink.pushLocalizedSnackbar(append = it.getRemoteOnlyFailureMsg())
                     }
+                    clearSelectedTags()
                 }.onFailure {
                     onCompletion()
                     UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(it))
+                    clearSelectedTags()
                 }
             }
+        }
+    }
+
+    private val _tagsNavStack = Stack<Tag>()
+
+    fun pushIntoTagNavStack(tag: Tag) {
+        _tagsNavStack.push(tag)
+    }
+
+    fun popFromTagNavStack(): Tag? {
+        return if (_tagsNavStack.isNotEmpty()) {
+            _tagsNavStack.pop()
+        } else {
+            null
         }
     }
 }

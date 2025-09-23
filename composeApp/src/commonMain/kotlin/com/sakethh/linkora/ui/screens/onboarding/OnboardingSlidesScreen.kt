@@ -68,7 +68,7 @@ import com.sakethh.linkora.ui.components.link.LinkListItemComposable
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.screens.collections.ItemDivider
+import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -247,11 +247,8 @@ private fun Slide2() {
         ) {
             FolderComponent(
                 FolderComponentParam(
-                    folder = Folder(
                     name = Localization.Key.AppIntroSlide2Folder1Name.rememberLocalizedString(),
                     note = Localization.Key.AppIntroSlide2Folder1Note.rememberLocalizedString(),
-                    parentFolderId = null
-                ),
                     onClick = {},
                     onLongClick = {},
                     onMoreIconClick = {},
@@ -271,11 +268,8 @@ private fun Slide2() {
             )
             FolderComponent(
                 FolderComponentParam(
-                    folder = Folder(
                     name = Localization.Key.AppIntroSlide2Folder2Name.rememberLocalizedString(),
                     note = Localization.Key.AppIntroSlide2Folder2Note.rememberLocalizedString(),
-                    parentFolderId = null
-                ),
                     onClick = {},
                     onLongClick = {},
                     onMoreIconClick = {},
@@ -318,6 +312,8 @@ private fun Slide2() {
                         mutableStateOf(false)
                     },
                     onLongClick = { -> },
+                    tags = null,
+                    onTagClick = {}
                 ), forTitleOnlyView = false, onShare = {
                     LinkoraSDK.getInstance().nativeUtils.onShare(it)
                 })
@@ -345,6 +341,8 @@ private fun Slide2() {
                     onLinkClick = { ->
                         localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
                     },
+                    tags = null,
+                    onTagClick = {}
                 ), forTitleOnlyView = false, imageAlignment = Alignment.TopCenter, onShare = {
                     LinkoraSDK.getInstance().nativeUtils.onShare(it)
                 })
@@ -424,11 +422,8 @@ private fun Slide3() {
                     0 -> {
                         FolderComponent(
                             FolderComponentParam(
-                                folder = Folder(
                                 name = Localization.Key.AppIntroSlide3Folder2_1Name.rememberLocalizedString(),
                                 note = Localization.Key.AppIntroSlide3Folder2_1Note.rememberLocalizedString(),
-                                parentFolderId = null
-                            ),
                                 onClick = {},
                                 onLongClick = {},
                                 onMoreIconClick = {},
@@ -480,6 +475,8 @@ private fun Slide3() {
                                 isSelectionModeEnabled = rememberSaveable { mutableStateOf(false) },
                                 isItemSelected = rememberSaveable { mutableStateOf(false) },
                                 onLongClick = { -> },
+                                tags = null,
+                                onTagClick = {}
                             ), forTitleOnlyView = false, onShare = {
                                 LinkoraSDK.getInstance().nativeUtils.onShare(it)
                             })
@@ -488,11 +485,8 @@ private fun Slide3() {
                     1 -> {
                         FolderComponent(
                             FolderComponentParam(
-                                folder = Folder(
                                 name = Localization.Key.AppIntroSlide3Folder3_1Name.rememberLocalizedString(),
                                 note = Localization.Key.AppIntroSlide3Folder3_1Note.rememberLocalizedString(),
-                                parentFolderId = null
-                            ),
                                 onClick = {},
                                 onLongClick = {},
                                 onMoreIconClick = {},
@@ -533,6 +527,8 @@ private fun Slide3() {
                                     mutableStateOf(false)
                                 },
                                 onLongClick = { -> },
+                                tags = null,
+                                onTagClick = {}
                             ),
                             forTitleOnlyView = false,
                             imageAlignment = Alignment.TopCenter,

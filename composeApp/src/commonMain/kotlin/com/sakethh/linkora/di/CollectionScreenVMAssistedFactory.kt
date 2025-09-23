@@ -14,7 +14,10 @@ object CollectionScreenVMAssistedFactory {
     fun createForApp() = viewModelFactory {
         initializer {
             CollectionsScreenVM(
-                DependencyContainer.localFoldersRepo, DependencyContainer.localLinksRepo
+                localFoldersRepo = DependencyContainer.localFoldersRepo,
+                localLinksRepo = DependencyContainer.localLinksRepo,
+                localTagsRepo = DependencyContainer.localTagsRepo,
+                preferencesRepo = DependencyContainer.preferencesRepo
             )
         }
     }
@@ -36,7 +39,9 @@ object CollectionScreenVMAssistedFactory {
                                 CollectionsScreenVM.updateCollectionDetailPaneInfo(it)
                             }
                         }
-                    } else CollectionsScreenVM.collectionDetailPaneInfo.value)
+                    } else CollectionsScreenVM.collectionDetailPaneInfo.value,
+                    localTagsRepo = DependencyContainer.localTagsRepo
+                )
             }
         }
 }

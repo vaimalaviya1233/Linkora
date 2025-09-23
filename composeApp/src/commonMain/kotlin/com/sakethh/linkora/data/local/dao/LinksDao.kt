@@ -48,7 +48,7 @@ interface LinksDao {
     suspend fun isInArchive(url: String): Boolean
 
     @Query(
-    """
+        """
     SELECT * FROM links
     WHERE (LOWER(title) LIKE '%' || LOWER(:query) || '%'
            OR LOWER(note) LIKE '%' || LOWER(:query) || '%'
@@ -108,6 +108,24 @@ interface LinksDao {
         linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>>
 
+    @Query(
+        """
+        SELECT link.* 
+        FROM links link
+        INNER JOIN link_tags linkTag ON link.localId = linkTag.linkId
+        WHERE linkTag.tagId = :tagId
+        ORDER BY 
+            CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN link.title COLLATE NOCASE END ASC,
+            CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN link.title COLLATE NOCASE END DESC,
+            CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN link.localId END DESC,
+            CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN link.localId END ASC
+    """
+    )
+    fun getSortedLinks(
+        tagId: Long,
+        sortOption: String,
+    ): Flow<List<Link>>
+
     @Query("SELECT * FROM links")
     suspend fun getAllLinks(): List<Link>
 
@@ -149,7 +167,7 @@ interface LinksDao {
     suspend fun doesLinkExist(linkType: com.sakethh.linkora.domain.LinkType, url: String): Boolean
 
     @Query("SELECT EXISTS(SELECT 1 FROM links WHERE linkType = '${LinkType.FOLDER_LINK}' AND idOfLinkedFolder =:folderId AND url = :url)")
-    suspend fun doesLinkExist(folderId:Long, url: String): Boolean
+    suspend fun doesLinkExist(folderId: Long, url: String): Boolean
 
     @Query("UPDATE links SET localId = :newId WHERE localId=:existingId")
     suspend fun changeIdOfALink(existingId: Long, newId: Long)
