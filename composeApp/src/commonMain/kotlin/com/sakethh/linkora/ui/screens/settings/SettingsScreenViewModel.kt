@@ -11,20 +11,27 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.TextFormat
 import androidx.compose.material.icons.rounded.TypeSpecimen
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.UriHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.platform.NativeUtils
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.AppIconCode
+import com.sakethh.linkora.ui.domain.model.LinkPref
+import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.utils.getLocalizedString
 import kotlinx.coroutines.launch
 
 open class SettingsScreenViewModel(
@@ -192,6 +199,284 @@ open class SettingsScreenViewModel(
             }
         }
     }
+
+    fun sampleLinks(localUriHandler: UriHandler): List<LinkUIComponentParam> {
+        return listOf(
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Red Dead Redemption 2 - Rockstar Games",
+                    baseURL = "rockstargames.com",
+                    imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/games/fob/640/reddeadredemption2.jpg",
+                    url = "https://www.rockstargames.com/reddeadredemption2",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "RDR2 is the epic tale of outlaw Arthur Morgan and the infamous Van der Linde gang, on the run across America at the dawn of the modern age.",
+                    idOfLinkedFolder = null
+                ),
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
+                },
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
+                    baseURL = "store.epicgames.com",
+                    imgURL = listOf(
+                        "https://pbs.twimg.com/media/FUPM2TrWYAAQsXm?format=jpg",
+                        "https://pbs.twimg.com/media/FLJx9epWYAADM0O?format=jpg",
+                        "https://pbs.twimg.com/media/FAdLIY8WUAEgLRM?format=jpg",
+                        "https://pbs.twimg.com/media/ETUI-RDWsAE2UYR?format=jpg",
+                        "https://pbs.twimg.com/media/ET9J7vTWsAYVtvG?format=jpg",
+                        "https://pbs.twimg.com/media/GRo2CKkWUAEsdEl?format=jpg",
+                        "https://pbs.twimg.com/media/FezZxQYWQAQ4K3f?format=jpg",
+                        "https://pbs.twimg.com/media/FezaHWkX0AIWvvU?format=jpg",
+                        "https://i.redd.it/qoa6gk4ii8571.jpg",
+                        "https://i.redd.it/8psapajhi8571.jpg"
+                    ).random(),
+                    url = "https://store.epicgames.com/en-US/p/a-plague-tale-requiem",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "The plague ravages the Kingdom of France. Amicia and her younger brother Hugo are pursued by the Inquisition through villages devastated by the disease.",
+                    idOfLinkedFolder = null
+                ),
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://store.epicgames.com/en-US/p/a-plague-tale-requiem")
+                },
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Shadow of the Tomb Raider",
+                    imgURL = "https://images.ctfassets.net/x77ixfmkpoiv/4UnPNfdN8Yq2aZvOhIdBx9/1b641d296ebb37bfa3eca8873c25a321/SOTTR_Product_Image.jpg",
+                    url = "https://www.tombraider.com/products/games/shadow-of-the-tomb-raider",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "As Lara Croft races to save the world from a Maya apocalypse, she must become the Tomb Raider she is destined to be.",
+                    idOfLinkedFolder = null
+                ),
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.tombraider.com/products/games/shadow-of-the-tomb-raider")
+                },
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Nas | Spotify",
+                    baseURL = "open.spotify.com",
+                    imgURL = "https://i.scdn.co/image/ab6761610000e5eb153198caeef9e3bda92f9285",
+                    url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "half man, half amazing.",
+                    idOfLinkedFolder = null
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
+                },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Photos From 2024",
+                    baseURL = "reddit.com",
+                    imgURL = "https://i.redd.it/j14an1zv6aae1.jpg",
+                    url = "https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/")
+                },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Hacker (small type)",
+                    baseURL = "twitter.com",
+                    imgURL = "https://pbs.twimg.com/media/GT7RIrWWwAAjZzg.jpg",
+                    url = "https://twitter.com/CatWorkers/status/1819121250226127061",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://twitter.com/CatWorkers/status/1819121250226127061")
+                },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Nas - You're da Man (from Made You Look: God's Son Live)",
+                    baseURL = "youtube.com",
+                    imgURL = "https://i.ytimg.com/vi/3vlqI5TPVjQ/maxresdefault.jpg",
+                    url = "https://www.youtube.com/watch?v=3vlqI5TPVjQ",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null,
+                    mediaType = MediaType.VIDEO
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/watch?v=3vlqI5TPVjQ")
+                },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Nas - Mastermind (from Made You Look: God's Son Live)",
+                    baseURL = "youtube.com",
+                    imgURL = "https://i.ytimg.com/vi/scCey_wI46w/maxresdefault.jpg",
+                    url = "https://www.youtube.com/watch?v=scCey_wI46w",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null,
+                    mediaType = MediaType.VIDEO
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/watch?v=scCey_wI46w")
+                },
+                tags = null,
+                onTagClick = {}
+            ),
+            LinkUIComponentParam(
+                link = Link(
+                    title = "Nas - Rare (Official Video)",
+                    baseURL = "youtube.com",
+                    imgURL = "https://i.ytimg.com/vi/66OFYWBrg3o/maxresdefault.jpg",
+                    url = "https://www.youtube.com/watch?v=66OFYWBrg3o",
+                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                    linkType = LinkType.SAVED_LINK,
+                    localId = 0L,
+                    note = "",
+                    idOfLinkedFolder = null,
+                    mediaType = MediaType.VIDEO
+                ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.youtube.com/watch?v=66OFYWBrg3o")
+                },
+                tags = null,
+                onTagClick = {}
+            ),
+        ).sortedBy {
+            it.link.title
+        }
+    }
+
+    val nonListPref = listOf(
+        LinkPref(
+            onClick = {
+                AppPreferences.enableTitleForNonListViews.value =
+                    !AppPreferences.enableTitleForNonListViews.value
+                changeSettingPreferenceValue(
+                    preferenceKey = booleanPreferencesKey(AppPreferenceType.TITLE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+                    newValue = AppPreferences.enableTitleForNonListViews.value
+                )
+            },
+            title = Localization.Key.ShowTitle.getLocalizedString(),
+            isSwitchChecked = AppPreferences.enableTitleForNonListViews
+        ),
+        LinkPref(
+            onClick = {
+                AppPreferences.enableBaseURLForLinkViews.value =
+                    !AppPreferences.enableBaseURLForLinkViews.value
+                changeSettingPreferenceValue(
+                    preferenceKey = booleanPreferencesKey(AppPreferenceType.BASE_URL_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+                    newValue = AppPreferences.enableBaseURLForLinkViews.value
+                )
+            },
+            title = Localization.Key.ShowHostAddress.getLocalizedString(),
+            isSwitchChecked = AppPreferences.enableBaseURLForLinkViews
+        ),
+        LinkPref(
+            onClick = {
+                AppPreferences.enableFadedEdgeForNonListViews.value =
+                    !AppPreferences.enableFadedEdgeForNonListViews.value
+                changeSettingPreferenceValue(
+                    preferenceKey = booleanPreferencesKey(AppPreferenceType.FADED_EDGE_VISIBILITY_FOR_NON_LIST_VIEWS.name),
+                    newValue = AppPreferences.enableFadedEdgeForNonListViews.value
+                )
+            },
+            title = Localization.Key.ShowBottomFadedEdge.getLocalizedString(),
+            isSwitchChecked = AppPreferences.enableFadedEdgeForNonListViews
+        ),
+        LinkPref(
+            onClick = {
+                AppPreferences.showVideoTagOnUIIfApplicable.value =
+                    !AppPreferences.showVideoTagOnUIIfApplicable.value
+                changeSettingPreferenceValue(
+                    preferenceKey = booleanPreferencesKey(AppPreferenceType.SHOW_VIDEO_TAG_IF_APPLICABLE.name),
+                    newValue = AppPreferences.showVideoTagOnUIIfApplicable.value
+                )
+            },
+            title = Localization.Key.ShowVideoTagOnUIIfApplicable.getLocalizedString(),
+            isSwitchChecked = AppPreferences.showVideoTagOnUIIfApplicable
+        ),
+    )
 
     private val allIconCodes = AppIconCode.entries.map { it.name }
 
