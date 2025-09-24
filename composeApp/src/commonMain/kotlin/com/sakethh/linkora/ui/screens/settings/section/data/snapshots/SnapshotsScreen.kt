@@ -56,7 +56,7 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectio
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreenVM
 import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.screens.settings.section.data.components.ToggleButton
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.platform.platform
 import kotlinx.coroutines.launch
 
@@ -137,7 +137,7 @@ fun SnapshotsScreen() {
                     }, textStyle = MaterialTheme.typography.titleSmall, trailingIcon = {
                         FilledTonalIconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                                .pulsateEffect().padding(end = 5.dp), onClick = {
+                                .pressScaleEffect().padding(end = 5.dp), onClick = {
                                 dataSettingsScreenVM.changeExportLocation(
                                     exportLocation = backupLocation.value,
                                     platform = platform,
@@ -194,7 +194,7 @@ fun SnapshotsScreen() {
                             trailingIcon = {
                                 FilledTonalIconButton(
                                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                                        .pulsateEffect().padding(end = 5.dp), onClick = {
+                                        .pressScaleEffect().padding(end = 5.dp), onClick = {
                                         dataSettingsScreenVM.updateAutoDeletionBackupsThreshold(
                                             backupAutoDeleteThreshold.intValue
                                         )

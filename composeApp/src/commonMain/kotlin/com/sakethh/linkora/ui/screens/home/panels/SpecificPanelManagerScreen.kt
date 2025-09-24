@@ -52,9 +52,9 @@ import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.panel.PanelFolder
-import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -164,7 +164,7 @@ fun SpecificPanelManagerScreen(
                 items(foldersOfTheSelectedPanel.value) { folderItem ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().pulsateEffect().clickable(onClick = {
+                        modifier = Modifier.fillMaxWidth().pressScaleEffect().clickable(onClick = {
                             specificPanelManagerScreenVM.removeAFolderFromAPanel(
                                 panelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
                                 folderId = folderItem.folderId
@@ -197,7 +197,7 @@ fun SpecificPanelManagerScreen(
                 items(foldersToIncludeInPanel.value) { folderToIncludeInPanel ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().pulsateEffect().clickable(onClick = {
+                        modifier = Modifier.fillMaxWidth().pressScaleEffect().clickable(onClick = {
                             specificPanelManagerScreenVM.addANewFolderInAPanel(
                                 PanelFolder(
                                     folderId = folderToIncludeInPanel.localId,

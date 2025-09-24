@@ -8,16 +8,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.TextSnippet
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.FolderDelete
+import androidx.compose.material.icons.filled.CopyAll
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.Refresh
@@ -25,14 +24,10 @@ import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Unarchive
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +48,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.Layout
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.utils.getLocalizedString
@@ -94,6 +90,54 @@ fun MenuBtmSheetUI(
             menuBtmSheetParam.onDismiss()
         }
     }
+
+    val quickActions: ComposableContent = {
+        Row(
+            modifier = Modifier.padding(start = 10.dp, end = 10.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            QuickActionItem(
+                shape = RoundedCornerShape(
+                    topStart = 20.dp, topEnd = 8.dp, bottomStart = 20.dp, bottomEnd = 8.dp
+                ), modifier = Modifier.weight(1f).pressScaleEffect(), onClick = {
+                    menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
+                    hideContent()
+                }, text = "Open", icon = Icons.Default.OpenInNew
+            )
+            val lastItemShape = RoundedCornerShape(
+                topStart = 8.dp, topEnd = 20.dp, bottomStart = 8.dp, bottomEnd = 20.dp
+            )
+            QuickActionItem(
+                shape = if (platform is Platform.Android.Mobile) RoundedCornerShape(8.dp) else lastItemShape,
+                modifier = Modifier.weight(1f).pressScaleEffect(),
+                onClick = {
+                    localClipboard.setText(
+                        AnnotatedString(
+                            text = menuBtmSheetParam.link?.url ?: ""
+                        )
+                    )
+                    hideContent()
+                },
+                text = "Copy",
+                icon = Icons.Default.CopyAll
+            )
+
+            if (platform is Platform.Android.Mobile) {
+                QuickActionItem(
+                    shape = lastItemShape,
+                    modifier = Modifier.weight(1f).pressScaleEffect(),
+                    onClick = {
+                        menuBtmSheetParam.onShare(menuBtmSheetParam.link!!.url)
+                        hideContent()
+                    },
+                    text = "Share",
+                    icon = Icons.Default.Share
+                )
+            }
+        }
+    }
+
     val commonContent: ComposableContent = {
         Column {
             if (platform is Platform.Android.Mobile) {
@@ -114,24 +158,21 @@ fun MenuBtmSheetUI(
                     elementImageVector = Icons.AutoMirrored.Outlined.TextSnippet
                 )
             }
-            if (platform is Platform.Android.Mobile || menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetFolderEntries()) {
+            IndividualMenuComponent(
+                onClick = {
+                    hideContent()
+                    menuBtmSheetParam.onRename()
+                }, elementName = "Edit", elementImageVector = Icons.Outlined.Edit
+            )
+            if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
                 IndividualMenuComponent(
                     onClick = {
+                        menuBtmSheetParam.onRefreshClick()
                         hideContent()
-                        menuBtmSheetParam.onRename()
-                    }, elementName = "Edit", elementImageVector = Icons.Outlined.Edit
+                    },
+                    elementName = Localization.Key.RefreshImageAndTitle.rememberLocalizedString(),
+                    elementImageVector = Icons.Outlined.Refresh
                 )
-
-                if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
-                    IndividualMenuComponent(
-                        onClick = {
-                            menuBtmSheetParam.onRefreshClick()
-                            hideContent()
-                        },
-                        elementName = Localization.Key.RefreshImageAndTitle.rememberLocalizedString(),
-                        elementImageVector = Icons.Outlined.Refresh
-                    )
-                }
             }
 
             if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
@@ -194,134 +235,14 @@ fun MenuBtmSheetUI(
                     elementImageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
                 )
             }
-            if (platform !is Platform.Android.Mobile && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(start = 15.dp, end = 15.dp, top = 0.dp, bottom = 5.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    val isArchived = currentLink!!.linkType == LinkType.ARCHIVE_LINK
-                    NavigationBarItem(selected = true, onClick = {
-                        if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                            localClipboard.setText(
-                                AnnotatedString(
-                                    text = currentLink.url
-                                )
-                            )
-                            hideContent()
-                        } else {
-                            menuBtmSheetParam.onArchive()
-                        }
-                    }, icon = {
-                        Icon(
-                            imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Default.ContentCopy else if (isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
-                            contentDescription = null
-                        )
-                    }, label = {
-                        Text(
-                            text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                                Localization.Key.CopyLink.rememberLocalizedString()
-                            } else {
-                                if (isArchived) Localization.Key.UnArchive.getLocalizedString() else Localization.Key.Archive.getLocalizedString()
-                            }, style = MaterialTheme.typography.titleSmall
-                        )
-                    })
-                    NavigationBarItem(selected = true, onClick = {
-                        menuBtmSheetParam.onRename()
-                    }, icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.DriveFileRenameOutline,
-                            contentDescription = null
-                        )
-                    }, label = {
-                        Text(
-                            text = Localization.Key.Rename.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                    })
-                    NavigationBarItem(selected = true, onClick = {
-                        if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                            menuBtmSheetParam.onRefreshClick()
-                        } else {
-                            menuBtmSheetParam.onDelete()
-                        }
-                    }, icon = {
-                        Icon(
-                            imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Outlined.Refresh else Icons.Default.FolderDelete,
-                            contentDescription = null
-                        )
-                    }, label = {
-                        Text(
-                            text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Localization.Key.Refresh.rememberLocalizedString() else Localization.Key.Delete.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                    })
-                }
-                if (platform is Platform.Android && AppPreferences.currentlySelectedLinkLayout.value in listOf(
-                        Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
-                    ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()
-                ) {
-                    FilledTonalButton(
-                        onClick = {
-                            menuBtmSheetParam.onShare(currentLink!!.url)
-                        },
-                        modifier = Modifier.fillMaxWidthWithPadding()
-                            .bottomNavPaddingAcrossPlatforms()
-                    ) {
-                        Icon(imageVector = Icons.Default.Share, contentDescription = null)
-                        Spacer(Modifier.width(5.dp))
-                        Text(
-                            text = Localization.Key.Share.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                    }
-                }
-            } else if (platform == Platform.Android.Mobile && AppPreferences.currentlySelectedLinkLayout.value in listOf(
+            if ((platform == Platform.Android.Mobile && AppPreferences.currentlySelectedLinkLayout.value in listOf(
                     Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
-                ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()
+                ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) || (platform !is Platform.Android.Mobile && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries())
             ) {
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(start = 15.dp, end = 15.dp, top = 0.dp, bottom = 5.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    NavigationBarItem(selected = true, onClick = {
-                        localClipboard.setText(
-                            AnnotatedString(
-                                text = currentLink?.url ?: ""
-                            )
-                        )
-                        hideContent()
-                    }, icon = {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy, contentDescription = null
-                        )
-                    })/*NavigationBarItem(selected = true, onClick = {
-                            menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
-                        }, icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.OpenInBrowser,
-                                contentDescription = null
-                            )
-                        })*/
-                    NavigationBarItem(selected = true, onClick = {
-                        menuBtmSheetParam.onShare(currentLink!!.url)
-                    }, icon = {
-                        Icon(
-                            imageVector = Icons.Default.Share, contentDescription = null
-                        )
-                    })
-                }
+                quickActions()
+            }
+            if (platform !is Platform.Android.Mobile) {
+                Spacer(Modifier.height(15.dp))
             }
         }
     }
@@ -355,6 +276,7 @@ fun MenuBtmSheetUI(
         }
         if (platform is Platform.Android.Mobile) {
             MobileMenu(
+                menuBtmSheetParam,
                 menuBtmSheetParam.menuBtmSheetFor,
                 currentLink,
                 currentFolder,
@@ -363,10 +285,7 @@ fun MenuBtmSheetUI(
             )
         } else {
             NonMobileMenu(
-                menuBtmSheetParam.menuBtmSheetFor,
-                currentLink,
-                currentFolder,
-                commonContent
+                menuBtmSheetParam.menuBtmSheetFor, currentLink, currentFolder, commonContent
             )
         }
     }

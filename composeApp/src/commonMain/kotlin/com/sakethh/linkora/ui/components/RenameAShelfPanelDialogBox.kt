@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @Composable
 fun RenameAShelfPanelDialogBox(
@@ -40,7 +40,7 @@ fun RenameAShelfPanelDialogBox(
         }, confirmButton = {
             if (isInProgress.value) return@AlertDialog
             Button(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
                     isInProgress.value = true
                     onRenameClick(newShelfName.value, {
                         isInProgress.value = false
@@ -81,7 +81,7 @@ fun RenameAShelfPanelDialogBox(
         }, dismissButton = {
             if (isInProgress.value.not()) {
                 OutlinedButton(
-                    modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                    modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
                         isDialogBoxVisible.value = false
                     }) {
                     Text(

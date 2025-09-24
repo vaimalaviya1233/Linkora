@@ -35,7 +35,6 @@ import com.sakethh.linkora.ui.screens.settings.SettingSectionComponent
 import com.sakethh.linkora.ui.screens.settings.SettingSectionComponentParam
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.rememberLocalizedString
 import linkora.composeapp.generated.resources.LOLCATpl_logo
@@ -43,13 +42,12 @@ import linkora.composeapp.generated.resources.Res
 import linkora.composeapp.generated.resources.mondstern_logo
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AcknowledgementScreen() {
     val navController = LocalNavController.current
-    val settingsScreenViewModel: SettingsScreenViewModel = linkoraViewModel()
-    LocalUriHandler.current
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.AcknowledgementScreen.toString(),
         navController = navController
@@ -123,7 +121,7 @@ private fun AcknowledgeComponent(
                 localUriHandler.openUri(btnRedirectUrl)
             },
             modifier = Modifier.fillMaxWidth().padding(start = 15.dp, top = 10.dp, end = 15.dp)
-                .pulsateEffect()
+                .pressScaleEffect()
         ) {
             Text(
                 text = btnText,

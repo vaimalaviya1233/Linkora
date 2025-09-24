@@ -67,7 +67,7 @@ import com.sakethh.linkora.ui.components.LoadingDialog
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,7 +186,7 @@ fun LanguageSettingsScreen() {
                     if (AppPreferences.preferredAppLanguageCode.value != Constants.DEFAULT_APP_LANGUAGE_CODE) {
                         FilledTonalButton(
                             modifier = Modifier.fillMaxWidth().padding(top = 15.dp, bottom = 15.dp)
-                                .pulsateEffect(), onClick = {
+                                .pressScaleEffect(), onClick = {
                                 isLanguageSelectionBtmSheetVisible.value = false
                                 Localization.loadLocalizedStrings(
                                     languageCode = "en",
@@ -278,11 +278,11 @@ fun LanguageSettingsScreen() {
                             )
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
-                        }).pulsateEffect().fillMaxWidth()
+                        }).pressScaleEffect().fillMaxWidth()
                             .padding(top = 7.5.dp, bottom = 7.5.dp, start = 10.dp, end = 15.dp)
                     ) {
                         FilledTonalIconButton(
-                            modifier = Modifier.pulsateEffect(), onClick = {
+                            modifier = Modifier.pressScaleEffect(), onClick = {
                                 isLanguageSelectionBtmSheetVisible.value = false
                                 Localization.loadLocalizedStrings(
                                     selectedLanguage.value.languageCode,
@@ -306,11 +306,11 @@ fun LanguageSettingsScreen() {
                         isLanguageSelectionBtmSheetVisible.value = false
                     }, indication = null, interactionSource = remember {
                         MutableInteractionSource()
-                    }).pulsateEffect().fillMaxWidth()
+                    }).pressScaleEffect().fillMaxWidth()
                         .padding(top = 7.5.dp, bottom = 7.5.dp, start = 10.dp, end = 15.dp)
                 ) {
                     FilledTonalIconButton(
-                        modifier = Modifier.pulsateEffect(), onClick = {
+                        modifier = Modifier.pressScaleEffect(), onClick = {
                             languageSettingsScreenVM.downloadALanguageStringsPack(selectedLanguage.value)
                             isLanguageSelectionBtmSheetVisible.value = false
                         }) {
@@ -337,11 +337,11 @@ fun LanguageSettingsScreen() {
                             isLanguageSelectionBtmSheetVisible.value = false
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
-                        }).pulsateEffect().fillMaxWidth()
+                        }).pressScaleEffect().fillMaxWidth()
                             .padding(top = 7.5.dp, bottom = 7.5.dp, start = 10.dp, end = 15.dp)
                     ) {
                         FilledTonalIconButton(
-                            modifier = Modifier.pulsateEffect(), onClick = {
+                            modifier = Modifier.pressScaleEffect(), onClick = {
                                 languageSettingsScreenVM.deleteALanguagePack(selectedLanguage.value)
                                 isLanguageSelectionBtmSheetVisible.value = false
                             }) {
@@ -382,7 +382,7 @@ private fun LanguageUIComponent(
             MutableInteractionSource()
         }, indication = null, onClick = {
             onClick()
-        }).pulsateEffect(),
+        }).pressScaleEffect(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -410,7 +410,7 @@ private fun LanguageUIComponent(
             modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd
         ) {
             IconButton(
-                modifier = Modifier.pulsateEffect(), onClick = {
+                modifier = Modifier.pressScaleEffect(), onClick = {
                     onClick()
                 }) {
                 Icon(

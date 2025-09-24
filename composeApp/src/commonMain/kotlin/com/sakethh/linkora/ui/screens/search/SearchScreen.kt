@@ -54,7 +54,7 @@ import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.serialization.encodeToString
@@ -103,7 +103,7 @@ fun SearchScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                     Row {
                         if (searchScreenVM.isSearchActive.value) {
                             SortingIconButton()
-                            IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                            IconButton(modifier = Modifier.pressScaleEffect(), onClick = {
                                 if (searchScreenVM.searchQuery.value == "") {
                                     searchScreenVM.isSearchActive.value = false
                                 } else {

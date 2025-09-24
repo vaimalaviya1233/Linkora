@@ -99,7 +99,7 @@ import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.linkoraLog
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.defaultFolderIds
@@ -518,7 +518,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp)
             ) {
                 FilledTonalButton(
-                    modifier = Modifier.pulsateEffect().fillMaxWidth(0.8f), onClick = {
+                    modifier = Modifier.pressScaleEffect().fillMaxWidth(0.8f), onClick = {
                         if (!isDataExtractingForTheLink.value) {
                             isDropDownMenuIconClicked.value = !isDropDownMenuIconClicked.value
                             AddANewLinkDialogBox.subFoldersList.clear()
@@ -535,7 +535,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
                 FilledTonalIconButton(
-                    modifier = Modifier.pulsateEffect(
+                    modifier = Modifier.pressScaleEffect(
                         0.75f
                     ), onClick = {
                         if (!isDataExtractingForTheLink.value) {
@@ -618,7 +618,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     end = 20.dp,
                     top = if (isDropDownMenuIconClicked.value) 20.dp else 5.dp,
                     start = 20.dp
-                ).fillMaxWidth().pulsateEffect(), onClick = {
+                ).fillMaxWidth().pressScaleEffect(), onClick = {
                     addTheFolderInRoot.value = true
                     shouldShowNewFolderDialog.value = true
                 }) {
@@ -653,7 +653,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                         end = 20.dp,
                         start = 20.dp,
                         top = if (isDropDownMenuIconClicked.value) 0.dp else 5.dp
-                    ).fillMaxWidth().pulsateEffect(), onClick = {
+                    ).fillMaxWidth().pressScaleEffect(), onClick = {
                         addTheFolderInRoot.value = false
                         shouldShowNewFolderDialog.value = true
                     }, colors = ButtonDefaults.filledTonalButtonColors()
@@ -679,7 +679,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     width = 1.dp, color = MaterialTheme.colorScheme.secondary
                 ), modifier = Modifier.padding(
                     end = 20.dp, start = 20.dp
-                ).fillMaxWidth().pulsateEffect(), onClick = {
+                ).fillMaxWidth().pressScaleEffect(), onClick = {
                     collectionsScreenVM.clearSelectedTags()
                     onDismiss()
                     isForceSaveWithoutFetchingMetaDataEnabled.value = false
@@ -694,7 +694,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 modifier = Modifier.padding(
                     end = 20.dp, top = 10.dp, start = 20.dp
-                ).fillMaxWidth().pulsateEffect(),
+                ).fillMaxWidth().pressScaleEffect(),
                 onClick = {
                     isDataExtractingForTheLink.value = true
                     val linkType =
@@ -852,7 +852,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                         FilledTonalButton(
                             modifier = Modifier.padding(
                                 top = 5.dp, end = 15.dp, start = 15.dp
-                            ).fillMaxWidth().pulsateEffect(), onClick = {
+                            ).fillMaxWidth().pressScaleEffect(), onClick = {
                                 addTheFolderInRoot.value = false
                                 shouldShowNewFolderDialog.value = true
                             }) {
@@ -891,7 +891,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                         FilledTonalButton(
                             modifier = Modifier.padding(
                                 end = 20.dp, top = 15.dp, start = 20.dp, bottom = 15.dp
-                            ).fillMaxWidth().pulsateEffect(), onClick = {
+                            ).fillMaxWidth().pressScaleEffect(), onClick = {
                                 addTheFolderInRoot.value = false
                                 shouldShowNewFolderDialog.value = true
                             }) {

@@ -68,8 +68,8 @@ import com.sakethh.linkora.ui.components.link.LinkListItemComposable
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
@@ -123,7 +123,7 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
                 AnimatedVisibility(
                     visible = pagerState.currentPage != 0, enter = fadeIn(), exit = fadeOut()
                 ) {
-                    FilledTonalButton(modifier = Modifier.pulsateEffect(), onClick = {
+                    FilledTonalButton(modifier = Modifier.pressScaleEffect(), onClick = {
                         if (pagerState.isScrollInProgress) return@FilledTonalButton
                         coroutineScope.launch {
                             try {
@@ -142,7 +142,7 @@ fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
                     }
                 }
                 Spacer(Modifier.width(15.dp))
-                Button(modifier = Modifier.pulsateEffect(), onClick = {
+                Button(modifier = Modifier.pressScaleEffect(), onClick = {
                     if (pagerState.currentPage == pagerState.pageCount - 1) {
                         onOnboardingComplete()
                         navController.navigate(Navigation.Root.HomeScreen) {
@@ -325,7 +325,7 @@ private fun Slide2() {
                 onLinkClick = { ->
                     localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
                 },
-                tags = listOf(Tag(name = "half man half amazing"), Tag(name = "Esco")),
+                tags = listOf(Tag(name = "half man half amazing")),
                 onTagClick = {}),
                 forTitleOnlyView = false,
                 imageAlignment = Alignment.TopCenter,
@@ -361,7 +361,7 @@ private fun Slide3() {
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.pulsateEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
+            modifier = Modifier.pressScaleEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
         ) {
             Spacer(Modifier.width(5.dp))
             FilledTonalIconButton(onClick = {

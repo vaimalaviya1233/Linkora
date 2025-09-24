@@ -35,7 +35,7 @@ import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.utils.fadedEdges
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -59,7 +59,7 @@ fun GridViewLinkUIComponent(
                 MutableInteractionSource()
             }, indication = null, onLongClick = {
                 linkUIComponentParam.onLongClick()
-            }).pulsateEffect().padding(4.dp).then(modifier)
+            }).pressScaleEffect().padding(4.dp).then(modifier)
     ) {
         if (linkUIComponentParam.isItemSelected.value) {
             Box(

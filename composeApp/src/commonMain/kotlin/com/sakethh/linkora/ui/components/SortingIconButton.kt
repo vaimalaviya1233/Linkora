@@ -9,12 +9,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @Composable
 fun SortingIconButton() {
     val coroutineScope = rememberCoroutineScope()
-    IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+    IconButton(modifier = Modifier.pressScaleEffect(), onClick = {
         coroutineScope.pushUIEvent(UIEvent.Type.ShowSortingBtmSheet)
     }) {
         Icon(

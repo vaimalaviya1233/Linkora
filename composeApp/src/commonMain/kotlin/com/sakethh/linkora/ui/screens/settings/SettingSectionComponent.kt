@@ -20,7 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @Composable
 fun SettingSectionComponent(
@@ -32,7 +32,7 @@ fun SettingSectionComponent(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .pulsateEffect()
+                .pressScaleEffect()
                 .clickable(interactionSource = remember {
                     MutableInteractionSource()
                 }, onClick = {

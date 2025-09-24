@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.inDoubleQuotes
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @Composable
 fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxParam) {
@@ -41,7 +41,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
     AlertDialog(dismissButton = {
         if (!isFolderCreationInProgress.value) {
             androidx.compose.material3.OutlinedButton(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = addNewFolderDialogBoxParam.onDismiss) {
+                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = addNewFolderDialogBoxParam.onDismiss) {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.Cancel),
                     style = MaterialTheme.typography.titleSmall,
@@ -52,7 +52,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
     }, confirmButton = {
         if (!isFolderCreationInProgress.value) {
             Button(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
                     isFolderCreationInProgress.value = true
                     addNewFolderDialogBoxParam.onFolderCreateClick(
                         folderNameTextFieldValue.value, noteTextFieldValue.value, {

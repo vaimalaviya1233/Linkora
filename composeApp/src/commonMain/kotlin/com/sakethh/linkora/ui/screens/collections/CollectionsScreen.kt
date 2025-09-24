@@ -82,7 +82,7 @@ import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.screens.collections.components.RootCollectionSwitcher
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -560,7 +560,7 @@ private fun DefaultFolderComponent(
             MutableInteractionSource()
         }, indication = null, onClick = {
             onClick()
-        }).pulsateEffect().then(
+        }).pressScaleEffect().then(
             if (isSelected && platform() !is Platform.Android.Mobile) Modifier.border(
                 width = 2.5.dp,
                 color = MaterialTheme.colorScheme.primary,

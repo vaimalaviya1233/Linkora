@@ -48,7 +48,7 @@ import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
@@ -192,9 +192,8 @@ fun RenameDialogBox(
                     return@LazyColumn
                 }
                 item {
-                    Spacer(modifier = Modifier.height(2.dp))
                     Button(
-                        modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                        modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
                             showProgressBar = true
                             renameDialogBoxParam.onSave(
                                 newFolderOrTitleName, newNote, selectedTags, {
@@ -209,7 +208,7 @@ fun RenameDialogBox(
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     OutlinedButton(
-                        modifier = Modifier.fillMaxWidth().pulsateEffect(),
+                        modifier = Modifier.fillMaxWidth().pressScaleEffect(),
                         onClick = renameDialogBoxParam.onHide
                     ) {
                         Text(
@@ -227,7 +226,7 @@ fun RenameDialogBox(
                 modifier = Modifier.imePadding(),
                 properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
                 onDismissRequest = {
-                    if (showProgressBar.not()) {
+                    if (!showProgressBar) {
                         renameDialogBoxParam.onHide()
                     }
                 }) {
@@ -240,7 +239,7 @@ fun RenameDialogBox(
                 ).clip(RoundedCornerShape(10.dp)).background(AlertDialogDefaults.containerColor),
                 properties = DialogProperties(usePlatformDefaultWidth = false),
                 onDismissRequest = {
-                    if (showProgressBar.not()) {
+                    if (!showProgressBar) {
                         renameDialogBoxParam.onHide()
                     }
                 }) {

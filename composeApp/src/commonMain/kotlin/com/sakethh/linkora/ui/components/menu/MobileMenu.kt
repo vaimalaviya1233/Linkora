@@ -1,7 +1,8 @@
 package com.sakethh.linkora.ui.components.menu
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -11,12 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
@@ -26,21 +27,18 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -56,80 +54,75 @@ import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
+import com.sakethh.linkora.ui.utils.EdgeType
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.fadedEdges
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MobileMenu(
+    menuBtmSheetParam: MenuBtmSheetParam,
     menuBtmSheetFor: MenuBtmSheetType,
     currentLink: Link?,
     currentFolder: Folder?,
     isNoteBtnSelected: MutableState<Boolean>,
     commonMenuContent: ComposableContent
 ) {
-    val isImageAssociatedWithTheLinkIsExpanded = rememberSaveable {
-        mutableStateOf(false)
-    }
-
     val localClipBoardManager = LocalClipboardManager.current
     val coroutineScope = rememberCoroutineScope()
     Column(
-        modifier = Modifier.navigationBarsPadding()
-            .verticalScroll(rememberScrollState())
+        modifier = Modifier.navigationBarsPadding().verticalScroll(rememberScrollState())
     ) {
         if (menuBtmSheetLinkEntries().contains(
                 menuBtmSheetFor
             ) && currentLink!!.imgURL.isNotEmpty() && AppPreferences.showAssociatedImageInLinkMenu.value
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                    .wrapContentHeight()
-            ) {
+            Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
                 CoilImage(
-                    modifier = Modifier.animateContentSize().fillMaxWidth().then(
-                        if (isImageAssociatedWithTheLinkIsExpanded.value) Modifier.wrapContentHeight() else Modifier.heightIn(
-                            max = 150.dp
-                        )
-                    ).fadedEdges(MaterialTheme.colorScheme),
+                    modifier = Modifier.height(200.dp).fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)).fadedEdges(
+                            MaterialTheme.colorScheme, edgeType = EdgeType.BOTTOM
+                        ).fadedEdges(
+                            MaterialTheme.colorScheme, edgeType = EdgeType.TOP
+                        ),
                     imgURL = currentLink.imgURL,
                     userAgent = currentLink.userAgent
                         ?: AppPreferences.primaryJsoupUserAgent.value
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)
-                        .padding(end = 15.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.align(Alignment.BottomStart)
+                        .padding(start = 8.dp, end = 15.dp, top = 15.dp, bottom = 8.dp)
                 ) {
-                    FilledTonalIconButton(
-                        onClick = {
-                            isImageAssociatedWithTheLinkIsExpanded.value =
-                                !isImageAssociatedWithTheLinkIsExpanded.value
-                        }, modifier = Modifier.alpha(0.75f).padding(5.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (!isImageAssociatedWithTheLinkIsExpanded.value) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = ""
-                        )
-                    }
                     Text(
                         text = currentLink.title,
                         style = MaterialTheme.typography.titleSmall,
-                        fontSize = 16.sp,
-                        maxLines = 2,
-                        lineHeight = 20.sp,
+                        maxLines = 3,
                         textAlign = TextAlign.Start,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.clickable(interactionSource = null, onClick = {
+                            localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.link!!.title))
+                        }, indication = null).padding(end = 20.dp, bottom = 5.dp)
+                    )
+                    Text(
+                        modifier = Modifier.background(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(10.dp)
+                        ).padding(5.dp),
+                        text = menuBtmSheetParam.link!!.baseURL.replace("www.", "")
+                            .replace("http://", "").replace("https://", ""),
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        textAlign = TextAlign.Start,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
             }
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(0.1f)
-            )
-            Spacer(Modifier.height(5.dp))
         }
         if (menuBtmSheetLinkEntries().contains(
                 menuBtmSheetFor
@@ -210,8 +203,7 @@ fun MobileMenu(
             } else {
                 Spacer(modifier = Modifier.height(20.dp))
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = Localization.Key.NoNoteAdded.rememberLocalizedString(),
@@ -233,7 +225,7 @@ fun MenuNonImageHeader(onClick: () -> Unit, leadingIcon: ImageVector, text: Stri
     Row(
         modifier = Modifier.combinedClickable(interactionSource = remember {
             MutableInteractionSource()
-        }, indication = null, onClick = onClick).pulsateEffect().fillMaxWidth(),
+        }, indication = null, onClick = onClick).pressScaleEffect().fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

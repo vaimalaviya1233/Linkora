@@ -40,7 +40,7 @@ import com.sakethh.linkora.ui.domain.SortingBtmSheetType
 import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 
@@ -80,7 +80,7 @@ fun SortingBottomSheetUI(
                     )
                     it.onClick()
                     hideBtmSheet()
-                }, onLongClick = {}).pulsateEffect().fillMaxWidth().wrapContentHeight()
+                }, onLongClick = {}).pressScaleEffect().fillMaxWidth().wrapContentHeight()
             ) {
                 Row(
                     modifier = Modifier.padding(start = 15.dp).fillMaxWidth().wrapContentHeight(),

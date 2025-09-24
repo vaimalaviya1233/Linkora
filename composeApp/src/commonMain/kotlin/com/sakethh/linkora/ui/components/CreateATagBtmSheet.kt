@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.utils.rememberLocalizedString
 
@@ -71,7 +71,7 @@ fun CreateATagBtmSheet(
                 )
                 OutlinedButton(
                     onClick = onCancel,
-                    modifier = Modifier.pulsateEffect().fillMaxWidth()
+                    modifier = Modifier.pressScaleEffect().fillMaxWidth()
                         .padding(start = 15.dp, end = 15.dp)
                 ) {
                     Text(
@@ -80,7 +80,7 @@ fun CreateATagBtmSheet(
                     )
                 }
                 Button(
-                    modifier = Modifier.fillMaxWidth().pulsateEffect()
+                    modifier = Modifier.fillMaxWidth().pressScaleEffect()
                         .padding(start = 15.dp, end = 15.dp, bottom = 5.dp)
                         .bottomNavPaddingAcrossPlatforms(), onClick = {
                         onCreateClick(newTag)

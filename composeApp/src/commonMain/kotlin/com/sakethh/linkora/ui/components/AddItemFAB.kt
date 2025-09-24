@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -124,7 +124,7 @@ fun AddItemFab(
                 )
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.pulsateEffect(), onClick = {
+                    modifier = Modifier.pressScaleEffect(), onClick = {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onCreateATagClick()
                         addItemFABParam.isMainFabRotated.value = false
@@ -185,7 +185,7 @@ fun AddItemFab(
                 )
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.pulsateEffect(), onClick = {
+                    modifier = Modifier.pressScaleEffect(), onClick = {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onShowDialogForNewFolder()
                         addItemFABParam.isMainFabRotated.value = false
@@ -236,7 +236,7 @@ fun AddItemFab(
             FloatingActionButton(
                 modifier = Modifier.rotate(
                     addItemFABParam.rotationAnimatable.value
-                ).pulsateEffect(), onClick = {
+                ).pressScaleEffect(), onClick = {
                     if (addItemFABParam.isMainFabRotated.value) {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onShowAddLinkDialog()

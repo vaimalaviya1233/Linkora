@@ -141,7 +141,7 @@ object Localization {
         AppIntroSlide3Folder3_1Name("Code Snippets"),
         AppIntroSlide3Folder3_1Note("reusable bits and tricks"),
         AppIntroSlide3MainLabel("Introducing Panels."),
-        AppIntroSlide3MainLabelDesc("Add any of your folders to a Panel for quick access from the Home screen. Oh, and yep — Linkora supports subfolders too."),
+        AppIntroSlide3MainLabelDesc("Add any folder to a Panel for quick access from the Home screen. Panels work like tags but for folders. You can group different folders under each one and access them instantly.\nOh, and yep — Linkora supports subfolders too."),
         AppIntroSlide4Label1("Wait,\nThere's More."),
         AppIntroSlide4Label1Desc1("Search, sort, auto title and image detection (when available)."),
         AppIntroSlide4Label1Desc2("Export or import as JSON or HTML, with auto-backup support."),
@@ -160,7 +160,7 @@ object Localization {
         MarkSelectedFoldersAsRoot("Mark selected folders as root"),
         NavigateToCollectionsScreen("Navigate to Collections Screen"),
         AppIntroSlide4Label2("Open. Local First. Yours."),
-        AppIntroSlide4Label2Desc("Linkora is open-source under the MIT license — now available on desktop too."),
+        AppIntroSlide4Label2Desc("Linkora and its related projects, including the sync-server, are released as free and open-source software under their respective licenses."),
         PreviousPage("Previous page"),
         NextPage("Next page"),
         Done("Done"),
@@ -170,9 +170,9 @@ object Localization {
         AppIntroSlide2Folder2Name("Explainers"),
         AppIntroSlide2Folder2Note("in-depth articles or breakdowns"),
         AppIntroSlide2MainLabelDesc(
-            "Store links into folders, flag them as Important or Archived, or keep them in \"Saved Links\" — customize it your way."
+            "Store links in folders, tag them, mark as Important or Archived, or keep them in \"Saved Links\" to make it your own."
         ),
-        AppIntroSlide2MainLabel("Folders &\nLinks."),
+        AppIntroSlide2MainLabel("Folders, Links &\nTags."),
         AppIntroSlide2Folder1Note(
             "cool stuff i might use later"
         ),

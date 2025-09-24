@@ -54,7 +54,7 @@ import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
 
@@ -93,7 +93,7 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
         ) {
             Button(
                 modifier = Modifier.padding(15.dp).navigationBarsPadding().fillMaxWidth()
-                    .pulsateEffect(0.9f), onClick = {
+                    .pressScaleEffect(0.9f), onClick = {
                     isAddANewPanelDialogBoxVisible.value = true
                 }) {
                 Text(

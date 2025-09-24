@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 data class DeleteAPanelDialogBoxParam(
     val isDialogBoxVisible: MutableState<Boolean>,
@@ -34,7 +34,7 @@ fun DeleteAPanelDialogBox(deleteAPanelDialogBoxParam: DeleteAPanelDialogBoxParam
         AlertDialog(confirmButton = {
             if (isInProgress.value) return@AlertDialog
             Button(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
                     isInProgress.value = true
                     deleteAPanelDialogBoxParam.onDeleteClick({
                         isInProgress.value = false
@@ -50,7 +50,7 @@ fun DeleteAPanelDialogBox(deleteAPanelDialogBoxParam: DeleteAPanelDialogBoxParam
         }, dismissButton = {
             if (isInProgress.value.not()) {
                 OutlinedButton(
-                    modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                    modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
                         deleteAPanelDialogBoxParam.isDialogBoxVisible.value = false
                     }) {
                     Text(

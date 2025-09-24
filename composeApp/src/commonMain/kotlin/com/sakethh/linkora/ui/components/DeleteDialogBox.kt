@@ -23,9 +23,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.rememberLocalizedString
 
 enum class DeleteDialogBoxType {
@@ -55,7 +55,7 @@ fun DeleteDialogBox(
     AlertDialog(modifier = Modifier.animateContentSize(), confirmButton = {
         if (isDeletionInProgress.value.not()) {
             Button(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
                     isDeletionInProgress.value = true
                     deleteDialogBoxParam.onDeleteClick({
                         isDeletionInProgress.value = false
@@ -72,7 +72,7 @@ fun DeleteDialogBox(
     }, dismissButton = {
         if (isDeletionInProgress.value.not()) {
             OutlinedButton(
-                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = deleteDialogBoxParam.onDismiss) {
+                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = deleteDialogBoxParam.onDismiss) {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.Cancel),
                     style = MaterialTheme.typography.titleSmall,

@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,7 +50,7 @@ fun SettingComponent(
                     settingComponentParam.onSwitchStateChange(!settingComponentParam.isSwitchEnabled.value)
                     settingComponentParam.onAcknowledgmentClick(uriHandler)
                 })
-            .pulsateEffect()
+            .pressScaleEffect()
             .fillMaxWidth()
             .animateContentSize(), verticalAlignment = Alignment.CenterVertically
     ) {

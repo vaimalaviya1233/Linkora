@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.domain.ComposableContent
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +47,7 @@ fun SettingsSectionScaffold(
                     actions()
                 }
             }, navigationIcon = {
-                IconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                IconButton(modifier = Modifier.pressScaleEffect(), onClick = {
                     navController.navigateUp()
                 }) {
                     Icon(

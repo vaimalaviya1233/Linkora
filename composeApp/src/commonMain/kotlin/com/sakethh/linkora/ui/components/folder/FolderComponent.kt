@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
-import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -61,7 +61,7 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
                     folderComponentParam.onClick()
                 }, onLongClick = {
                     folderComponentParam.onLongClick()
-                }).pulsateEffect().fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                }).pressScaleEffect().fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
             if (folderComponentParam.showCheckBox.value) {
                 Checkbox(

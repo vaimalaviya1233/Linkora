@@ -63,7 +63,6 @@ import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.rememberLocalizedString
 import linkora.composeapp.generated.resources.LOLCATpl_logo
@@ -74,13 +73,14 @@ import linkora.composeapp.generated.resources.new_logo
 import linkora.composeapp.generated.resources.oh_arthur
 import linkora.composeapp.generated.resources.weather_logo
 import org.jetbrains.compose.resources.painterResource
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneralSettingsScreen() {
     val navController = LocalNavController.current
     val settingsScreenViewModel: SettingsScreenViewModel = linkoraViewModel()
-    val showInitialNavigationChangerDialogBox = rememberSaveable {
+    var showInitialNavigationChangerDialogBox by rememberSaveable {
         mutableStateOf(false)
     }
     val platform = platform()
@@ -143,7 +143,7 @@ fun GeneralSettingsScreen() {
                             mutableStateOf(false)
                         },
                         onSwitchStateChange = {
-                            showInitialNavigationChangerDialogBox.value = true
+                            showInitialNavigationChangerDialogBox = true
                         },
                         isIconNeeded = rememberSaveable {
                             mutableStateOf(true)
@@ -191,7 +191,7 @@ fun GeneralSettingsScreen() {
                     ) {
                         AppIconCode.entries.forEach {
                             key(it.name) {
-                                Box(Modifier.pulsateEffect().clickable(onClick = {
+                                Box(Modifier.pressScaleEffect().clickable(onClick = {
                                     settingsScreenViewModel.onIconChange(
                                         newIconCode = it.name,
                                         onCompletion = {
@@ -249,7 +249,7 @@ fun GeneralSettingsScreen() {
             }
         }
     }
-    if (showInitialNavigationChangerDialogBox.value) {
+    if (showInitialNavigationChangerDialogBox) {
         val currentlySelectedRoute = rememberSaveable {
             mutableStateOf(AppPreferences.startDestination.value)
         }
@@ -259,15 +259,15 @@ fun GeneralSettingsScreen() {
             }
         }
         AlertDialog(onDismissRequest = {
-            showInitialNavigationChangerDialogBox.value = false
+            showInitialNavigationChangerDialogBox = false
         }, confirmButton = {
             Button(onClick = {
                 settingsScreenViewModel.changeSettingPreferenceValue(
                     stringPreferencesKey(
                         AppPreferenceType.INITIAL_ROUTE.name
-                    ), currentlySelectedRoute.value.toString()
+                    ), currentlySelectedRoute.value
                 )
-                showInitialNavigationChangerDialogBox.value = false
+                showInitialNavigationChangerDialogBox = false
             }, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = Localization.Key.Confirm.rememberLocalizedString(),
@@ -276,7 +276,7 @@ fun GeneralSettingsScreen() {
             }
         }, dismissButton = {
             OutlinedButton(onClick = {
-                showInitialNavigationChangerDialogBox.value = false
+                showInitialNavigationChangerDialogBox = false
             }, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = Localization.Key.Cancel.rememberLocalizedString(),
@@ -292,19 +292,19 @@ fun GeneralSettingsScreen() {
                 ).forEach {
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable(onClick = {
-                            currentlySelectedRoute.value = it.javaClass.name
+                            currentlySelectedRoute.value = it.toString()
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
-                        }).pulsateEffect(), verticalAlignment = Alignment.CenterVertically
+                        }).pressScaleEffect(), verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = currentlySelectedRoute.value == it.javaClass.name,
+                            selected = currentlySelectedRoute.value == it.toString(),
                             onClick = {
-                                currentlySelectedRoute.value = it.javaClass.name
+                                currentlySelectedRoute.value = it.toString()
                             })
                         Text(
                             style = if (currentlySelectedRoute.value == it.toString()) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
-                            text = it.javaClass.name,
+                            text = it.toString(),
                             color = if (currentlySelectedRoute.value == it.toString()) MaterialTheme.colorScheme.primary else LocalContentColor.current,
                             fontSize = 16.sp
                         )

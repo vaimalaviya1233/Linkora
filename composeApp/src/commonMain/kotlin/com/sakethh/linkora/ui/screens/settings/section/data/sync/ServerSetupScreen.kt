@@ -55,7 +55,7 @@ import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.section.data.LogsScreen
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
 import com.sakethh.linkora.platform.poppinsFontFamily
 
@@ -203,7 +203,7 @@ fun ServerSetupScreen(
                                     }
                                 }, modifier = Modifier.fillMaxWidth().padding(
                                     start = 15.dp, end = 15.dp, bottom = 15.dp
-                                ).pulsateEffect()
+                                ).pressScaleEffect()
                             ) {
                                 Text(
                                     text = Localization.Key.ImportServerCertificate.rememberLocalizedString(),
@@ -259,7 +259,7 @@ fun ServerSetupScreen(
                             serverManagementViewModel.testServerConnection(
                                 serverUrl = serverUrl.value, token = securityToken.value
                             )
-                        }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
+                        }, modifier = Modifier.fillMaxWidthWithPadding().pressScaleEffect()
                     ) {
                         Text(
                             text = Localization.rememberLocalizedString(Localization.Key.TestServerAvailability),
@@ -295,7 +295,7 @@ fun ServerSetupScreen(
                         selectedSyncType.value = syncType
                     }, indication = null, interactionSource = remember {
                         MutableInteractionSource()
-                    }).pulsateEffect().fillMaxWidthWithPadding()) {
+                    }).pressScaleEffect().fillMaxWidthWithPadding()) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -331,7 +331,7 @@ fun ServerSetupScreen(
                             showImportLogsFromServer.value = false
                             navController.navigateUp()
                         })
-                    }, modifier = Modifier.fillMaxWidthWithPadding().pulsateEffect()
+                    }, modifier = Modifier.fillMaxWidthWithPadding().pressScaleEffect()
                 ) {
                     Text(
                         text = Localization.rememberLocalizedString(Localization.Key.UseThisConnection),

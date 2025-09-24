@@ -55,7 +55,7 @@ import com.sakethh.linkora.ui.domain.CurrentFABContext
 import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -112,7 +112,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         modifier = Modifier.padding(start = 10.dp, top = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        FilledIconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pressScaleEffect(), onClick = {
                             uriHandler.openUri("https://www.github.com/LinkoraApp")
                         }) {
                             Icon(
@@ -121,7 +121,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                                 modifier = Modifier.size(24.dp),
                             )
                         }
-                        FilledIconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pressScaleEffect(), onClick = {
                             uriHandler.openUri("https://discord.gg/ZDBXNtv8MD")
                         }) {
                             Icon(
@@ -130,7 +130,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                                 modifier = Modifier.size(24.dp),
                             )
                         }
-                        FilledIconButton(modifier = Modifier.pulsateEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pressScaleEffect(), onClick = {
                             uriHandler.openUri("https://www.twitter.com/LinkoraApp")
                         }) {
                             Icon(
@@ -151,7 +151,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     Button(
                         onClick = {
                             uriHandler.openUri("https://github.com/LinkoraApp/localization-server")
-                        }, modifier = Modifier.padding(start = 15.dp).pulsateEffect()
+                        }, modifier = Modifier.padding(start = 15.dp).pressScaleEffect()
                     ) {
                         Icon(imageVector = Icons.Default.Translate, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
@@ -165,7 +165,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         onClick = {
                             uriHandler.openUri("https://ko-fi.com/sakethpathike")
                         },
-                        modifier = Modifier.padding(start = 15.dp, bottom = 15.dp).pulsateEffect()
+                        modifier = Modifier.padding(start = 15.dp, bottom = 15.dp).pressScaleEffect()
                     ) {
                         Icon(imageVector = Icons.Default.Coffee, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))

@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.platform.platform
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -58,7 +58,7 @@ fun IndividualMenuComponent(
                 onLongClick = {
 
                 })
-            .pulsateEffect()
+            .pressScaleEffect()
             .padding(end = 10.dp)
             .wrapContentHeight()
             .fillMaxWidth(),

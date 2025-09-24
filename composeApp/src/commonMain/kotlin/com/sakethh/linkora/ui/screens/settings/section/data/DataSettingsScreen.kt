@@ -94,9 +94,9 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingCompone
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
-import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.platform.poppinsFontFamily
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -295,7 +295,7 @@ fun DataSettingsScreen() {
                 }, textStyle = MaterialTheme.typography.titleSmall, trailingIcon = {
                     FilledTonalIconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                            .pulsateEffect().padding(end = 5.dp), onClick = {
+                            .pressScaleEffect().padding(end = 5.dp), onClick = {
                             dataSettingsScreenVM.changeExportLocation(
                                 exportLocation = exportLocation.value,
                                 platform = platform,

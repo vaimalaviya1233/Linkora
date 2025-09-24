@@ -72,7 +72,7 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
@@ -104,7 +104,6 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
         activePanelAssociatedPanelFolders.value.size
     })
     val localUriHandler = LocalUriHandler.current
-    val platform = LocalPlatform.current
     Scaffold(topBar = {
         Column(
             modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).animateContentSize()
@@ -148,7 +147,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                         }
                     }, indication = null, interactionSource = remember {
                         MutableInteractionSource()
-                    }).pulsateEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
+                    }).pressScaleEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
                 ) {
                     Spacer(Modifier.width(5.dp))
                     FilledTonalIconButton(onClick = {

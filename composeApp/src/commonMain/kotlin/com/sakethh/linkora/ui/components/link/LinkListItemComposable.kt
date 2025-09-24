@@ -54,8 +54,8 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
-import com.sakethh.linkora.ui.utils.pulsateEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -80,7 +80,7 @@ fun LinkListItemComposable(
             linkUIComponentParam.onLinkClick()
         }, onLongClick = {
             linkUIComponentParam.onLongClick()
-        }).padding(start = 15.dp, top = 15.dp).fillMaxWidth().wrapContentHeight().pulsateEffect()
+        }).padding(start = 15.dp, top = 15.dp).fillMaxWidth().wrapContentHeight().pressScaleEffect()
             .animateContentSize().then(modifier), verticalArrangement = Arrangement.SpaceBetween
     ) {
         Row(

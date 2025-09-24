@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 
 data class AddANewPanelParam(
@@ -69,7 +69,7 @@ fun AddANewPanelDialogBox(addANewPanelParam: AddANewPanelParam) {
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pulsateEffect(), onClick = {
+                    .pressScaleEffect(), onClick = {
                     isInProgress.value = true
                     addANewPanelParam.onCreateClick(
                         customShelfName.value, {
@@ -89,7 +89,7 @@ fun AddANewPanelDialogBox(addANewPanelParam: AddANewPanelParam) {
                 androidx.compose.material3.OutlinedButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .pulsateEffect(),
+                        .pressScaleEffect(),
                     onClick = {
                         addANewPanelParam.isDialogBoxVisible.value = false
                     }) {

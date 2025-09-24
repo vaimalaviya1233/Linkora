@@ -24,8 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.utils.isNotNull
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -60,13 +59,13 @@ fun SettingsAppInfoComponent(
             onClick()
         }, onLongClick = {
 
-        }).pulsateEffect()
+        }).pressScaleEffect()
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (icon.isNotNull()) {
+            if (icon != null) {
                 Icon(
                     modifier = Modifier.padding(20.dp),
-                    imageVector = icon!!,
+                    imageVector = icon,
                     contentDescription = null
                 )
             }

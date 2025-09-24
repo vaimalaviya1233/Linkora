@@ -26,7 +26,7 @@ import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
-import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,7 +70,7 @@ fun NewVersionUpdateBtmContent(
         item {
             Button(
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth()
-                    .pulsateEffect(), onClick = {
+                    .pressScaleEffect(), onClick = {
                     coroutineScope.launch {
                         if (modalBtmSheetState.isVisible) {
                             modalBtmSheetState.hide()

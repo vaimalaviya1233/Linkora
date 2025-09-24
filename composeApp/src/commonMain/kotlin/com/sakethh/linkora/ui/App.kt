@@ -40,11 +40,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.di.APPVMAssistedFactory
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
+import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.tag.Tag
+import com.sakethh.linkora.platform.NativeUtils
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences.serverBaseUrl
 import com.sakethh.linkora.ui.components.AddANewFolderDialogBox
@@ -393,6 +395,9 @@ fun App(
                         },
                         onForceLaunchInAnExternalBrowser = {
                             localUriHandler.openUri(appVM.selectedLinkTagsForMenuBtmSheet.link.url)
+                        },
+                        onShare = {
+                            LinkoraSDK.getInstance().nativeUtils.onShare(it)
                         },
                         showQuickActions = rememberSaveable { mutableStateOf(false) },
                         shouldTransferringOptionShouldBeVisible = true,
