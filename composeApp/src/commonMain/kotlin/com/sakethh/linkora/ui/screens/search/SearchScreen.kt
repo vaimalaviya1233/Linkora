@@ -242,24 +242,24 @@ fun SearchScreen() {
                             onTagClick = {
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                     currentFolder = null,
-                                    isAnyCollectionSelected = false,
+                                    isAnyCollectionSelected = true,
                                     currentTag = it,
-                                    collectionType = CollectionType.TAG
+                                    collectionType = CollectionType.TAG,
                                 )
-                                try {
-                                    if (platform is Platform.Android.Mobile) {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                            value = Json.encodeToString(collectionDetailPaneInfo)
-                                        )
-                                    } else {
-                                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                if (platform is Platform.Android.Mobile) {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                        value = Json.encodeToString(
                                             collectionDetailPaneInfo
                                         )
-                                    }
-                                } finally {
-                                    navController.navigate(Navigation.Collection.CollectionDetailPane)
+                                    )
                                 }
+                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                    collectionDetailPaneInfo
+                                )
+                                navController.navigate(
+                                    Navigation.Collection.CollectionDetailPane
+                                )
                             },
                             tagMoreIconClick = {
                                 coroutineScope.pushUIEvent(
