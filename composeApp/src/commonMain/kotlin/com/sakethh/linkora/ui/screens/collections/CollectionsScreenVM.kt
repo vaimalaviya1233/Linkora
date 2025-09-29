@@ -13,9 +13,9 @@ import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.tag.Tag
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
@@ -271,7 +271,11 @@ open class CollectionsScreenVM(
             }
         }
         viewModelScope.launch {
-            localTagsRepo.getAllTags().collectLatest {
+            snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }.flatMapLatest {
+                localTagsRepo.getAllTags(it)
+            }.collectLatest {
                 _allTags.emit(it)
             }
         }
@@ -305,12 +309,12 @@ open class CollectionsScreenVM(
     private suspend fun loadFolders(init: suspend (folders: List<Folder>) -> Unit) {
         snapshotFlow {
             AppPreferences.selectedSortingTypeType.value
-        }.collectLatest { sortingType ->
-            localFoldersRepo.getRootFolders(sortingType).collectLatest { result ->
-                result.onSuccess { folders ->
-                    init(folders.data)
-                }.pushSnackbarOnFailure()
-            }
+        }.flatMapLatest { sortingType ->
+            localFoldersRepo.getRootFolders(sortingType)
+        }.collectLatest { result ->
+            result.onSuccess { folders ->
+                init(folders.data)
+            }.pushSnackbarOnFailure()
         }
     }
 
@@ -338,10 +342,9 @@ open class CollectionsScreenVM(
         collectableChildFoldersJob = viewModelScope.launch {
             snapshotFlow {
                 AppPreferences.selectedSortingTypeType.value
-            }.collectLatest { sortingType ->
+            }.flatMapLatest { sortingType ->
                 localFoldersRepo.getChildFolders(parentFolderId, sortingType)
-                    .collectAndEmitChildFolders()
-            }
+            }.collectAndEmitChildFolders()
         }
     }
 

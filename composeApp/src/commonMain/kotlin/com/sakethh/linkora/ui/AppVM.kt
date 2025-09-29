@@ -150,7 +150,7 @@ class AppVM(
                             snapshotFlow {
                                 forceSnapshot.value
                             },
-                            localTagsRepo.getAllTags(),
+                            localTagsRepo.getAllTags(AppPreferences.selectedSortingTypeType.value),
                             localTagsRepo.getAllLinkTags()
                         ) { links, folders, panels, panelFolders, _, tags, linkTags ->
                             AllTablesDTO(

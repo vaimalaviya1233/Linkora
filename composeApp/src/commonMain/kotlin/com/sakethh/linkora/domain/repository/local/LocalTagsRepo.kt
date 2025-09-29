@@ -19,7 +19,7 @@ interface LocalTagsRepo {
     suspend fun renameATag(localTagId: Long, newName: String, viaSocket: Boolean = false) : Flow<Result<Unit>>
     suspend fun getLastInsertedIdFromTags(): Long
 
-    fun getAllTags(): Flow<List<Tag>>
+    fun getAllTags(sortOption: String): Flow<List<Tag>>
     suspend fun getAllTagsAsList(): List<Tag>
     suspend fun getAllLinkTagsAsList(): List<LinkTag>
     fun getAllLinkTags(): Flow<List<LinkTag>>

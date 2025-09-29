@@ -43,8 +43,13 @@ interface TagsDao {
     @Query("SELECT MAX(localId) FROM tags")
     suspend fun getLastInsertedIdFromTags(): Long
 
-    @Query("SELECT * FROM tags")
-    fun getAllTags(): Flow<List<Tag>>
+    @Query("""SELECT * FROM tags 
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC""")
+    fun getAllTags(sortOption: String): Flow<List<Tag>>
 
     @Query("SELECT * FROM tags")
     suspend fun getAllTagsAsList(): List<Tag>

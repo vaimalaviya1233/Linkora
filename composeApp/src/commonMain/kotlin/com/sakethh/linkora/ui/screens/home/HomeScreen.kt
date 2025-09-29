@@ -204,11 +204,11 @@ fun HomeScreen() {
                     folders = activePanelAssociatedFolders[pageIndex],
                     linksTagsPairs = if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
                         when (pageIndex) {
-                            0 -> activePanelAssociatedFolderLinks[0]
+                            0 -> activePanelAssociatedFolderLinks.getOrNull(0) ?: emptyList()
 
-                            else -> activePanelAssociatedFolderLinks[1]
+                            else -> activePanelAssociatedFolderLinks.getOrNull(1) ?: emptyList()
                         }
-                    } else activePanelAssociatedFolderLinks[pageIndex],
+                    } else activePanelAssociatedFolderLinks.getOrNull(pageIndex) ?: emptyList(),
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
                         coroutineScope.pushUIEvent(

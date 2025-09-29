@@ -117,8 +117,8 @@ class LocalTagsRepoImpl(
         }
     }
 
-    override fun getAllTags(): Flow<List<Tag>> {
-        return tagsDao.getAllTags()
+    override fun getAllTags(sortOption: String): Flow<List<Tag>> {
+        return tagsDao.getAllTags(sortOption)
     }
 
     override suspend fun renameATag(
