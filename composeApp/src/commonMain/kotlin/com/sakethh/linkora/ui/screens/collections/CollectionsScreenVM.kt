@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -27,7 +28,6 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
-import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -41,6 +41,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
@@ -50,9 +51,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.Stack
 
 open class CollectionsScreenVM(
     val localFoldersRepo: LocalFoldersRepo,
@@ -61,51 +63,11 @@ open class CollectionsScreenVM(
     loadNonArchivedRootFoldersOnInit: Boolean = true,
     loadArchivedRootFoldersOnInit: Boolean = true,
     val collectionDetailPaneInfo: CollectionDetailPaneInfo? = null,
+    val platform: Platform,
     preferencesRepo: PreferencesRepository? = null
 ) : ViewModel() {
 
     companion object {
-        private val _collectionDetailPaneInfo = mutableStateOf(
-            CollectionDetailPaneInfo(
-                currentFolder = null,
-                isAnyCollectionSelected = false,
-                collectionType = null,
-                currentTag = null
-            )
-        )
-        val collectionDetailPaneInfo = _collectionDetailPaneInfo
-
-        private val _searchNavigated = mutableStateOf(
-            SearchNavigated(
-                navigatedFromSearchScreen = false, navigatedWithFolderId = -1
-            )
-        )
-
-        val searchNavigated = _searchNavigated
-
-        fun updateSearchNavigated(searchNavigated: SearchNavigated) {
-            _searchNavigated.value = searchNavigated
-        }
-
-        fun resetSearchNavigated() {
-            _searchNavigated.value = SearchNavigated(
-                navigatedFromSearchScreen = false, navigatedWithFolderId = -1
-            )
-        }
-
-        fun updateCollectionDetailPaneInfo(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
-            _collectionDetailPaneInfo.value = collectionDetailPaneInfo
-        }
-
-        fun resetCollectionDetailPaneInfo() {
-            _collectionDetailPaneInfo.value = CollectionDetailPaneInfo(
-                currentFolder = null,
-                isAnyCollectionSelected = false,
-                collectionType = null,
-                currentTag = null
-            )
-        }
-
         val selectedLinksViaLongClick = mutableStateListOf<Link>()
         val selectedFoldersViaLongClick = mutableStateListOf<Folder>()
         val isSelectionEnabled = mutableStateOf(false)
@@ -117,10 +79,50 @@ open class CollectionsScreenVM(
         }
     }
 
-    fun updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
-        _collectionDetailPaneInfo.value = collectionDetailPaneInfo
+    private val _detailPaneHistory = MutableStateFlow<List<CollectionDetailPaneInfo>>(emptyList())
 
-        if (collectionDetailPaneInfo.isAnyCollectionSelected.not()) return
+    val isPaneSelected = _detailPaneHistory.map { it.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val peekPaneHistory = _detailPaneHistory.map {
+        try {
+            it.last()
+        } catch (_: Exception) {
+            null
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun clearDetailPaneHistoryUntilLast() {
+        viewModelScope.launch {
+            _detailPaneHistory.update {
+                listOf(it.last())
+            }
+        }
+    }
+    fun clearDetailPaneHistory() {
+        viewModelScope.launch {
+            _detailPaneHistory.emit(emptyList())
+        }
+    }
+
+    fun pushToDetailPane(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
+        _detailPaneHistory.update {
+            it + collectionDetailPaneInfo
+        }
+    }
+
+    fun popFromDetailPane(): CollectionDetailPaneInfo? {
+        _detailPaneHistory.update {
+            try {
+                it.dropLast(1)
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+        return peekPaneHistory.value
+    }
+
+    private fun updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo: CollectionDetailPaneInfo) {
 
         emptyCollectableLinks()
         emptyCollectableChildFolders()
@@ -303,6 +305,14 @@ open class CollectionsScreenVM(
         }
         if (collectionDetailPaneInfo != null) {
             updateCollectionDetailPaneInfoAndCollectData(collectionDetailPaneInfo)
+        } else {
+            viewModelScope.launch {
+                peekPaneHistory.collectLatest {
+                    if (it != null) {
+                        updateCollectionDetailPaneInfoAndCollectData(it)
+                    }
+                }
+            }
         }
     }
 
@@ -399,8 +409,6 @@ open class CollectionsScreenVM(
                     onCompletion()
                 }.pushSnackbarOnFailure()
             }
-        }.invokeOnCompletion {
-            resetCollectionDetailPaneInfo()
         }
     }
 
@@ -522,9 +530,10 @@ open class CollectionsScreenVM(
             if (link.linkType == LinkType.ARCHIVE_LINK) {
                 // we can also revert to the same folder from where it was originally archived, but this should be fine
                 localLinksRepo.updateALink(
-                    link.copy(
+                   link =  link.copy(
                         linkType = LinkType.SAVED_LINK, idOfLinkedFolder = null
-                    )
+                    ),
+                    updatedLinkTagsPair = null
                 ).collectLatest {
                     it.onSuccess {
                         pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.UnArchived.getLocalizedString() + it.getRemoteOnlyFailureMsg()))
@@ -547,24 +556,9 @@ open class CollectionsScreenVM(
         viewModelScope.launch {
             localLinksRepo.updateALink(
                 link = updatedLinkTagsPair.link,
+                updatedLinkTagsPair = updatedLinkTagsPair
             ).collectLatest {
-                it.onSuccess {
-                    val tagsAttachedToTheLink =
-                        localTagsRepo.getTagsBasedOnTheLinkId(linkId = updatedLinkTagsPair.link.localId)
-                            .first()
-                    val newlySelectedTags = updatedLinkTagsPair.tags.filter { curFilterTag ->
-                        curFilterTag !in tagsAttachedToTheLink
-                    }
-                    val unselectedTags = tagsAttachedToTheLink.filter { curFilterTag ->
-                        curFilterTag !in updatedLinkTagsPair.tags
-                    }
-                    localTagsRepo.deleteLinkTagsBasedOnTags(unselectedTags.map { it.localId })
-                    localTagsRepo.createLinkTags(newlySelectedTags.map {
-                        LinkTag(
-                            linkId = updatedLinkTagsPair.link.localId, tagId = it.localId
-                        )
-                    })
-                }
+                it.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {
             onCompletion()
@@ -690,20 +684,6 @@ open class CollectionsScreenVM(
                     clearSelectedTags()
                 }
             }
-        }
-    }
-
-    private val _tagsNavStack = Stack<Tag>()
-
-    fun pushIntoTagNavStack(tag: Tag) {
-        _tagsNavStack.push(tag)
-    }
-
-    fun popFromTagNavStack(): Tag? {
-        return if (_tagsNavStack.isNotEmpty()) {
-            _tagsNavStack.pop()
-        } else {
-            null
         }
     }
 }

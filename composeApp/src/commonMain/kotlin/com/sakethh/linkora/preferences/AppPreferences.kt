@@ -20,6 +20,7 @@ import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.platform.showFollowSystemThemeOption
+import com.sakethh.linkora.ui.domain.AppIconCode
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -44,7 +45,7 @@ object AppPreferences {
     val showDescriptionForSettingsState = mutableStateOf(true)
     val useLanguageStringsBasedOnFetchedValuesFromServer = mutableStateOf(false)
     val isOnLatestUpdate = mutableStateOf(false)
-    val didServerTimeOutErrorOccurred = mutableStateOf(false)
+    val useCustomAppVersionLabel = mutableStateOf(true)
     val selectedSortingTypeType = mutableStateOf(SortingType.NEW_TO_OLD.name)
     val primaryJsoupUserAgent = mutableStateOf(Constants.DEFAULT_USER_AGENT)
     val secondaryJsoupUserAgent =
@@ -88,7 +89,7 @@ object AppPreferences {
     val backupAutoDeleteThreshold = mutableIntStateOf(10)
     val isBackupAutoDeletionEnabled = mutableStateOf(false)
     var selectedCollectionSourceId by mutableIntStateOf(0)
-
+    var selectedAppIcon by mutableStateOf(AppIconCode.new_logo.name)
     suspend fun lastSyncedLocally(preferencesRepository: PreferencesRepository): Long {
         return preferencesRepository.readPreferenceValue(
             preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
@@ -457,6 +458,18 @@ object AppPreferences {
                                 AppPreferenceType.COLLECTION_SOURCE_ID.name
                             )
                         ) ?: 0
+                    }, launch {
+                        selectedAppIcon = preferencesRepository.readPreferenceValue(
+                            preferenceKey = stringPreferencesKey(
+                                AppPreferenceType.SELECTED_APP_ICON.name
+                            )
+                        ) ?: selectedAppIcon
+                    }, launch {
+                        useCustomAppVersionLabel.value = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.CUSTOM_VERSION_APP_LABEL.name
+                            )
+                        ) ?: useCustomAppVersionLabel.value
                     }
                 ).joinAll()
             }

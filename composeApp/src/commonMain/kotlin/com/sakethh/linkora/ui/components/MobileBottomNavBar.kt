@@ -36,7 +36,7 @@ import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 
 @Composable
-fun MobileBottomNavBar(rootRouteList:List<Navigation.Root>, appVM: AppVM, platform: Platform, inRootScreen: Boolean?, currentRoute: NavDestination?){
+fun MobileBottomNavBar(rootRouteList:List<Navigation.Root>, isPerformingStartupSync: Boolean, platform: Platform, inRootScreen: Boolean?, currentRoute: NavDestination?){
    val localNavController = LocalNavController.current
     AnimatedVisibility(
         visible = platform == Platform.Android.Mobile && inRootScreen == true &&
@@ -47,7 +47,7 @@ fun MobileBottomNavBar(rootRouteList:List<Navigation.Root>, appVM: AppVM, platfo
         Column(
             modifier = Modifier.fillMaxWidth().animateContentSize()
         ) {
-            if (appVM.isPerformingStartupSync.value) {
+            if (isPerformingStartupSync) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
             NavigationBar {
@@ -61,7 +61,6 @@ fun MobileBottomNavBar(rootRouteList:List<Navigation.Root>, appVM: AppVM, platfo
                         selected = isSelected,
                         onClick = {
                             isSelected.ifNot {
-                                CollectionsScreenVM.resetCollectionDetailPaneInfo()
                                 localNavController.navigate(navRouteItem) {
                                     // pop up to home screen on every navigation via bottom nav bar
                                     popUpTo(localNavController.graph.findStartDestination().id) {

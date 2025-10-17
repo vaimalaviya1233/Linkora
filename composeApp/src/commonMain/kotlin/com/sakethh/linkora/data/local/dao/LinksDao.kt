@@ -4,9 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.utils.LinkType
 import com.sakethh.linkora.utils.Sorting
-import com.sakethh.linkora.domain.model.link.Link
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -148,6 +148,9 @@ interface LinksDao {
     @Query("SELECT localId FROM links WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getLocalIdOfALink(remoteId: Long): Long?
 
+    @Query("SELECT localId FROM links WHERE remoteId IN (:remoteIds)")
+    suspend fun getLocalIds(remoteIds: List<Long>): List<Long>
+
     @Query("SELECT MAX(localId) FROM links")
     suspend fun getLatestId(): Long
 
@@ -200,4 +203,7 @@ interface LinksDao {
 
     @Query("UPDATE links SET linkType = '${LinkType.SAVED_LINK}', lastModified = :eventTimestamp WHERE localId IN (:linksIds)")
     suspend fun unarchiveLinks(linksIds: List<Long>, eventTimestamp: Long)
+
+    @Query("SELECT remoteId FROM tags WHERE localId IN (:localIds)")
+    suspend fun getRemoteIds(localIds: List<Long>): List<Long>
 }

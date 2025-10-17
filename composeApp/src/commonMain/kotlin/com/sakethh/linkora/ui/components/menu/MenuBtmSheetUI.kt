@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -69,269 +70,243 @@ fun MenuBtmSheetUI(
         menuBtmSheetParam.showProgressBarDuringRemoteSave.value,
         menuBtmSheetParam.btmModalSheetState.isVisible
     ) {
-        if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value && menuBtmSheetParam.btmModalSheetState.isVisible.not()) {
+        if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value && !menuBtmSheetParam.btmModalSheetState.isVisible) {
             menuBtmSheetParam.btmModalSheetState.expand()
         }
     }
-    if (menuBtmSheetParam.shouldBtmModalSheetBeVisible.value) {
-        val isNoteBtnSelected = rememberSaveable(menuBtmSheetParam.showNote.value) {
-            mutableStateOf(menuBtmSheetParam.showNote.value)
+    val isNoteBtnSelected = rememberSaveable(menuBtmSheetParam.showNote.value) {
+        mutableStateOf(menuBtmSheetParam.showNote.value)
+    }
+    val platform = platform()
+    val localClipboard = LocalClipboardManager.current
+    val currentLink = remember(menuBtmSheetParam.link) {
+        menuBtmSheetParam.link
+    }
+    val currentFolder = remember(menuBtmSheetParam.folder) {
+        menuBtmSheetParam.folder
+    }
+    val hideContent: () -> Unit = {
+        coroutineScope.launch {
+            if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                menuBtmSheetParam.btmModalSheetState.hide()
+            }
+        }.invokeOnCompletion {
+            menuBtmSheetParam.onDismiss()
         }
-        val platform = platform()
-        val localClipboard = LocalClipboardManager.current
-        val commonContent: ComposableContent = {
-            Column {
-                if (platform is Platform.Android.Mobile) {
-                    IndividualMenuComponent(
-                        onClick = {
-                            coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                            }.invokeOnCompletion {
-                                isNoteBtnSelected.value = true
-                                coroutineScope.launch {
-                                    menuBtmSheetParam.btmModalSheetState.show()
-                                }
+    }
+    val commonContent: ComposableContent = {
+        Column {
+            if (platform is Platform.Android.Mobile) {
+                IndividualMenuComponent(
+                    onClick = {
+                        coroutineScope.launch {
+                            if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                menuBtmSheetParam.btmModalSheetState.hide()
                             }
-                        },
-                        elementName = Localization.Key.ViewNote.rememberLocalizedString(),
-                        elementImageVector = Icons.AutoMirrored.Outlined.TextSnippet
-                    )
-                }
-                if (platform is Platform.Android.Mobile || menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetFolderEntries()) {
-                    IndividualMenuComponent(
-                        onClick = {
+                        }.invokeOnCompletion {
+                            isNoteBtnSelected.value = true
                             coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                            }.invokeOnCompletion {
-                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
+                                menuBtmSheetParam.btmModalSheetState.show()
                             }
-                            menuBtmSheetParam.onRename()
-                        }, elementName = "Edit", elementImageVector = Icons.Outlined.Edit
-                    )
-
-                    if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
-                        IndividualMenuComponent(
-                            onClick = {
-                                menuBtmSheetParam.onRefreshClick()
-                                coroutineScope.launch {
-                                    if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                        menuBtmSheetParam.btmModalSheetState.hide()
-                                    }
-                                }.invokeOnCompletion {
-                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                                }
-                            },
-                            elementName = Localization.Key.RefreshImageAndTitle.rememberLocalizedString(),
-                            elementImageVector = Icons.Outlined.Refresh
-                        )
-                    }
-                }
+                        }
+                    },
+                    elementName = Localization.Key.ViewNote.rememberLocalizedString(),
+                    elementImageVector = Icons.AutoMirrored.Outlined.TextSnippet
+                )
+            }
+            if (platform is Platform.Android.Mobile || menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetFolderEntries()) {
+                IndividualMenuComponent(
+                    onClick = {
+                        hideContent()
+                        menuBtmSheetParam.onRename()
+                    }, elementName = "Edit", elementImageVector = Icons.Outlined.Edit
+                )
 
                 if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
-                    val markedAsImportant =
-                        menuBtmSheetParam.link!!.value.linkType == LinkType.IMPORTANT_LINK
-
                     IndividualMenuComponent(
                         onClick = {
-                            menuBtmSheetParam.onAddToImportantLinks?.let { it() }
-                            coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                            }
+                            menuBtmSheetParam.onRefreshClick()
+                            hideContent()
                         },
-                        elementName = if (!markedAsImportant) Localization.Key.MarkALinkAsImpLink.getLocalizedString() else Localization.Key.RemoveALinkFromImpLink.getLocalizedString(),
-                        elementImageVector = if (markedAsImportant) Icons.Outlined.DeleteForever else Icons.Outlined.StarOutline
+                        elementName = Localization.Key.RefreshImageAndTitle.rememberLocalizedString(),
+                        elementImageVector = Icons.Outlined.Refresh
                     )
                 }
+            }
 
-                val isArchived = if (menuBtmSheetParam.menuBtmSheetFor is MenuBtmSheetType.Folder) {
-                    menuBtmSheetParam.folder!!.value.isArchived
-                } else {
-                    menuBtmSheetParam.link!!.value.linkType == LinkType.ARCHIVE_LINK
-                }
-                val inChildFolder =
-                    menuBtmSheetParam.folder != null && menuBtmSheetParam.folder.value.parentFolderId != null
+            if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
+                val markedAsImportant = currentLink!!.linkType == LinkType.IMPORTANT_LINK
 
-                if (!inChildFolder) {
-                    IndividualMenuComponent(
-                        onClick = {
-                            menuBtmSheetParam.onArchive()
-                            coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                            }.invokeOnCompletion {
-                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                            }
-                        },
-                        elementName = if (isArchived) Localization.Key.UnArchive.getLocalizedString() else Localization.Key.Archive.getLocalizedString(),
-                        elementImageVector = if (isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive
-                    )
-                }
+                IndividualMenuComponent(
+                    onClick = {
+                        menuBtmSheetParam.onAddToImportantLinks?.let { it() }
+                        hideContent()
+                    },
+                    elementName = if (!markedAsImportant) Localization.Key.MarkALinkAsImpLink.getLocalizedString() else Localization.Key.RemoveALinkFromImpLink.getLocalizedString(),
+                    elementImageVector = if (markedAsImportant) Icons.Outlined.DeleteForever else Icons.Outlined.StarOutline
+                )
+            }
 
-                if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor) && menuBtmSheetParam.link!!.value.note.isNotBlank() || menuBtmSheetFolderEntries().contains(
-                        menuBtmSheetParam.menuBtmSheetFor
-                    ) && menuBtmSheetParam.folder!!.value.note.isNotBlank()
-                ) {
-                    IndividualMenuComponent(
-                        onClick = {
-                            menuBtmSheetParam.onDeleteNote()
-                            coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                            }.invokeOnCompletion {
-                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
+            val isArchived = if (menuBtmSheetParam.menuBtmSheetFor is MenuBtmSheetType.Folder) {
+                currentFolder!!.isArchived
+            } else {
+                currentLink!!.linkType == LinkType.ARCHIVE_LINK
+            }
+            val inChildFolder = currentFolder != null && currentFolder.parentFolderId != null
+
+            if (!inChildFolder) {
+                IndividualMenuComponent(
+                    onClick = {
+                        menuBtmSheetParam.onArchive()
+                        hideContent()
+                    },
+                    elementName = if (isArchived) Localization.Key.UnArchive.getLocalizedString() else Localization.Key.Archive.getLocalizedString(),
+                    elementImageVector = if (isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive
+                )
+            }
+
+            if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor) && currentLink!!.note.isNotBlank() || menuBtmSheetFolderEntries().contains(
+                    menuBtmSheetParam.menuBtmSheetFor
+                ) && currentFolder!!.note.isNotBlank()
+            ) {
+                IndividualMenuComponent(
+                    onClick = {
+                        menuBtmSheetParam.onDeleteNote()
+                        hideContent()
+                    },
+                    elementName = Localization.Key.DeleteTheNote.rememberLocalizedString(),
+                    elementImageVector = Icons.Outlined.Delete
+                )
+            }
+            if (menuBtmSheetParam.menuBtmSheetFor != MenuBtmSheetType.Link.ImportantLink) {
+                IndividualMenuComponent(
+                    onClick = {
+                        menuBtmSheetParam.onDelete()
+                        coroutineScope.launch {
+                            if (menuBtmSheetParam.btmModalSheetState.isVisible) {
+                                menuBtmSheetParam.btmModalSheetState.hide()
                             }
-                        },
-                        elementName = Localization.Key.DeleteTheNote.rememberLocalizedString(),
-                        elementImageVector = Icons.Outlined.Delete
-                    )
-                }
-                if (menuBtmSheetParam.menuBtmSheetFor != MenuBtmSheetType.Link.ImportantLink) {
-                    IndividualMenuComponent(
-                        onClick = {
-                            menuBtmSheetParam.onDelete()
-                            coroutineScope.launch {
-                                if (menuBtmSheetParam.btmModalSheetState.isVisible) {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }
-                            }.invokeOnCompletion {
-                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                            }
-                        },
-                        elementName = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Localization.Key.DeleteTheFolder.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
-                        elementImageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
-                    )
-                }
-                if (platform !is Platform.Android.Mobile && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(start = 15.dp, end = 15.dp, top = 0.dp, bottom = 5.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        val isArchived =
-                            menuBtmSheetParam.link!!.value.linkType == LinkType.ARCHIVE_LINK
-                        NavigationBarItem(selected = true, onClick = {
-                            if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                                localClipboard.setText(
-                                    AnnotatedString(
-                                        text = menuBtmSheetParam.link.value.url
-                                    )
-                                )
-                                coroutineScope.launch {
-                                    menuBtmSheetParam.btmModalSheetState.hide()
-                                }.invokeOnCompletion {
-                                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                                }
-                            } else {
-                                menuBtmSheetParam.onArchive()
-                            }
-                        }, icon = {
-                            Icon(
-                                imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Default.ContentCopy else if (isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
-                                contentDescription = null
-                            )
-                        }, label = {
-                            Text(
-                                text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                                    Localization.Key.CopyLink.rememberLocalizedString()
-                                } else {
-                                    if (isArchived) Localization.Key.UnArchive.getLocalizedString() else Localization.Key.Archive.getLocalizedString()
-                                }, style = MaterialTheme.typography.titleSmall
-                            )
-                        })
-                        NavigationBarItem(selected = true, onClick = {
-                            menuBtmSheetParam.onRename()
-                        }, icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.DriveFileRenameOutline,
-                                contentDescription = null
-                            )
-                        }, label = {
-                            Text(
-                                text = Localization.Key.Rename.rememberLocalizedString(),
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        })
-                        NavigationBarItem(selected = true, onClick = {
-                            if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
-                                menuBtmSheetParam.onRefreshClick()
-                            } else {
-                                menuBtmSheetParam.onDelete()
-                            }
-                        }, icon = {
-                            Icon(
-                                imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Outlined.Refresh else Icons.Default.FolderDelete,
-                                contentDescription = null
-                            )
-                        }, label = {
-                            Text(
-                                text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Localization.Key.Refresh.rememberLocalizedString() else Localization.Key.Delete.rememberLocalizedString(),
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        })
-                    }
-                    if (platform is Platform.Android && AppPreferences.currentlySelectedLinkLayout.value in listOf(
-                            Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
-                        ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()
-                    ) {
-                        FilledTonalButton(
-                            onClick = {
-                                menuBtmSheetParam.onShare(menuBtmSheetParam.link!!.value.url)
-                            },
-                            modifier = Modifier.fillMaxWidthWithPadding()
-                                .bottomNavPaddingAcrossPlatforms()
-                        ) {
-                            Icon(imageVector = Icons.Default.Share, contentDescription = null)
-                            Spacer(Modifier.width(5.dp))
-                            Text(
-                                text = Localization.Key.Share.rememberLocalizedString(),
-                                style = MaterialTheme.typography.titleSmall
-                            )
+                        }.invokeOnCompletion {
+                            menuBtmSheetParam.onDismiss()
                         }
-                    }
-                } else if (platform == Platform.Android.Mobile && AppPreferences.currentlySelectedLinkLayout.value in listOf(
+                    },
+                    elementName = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Localization.Key.DeleteTheFolder.rememberLocalizedString() else Localization.Key.DeleteTheLink.rememberLocalizedString(),
+                    elementImageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
+                )
+            }
+            if (platform !is Platform.Android.Mobile && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, top = 0.dp, bottom = 5.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val isArchived = currentLink!!.linkType == LinkType.ARCHIVE_LINK
+                    NavigationBarItem(selected = true, onClick = {
+                        if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
+                            localClipboard.setText(
+                                AnnotatedString(
+                                    text = currentLink.url
+                                )
+                            )
+                            hideContent()
+                        } else {
+                            menuBtmSheetParam.onArchive()
+                        }
+                    }, icon = {
+                        Icon(
+                            imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Default.ContentCopy else if (isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
+                            contentDescription = null
+                        )
+                    }, label = {
+                        Text(
+                            text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
+                                Localization.Key.CopyLink.rememberLocalizedString()
+                            } else {
+                                if (isArchived) Localization.Key.UnArchive.getLocalizedString() else Localization.Key.Archive.getLocalizedString()
+                            }, style = MaterialTheme.typography.titleSmall
+                        )
+                    })
+                    NavigationBarItem(selected = true, onClick = {
+                        menuBtmSheetParam.onRename()
+                    }, icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.DriveFileRenameOutline,
+                            contentDescription = null
+                        )
+                    }, label = {
+                        Text(
+                            text = Localization.Key.Rename.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    })
+                    NavigationBarItem(selected = true, onClick = {
+                        if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
+                            menuBtmSheetParam.onRefreshClick()
+                        } else {
+                            menuBtmSheetParam.onDelete()
+                        }
+                    }, icon = {
+                        Icon(
+                            imageVector = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Icons.Outlined.Refresh else Icons.Default.FolderDelete,
+                            contentDescription = null
+                        )
+                    }, label = {
+                        Text(
+                            text = if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) Localization.Key.Refresh.rememberLocalizedString() else Localization.Key.Delete.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    })
+                }
+                if (platform is Platform.Android && AppPreferences.currentlySelectedLinkLayout.value in listOf(
                         Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
                     ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()
                 ) {
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(start = 15.dp, end = 15.dp, top = 0.dp, bottom = 5.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    FilledTonalButton(
+                        onClick = {
+                            menuBtmSheetParam.onShare(currentLink!!.url)
+                        },
+                        modifier = Modifier.fillMaxWidthWithPadding()
+                            .bottomNavPaddingAcrossPlatforms()
                     ) {
-                        NavigationBarItem(selected = true, onClick = {
-                            localClipboard.setText(
-                                AnnotatedString(
-                                    text = menuBtmSheetParam.link?.value?.url ?: ""
-                                )
+                        Icon(imageVector = Icons.Default.Share, contentDescription = null)
+                        Spacer(Modifier.width(5.dp))
+                        Text(
+                            text = Localization.Key.Share.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                }
+            } else if (platform == Platform.Android.Mobile && AppPreferences.currentlySelectedLinkLayout.value in listOf(
+                    Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
+                ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, top = 0.dp, bottom = 5.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(0.25f)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    NavigationBarItem(selected = true, onClick = {
+                        localClipboard.setText(
+                            AnnotatedString(
+                                text = currentLink?.url ?: ""
                             )
-                            coroutineScope.launch {
-                                menuBtmSheetParam.btmModalSheetState.hide()
-                            }.invokeOnCompletion {
-                                menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                            }
-                        }, icon = {
-                            Icon(
-                                imageVector = Icons.Default.ContentCopy, contentDescription = null
-                            )
-                        })/*NavigationBarItem(selected = true, onClick = {
+                        )
+                        hideContent()
+                    }, icon = {
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy, contentDescription = null
+                        )
+                    })/*NavigationBarItem(selected = true, onClick = {
                             menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
                         }, icon = {
                             Icon(
@@ -339,54 +314,60 @@ fun MenuBtmSheetUI(
                                 contentDescription = null
                             )
                         })*/
-                        NavigationBarItem(selected = true, onClick = {
-                            menuBtmSheetParam.onShare(menuBtmSheetParam.link!!.value.url)
-                        }, icon = {
-                            Icon(
-                                imageVector = Icons.Default.Share, contentDescription = null
-                            )
-                        })
-                    }
+                    NavigationBarItem(selected = true, onClick = {
+                        menuBtmSheetParam.onShare(currentLink!!.url)
+                    }, icon = {
+                        Icon(
+                            imageVector = Icons.Default.Share, contentDescription = null
+                        )
+                    })
                 }
             }
         }
-        ModalBottomSheet(
-            properties = ModalBottomSheetProperties(shouldDismissOnBackPress = menuBtmSheetParam.showProgressBarDuringRemoteSave.value.not()),
-            onDismissRequest = {
-                if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value) return@ModalBottomSheet
-                coroutineScope.launch {
-                    menuBtmSheetParam.btmModalSheetState.hide()
-                }.invokeOnCompletion {
-                    menuBtmSheetParam.shouldBtmModalSheetBeVisible.value = false
-                }
-            },
-            dragHandle = {
-                if (platform !is Platform.Android.Mobile) {
-                    BottomSheetDefaults.DragHandle()
-                }
-            },
-            sheetState = menuBtmSheetParam.btmModalSheetState,
-            shape = if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value && platform() is Platform.Android.Mobile) RectangleShape else BottomSheetDefaults.ExpandedShape
-        ) {
-            if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value) {
-                Column(
-                    modifier = Modifier.fillMaxWidthWithPadding().bottomNavPaddingAcrossPlatforms()
-                ) {
-                    Spacer(modifier = Modifier.height(15.dp))
-                    Text(
-                        text = Localization.rememberLocalizedString(Localization.Key.UpdatingChangesOnRemoteServer),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-                return@ModalBottomSheet
+    }
+    ModalBottomSheet(
+        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = menuBtmSheetParam.showProgressBarDuringRemoteSave.value.not()),
+        onDismissRequest = {
+            if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value) return@ModalBottomSheet
+            hideContent()
+        },
+        dragHandle = {
+            if (platform !is Platform.Android.Mobile) {
+                BottomSheetDefaults.DragHandle()
             }
-            if (platform is Platform.Android.Mobile) {
-                MobileMenu(menuBtmSheetParam, isNoteBtnSelected, commonContent)
-            } else {
-                NonMobileMenu(menuBtmSheetParam, commonContent)
+        },
+        sheetState = menuBtmSheetParam.btmModalSheetState,
+        shape = if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value && platform() is Platform.Android.Mobile) RectangleShape else BottomSheetDefaults.ExpandedShape
+    ) {
+        if (menuBtmSheetParam.showProgressBarDuringRemoteSave.value) {
+            Column(
+                modifier = Modifier.fillMaxWidthWithPadding().bottomNavPaddingAcrossPlatforms()
+            ) {
+                Spacer(modifier = Modifier.height(15.dp))
+                Text(
+                    text = Localization.rememberLocalizedString(Localization.Key.UpdatingChangesOnRemoteServer),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
+            return@ModalBottomSheet
+        }
+        if (platform is Platform.Android.Mobile) {
+            MobileMenu(
+                menuBtmSheetParam.menuBtmSheetFor,
+                currentLink,
+                currentFolder,
+                isNoteBtnSelected,
+                commonContent
+            )
+        } else {
+            NonMobileMenu(
+                menuBtmSheetParam.menuBtmSheetFor,
+                currentLink,
+                currentFolder,
+                commonContent
+            )
         }
     }
 }

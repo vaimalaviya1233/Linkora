@@ -8,10 +8,10 @@ import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 
 data class MenuBtmSheetParam @OptIn(ExperimentalMaterial3Api::class) constructor(
-    val link: MutableState<Link>?,
-    val folder: MutableState<Folder>?,
+    val onDismiss:()-> Unit,
+    val link: Link?,
+    val folder: Folder?,
     val btmModalSheetState: SheetState,
-    val shouldBtmModalSheetBeVisible: MutableState<Boolean>,
     val menuBtmSheetFor: MenuBtmSheetType,
     val onDelete: () -> Unit,
     val onDeleteNote: () -> Unit,

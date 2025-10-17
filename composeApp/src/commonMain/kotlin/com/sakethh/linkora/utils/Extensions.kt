@@ -192,12 +192,6 @@ suspend fun <T : Any> T.then(init: suspend () -> Unit): T {
     return this
 }
 
-suspend fun <T> T?.ifNotNull(init: suspend (T) -> Unit): T? {
-    if (this.isNotNull()) {
-        init(this!!)
-    }
-    return this
-}
 
 @Composable
 fun NavHostController.inRootScreen(includeSettingsScreen: Boolean): Boolean? {

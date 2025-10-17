@@ -10,6 +10,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.20"
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    id("com.mikepenz.aboutlibraries.plugin")
 }
 
 kotlin {
@@ -54,6 +55,10 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.jsoup)
+
+            implementation(libs.aboutlibraries.core)
+            implementation(libs.aboutlibraries.compose.m3)
+            implementation(libs.ktor.client.logging)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -94,6 +99,7 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             applicationIdSuffix = ".debug"
@@ -159,7 +165,7 @@ compose.desktop {
             }
 
             linux {
-                this.iconFile.set(project.file("src/desktopMain/resources/logo.png"))
+                this.iconFile.set(project.file("src/desktopMain/resources/legacy_logo.png"))
             }
             modules("jdk.unsupported")
             modules("jdk.unsupported.desktop")

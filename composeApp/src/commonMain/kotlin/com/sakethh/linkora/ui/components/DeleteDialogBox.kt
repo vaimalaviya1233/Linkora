@@ -2,7 +2,6 @@ package com.sakethh.linkora.ui.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,15 +25,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 enum class DeleteDialogBoxType {
-    LINK, FOLDER, REMOVE_ENTIRE_DATA, SELECTED_DATA
+    LINK,
+    FOLDER,
+    REMOVE_ENTIRE_DATA,
+    SELECTED_DATA
 }
 
 data class DeleteDialogBoxParam(
-    val shouldDialogBoxAppear: MutableState<Boolean>,
+    val onDismiss:()-> Unit,
     val deleteDialogBoxType: DeleteDialogBoxType,
     val onDeleteClick: (onCompletion: () -> Unit, deleteEverythingFromRemote: Boolean) -> Unit,
     val areFoldersSelectable: Boolean = false
@@ -47,90 +49,84 @@ fun DeleteDialogBox(
     val isDeletionInProgress: MutableState<Boolean> = rememberSaveable {
         mutableStateOf(false)
     }
-    val deleteEverythingFromRemoteToo = rememberSaveable {
+    val deleteEverythingFromRemote = rememberSaveable {
         mutableStateOf(false)
     }
-    Column {
-        if (deleteDialogBoxParam.shouldDialogBoxAppear.value) {
-            AlertDialog(modifier = Modifier.animateContentSize(), confirmButton = {
-                if (isDeletionInProgress.value.not()) {
-                    Button(
-                        modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                            isDeletionInProgress.value = true
-                            deleteDialogBoxParam.onDeleteClick({
-                                isDeletionInProgress.value = false
-                                deleteDialogBoxParam.shouldDialogBoxAppear.value = false
-                            }, deleteEverythingFromRemoteToo.value)
-                        }) {
-                        Text(
-                            text = Localization.rememberLocalizedString(Localization.Key.Delete),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-            }, dismissButton = {
-                if (isDeletionInProgress.value.not()) {
-                    OutlinedButton(
-                        modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
-                            deleteDialogBoxParam.shouldDialogBoxAppear.value = false
-                        }) {
-                        Text(
-                            text = Localization.rememberLocalizedString(Localization.Key.Cancel),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-            }, title = {
+    AlertDialog(modifier = Modifier.animateContentSize(), confirmButton = {
+        if (isDeletionInProgress.value.not()) {
+            Button(
+                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = {
+                    isDeletionInProgress.value = true
+                    deleteDialogBoxParam.onDeleteClick({
+                        isDeletionInProgress.value = false
+                        deleteDialogBoxParam.onDismiss()
+                    }, deleteEverythingFromRemote.value)
+                }) {
                 Text(
-                    text = if (isDeletionInProgress.value) Localization.Key.DeletionInProgress.rememberLocalizedString() else deleteDialogBoxParam.deleteDialogBoxType.getTitle(
-                        areFoldersSelectable = deleteDialogBoxParam.areFoldersSelectable
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontSize = 22.sp,
-                    lineHeight = 27.sp,
-                    textAlign = TextAlign.Start
+                    text = Localization.rememberLocalizedString(Localization.Key.Delete),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontSize = 16.sp
                 )
-            }, text = {
-                if (isDeletionInProgress.value.not() && AppPreferences.canPushToServer() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.REMOVE_ENTIRE_DATA) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable {
-                            if (isDeletionInProgress.value.not()) {
-                                deleteEverythingFromRemoteToo.value =
-                                    deleteEverythingFromRemoteToo.value.not()
-                            }
-                        }, verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(checked = deleteEverythingFromRemoteToo.value, onCheckedChange = {
-                            deleteEverythingFromRemoteToo.value = it
-                        }, enabled = isDeletionInProgress.value)
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(
-                            text = Localization.Key.DeleteEverythingFromRemoteDatabaseLabel.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
-                }
-                if (isDeletionInProgress.value.not() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.FOLDER) {
-                    Text(
-                        text = Localization.Key.FolderDeletionLabel.rememberLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        textAlign = TextAlign.Start,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                } else if (isDeletionInProgress.value) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-            }, onDismissRequest = {
-                if (isDeletionInProgress.value.not()) {
-                    deleteDialogBoxParam.shouldDialogBoxAppear.value = false
-                }
-            })
+            }
         }
-    }
+    }, dismissButton = {
+        if (isDeletionInProgress.value.not()) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth().pulsateEffect(), onClick = deleteDialogBoxParam.onDismiss) {
+                Text(
+                    text = Localization.rememberLocalizedString(Localization.Key.Cancel),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }, title = {
+        Text(
+            text = if (isDeletionInProgress.value) Localization.Key.DeletionInProgress.rememberLocalizedString() else deleteDialogBoxParam.deleteDialogBoxType.getTitle(
+                areFoldersSelectable = deleteDialogBoxParam.areFoldersSelectable
+            ),
+            style = MaterialTheme.typography.titleMedium,
+            fontSize = 22.sp,
+            lineHeight = 27.sp,
+            textAlign = TextAlign.Start
+        )
+    }, text = {
+        if (isDeletionInProgress.value.not() && AppPreferences.canPushToServer() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.REMOVE_ENTIRE_DATA) {
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable {
+                    if (isDeletionInProgress.value.not()) {
+                        deleteEverythingFromRemote.value =
+                            deleteEverythingFromRemote.value.not()
+                    }
+                }, verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = deleteEverythingFromRemote.value, onCheckedChange = {
+                    deleteEverythingFromRemote.value = it
+                }, enabled = isDeletionInProgress.value)
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = Localization.Key.DeleteEverythingFromRemoteDatabaseLabel.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        }
+        if (isDeletionInProgress.value.not() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.FOLDER) {
+            Text(
+                text = Localization.Key.FolderDeletionLabel.rememberLocalizedString(),
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                textAlign = TextAlign.Start,
+                overflow = TextOverflow.Ellipsis
+            )
+        } else if (isDeletionInProgress.value) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+    }, onDismissRequest = {
+        if (isDeletionInProgress.value.not()) {
+            deleteDialogBoxParam.onDismiss()
+        }
+    })
 }
 
 private fun DeleteDialogBoxType.getTitle(areFoldersSelectable: Boolean): String {

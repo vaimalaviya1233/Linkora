@@ -52,6 +52,8 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -62,7 +64,9 @@ import com.sakethh.linkora.ui.utils.pulsateEffect
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MobileMenu(
-    menuBtmSheetParam: MenuBtmSheetParam,
+    menuBtmSheetFor: MenuBtmSheetType,
+    currentLink: Link?,
+    currentFolder: Folder?,
     isNoteBtnSelected: MutableState<Boolean>,
     commonMenuContent: ComposableContent
 ) {
@@ -77,8 +81,8 @@ fun MobileMenu(
             .verticalScroll(rememberScrollState())
     ) {
         if (menuBtmSheetLinkEntries().contains(
-                menuBtmSheetParam.menuBtmSheetFor
-            ) && menuBtmSheetParam.link!!.value.imgURL.isNotEmpty() && AppPreferences.showAssociatedImageInLinkMenu.value
+                menuBtmSheetFor
+            ) && currentLink!!.imgURL.isNotEmpty() && AppPreferences.showAssociatedImageInLinkMenu.value
         ) {
             Box(
                 modifier = Modifier.fillMaxWidth()
@@ -90,8 +94,8 @@ fun MobileMenu(
                             max = 150.dp
                         )
                     ).fadedEdges(MaterialTheme.colorScheme),
-                    imgURL = menuBtmSheetParam.link.value.imgURL,
-                    userAgent = menuBtmSheetParam.link.value.userAgent
+                    imgURL = currentLink.imgURL,
+                    userAgent = currentLink.userAgent
                         ?: AppPreferences.primaryJsoupUserAgent.value
                 )
                 Row(
@@ -111,7 +115,7 @@ fun MobileMenu(
                         )
                     }
                     Text(
-                        text = menuBtmSheetParam.link.value.title,
+                        text = currentLink.title,
                         style = MaterialTheme.typography.titleSmall,
                         fontSize = 16.sp,
                         maxLines = 2,
@@ -128,12 +132,12 @@ fun MobileMenu(
             Spacer(Modifier.height(5.dp))
         }
         if (menuBtmSheetLinkEntries().contains(
-                menuBtmSheetParam.menuBtmSheetFor
-            ) && menuBtmSheetParam.link!!.value.imgURL.isEmpty()
+                menuBtmSheetFor
+            ) && currentLink!!.imgURL.isEmpty()
         ) {
             MenuNonImageHeader(
                 onClick = {
-                    localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.link.value.title))
+                    localClipBoardManager.setText(AnnotatedString(currentLink.title))
                     coroutineScope.pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
@@ -141,17 +145,17 @@ fun MobileMenu(
                     )
                 },
                 leadingIcon = Icons.Default.Link,
-                text = menuBtmSheetParam.link.value.title
+                text = currentLink.title
             )
             ItemDivider(
                 colorOpacity = 0.25f, paddingValues = PaddingValues(start = 15.dp, end = 15.dp)
             )
         }
 
-        if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) {
+        if (menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) {
             MenuNonImageHeader(
                 onClick = {
-                    localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.folder.value.name))
+                    localClipBoardManager.setText(AnnotatedString(currentFolder?.name ?: ""))
                     coroutineScope.pushUIEvent(
                         UIEvent.Type.ShowSnackbar(
                             Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
@@ -159,7 +163,7 @@ fun MobileMenu(
                     )
                 },
                 leadingIcon = Icons.Outlined.Folder,
-                text = menuBtmSheetParam.folder!!.value.name
+                text = currentFolder!!.name
             )
             ItemDivider(
                 colorOpacity = 0.25f, paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
@@ -171,7 +175,7 @@ fun MobileMenu(
             commonMenuContent()
         } else {
             val note =
-                if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) menuBtmSheetParam.link!!.value.note else menuBtmSheetParam.folder!!.value.note
+                if (menuBtmSheetLinkEntries().contains(menuBtmSheetFor)) currentLink!!.note else currentFolder!!.note
             if (note.isNotEmpty()) {
                 Text(
                     text = Localization.Key.SavedNote.rememberLocalizedString(),

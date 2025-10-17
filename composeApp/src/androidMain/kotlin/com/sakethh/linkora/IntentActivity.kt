@@ -11,8 +11,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
+import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.ExportFileType
@@ -41,7 +44,6 @@ import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
 import com.sakethh.linkora.ui.domain.ScreenType
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.theme.AndroidTypography
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
@@ -83,11 +85,11 @@ class IntentActivity : ComponentActivity() {
                     background = if (AppPreferences.shouldUseAmoledTheme.value) Color(0xFF000000) else DarkColors.background,
                     surface = if (AppPreferences.shouldUseAmoledTheme.value) Color(0xFF000000) else DarkColors.surface
                 )
-                val shouldUIBeVisible = rememberSaveable {
+                var showUI by rememberSaveable {
                     mutableStateOf(true)
                 }
-                LaunchedEffect(shouldUIBeVisible.value) {
-                    shouldUIBeVisible.value.ifNot {
+                LaunchedEffect(showUI) {
+                    showUI.ifNot {
                         if (MainActivity.wasLaunched) {
                             this@IntentActivity.finishAndRemoveTask()
                             return@ifNot
@@ -147,17 +149,12 @@ class IntentActivity : ComponentActivity() {
                     typography = AndroidTypography, colorScheme = colors
                 ) {
                     AddANewLinkDialogBox(
-                        shouldBeVisible = shouldUIBeVisible,
+                        onDismiss = {
+                            showUI = false
+                        } ,
                         screenType = ScreenType.ROOT_SCREEN,
                         currentFolder = null,
-                        collectionsScreenVM = CollectionsScreenVM(
-                            localFoldersRepo = DependencyContainer.localFoldersRepo,
-                            localLinksRepo = DependencyContainer.localLinksRepo,
-                            loadNonArchivedRootFoldersOnInit = true,
-                            loadArchivedRootFoldersOnInit = false,
-                            collectionDetailPaneInfo = null,
-                            localTagsRepo = DependencyContainer.localTagsRepo
-                        ),
+                        collectionsScreenVM = viewModel(factory = CollectionScreenVMAssistedFactory.createForIntentActivity()),
                         url = this@IntentActivity.intent?.getStringExtra(
                             Intent.EXTRA_TEXT
                         ).toString()

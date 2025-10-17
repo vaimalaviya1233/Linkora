@@ -39,25 +39,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.di.linkoraViewModel
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.dto.github.GitHubReleaseDTOItem
+import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.settings.AppVersionLabel
+import com.sakethh.linkora.ui.screens.settings.CustomFontAppVersionLabel
+import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.isNull
 import com.sakethh.linkora.utils.rememberLocalizedString
-import com.sakethh.linkora.di.linkoraViewModel
-import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.dto.github.GitHubReleaseDTOItem
-import com.sakethh.linkora.domain.model.link.Link
-import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
-import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutSettingsScreen() {
+fun AboutScreen() {
     val navController = LocalNavController.current
     val coroutineScope = rememberCoroutineScope()
     val btmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -82,8 +84,7 @@ fun AboutSettingsScreen() {
         )
     }
     SettingsSectionScaffold(
-        topAppBarText = Navigation.Settings.AboutSettingsScreen.toString(),
-        navController = navController
+        topAppBarText = Navigation.Settings.AboutScreen.toString(), navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
@@ -92,20 +93,11 @@ fun AboutSettingsScreen() {
             item {
                 Spacer(Modifier.height(30.dp))
             }
-            item(key = "settingsCard") {
-                Row {
-                    Text(
-                        text = Localization.Key.Linkora.rememberLocalizedString(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(start = 15.dp).alignByBaseline()
-                    )
-                    Text(
-                        text = Constants.APP_VERSION_NAME,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontSize = 12.sp,
-                        modifier = Modifier.alignByBaseline()
-                    )
+            item {
+                if (AppPreferences.useCustomAppVersionLabel.value) {
+                    CustomFontAppVersionLabel()
+                } else {
+                    AppVersionLabel()
                 }
             }
             item {
@@ -203,7 +195,7 @@ fun AboutSettingsScreen() {
                     onClick = {
                         val url = "https://www.twitter.com/LinkoraApp"
                         aboutSettingsScreenVM.addANewLinkToHistory(
-                           link =  Link(
+                            link = Link(
                                 linkType = LinkType.HISTORY_LINK,
                                 title = Localization.Key.LinkoraOnTwitter.getLocalizedString(),
                                 url = url,
@@ -211,8 +203,7 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraOnTwitter.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            ),
-                            tagIds = emptyList()
+                            ), tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -235,8 +226,7 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraOnDiscord.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            ),
-                            tagIds = emptyList()
+                            ), tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -267,7 +257,7 @@ fun AboutSettingsScreen() {
                     onClick = {
                         val url = "https://www.github.com/LinkoraApp"
                         aboutSettingsScreenVM.addANewLinkToHistory(
-                           link =  Link(
+                            link = Link(
                                 linkType = LinkType.HISTORY_LINK,
                                 title = Localization.Key.LinkoraOnGithub.getLocalizedString(),
                                 url = url,
@@ -275,8 +265,7 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraOnGithub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            ),
-                            tagIds = emptyList()
+                            ), tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -305,8 +294,7 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinkoraIssuesOnGithub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            ),
-                            tagIds =emptyList()
+                            ), tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },
@@ -337,8 +325,7 @@ fun AboutSettingsScreen() {
                                 note = Localization.Key.LinokraReleasesOnGitHub.getLocalizedString(),
                                 idOfLinkedFolder = null,
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            ),
-                            tagIds = emptyList()
+                            ), tagIds = emptyList()
                         )
                         uriHandler.openUri(url)
                     },

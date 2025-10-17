@@ -1,8 +1,14 @@
 package com.sakethh.linkora.ui
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.unit.Density
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
@@ -14,8 +20,11 @@ import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.asLinkType
 import com.sakethh.linkora.domain.dto.server.AllTablesDTO
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.JSONExportSchema
 import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
+import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onLoading
 import com.sakethh.linkora.domain.onSuccess
@@ -34,7 +43,10 @@ import com.sakethh.linkora.platform.NativeUtils
 import com.sakethh.linkora.platform.PermissionManager
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.domain.CurrentFABContext
 import com.sakethh.linkora.ui.domain.TransferActionType
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.clearAllSelections
@@ -67,8 +79,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-@OptIn(FlowPreview::class)
+@OptIn(FlowPreview::class, ExperimentalMaterial3Api::class)
 class AppVM(
+    private val density: Density,
     private val remoteSyncRepo: RemoteSyncRepo,
     preferencesRepository: PreferencesRepository,
     private val networkRepo: NetworkRepo,
@@ -91,6 +104,13 @@ class AppVM(
 ) {
 
     val isPerformingStartupSync = mutableStateOf(false)
+
+    var currentContextOfFAB = mutableStateOf(CurrentFABContext.ROOT)
+        private set
+
+    fun updateFABContext(currentFABContext: CurrentFABContext) {
+        currentContextOfFAB.value = currentFABContext
+    }
 
     val transferActionType = mutableStateOf(TransferActionType.NONE)
     val startDestination: MutableState<Navigation.Root> = mutableStateOf(Navigation.Root.HomeScreen)
@@ -468,6 +488,87 @@ class AppVM(
         }.invokeOnCompletion {
             clearAllSelections()
             onCompletion()
+        }
+    }
+
+
+    val snackbarHostState = SnackbarHostState()
+    var showRenameDialogBox by mutableStateOf(false)
+    var showDeleteDialogBox by mutableStateOf(false)
+
+    val menuBtmModalSheetState = SheetState(skipPartiallyExpanded = true, density = density)
+    var selectedFolderForMenuBtmSheet by mutableStateOf(
+        Folder(
+            name = "", note = "", parentFolderId = null, localId = 0L, isArchived = false
+        )
+    )
+    var selectedLinkTagsForMenuBtmSheet by mutableStateOf(
+        LinkTagsPair(
+            link = Link(
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                title = "",
+                url = "",
+                baseURL = "",
+                imgURL = "",
+                note = "",
+                idOfLinkedFolder = null,
+                userAgent = null
+            ), tags = emptyList()
+        )
+    )
+    var menuBtmModalSheetVisible by mutableStateOf(false)
+    var showAddLinkDialog by mutableStateOf(false)
+    var showNewFolderDialog by mutableStateOf(false)
+    var showSortingBtmSheet by mutableStateOf(false)
+    val sortingBtmSheetState = SheetState(skipPartiallyExpanded = true, density = density)
+
+    var menuBtmSheetFor: MenuBtmSheetType by mutableStateOf(MenuBtmSheetType.Folder.RegularFolder)
+
+    var selectedTagForBtmTagSheet by mutableStateOf(Tag(localId = 0, name = ""))
+
+    var showMenuForTag by mutableStateOf(false)
+
+    var showBtmSheetForNewTagAddition by mutableStateOf(false)
+
+    init {
+        viewModelScope.launch(Dispatchers.Default) {
+            UIEvent.uiEvents.collectLatest { eventType ->
+                when (eventType) {
+                    is UIEvent.Type.ShowSnackbar -> {
+                        snackbarHostState.showSnackbar(message = eventType.message)
+                    }
+
+                    is UIEvent.Type.ShowAddANewFolderDialogBox -> showNewFolderDialog = true
+                    is UIEvent.Type.ShowAddANewLinkDialogBox -> showAddLinkDialog = true
+                    is UIEvent.Type.ShowDeleteDialogBox -> showDeleteDialogBox = true
+
+                    is UIEvent.Type.ShowMenuBtmSheet -> {
+                        menuBtmSheetFor = eventType.menuBtmSheetFor
+                        if (eventType.selectedFolderForMenuBtmSheet != null) {
+                            selectedFolderForMenuBtmSheet = eventType.selectedFolderForMenuBtmSheet
+                        }
+                        if (eventType.selectedLinkForMenuBtmSheet != null) {
+                            selectedLinkTagsForMenuBtmSheet = eventType.selectedLinkForMenuBtmSheet
+                        }
+                        menuBtmModalSheetVisible = true
+                    }
+
+                    is UIEvent.Type.ShowRenameDialogBox -> showRenameDialogBox = true
+
+                    is UIEvent.Type.ShowSortingBtmSheet -> {
+                        showSortingBtmSheet = true
+                    }
+
+                    is UIEvent.Type.ShowTagMenuBtmSheet -> {
+                        selectedTagForBtmTagSheet = eventType.selectedTag
+                        showMenuForTag = true
+                    }
+
+                    is UIEvent.Type.ShowCreateTagBtmSheet -> showBtmSheetForNewTagAddition = true
+                    else -> Unit
+                }
+            }
         }
     }
 }

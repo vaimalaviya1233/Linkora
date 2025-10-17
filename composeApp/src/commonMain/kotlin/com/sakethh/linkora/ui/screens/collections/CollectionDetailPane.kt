@@ -29,6 +29,7 @@ import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,8 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -67,7 +70,6 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.isNotNull
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -76,7 +78,7 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionDetailPane(
-    platform: Platform = platform(),
+    currentFABContext: (CurrentFABContext) -> Unit, platform: Platform = platform(),
     navController: NavController = LocalNavController.current,
     collectionsScreenVM: CollectionsScreenVM = viewModel(
         factory = CollectionScreenVMAssistedFactory.createForCollectionDetailPane(
@@ -89,56 +91,49 @@ fun CollectionDetailPane(
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
     val rootArchiveFolders = collectionsScreenVM.rootArchiveFolders.collectAsStateWithLifecycle()
-    val currentlyInFolder =
-        if (platform is Platform.Android.Mobile) collectionsScreenVM.collectionDetailPaneInfo?.currentFolder else CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder
+    val peekCollectionPaneHistory by collectionsScreenVM.peekPaneHistory.collectAsStateWithLifecycle()
+    val currentFolder =
+        if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo.currentFolder else peekCollectionPaneHistory?.currentFolder
+    val currentTag =
+        if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo.currentTag else peekCollectionPaneHistory?.currentTag
     val navController = LocalNavController.current
     val localUriHandler = LocalUriHandler.current
     val topAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val showArchiveCollection =
+        if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo.currentFolder?.localId == Constants.ARCHIVE_ID else peekCollectionPaneHistory?.currentFolder?.localId == Constants.ARCHIVE_ID
+    val showAllLinksCollection =
+        if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo.currentFolder?.localId == Constants.ALL_LINKS_ID else peekCollectionPaneHistory?.currentFolder?.localId == Constants.ALL_LINKS_ID
+
+    LaunchedEffect(currentFolder) {
+        if (currentTag != null || (currentFolder != null && (currentFolder.localId == Constants.ALL_LINKS_ID || currentFolder.localId >= 0))) {
+            currentFABContext(
+                CurrentFABContext(
+                    fabContext = FABContext.REGULAR, currentFolder = currentFolder
+                )
+            )
+            return@LaunchedEffect
+        }
+        if (currentFolder != null && (currentFolder.localId == Constants.SAVED_LINKS_ID || currentFolder.localId == Constants.IMPORTANT_LINKS_ID)) {
+            currentFABContext(
+                CurrentFABContext(
+                    fabContext = FABContext.ADD_LINK_IN_FOLDER, currentFolder = currentFolder
+                )
+            )
+            return@LaunchedEffect
+        }
+        currentFABContext(CurrentFABContext(FABContext.HIDE))
+    }
+
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         Column {
             MediumTopAppBar(scrollBehavior = topAppBarScrollBehavior, actions = {
                 SortingIconButton()
             }, navigationIcon = {
                 IconButton(onClick = {
-                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG || (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId)) {
-                        CollectionsScreenVM.resetSearchNavigated()
+                    if (collectionsScreenVM.collectionDetailPaneInfo != null) {
                         navController.navigateUp()
-                        return@IconButton
-                    }
-                    if (currentlyInFolder?.parentFolderId.isNotNull()) {
-                        currentlyInFolder?.parentFolderId as Long
-
-                        val parentFolderCollectionPane = CollectionDetailPaneInfo(
-                            currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
-                            isAnyCollectionSelected = true,
-                            collectionType = CollectionType.FOLDER,
-                            currentTag = null
-                        )
-
-                        if (platform is Platform.Android.Mobile) {
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                Json.encodeToString(parentFolderCollectionPane)
-                            )
-                            navController.navigateUp()
-                        } else {
-                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                parentFolderCollectionPane
-                            )
-                        }
                     } else {
-                        if (platform is Platform.Android.Mobile) {
-                            navController.navigateUp()
-                        } else {
-                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                CollectionDetailPaneInfo(
-                                    currentFolder = null,
-                                    isAnyCollectionSelected = false,
-                                    collectionType = CollectionType.FOLDER,
-                                    currentTag = null
-                                )
-                            )
-                        }
+                        collectionsScreenVM.popFromDetailPane()
                     }
                 }) {
                     Icon(
@@ -146,27 +141,25 @@ fun CollectionDetailPane(
                     )
                 }
             }, title = {
-                val isTag = rememberSaveable(CollectionsScreenVM.collectionDetailPaneInfo.value) {
-                    CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG
-                }
+                val isTag =
+                    if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo?.collectionType == CollectionType.TAG
+                    else collectionsScreenVM.peekPaneHistory.collectAsStateWithLifecycle().value?.collectionType == CollectionType.TAG
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (isTag) {
                         Icon(imageVector = Icons.Default.Tag, contentDescription = null)
                         Spacer(modifier = Modifier.width(5.dp))
                     }
-                    Text(text = if (isTag) rememberSaveable {
-                        collectionsScreenVM.popFromTagNavStack()?.name
-                            ?: CollectionsScreenVM.collectionDetailPaneInfo.value.currentTag?.name
-                            ?: ""
-                    } else currentlyInFolder?.name ?: "",
+                    Text(
+                        text = if (isTag) currentTag?.name ?: "" else currentFolder?.name ?: "",
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleMedium,
-                        fontSize = 18.sp)
+                        fontSize = 18.sp
+                    )
                 }
             })
         }
     }) { paddingValues ->
-        if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID) {
+        if (showArchiveCollection) {
             Column(modifier = Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxSize()) {
                 TabRow(selectedTabIndex = pagerState.currentPage) {
                     listOf(
@@ -224,17 +217,16 @@ fun CollectionDetailPane(
                                     localUriHandler.openUri(it.link.url)
                                 },
                                 isCurrentlyInDetailsView = {
-                                    CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
+                                    peekCollectionPaneHistory?.currentFolder?.localId == it.localId
                                 },
                                 emptyDataText = Localization.Key.NoArchiveLinksFound.getLocalizedString(),
                                 nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection,
                                 onAttachedTagClick = {
-                                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentTag?.localId == it.localId) {
+                                    if (currentTag?.localId == it.localId) {
                                         return@CollectionLayoutManager
                                     }
                                     val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                         currentFolder = null,
-                                        isAnyCollectionSelected = true,
                                         currentTag = it,
                                         collectionType = CollectionType.TAG,
                                     )
@@ -249,7 +241,7 @@ fun CollectionDetailPane(
                                             Navigation.Collection.CollectionDetailPane
                                         )
                                     } else {
-                                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
+                                        collectionsScreenVM.pushToDetailPane(
                                             collectionDetailPaneInfo
                                         )
                                     }
@@ -282,7 +274,6 @@ fun CollectionDetailPane(
                                                 val collectionDetailPaneInfo =
                                                     CollectionDetailPaneInfo(
                                                         currentFolder = rootArchiveFolder,
-                                                        isAnyCollectionSelected = true,
                                                         collectionType = CollectionType.FOLDER,
                                                         currentTag = null
                                                     )
@@ -295,7 +286,7 @@ fun CollectionDetailPane(
                                                     )
                                                     navController.navigate(Navigation.Collection.CollectionDetailPane)
                                                 } else {
-                                                    collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                                    collectionsScreenVM.pushToDetailPane(
                                                         collectionDetailPaneInfo
                                                     )
                                                 }
@@ -318,8 +309,10 @@ fun CollectionDetailPane(
                                                     )
                                                 )
                                             },
-                                            isCurrentlyInDetailsView = remember(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId) {
-                                                mutableStateOf(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == rootArchiveFolder.localId)
+                                            isCurrentlyInDetailsView = remember(
+                                                peekCollectionPaneHistory?.currentFolder?.localId
+                                            ) {
+                                                mutableStateOf(peekCollectionPaneHistory?.currentFolder?.localId == rootArchiveFolder.localId)
                                             },
                                             showMoreIcon = rememberSaveable {
                                                 mutableStateOf(true)
@@ -359,7 +352,7 @@ fun CollectionDetailPane(
         }
         val availableFiltersForAllLinks by collectionsScreenVM.availableFiltersForAllLinks.collectAsStateWithLifecycle()
         Column(modifier = Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxSize()) {
-            if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID) {
+            if (showAllLinksCollection) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                     availableFiltersForAllLinks.forEach {
                         FilterChip(
@@ -399,12 +392,11 @@ fun CollectionDetailPane(
                 onFolderClick = {
                     val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                         currentFolder = it,
-                        isAnyCollectionSelected = true,
                         collectionType = CollectionType.FOLDER,
                         currentTag = null
                     )
 
-                    if (platform is Platform.Android.Mobile) {
+                    if (collectionsScreenVM.collectionDetailPaneInfo != null) {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
                             value = Json.encodeToString(
@@ -413,7 +405,7 @@ fun CollectionDetailPane(
                         )
                         navController.navigate(Navigation.Collection.CollectionDetailPane)
                     } else {
-                        collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                        collectionsScreenVM.pushToDetailPane(
                             collectionDetailPaneInfo
                         )
                     }
@@ -431,22 +423,20 @@ fun CollectionDetailPane(
                     localUriHandler.openUri(it.link.url)
                 },
                 isCurrentlyInDetailsView = {
-                    CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == it.localId
+                    peekCollectionPaneHistory?.currentFolder?.localId == it.localId
                 },
                 nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection,
-                emptyDataText = if (CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG) "This tag wasn't attached to any links." else "",
+                emptyDataText = if (peekCollectionPaneHistory?.collectionType == CollectionType.TAG) "This tag wasn't attached to any links." else "",
                 onAttachedTagClick = {
-                    if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentTag?.localId == it.localId) {
+                    if (currentTag?.localId == it.localId) {
                         return@CollectionLayoutManager
                     }
                     val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                         currentFolder = null,
-                        isAnyCollectionSelected = true,
                         currentTag = it,
                         collectionType = CollectionType.TAG,
                     )
-                    collectionsScreenVM.pushIntoTagNavStack(it)
-                    if (platform is Platform.Android.Mobile) {
+                    if (collectionsScreenVM.collectionDetailPaneInfo != null) {
                         navController.currentBackStackEntry?.savedStateHandle?.set(
                             key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
                             value = Json.encodeToString(
@@ -457,7 +447,7 @@ fun CollectionDetailPane(
                             Navigation.Collection.CollectionDetailPane
                         )
                     } else {
-                        CollectionsScreenVM.updateCollectionDetailPaneInfo(collectionDetailPaneInfo)
+                        collectionsScreenVM.pushToDetailPane(collectionDetailPaneInfo)
                     }
                 },
                 tags = emptyList(),
@@ -466,45 +456,10 @@ fun CollectionDetailPane(
         }
     }
     PlatformSpecificBackHandler {
-        if (CollectionsScreenVM.collectionDetailPaneInfo.value.collectionType == CollectionType.TAG || (CollectionsScreenVM.searchNavigated.value.navigatedFromSearchScreen && currentlyInFolder?.localId == CollectionsScreenVM.searchNavigated.value.navigatedWithFolderId)) {
-            CollectionsScreenVM.resetSearchNavigated()
+        if (platform is Platform.Android.Mobile) {
             navController.navigateUp()
-            return@PlatformSpecificBackHandler
-        }
-        if (currentlyInFolder?.parentFolderId.isNotNull()) {
-            currentlyInFolder?.parentFolderId as Long
-
-            val parentFolderCollectionPane = CollectionDetailPaneInfo(
-                currentFolder = collectionsScreenVM.getFolder(currentlyInFolder.parentFolderId),
-                isAnyCollectionSelected = true,
-                collectionType = CollectionType.FOLDER,
-                currentTag = null
-            )
-
-            if (platform is Platform.Android.Mobile) {
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                    Json.encodeToString(parentFolderCollectionPane)
-                )
-                navController.navigateUp()
-            } else {
-                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                    parentFolderCollectionPane
-                )
-            }
         } else {
-            if (platform is Platform.Android.Mobile) {
-                navController.navigateUp()
-            } else {
-                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                    CollectionDetailPaneInfo(
-                        currentFolder = null,
-                        isAnyCollectionSelected = false,
-                        collectionType = CollectionType.FOLDER,
-                        currentTag = null
-                    )
-                )
-            }
+            collectionsScreenVM.popFromDetailPane()
         }
     }
 }

@@ -82,7 +82,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
@@ -122,7 +121,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddANewLinkDialogBox(
-    shouldBeVisible: MutableState<Boolean>,
+    onDismiss: () -> Unit,
     screenType: ScreenType, currentFolder: Folder?,
     collectionsScreenVM: CollectionsScreenVM,
     url: String = "",
@@ -144,50 +143,82 @@ fun AddANewLinkDialogBox(
         mutableStateOf(false)
     }
     val btmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val lifecycleOwner = LocalLifecycleOwner.current
-    if (shouldBeVisible.value) {
-        val isDropDownMenuIconClicked = rememberSaveable {
-            mutableStateOf(false)
+    val isDropDownMenuIconClicked = rememberSaveable {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(isDataExtractingForTheLink.value) {
+        if (isDataExtractingForTheLink.value) {
+            isDropDownMenuIconClicked.value = false
         }
-        LaunchedEffect(isDataExtractingForTheLink.value) {
-            if (isDataExtractingForTheLink.value) {
-                isDropDownMenuIconClicked.value = false
-            }
-        }
-        val linkTextFieldValue = rememberSaveable {
-            mutableStateOf(url)
-        }
-        LaunchedEffect(Unit) {
-            isDataExtractingForTheLink.value = false
-        }
-        val titleTextFieldValue = rememberSaveable {
-            mutableStateOf("")
-        }
-        val noteTextFieldValue = rememberSaveable {
-            mutableStateOf("")
-        }
+    }
+    val linkTextFieldValue = rememberSaveable {
+        mutableStateOf(url)
+    }
+    LaunchedEffect(Unit) {
+        isDataExtractingForTheLink.value = false
+    }
+    val titleTextFieldValue = rememberSaveable {
+        mutableStateOf("")
+    }
+    val noteTextFieldValue = rememberSaveable {
+        mutableStateOf("")
+    }
 
-        val lazyRowState = rememberLazyListState()
-        BasicAlertDialog(
-            onDismissRequest = {
-                if (!isDataExtractingForTheLink.value) {
-                    shouldBeVisible.value = false
-                }
-            },
-            modifier = Modifier.fillMaxSize(if (platform() is Platform.Android.Mobile) 1f else 0.9f)
-                .then(
-                    if (platform() !is Platform.Android.Mobile) Modifier.clip(
-                        RoundedCornerShape(10.dp)
-                    ) else Modifier
-                ).background(AlertDialogDefaults.containerColor),
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+    val lazyRowState = rememberLazyListState()
+    BasicAlertDialog(
+        onDismissRequest = {
+            if (!isDataExtractingForTheLink.value) {
+                onDismiss()
+            }
+        },
+        modifier = Modifier.fillMaxSize(if (platform() is Platform.Android.Mobile) 1f else 0.9f)
+            .then(
+                if (platform() !is Platform.Android.Mobile) Modifier.clip(
+                    RoundedCornerShape(10.dp)
+                ) else Modifier
+            ).background(AlertDialogDefaults.containerColor),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface
         ) {
-            Surface(
-                modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface
-            ) {
-                if (platform() == Platform.Android.Mobile) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+            if (platform() == Platform.Android.Mobile) {
+                Column(
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                ) {
+                    TopPartOfAddANewLinkDialogBox(
+                        isDataExtractingForTheLink = isDataExtractingForTheLink.value,
+                        linkTextFieldValue = linkTextFieldValue,
+                        titleTextFieldValue = titleTextFieldValue,
+                        noteTextFieldValue = noteTextFieldValue,
+                        isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
+                        isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
+                        currentFolder
+                    )
+                    BottomPartOfAddANewLinkDialogBox(
+                        onDismiss = onDismiss,
+                        isDataExtractingForTheLink = isDataExtractingForTheLink,
+                        screenType = screenType,
+                        linkTextFieldValue = linkTextFieldValue,
+                        titleTextFieldValue = titleTextFieldValue,
+                        noteTextFieldValue = noteTextFieldValue,
+                        isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
+                        isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
+                        isDropDownMenuIconClicked = isDropDownMenuIconClicked,
+                        isChildFoldersBottomSheetExpanded = isChildFoldersBottomSheetExpanded,
+                        btmSheetState = btmSheetState,
+                        lazyRowState = lazyRowState,
+                        addTheFolderInRoot = addTheFolderInRoot,
+                        collectionsScreenVM = collectionsScreenVM,
+                        currentlyInFolder = currentFolder,
+                    )
+                    Spacer(Modifier.height(50.dp))
+                }
+            } else {
+                Box(Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier.animateContentSize().fillMaxSize()
+                            .navigationBarsPadding()
                     ) {
                         TopPartOfAddANewLinkDialogBox(
                             isDataExtractingForTheLink = isDataExtractingForTheLink.value,
@@ -198,8 +229,13 @@ fun AddANewLinkDialogBox(
                             isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
                             currentFolder
                         )
+                        VerticalDivider(
+                            modifier = Modifier.padding(
+                                start = 20.dp, end = 20.dp
+                            ), color = LocalContentColor.current.copy(0.01f), thickness = 1.dp
+                        )
                         BottomPartOfAddANewLinkDialogBox(
-                            shouldBeVisible = shouldBeVisible,
+                            onDismiss = onDismiss,
                             isDataExtractingForTheLink = isDataExtractingForTheLink,
                             screenType = screenType,
                             linkTextFieldValue = linkTextFieldValue,
@@ -213,58 +249,17 @@ fun AddANewLinkDialogBox(
                             lazyRowState = lazyRowState,
                             addTheFolderInRoot = addTheFolderInRoot,
                             collectionsScreenVM = collectionsScreenVM,
-                            currentlyInFolder = currentFolder,
+                            currentFolder
                         )
-                        Spacer(Modifier.height(50.dp))
                     }
-                } else {
-                    Box(Modifier.fillMaxSize()) {
-                        Row(
-                            modifier = Modifier.animateContentSize().fillMaxSize()
-                                .navigationBarsPadding()
+                    if (!isDataExtractingForTheLink.value) {
+                        IconButton(
+                            modifier = Modifier.align(Alignment.TopEnd).padding(15.dp),
+                            onClick = onDismiss
                         ) {
-                            TopPartOfAddANewLinkDialogBox(
-                                isDataExtractingForTheLink = isDataExtractingForTheLink.value,
-                                linkTextFieldValue = linkTextFieldValue,
-                                titleTextFieldValue = titleTextFieldValue,
-                                noteTextFieldValue = noteTextFieldValue,
-                                isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
-                                isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
-                                currentFolder
+                            Icon(
+                                imageVector = Icons.Default.Close, contentDescription = null
                             )
-                            VerticalDivider(
-                                modifier = Modifier.padding(
-                                    start = 20.dp, end = 20.dp
-                                ), color = LocalContentColor.current.copy(0.01f), thickness = 1.dp
-                            )
-                            BottomPartOfAddANewLinkDialogBox(
-                                shouldBeVisible = shouldBeVisible,
-                                isDataExtractingForTheLink = isDataExtractingForTheLink,
-                                screenType = screenType,
-                                linkTextFieldValue = linkTextFieldValue,
-                                titleTextFieldValue = titleTextFieldValue,
-                                noteTextFieldValue = noteTextFieldValue,
-                                isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
-                                isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
-                                isDropDownMenuIconClicked = isDropDownMenuIconClicked,
-                                isChildFoldersBottomSheetExpanded = isChildFoldersBottomSheetExpanded,
-                                btmSheetState = btmSheetState,
-                                lazyRowState = lazyRowState,
-                                addTheFolderInRoot = addTheFolderInRoot,
-                                collectionsScreenVM = collectionsScreenVM,
-                                currentFolder
-                            )
-                        }
-                        if (!isDataExtractingForTheLink.value) {
-                            IconButton(
-                                modifier = Modifier.align(Alignment.TopEnd).padding(15.dp),
-                                onClick = {
-                                    shouldBeVisible.value = false
-                                }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close, contentDescription = null
-                                )
-                            }
                         }
                     }
                 }
@@ -324,10 +319,7 @@ private fun TopPartOfAddANewLinkDialogBox(
             shape = RoundedCornerShape(5.dp),
             value = linkTextFieldValue.value,
             onValueChange = {
-                linkTextFieldValue.value = it/*AddANewLinkDialogBox.updateUserAgent(
-                    linkTextFieldValue.value,
-                    context
-                )*/
+                linkTextFieldValue.value = it
             })
 
         Box(modifier = Modifier.animateContentSize()) {
@@ -448,7 +440,7 @@ private fun TopPartOfAddANewLinkDialogBox(
 )
 @Composable
 private fun BottomPartOfAddANewLinkDialogBox(
-    shouldBeVisible: MutableState<Boolean>,
+    onDismiss: () -> Unit,
     isDataExtractingForTheLink: MutableState<Boolean>,
     screenType: ScreenType,
     linkTextFieldValue: MutableState<String>,
@@ -502,16 +494,13 @@ private fun BottomPartOfAddANewLinkDialogBox(
         )
 
         TagSelectionComponent(
-            allTags = allTags,
-            selectedTags = collectionsScreenVM.selectedTags,
-            onClick = {
+            allTags = allTags, selectedTags = collectionsScreenVM.selectedTags, onClick = {
                 if (collectionsScreenVM.selectedTags.contains(it)) {
                     collectionsScreenVM.unSelectATag(it)
                 } else {
                     collectionsScreenVM.selectATag(it)
                 }
-            }
-        )
+            })
 
         if (currentlyInFolder.isNull()) {
             Text(
@@ -692,7 +681,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     end = 20.dp, start = 20.dp
                 ).fillMaxWidth().pulsateEffect(), onClick = {
                     collectionsScreenVM.clearSelectedTags()
-                    shouldBeVisible.value = false
+                    onDismiss()
                     isForceSaveWithoutFetchingMetaDataEnabled.value = false
                 }) {
                 Text(
@@ -727,9 +716,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                         ), linkSaveConfig = LinkSaveConfig(
                             forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
                             forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
-                        ), onCompletion = {
-                            shouldBeVisible.value = false
-                        }, selectedTags = collectionsScreenVM.selectedTags
+                        ), onCompletion = onDismiss, selectedTags = collectionsScreenVM.selectedTags
                     )
                 }) {
                 Text(
@@ -923,22 +910,26 @@ private fun BottomPartOfAddANewLinkDialogBox(
             }
         }
     }
-    AddANewFolderDialogBox(
-        AddNewFolderDialogBoxParam(
-            shouldBeVisible = shouldShowNewFolderDialog,
-            inAChildFolderScreen = addTheFolderInRoot.value.not(),
-            onFolderCreateClick = { folderName, folderNote, onCompletion ->
-                collectionsScreenVM.insertANewFolder(
-                    folder = Folder(
-                        name = folderName,
-                        note = folderNote,
-                        parentFolderId = if (addTheFolderInRoot.value || selectedFolderForSavingTheLink.value.localId in defaultFolderIds()) null else selectedFolderForSavingTheLink.value.localId,
-                    ), onCompletion = onCompletion, ignoreFolderAlreadyExistsThrowable = true
-                )
+    if (shouldShowNewFolderDialog.value) {
+        AddANewFolderDialogBox(
+            AddNewFolderDialogBoxParam(
+                onDismiss = {
+                shouldShowNewFolderDialog.value = false
             },
-            thisFolder = if (selectedFolderForSavingTheLink.value.localId in defaultFolderIds()) null else selectedFolderForSavingTheLink.value
+                inAChildFolderScreen = addTheFolderInRoot.value.not(),
+                onFolderCreateClick = { folderName, folderNote, onCompletion ->
+                    collectionsScreenVM.insertANewFolder(
+                        folder = Folder(
+                            name = folderName,
+                            note = folderNote,
+                            parentFolderId = if (addTheFolderInRoot.value || selectedFolderForSavingTheLink.value.localId in defaultFolderIds()) null else selectedFolderForSavingTheLink.value.localId,
+                        ), onCompletion = onCompletion, ignoreFolderAlreadyExistsThrowable = true
+                    )
+                },
+                currentFolder = if (selectedFolderForSavingTheLink.value.localId in defaultFolderIds()) null else selectedFolderForSavingTheLink.value
+            )
         )
-    )
+    }
 }
 
 

@@ -8,5 +8,6 @@ import kotlinx.serialization.Serializable
 data class CreateTagDTO(
     val name: String,
     val eventTimestamp: Long,
-    val correlation: Correlation = AppPreferences.getCorrelation()
+    val correlation: Correlation = AppPreferences.getCorrelation(),
+    val offlineSyncItemId: Long = 0
 )

@@ -83,4 +83,6 @@ expect class NativeUtils {
         fun showNotification()
         fun clearNotification()
     }
+
+    fun onIconChange(allIconCodes: List<String>, newIconCode: String, onCompletion: () -> Unit)
 }

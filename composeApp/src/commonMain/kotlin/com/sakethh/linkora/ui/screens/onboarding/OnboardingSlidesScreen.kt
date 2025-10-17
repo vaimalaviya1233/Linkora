@@ -2,10 +2,12 @@ package com.sakethh.linkora.ui.screens.onboarding
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +52,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,11 +59,10 @@ import androidx.compose.ui.util.lerp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -73,6 +73,11 @@ import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
+import linkora.composeapp.generated.resources.LOLCATpl_logo
+import linkora.composeapp.generated.resources.Res
+import linkora.composeapp.generated.resources.mondstern_logo
+import linkora.composeapp.generated.resources.new_logo
+import org.jetbrains.compose.resources.painterResource
 
 private data class OnboardingSlide(val screen: @Composable () -> Unit)
 
@@ -181,7 +186,13 @@ private fun Slide1() {
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.Start
     ) {
-        CoilImage(
+        Image(
+            painter = painterResource(
+                listOf(
+                    Res.drawable.mondstern_logo, Res.drawable.new_logo, Res.drawable.LOLCATpl_logo
+                ).random()
+            ),
+            contentDescription = null,
             modifier = Modifier.clip(RoundedCornerShape(15.dp))
                 .sizeIn(maxWidth = 250.dp, maxHeight = 250.dp).wrapContentSize().border(
                     shape = RoundedCornerShape(15.dp),
@@ -192,18 +203,10 @@ private fun Slide1() {
                             MaterialTheme.colorScheme.primaryContainer,
                         )
                     )
-                ), imgURL = "https://avatars.githubusercontent.com/u/183308434", userAgent = ""
+                )
         )
-        Spacer(modifier = Modifier.height(25.dp))
-        Text(
-            text = Localization.Key.AppIntroSlide1WelcomeToLabel.rememberLocalizedString(),
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.SemiBold
-        )
+        Spacer(modifier = Modifier.height(15.dp))
         SlideTitle(Localization.Key.Linkora.rememberLocalizedString())
-        Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = Localization.Key.AppIntroSlide1Label.rememberLocalizedString(),
             style = MaterialTheme.typography.titleSmall,
@@ -247,27 +250,6 @@ private fun Slide2() {
         ) {
             FolderComponent(
                 FolderComponentParam(
-                    name = Localization.Key.AppIntroSlide2Folder1Name.rememberLocalizedString(),
-                    note = Localization.Key.AppIntroSlide2Folder1Note.rememberLocalizedString(),
-                    onClick = {},
-                    onLongClick = {},
-                    onMoreIconClick = {},
-                    isCurrentlyInDetailsView = rememberSaveable {
-                        mutableStateOf(false)
-                    },
-                    showMoreIcon = rememberSaveable {
-                        mutableStateOf(true)
-                    },
-                    isSelectedForSelection = rememberSaveable {
-                        mutableStateOf(false)
-                    },
-                    showCheckBox = rememberSaveable {
-                        mutableStateOf(false)
-                    },
-                    onCheckBoxChanged = {})
-            )
-            FolderComponent(
-                FolderComponentParam(
                     name = Localization.Key.AppIntroSlide2Folder2Name.rememberLocalizedString(),
                     note = Localization.Key.AppIntroSlide2Folder2Note.rememberLocalizedString(),
                     onClick = {},
@@ -290,60 +272,64 @@ private fun Slide2() {
             LinkListItemComposable(
                 linkUIComponentParam = LinkUIComponentParam(
                     link = Link(
-                        title = "Red Dead Redemption 2 - Rockstar Games",
-                        baseURL = "rockstargames.com",
-                        imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/downloads/buddyiconsconavatars/rdr2_officialart1_256x256.jpg",
-                        url = "https://www.rockstargames.com/reddeadredemption2",
-                        userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                        linkType = LinkType.SAVED_LINK,
-                        localId = 0L,
-                        note = "",
-                        idOfLinkedFolder = null
-                    ),
-                    onMoreIconClick = { -> },
-                    onLinkClick = { ->
-                        localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
-                    },
-                    onForceOpenInExternalBrowserClicked = { -> },
-                    isSelectionModeEnabled = rememberSaveable {
-                        mutableStateOf(false)
-                    },
-                    isItemSelected = rememberSaveable {
-                        mutableStateOf(false)
-                    },
-                    onLongClick = { -> },
-                    tags = null,
-                    onTagClick = {}
-                ), forTitleOnlyView = false, onShare = {
-                    LinkoraSDK.getInstance().nativeUtils.onShare(it)
-                })
+                title = "Red Dead Redemption 2 - Rockstar Games",
+                baseURL = "rockstargames.com",
+                imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/downloads/buddyiconsconavatars/rdr2_officialart1_256x256.jpg",
+                url = "https://www.rockstargames.com/reddeadredemption2",
+                userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                note = "",
+                idOfLinkedFolder = null
+            ),
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
+                },
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = rememberSaveable {
+                    mutableStateOf(false)
+                },
+                isItemSelected = rememberSaveable {
+                    mutableStateOf(false)
+                },
+                onLongClick = { -> },
+                tags = listOf(
+                    Tag(name = "Tahiti"), Tag(name = "AndaquarterDONTFORGETTHEQUARTRR")
+                ),
+                onTagClick = {}), forTitleOnlyView = false, onShare = {
+                LinkoraSDK.getInstance().nativeUtils.onShare(it)
+            })
             LinkListItemComposable(
                 linkUIComponentParam = LinkUIComponentParam(
                     link = Link(
-                        title = "Nas | Spotify",
-                        baseURL = "open.spotify.com",
-                        imgURL = "https://ucarecdn.com/9b4d5145-a417-4ff9-a7e5-93a452a443c8/-/crop/974x818/26,197/-/preview/",
-                        url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
-                        userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                        linkType = LinkType.SAVED_LINK,
-                        localId = 0L,
-                        note = "",
-                        idOfLinkedFolder = null
-                    ),
-                    onForceOpenInExternalBrowserClicked = { -> },
-                    isSelectionModeEnabled = rememberSaveable {
-                        mutableStateOf(false)
-                    },
-                    isItemSelected = rememberSaveable {
-                        mutableStateOf(false)
-                    },
-                    onLongClick = { -> }, onMoreIconClick = { -> },
-                    onLinkClick = { ->
-                        localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
-                    },
-                    tags = null,
-                    onTagClick = {}
-                ), forTitleOnlyView = false, imageAlignment = Alignment.TopCenter, onShare = {
+                title = "Nas | Spotify",
+                baseURL = "open.spotify.com",
+                imgURL = "https://ucarecdn.com/9b4d5145-a417-4ff9-a7e5-93a452a443c8/-/crop/974x818/26,197/-/preview/",
+                url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
+                userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                note = "",
+                idOfLinkedFolder = null
+            ),
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = rememberSaveable {
+                    mutableStateOf(false)
+                },
+                isItemSelected = rememberSaveable {
+                    mutableStateOf(false)
+                },
+                onLongClick = { -> },
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
+                },
+                tags = listOf(Tag(name = "half man half amazing"), Tag(name = "Esco")),
+                onTagClick = {}),
+                forTitleOnlyView = false,
+                imageAlignment = Alignment.TopCenter,
+                onShare = {
                     LinkoraSDK.getInstance().nativeUtils.onShare(it)
                 })
             Spacer(modifier = Modifier.height(5.dp))
@@ -416,7 +402,7 @@ private fun Slide3() {
                 }
             }
         }
-        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) {
+        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth().animateContentSize()) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 when (it) {
                     0 -> {
@@ -443,43 +429,29 @@ private fun Slide3() {
                         )
                         LinkListItemComposable(
                             linkUIComponentParam = LinkUIComponentParam(
-                                link = Link(
-                                    title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
-                                    baseURL = "store.epicgames.com",
-                                    imgURL = remember {
-                                        listOf(
-                                            "https://pbs.twimg.com/media/FUPM2TrWYAAQsXm?format=jpg",
-                                            "https://pbs.twimg.com/media/FLJx9epWYAADM0O?format=jpg",
-                                            "https://pbs.twimg.com/media/FAdLIY8WUAEgLRM?format=jpg",
-                                            "https://pbs.twimg.com/media/ETUI-RDWsAE2UYR?format=jpg",
-                                            "https://pbs.twimg.com/media/ET9J7vTWsAYVtvG?format=jpg",
-                                            "https://pbs.twimg.com/media/GRo2CKkWUAEsdEl?format=jpg",
-                                            "https://pbs.twimg.com/media/FezZxQYWQAQ4K3f?format=jpg",
-                                            "https://pbs.twimg.com/media/FezaHWkX0AIWvvU?format=jpg",
-                                            "https://i.redd.it/qoa6gk4ii8571.jpg",
-                                            "https://i.redd.it/8psapajhi8571.jpg"
-                                        ).random()
-                                    },
-                                    url = "https://store.epicgames.com/en-US/p/a-plague-tale-requiem",
-                                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                                    linkType = LinkType.SAVED_LINK,
-                                    localId = 0L,
-                                    note = "",
-                                    idOfLinkedFolder = null
-                                ),
-                                onMoreIconClick = { -> },
-                                onLinkClick = { ->
-                                    localUriHandler.openUri("https://store.epicgames.com/en-US/p/a-plague-tale-requiem")
-                                },
-                                onForceOpenInExternalBrowserClicked = { -> },
-                                isSelectionModeEnabled = rememberSaveable { mutableStateOf(false) },
-                                isItemSelected = rememberSaveable { mutableStateOf(false) },
-                                onLongClick = { -> },
-                                tags = null,
-                                onTagClick = {}
-                            ), forTitleOnlyView = false, onShare = {
-                                LinkoraSDK.getInstance().nativeUtils.onShare(it)
-                            })
+                            link = Link(
+                            title = "Synchronization in Linkora • Saketh Pathike",
+                            baseURL = "sakethpathike.github.io",
+                            imgURL = "https://sakethpathike.github.io/images/ogImage-synchronization-in-linkora.png",
+                            url = "https://sakethpathike.github.io/blog/synchronization-in-linkora",
+                            userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                            linkType = LinkType.SAVED_LINK,
+                            localId = 0L,
+                            note = "",
+                            idOfLinkedFolder = null
+                        ),
+                            onMoreIconClick = { -> },
+                            onLinkClick = { ->
+                                localUriHandler.openUri("https://sakethpathike.github.io/blog/synchronization-in-linkora")
+                            },
+                            onForceOpenInExternalBrowserClicked = { -> },
+                            isSelectionModeEnabled = rememberSaveable { mutableStateOf(false) },
+                            isItemSelected = rememberSaveable { mutableStateOf(false) },
+                            onLongClick = { -> },
+                            tags = listOf(Tag(name = "Linkora")),
+                            onTagClick = {}), forTitleOnlyView = false, onShare = {
+                            LinkoraSDK.getInstance().nativeUtils.onShare(it)
+                        })
                     }
 
                     1 -> {
@@ -507,19 +479,19 @@ private fun Slide3() {
                         LinkListItemComposable(
                             linkUIComponentParam = LinkUIComponentParam(
                                 link = Link(
-                                    title = "7 Features in Kotlin's Standard Library that You Might Have Overlooked",
-                                    baseURL = "youtube.com",
-                                    imgURL = "https://i.ytimg.com/vi/OFWMtmqocV8/maxresdefault.jpg",
-                                    url = "https://www.youtube.com/watch?v=OFWMtmqocV8",
-                                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                                    linkType = LinkType.SAVED_LINK,
-                                    localId = 0L,
-                                    note = "",
-                                    idOfLinkedFolder = null
-                                ),
+                                title = "LinkoraApp/sync-server: self-hostable sync-server for Linkora with browser extension support.",
+                                baseURL = "github.com",
+                                imgURL = "https://opengraph.githubassets.com/45fc9e2969396c9f27f7af994014d3a75ff93899d98ef2f6c5504fef71edd9cf/LinkoraApp/sync-server",
+                                url = "https://github.com/LinkoraApp/sync-server",
+                                userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                                linkType = LinkType.SAVED_LINK,
+                                localId = 0L,
+                                note = "",
+                                idOfLinkedFolder = null
+                            ),
                                 onMoreIconClick = { -> },
                                 onLinkClick = { ->
-                                    localUriHandler.openUri("https://www.youtube.com/watch?v=OFWMtmqocV8")
+                                    localUriHandler.openUri("https://github.com/LinkoraApp/sync-server")
                                 },
                                 onForceOpenInExternalBrowserClicked = { -> },
                                 isSelectionModeEnabled = rememberSaveable { mutableStateOf(false) },
@@ -527,9 +499,8 @@ private fun Slide3() {
                                     mutableStateOf(false)
                                 },
                                 onLongClick = { -> },
-                                tags = null,
-                                onTagClick = {}
-                            ),
+                                tags = listOf(Tag(name = "Linkora")),
+                                onTagClick = {}),
                             forTitleOnlyView = false,
                             imageAlignment = Alignment.TopCenter,
                             onShare = {

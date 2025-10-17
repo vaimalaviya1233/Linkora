@@ -25,16 +25,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.components.InfoCard
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @Composable
-fun NonMobileMenu(menuBtmSheetParam: MenuBtmSheetParam, commonMenuContent: ComposableContent) {
+fun NonMobileMenu(
+    menuBtmSheetFor: MenuBtmSheetType,
+    currentLink: Link?,
+    currentFolder: Folder?,
+    commonMenuContent: ComposableContent
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        if (menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) {
+        if (menuBtmSheetFor in menuBtmSheetLinkEntries()) {
             Column(
                 modifier = Modifier.fillMaxWidth(0.5f).padding(start = 15.dp, bottom = 15.dp)
                     .wrapContentHeight()
@@ -42,19 +49,19 @@ fun NonMobileMenu(menuBtmSheetParam: MenuBtmSheetParam, commonMenuContent: Compo
                 CoilImage(
                     modifier = Modifier.animateContentSize().fillMaxWidth()
                         .clip(RoundedCornerShape(15.dp)).height(200.dp),
-                    imgURL = menuBtmSheetParam.link!!.value.imgURL,
-                    userAgent = menuBtmSheetParam.link.value.userAgent
+                    imgURL = currentLink!!.imgURL,
+                    userAgent = currentLink.userAgent
                         ?: AppPreferences.primaryJsoupUserAgent.value,
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    text = menuBtmSheetParam.link.value.title,
+                    text = currentLink.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
                 )
                 Spacer(Modifier.height(5.dp))
                 Text(
-                    text = menuBtmSheetParam.link.value.baseURL,
+                    text = currentLink.baseURL,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clip(RoundedCornerShape(5.dp))
@@ -64,7 +71,7 @@ fun NonMobileMenu(menuBtmSheetParam: MenuBtmSheetParam, commonMenuContent: Compo
                     modifier = Modifier.fillMaxWidth()
                         .padding(end = 5.dp, top = 15.dp, bottom = 12.dp)
                 )
-                if (menuBtmSheetParam.link.value.note.isNotBlank()) {
+                if (currentLink.note.isNotBlank()) {
                     Text(
                         text = Localization.Key.SavedNote.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
@@ -72,7 +79,7 @@ fun NonMobileMenu(menuBtmSheetParam: MenuBtmSheetParam, commonMenuContent: Compo
                     )
                     Spacer(Modifier.height(5.dp))
                     Text(
-                        text = menuBtmSheetParam.link.value.note,
+                        text = currentLink.note,
                         style = MaterialTheme.typography.titleMedium,
                     )
                 } else {
@@ -88,12 +95,13 @@ fun NonMobileMenu(menuBtmSheetParam: MenuBtmSheetParam, commonMenuContent: Compo
                     .wrapContentHeight()
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Folder, contentDescription = null,
+                    imageVector = Icons.Outlined.Folder,
+                    contentDescription = null,
                     modifier = Modifier.size(45.dp)
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    text = menuBtmSheetParam.folder!!.value.name,
+                    text = currentFolder!!.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
                 )
@@ -101,7 +109,7 @@ fun NonMobileMenu(menuBtmSheetParam: MenuBtmSheetParam, commonMenuContent: Compo
                     modifier = Modifier.fillMaxWidth()
                         .padding(end = 5.dp, top = 15.dp, bottom = 12.dp)
                 )
-                if (menuBtmSheetParam.folder.value.note.isNotBlank()) {
+                if (currentFolder.note.isNotBlank()) {
                     Text(
                         text = Localization.Key.SavedNote.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
@@ -109,7 +117,7 @@ fun NonMobileMenu(menuBtmSheetParam: MenuBtmSheetParam, commonMenuContent: Compo
                     )
                     Spacer(Modifier.height(5.dp))
                     Text(
-                        text = menuBtmSheetParam.folder.value.note,
+                        text = currentFolder.note,
                         style = MaterialTheme.typography.titleMedium,
                     )
                 } else {

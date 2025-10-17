@@ -736,14 +736,18 @@ fun DataSettingsScreen() {
         operationTitle = Localization.Key.SyncingDataLabel.rememberLocalizedString(),
         operationDesc = Localization.Key.InitiateManualSyncDescAlt.rememberLocalizedString()
     )
-    DeleteDialogBox(
-        deleteDialogBoxParam = DeleteDialogBoxParam(
-            shouldDialogBoxAppear = shouldDeleteEntireDialogBoxAppear,
-            deleteDialogBoxType = DeleteDialogBoxType.REMOVE_ENTIRE_DATA,
-            onDeleteClick = { onCompletion, deleteEverythingFromRemote ->
-                dataSettingsScreenVM.deleteEntireDatabase(deleteEverythingFromRemote, onCompletion)
-            })
-    )
+    if (shouldDeleteEntireDialogBoxAppear.value){
+        DeleteDialogBox(
+            deleteDialogBoxParam = DeleteDialogBoxParam(
+                onDismiss = {
+                    shouldDeleteEntireDialogBoxAppear.value = false
+                },
+                deleteDialogBoxType = DeleteDialogBoxType.REMOVE_ENTIRE_DATA,
+                onDeleteClick = { onCompletion, deleteEverythingFromRemote ->
+                    dataSettingsScreenVM.deleteEntireDatabase(deleteEverythingFromRemote, onCompletion)
+                })
+        )
+    }
     if (showDuplicateDeleteDialogBox.value) {
         AlertDialog(onDismissRequest = {}, content = {
             Column(

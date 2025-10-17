@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -35,32 +36,44 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
-import com.sakethh.linkora.utils.rememberLocalizedString
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.utils.rememberLocalizedString
 import linkora.composeapp.generated.resources.Res
 import linkora.composeapp.generated.resources.discord
 import linkora.composeapp.generated.resources.github
+import linkora.composeapp.generated.resources.linkora_char
+import linkora.composeapp.generated.resources.linkora_versioning
 import linkora.composeapp.generated.resources.twitter
+import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
+    LaunchedEffect(Unit) {
+        currentFABContext(CurrentFABContext(FABContext.HIDE))
+    }
     val navController = LocalNavController.current
     val topAppBarScrollState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val uriHandler = LocalUriHandler.current
@@ -90,21 +103,10 @@ fun SettingsScreen() {
                     ).fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer)
                         .padding(top = 7.5.dp)
                 ) {
-                    Row(modifier = Modifier.padding(top = 7.5.dp, start = 15.dp)) {
-                        Text(
-                            text = Localization.Key.Linkora.rememberLocalizedString(),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                            fontSize = 18.sp,
-                            modifier = Modifier.alignByBaseline(),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Text(
-                            text = Constants.APP_VERSION_NAME,
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
-                            fontSize = 12.sp,
-                            modifier = Modifier.alignByBaseline(),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                    if (AppPreferences.useCustomAppVersionLabel.value) {
+                        CustomFontAppVersionLabel()
+                    } else {
+                        AppVersionLabel()
                     }
                     Row(
                         modifier = Modifier.padding(start = 10.dp, top = 5.dp),
@@ -192,6 +194,56 @@ fun SettingsScreen() {
     }
 }
 
+@Composable
+fun AppVersionLabel(modifier: Modifier = Modifier.padding(top = 7.5.dp, start = 15.dp)) {
+    Row(modifier) {
+        Text(
+            text = Localization.Key.Linkora.rememberLocalizedString(),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            fontSize = 18.sp,
+            modifier = Modifier.alignByBaseline(),
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = Constants.APP_VERSION_NAME,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
+            fontSize = 12.sp,
+            modifier = Modifier.alignByBaseline(),
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
+fun CustomFontAppVersionLabel(modifier: Modifier = Modifier.padding(start = 15.dp)) {
+    Box(
+        modifier = modifier
+    ) {
+        Text(
+            text = "!", style = TextStyle(
+                fontFamily = FontFamily(
+                    Font(
+                        Res.font.linkora_char, FontWeight.Normal
+                    )
+                ), fontWeight = FontWeight.Normal
+            ), fontSize = 65.sp, color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = Constants.APP_VERSION_NAME,
+            style = TextStyle(
+                fontFamily = FontFamily(
+                    Font(
+                        Res.font.linkora_versioning, FontWeight.Normal
+                    )
+                ), fontWeight = FontWeight.Normal
+            ),
+            fontSize = 28.sp,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.padding(start = 4.dp, top = 30.dp)
+        )
+    }
+}
+
 private fun settingsScreenOptions(navController: NavController): List<SettingSectionComponentParam> {
     return listOf(
         SettingSectionComponentParam(
@@ -245,14 +297,14 @@ private fun settingsScreenOptions(navController: NavController): List<SettingSec
         ),*/
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(Navigation.Settings.AboutSettingsScreen)
+                navController.navigate(Navigation.Settings.AboutScreen)
             },
             sectionTitle = Localization.getLocalizedString(Localization.Key.About),
             sectionIcon = Icons.Default.Info
         ),
         SettingSectionComponentParam(
             onClick = {
-                navController.navigate(Navigation.Settings.AcknowledgementSettingsScreen)
+                navController.navigate(Navigation.Settings.AcknowledgementScreen)
             },
             sectionTitle = Localization.getLocalizedString(Localization.Key.Acknowledgments),
             sectionIcon = Icons.Default.Group

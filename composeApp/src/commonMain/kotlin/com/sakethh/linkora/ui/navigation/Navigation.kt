@@ -77,16 +77,18 @@ sealed interface Navigation {
         }
 
         @Serializable
-        data object AboutSettingsScreen : Settings {
+        data object AboutScreen : Settings {
             override fun toString(): String =
                 Localization.getLocalizedString(Localization.Key.About)
         }
 
         @Serializable
-        data object AcknowledgementSettingsScreen : Settings {
+        data object AcknowledgementScreen : Settings {
             override fun toString(): String =
                 Localization.getLocalizedString(Localization.Key.Acknowledgments)
         }
+        @Serializable
+        data object AboutLibraries : Settings
 
         @Serializable
         sealed interface Data : Settings {

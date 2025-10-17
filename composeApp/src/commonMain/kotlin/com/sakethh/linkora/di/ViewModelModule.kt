@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.components.sorting.SortingBtmSheetVM
 import com.sakethh.linkora.ui.screens.search.SearchScreenVM
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
@@ -25,30 +24,22 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T {
         return when (modelClass) {
 
-            SortingBtmSheetVM::class -> SortingBtmSheetVM(DependencyContainer.preferencesRepo)
-
-            AppVM::class -> AppVM(
-                remoteSyncRepo = DependencyContainer.remoteSyncRepo,
+            SortingBtmSheetVM::class -> SortingBtmSheetVM(
                 preferencesRepository = DependencyContainer.preferencesRepo,
-                networkRepo = DependencyContainer.networkRepo,
-                linksRepo = DependencyContainer.localLinksRepo,
-                foldersRepo = DependencyContainer.localFoldersRepo,
-                localMultiActionRepo = DependencyContainer.localMultiActionRepo,
-                localPanelsRepo = DependencyContainer.localPanelsRepo,
-                exportDataRepo = DependencyContainer.exportDataRepo,
-                permissionManager = LinkoraSDK.getInstance().permissionManager,
-                fileManager = LinkoraSDK.getInstance().fileManager,
-                dataSyncingNotificationService = LinkoraSDK.getInstance().dataSyncingNotificationService,
-                localTagsRepo = DependencyContainer.localTagsRepo
+                nativeUtils = LinkoraSDK.getInstance().nativeUtils
             )
-
 
             SearchScreenVM::class -> SearchScreenVM(
-                localFoldersRepo = DependencyContainer.localFoldersRepo, localLinksRepo =  DependencyContainer.localLinksRepo,
+                localFoldersRepo = DependencyContainer.localFoldersRepo,
+                localLinksRepo = DependencyContainer.localLinksRepo,
                 localTagsRepo = DependencyContainer.localTagsRepo
             )
 
-            SettingsScreenViewModel::class -> SettingsScreenViewModel(DependencyContainer.preferencesRepo)
+            SettingsScreenViewModel::class -> SettingsScreenViewModel(
+                preferencesRepository = DependencyContainer.preferencesRepo,
+                nativeUtils = LinkoraSDK.getInstance().nativeUtils
+            )
+
             LanguageSettingsScreenVM::class -> DependencyContainer.localizationRepo.let {
                 LanguageSettingsScreenVM(it, it)
             }

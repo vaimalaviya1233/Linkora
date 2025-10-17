@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -36,11 +37,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
 import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.panel.Panel
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.AddANewPanelDialogBox
 import com.sakethh.linkora.ui.components.AddANewPanelParam
@@ -48,20 +49,25 @@ import com.sakethh.linkora.ui.components.DeleteAPanelDialogBox
 import com.sakethh.linkora.ui.components.DeleteAPanelDialogBoxParam
 import com.sakethh.linkora.ui.components.RenameAShelfPanelDialogBox
 import com.sakethh.linkora.ui.components.menu.IndividualMenuComponent
+import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
-import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PanelsManagerScreen() {
+fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
+    LaunchedEffect(Unit) {
+        currentFABContext(CurrentFABContext(FABContext.HIDE))
+    }
     val navController = LocalNavController.current
     val topAppBarState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val homeScreenVM: HomeScreenVM =
-        viewModel(factory = HomeScreenVMAssistedFactory.createForPanelsManagerScreen())
+        viewModel(factory = HomeScreenVMAssistedFactory.createForPanelsManagerScreen(platform = platform()))
     val panels = homeScreenVM.createdPanels.collectAsStateWithLifecycle()
     val selectedPanelForDetailView = rememberDeserializableMutableObject {
         mutableStateOf(Panel(localId = -1, panelName = ""))

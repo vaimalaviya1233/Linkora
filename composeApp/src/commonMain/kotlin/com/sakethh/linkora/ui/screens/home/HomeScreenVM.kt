@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
@@ -44,12 +45,14 @@ class HomeScreenVM(
     private val preferencesRepository: PreferencesRepository,
     triggerCollectionOfPanels: Boolean = true,
     private val triggerCollectionOfPanelFolders: Boolean = true,
+    platform: Platform
 ) : CollectionsScreenVM(
     localFoldersRepo = localFoldersRepo,
     localLinksRepo = localLinksRepo,
     loadNonArchivedRootFoldersOnInit = false,
     loadArchivedRootFoldersOnInit = false,
-    localTagsRepo = localTagsRepo
+    localTagsRepo = localTagsRepo,
+    platform = platform
 ) {
     val currentPhaseOfTheDay = mutableStateOf("")
 

@@ -4,6 +4,7 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.dto.server.Correlation
+import com.sakethh.linkora.domain.model.tag.LinkTagDTO
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -20,5 +21,6 @@ data class LinkDTO(
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
     val eventTimestamp: Long,
+    val linkTags: List<LinkTagDTO>,
     val correlation: Correlation = AppPreferences.getCorrelation()
 )

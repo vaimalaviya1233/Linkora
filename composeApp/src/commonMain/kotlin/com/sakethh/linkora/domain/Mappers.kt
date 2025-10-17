@@ -15,6 +15,7 @@ import com.sakethh.linkora.domain.model.legacy.LegacyExportSchema
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
+import com.sakethh.linkora.domain.model.tag.LinkTagDTO
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -74,7 +75,7 @@ fun Folder.asAddFolderDTO(): AddFolderDTO = AddFolderDTO(
     eventTimestamp = this.lastModified
 )
 
-fun Link.asAddLinkDTO(): AddLinkDTO = AddLinkDTO(
+fun Link.asAddLinkDTO(remoteTagIds: List<Long>): AddLinkDTO = AddLinkDTO(
     linkType = this.linkType,
     title = this.title,
     url = this.url,
@@ -85,10 +86,11 @@ fun Link.asAddLinkDTO(): AddLinkDTO = AddLinkDTO(
     idOfLinkedFolder = this.idOfLinkedFolder,
     userAgent = this.userAgent,
     markedAsImportant = false,
-    mediaType = this.mediaType
+    mediaType = this.mediaType,
+    tags = remoteTagIds
 )
 
-fun Link.asLinkDTO(id: Long): LinkDTO = LinkDTO(
+fun Link.asLinkDTO(id: Long, remoteLinkTags: List<LinkTagDTO>): LinkDTO = LinkDTO(
     linkType = this.linkType,
     title = this.title,
     url = this.url,
@@ -100,7 +102,8 @@ fun Link.asLinkDTO(id: Long): LinkDTO = LinkDTO(
     markedAsImportant = false,
     mediaType = this.mediaType,
     id = id,
-    eventTimestamp = this.lastModified
+    eventTimestamp = this.lastModified,
+    linkTags = remoteLinkTags
 )
 
 suspend fun LegacyExportSchema.asJSONExportSchema(): JSONExportSchema = coroutineScope {

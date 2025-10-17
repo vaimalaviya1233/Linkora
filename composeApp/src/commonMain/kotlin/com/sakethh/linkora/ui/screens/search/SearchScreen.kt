@@ -27,6 +27,7 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -38,7 +39,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
@@ -46,12 +46,12 @@ import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
-import com.sakethh.linkora.ui.domain.model.SearchNavigated
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
@@ -62,7 +62,10 @@ import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen() {
+fun SearchScreen(currentFABContext: (CurrentFABContext)-> Unit) {
+    LaunchedEffect(Unit) {
+        currentFABContext(CurrentFABContext(FABContext.REGULAR))
+    }
     val searchScreenVM: SearchScreenVM = linkoraViewModel()
     val platform = LocalPlatform.current
     val historyLinkTagsPairs = searchScreenVM.linkTagsPairs.collectAsStateWithLifecycle()
@@ -171,30 +174,14 @@ fun SearchScreen() {
                             onFolderClick = { folder ->
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                     currentFolder = folder,
-                                    isAnyCollectionSelected = true,
                                     currentTag = null,
                                     collectionType = CollectionType.FOLDER
                                 )
-                                CollectionsScreenVM.updateSearchNavigated(
-                                    SearchNavigated(
-                                        navigatedFromSearchScreen = true,
-                                        navigatedWithFolderId = folder.localId
-                                    )
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
-                                try {
-                                    if (platform is Platform.Android.Mobile) {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                            value = Json.encodeToString(collectionDetailPaneInfo)
-                                        )
-                                    } else {
-                                        CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                            collectionDetailPaneInfo
-                                        )
-                                    }
-                                } finally {
-                                    navController.navigate(Navigation.Collection.CollectionDetailPane)
-                                }
+                                navController.navigate(Navigation.Collection.CollectionDetailPane)
                             },
                             linkMoreIconClick = {
                                 coroutineScope.pushUIEvent(
@@ -219,20 +206,14 @@ fun SearchScreen() {
                             onAttachedTagClick = {
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                     currentFolder = null,
-                                    isAnyCollectionSelected = true,
                                     currentTag = it,
                                     collectionType = CollectionType.TAG,
                                 )
-                                if (platform is Platform.Android.Mobile) {
-                                    navController.currentBackStackEntry?.savedStateHandle?.set(
-                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                        value = Json.encodeToString(
-                                            collectionDetailPaneInfo
-                                        )
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(
+                                        collectionDetailPaneInfo
                                     )
-                                }
-                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                    collectionDetailPaneInfo
                                 )
                                 navController.navigate(
                                     Navigation.Collection.CollectionDetailPane
@@ -242,20 +223,14 @@ fun SearchScreen() {
                             onTagClick = {
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                     currentFolder = null,
-                                    isAnyCollectionSelected = true,
                                     currentTag = it,
                                     collectionType = CollectionType.TAG,
                                 )
-                                if (platform is Platform.Android.Mobile) {
-                                    navController.currentBackStackEntry?.savedStateHandle?.set(
-                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                        value = Json.encodeToString(
-                                            collectionDetailPaneInfo
-                                        )
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                    value = Json.encodeToString(
+                                        collectionDetailPaneInfo
                                     )
-                                }
-                                CollectionsScreenVM.updateCollectionDetailPaneInfo(
-                                    collectionDetailPaneInfo
                                 )
                                 navController.navigate(
                                     Navigation.Collection.CollectionDetailPane
@@ -318,19 +293,15 @@ fun SearchScreen() {
             onAttachedTagClick = {
                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                     currentFolder = null,
-                    isAnyCollectionSelected = true,
                     currentTag = it,
                     collectionType = CollectionType.TAG,
                 )
-                if (platform is Platform.Android.Mobile) {
-                    navController.currentBackStackEntry?.savedStateHandle?.set(
-                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                        value = Json.encodeToString(
-                            collectionDetailPaneInfo
-                        )
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                    value = Json.encodeToString(
+                        collectionDetailPaneInfo
                     )
-                }
-                CollectionsScreenVM.updateCollectionDetailPaneInfo(collectionDetailPaneInfo)
+                )
                 navController.navigate(
                     Navigation.Collection.CollectionDetailPane
                 )

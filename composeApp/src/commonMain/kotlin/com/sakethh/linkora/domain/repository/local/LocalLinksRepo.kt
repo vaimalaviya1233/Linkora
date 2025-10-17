@@ -4,6 +4,8 @@ import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.tag.LinkTag
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import kotlinx.coroutines.flow.Flow
 
 interface LocalLinksRepo {
@@ -67,7 +69,7 @@ interface LocalLinksRepo {
 
     suspend fun deleteAllLinks()
 
-    suspend fun updateALink(link: Link, viaSocket: Boolean = false): Flow<Result<Unit>>
+    suspend fun updateALink(link: Link, updatedLinkTagsPair: LinkTagsPair?,viaSocket: Boolean = false): Flow<Result<Unit>>
 
     suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>>
 

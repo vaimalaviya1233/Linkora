@@ -57,7 +57,7 @@ class LocalTagsRepoImpl(
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Tag.CREATE_TAG.name, payload = Json.encodeToString(
-                            CreateTagDTO(name = tag.name, eventTimestamp = eventTimestamp)
+                            CreateTagDTO(name = tag.name, eventTimestamp = eventTimestamp, offlineSyncItemId = newTagId!!)
                         )
                     )
                 )
@@ -101,13 +101,14 @@ class LocalTagsRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
+                if (tag.remoteId == null) return@performLocalOperationWithRemoteSyncFlow
+
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        id = tag.localId,
                         operation = RemoteRoute.Tag.DELETE_TAG.name,
                         payload = Json.encodeToString(
                             IDBasedDTO(
-                                id = tag.localId, eventTimestamp = eventTimestamp
+                                id = tag.remoteId, eventTimestamp = eventTimestamp
                             )
                         )
                     )
@@ -181,6 +182,9 @@ class LocalTagsRepoImpl(
         return tagsDao.getTagsBasedOnTheLinkId(linkId)
     }
 
+    override suspend fun getTags(linkId: Long): List<Tag> {
+        return tagsDao.getTags(linkId)
+    }
     override fun getTagsForLinks(linkIds: List<Long>): Flow<Map<Long, List<Tag>>> {
         return tagsDao.getTagsWithLinkIds(linkIds).map { flatList ->
             flatList.groupBy { it.linkId }.mapValues { entry ->
@@ -191,5 +195,16 @@ class LocalTagsRepoImpl(
 
     override fun search(query: String, sortOption: String): Flow<List<Tag>> {
         return tagsDao.search(query, sortOption)
+    }
+
+    override suspend fun getLocalTagIds(remoteIds: List<Long>): List<Long> {
+        return tagsDao.getLocalTagIds(remoteIds)
+    }
+
+    override suspend fun getLocalTags(remoteIds: List<Long>): List<Tag> {
+        return tagsDao.getLocalTags(remoteIds)
+    }
+    override suspend fun getLocalTagId(remoteId: Long): Long {
+        return tagsDao.getLocalTagId(remoteId)
     }
 }

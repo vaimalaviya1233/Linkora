@@ -71,6 +71,8 @@ import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -83,7 +85,6 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pulsateEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.isNull
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -92,8 +93,14 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CollectionsScreen(
-    collectionsScreenVM: CollectionsScreenVM
+    collectionsScreenVM: CollectionsScreenVM, currentFABContext: (CurrentFABContext)-> Unit
 ) {
+    var fabHiddenFromDetailPaneTrigger = rememberSaveable {
+        false
+    }
+    LaunchedEffect(fabHiddenFromDetailPaneTrigger) {
+        currentFABContext(CurrentFABContext(FABContext.REGULAR))
+    }
     val rootFolders by collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
@@ -111,7 +118,7 @@ fun CollectionsScreen(
         rootContentPagerState.animateScrollToPage(AppPreferences.selectedCollectionSourceId)
     }
     val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
-
+    val paneHistoryPeek by collectionsScreenVM.peekPaneHistory.collectAsStateWithLifecycle()
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
@@ -146,7 +153,6 @@ fun CollectionsScreen(
                                 ),
                                 currentTag = null,
                                 collectionType = CollectionType.FOLDER,
-                                isAnyCollectionSelected = true
                             )
                             if (platform is Platform.Android.Mobile) {
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -157,12 +163,11 @@ fun CollectionsScreen(
                                     Navigation.Collection.CollectionDetailPane
                                 )
                             } else {
-                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
-                                    collectionDetailPaneInfo
-                                )
+                                collectionsScreenVM.pushToDetailPane(collectionDetailPaneInfo)
+                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
                             }
                         },
-                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ALL_LINKS_ID
+                        isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.ALL_LINKS_ID
                     )
                 }
                 item {
@@ -180,7 +185,6 @@ fun CollectionsScreen(
                                     parentFolderId = null,
                                     localId = Constants.SAVED_LINKS_ID
                                 ),
-                                isAnyCollectionSelected = true,
                                 currentTag = null,
                                 collectionType = CollectionType.FOLDER,
                             )
@@ -193,12 +197,13 @@ fun CollectionsScreen(
                                     Navigation.Collection.CollectionDetailPane
                                 )
                             } else {
-                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                collectionsScreenVM.pushToDetailPane(
                                     collectionDetailPaneInfo
                                 )
+                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
                             }
                         },
-                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.SAVED_LINKS_ID
+                        isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.SAVED_LINKS_ID
                     )
                 }
                 item {
@@ -213,7 +218,6 @@ fun CollectionsScreen(
                                     parentFolderId = null,
                                     localId = Constants.IMPORTANT_LINKS_ID
                                 ),
-                                isAnyCollectionSelected = true,
                                 currentTag = null,
                                 collectionType = CollectionType.FOLDER,
                             )
@@ -226,12 +230,13 @@ fun CollectionsScreen(
                                     Navigation.Collection.CollectionDetailPane
                                 )
                             } else {
-                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                collectionsScreenVM.pushToDetailPane(
                                     collectionDetailPaneInfo
                                 )
+                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
                             }
                         },
-                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
+                        isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
                     )
                 }
                 item {
@@ -246,7 +251,6 @@ fun CollectionsScreen(
                                     parentFolderId = null,
                                     localId = Constants.ARCHIVE_ID
                                 ),
-                                isAnyCollectionSelected = true,
                                 currentTag = null,
                                 collectionType = CollectionType.FOLDER,
                             )
@@ -259,12 +263,13 @@ fun CollectionsScreen(
                                     Navigation.Collection.CollectionDetailPane
                                 )
                             } else {
-                                collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                collectionsScreenVM.pushToDetailPane(
                                     collectionDetailPaneInfo
                                 )
+                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
                             }
                         },
-                        isSelected = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == Constants.ARCHIVE_ID
+                        isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.ARCHIVE_ID
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
@@ -353,7 +358,6 @@ fun CollectionsScreen(
                                                         val collectionDetailPaneInfo =
                                                             CollectionDetailPaneInfo(
                                                                 currentFolder = folder,
-                                                                isAnyCollectionSelected = true,
                                                                 currentTag = null,
                                                                 collectionType = CollectionType.FOLDER,
                                                             )
@@ -368,9 +372,10 @@ fun CollectionsScreen(
                                                                 Navigation.Collection.CollectionDetailPane
                                                             )
                                                         } else {
-                                                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                                            collectionsScreenVM.pushToDetailPane(
                                                                 collectionDetailPaneInfo
                                                             )
+                                                            collectionsScreenVM.clearDetailPaneHistoryUntilLast()
                                                         }
                                                     },
                                                     onLongClick = { ->
@@ -392,9 +397,9 @@ fun CollectionsScreen(
                                                         )
                                                     },
                                                     isCurrentlyInDetailsView = remember(
-                                                        CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId
+                                                        paneHistoryPeek?.currentFolder?.localId
                                                     ) {
-                                                        mutableStateOf(CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId == folder.localId)
+                                                        mutableStateOf(paneHistoryPeek?.currentFolder?.localId == folder.localId)
                                                     },
                                                     showMoreIcon = rememberSaveable {
                                                         mutableStateOf(true)
@@ -442,7 +447,6 @@ fun CollectionsScreen(
                                                         val collectionDetailPaneInfo =
                                                             CollectionDetailPaneInfo(
                                                                 currentFolder = null,
-                                                                isAnyCollectionSelected = true,
                                                                 currentTag = currentTag,
                                                                 collectionType = CollectionType.TAG,
                                                             )
@@ -457,9 +461,10 @@ fun CollectionsScreen(
                                                                 Navigation.Collection.CollectionDetailPane
                                                             )
                                                         } else {
-                                                            collectionsScreenVM.updateCollectionDetailPaneInfoAndCollectData(
+                                                            collectionsScreenVM.pushToDetailPane(
                                                                 collectionDetailPaneInfo
                                                             )
+                                                            collectionsScreenVM.clearDetailPaneHistoryUntilLast()
                                                         }
                                                     },
                                                     onLongClick = {},
@@ -497,7 +502,8 @@ fun CollectionsScreen(
             }
             if (platform() is Platform.Android.Mobile) return@Row
             VerticalDivider(modifier = Modifier.padding(start = 20.dp))
-            if (CollectionsScreenVM.collectionDetailPaneInfo.value.isAnyCollectionSelected.not() || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder.isNull()) {
+            val isCollectionSelected by collectionsScreenVM.isPaneSelected.collectAsStateWithLifecycle()
+            if (!isCollectionSelected) {
                 Box(
                     modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
@@ -508,7 +514,7 @@ fun CollectionsScreen(
                 }
             } else {
                 CollectionDetailPane(
-                    collectionsScreenVM = collectionsScreenVM,
+                    collectionsScreenVM = collectionsScreenVM, currentFABContext = currentFABContext
                 )
             }
         }

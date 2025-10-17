@@ -51,7 +51,7 @@ class DataSettingsScreenVM(
     private val nativeUtils: NativeUtils,
     private val fileManager: FileManager,
     private val permissionManager: PermissionManager
-) : SettingsScreenViewModel(preferencesRepository) {
+) : SettingsScreenViewModel(preferencesRepository,nativeUtils) {
     val importExportProgressLogs = mutableStateListOf<String>()
 
     private var importExportJob: Job? = null

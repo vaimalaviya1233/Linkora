@@ -2,8 +2,13 @@ package com.sakethh.linkora.network
 
 import com.sakethh.linkora.ui.utils.linkoraLog
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.cio.CIOEngineConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -13,16 +18,31 @@ import javax.net.ssl.X509TrustManager
 
 object Network {
 
-    private val jsonConfig = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        encodeDefaults = true
+    private fun HttpClientConfig<CIOEngineConfig>.installLogger() {
+        install(Logging) {
+            logger = object : Logger {
+                override fun log(message: String) {
+                    linkoraLog("HTTP CLIENT:\n$message")
+                }
+            }
+            level = LogLevel.ALL
+        }
     }
 
-    val standardClient = HttpClient(CIO) {
+    private fun HttpClientConfig<CIOEngineConfig>.installContentNegotiation() {
+        val jsonConfig = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            encodeDefaults = true
+        }
         install(ContentNegotiation) {
             json(jsonConfig)
         }
+    }
+
+    val standardClient = HttpClient(CIO) {
+        installContentNegotiation()
+        installLogger()
     }
 
     private var syncServerClient: HttpClient? = null
@@ -80,9 +100,8 @@ object Network {
                 }
             }
 
-            install(ContentNegotiation) {
-                json(jsonConfig)
-            }
+            installContentNegotiation()
+            installLogger()
 
             install(WebSockets) {
                 pingIntervalMillis = 20_000

@@ -44,12 +44,12 @@ import kotlinx.coroutines.launch
 
 data class AddItemFABParam @OptIn(ExperimentalMaterial3Api::class) constructor(
     val showDialogForNewLinkAddition: MutableState<Boolean>,
-    val onCreateATagClick:()-> Unit,
+    val onCreateATagClick: () -> Unit,
     val isReducedTransparencyBoxVisible: MutableState<Boolean>,
-    val showDialogForNewFolder: MutableState<Boolean>,
-    val shouldShowAddLinkDialog: MutableState<Boolean>,
+    val onShowDialogForNewFolder: () -> Unit,
+    val onShowAddLinkDialog: () -> Unit,
     val isMainFabRotated: MutableState<Boolean>,
-    val rotationAnimation: Animatable<Float, AnimationVector1D>,
+    val rotationAnimatable: Animatable<Float, AnimationVector1D>,
     val inASpecificScreen: Boolean
 )
 
@@ -129,7 +129,7 @@ fun AddItemFab(
                         addItemFABParam.onCreateATagClick()
                         addItemFABParam.isMainFabRotated.value = false
                         coroutineScope.launch {
-                            addItemFABParam.rotationAnimation.snapTo(-180f)
+                            addItemFABParam.rotationAnimatable.snapTo(-180f)
                         }
                     }) {
                     Icon(
@@ -187,10 +187,10 @@ fun AddItemFab(
                 FloatingActionButton(
                     modifier = Modifier.pulsateEffect(), onClick = {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
-                        addItemFABParam.showDialogForNewFolder.value = true
+                        addItemFABParam.onShowDialogForNewFolder()
                         addItemFABParam.isMainFabRotated.value = false
                         coroutineScope.launch {
-                            addItemFABParam.rotationAnimation.snapTo(-180f)
+                            addItemFABParam.rotationAnimatable.snapTo(-180f)
                         }
                     }) {
                     Icon(
@@ -235,19 +235,19 @@ fun AddItemFab(
             }
             FloatingActionButton(
                 modifier = Modifier.rotate(
-                    addItemFABParam.rotationAnimation.value
+                    addItemFABParam.rotationAnimatable.value
                 ).pulsateEffect(), onClick = {
                     if (addItemFABParam.isMainFabRotated.value) {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
-                        addItemFABParam.shouldShowAddLinkDialog.value = true
+                        addItemFABParam.onShowAddLinkDialog()
                         addItemFABParam.isMainFabRotated.value = false
                         coroutineScope.launch {
-                            addItemFABParam.rotationAnimation.snapTo(-180f)
+                            addItemFABParam.rotationAnimatable.snapTo(-180f)
                         }
                     } else {
                         coroutineScope.launch {
                             kotlinx.coroutines.awaitAll(async {
-                                addItemFABParam.rotationAnimation.animateTo(
+                                addItemFABParam.rotationAnimatable.animateTo(
                                     180f, animationSpec = tween(500)
                                 )
                             }, async {

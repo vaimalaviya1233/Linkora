@@ -21,7 +21,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,17 +31,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferenceType
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
 import com.sakethh.linkora.ui.domain.SortingType
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.utils.pulsateEffect
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -52,142 +51,126 @@ fun SortingBottomSheetUI(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val sortingBtmSheetVM: SortingBtmSheetVM = linkoraViewModel()
-    LaunchedEffect(key1 = sortingBottomSheetParam.shouldBottomSheetBeVisible.value) {
-        if (sortingBottomSheetParam.shouldBottomSheetBeVisible.value) {
-            sortingBottomSheetParam.bottomModalSheetState.expand()
-        }
-    }
     val linksSortingSelectedState = rememberSaveable {
-        mutableStateOf(sortingBottomSheetParam.shouldLinksSelectionBeVisible.value)
+        mutableStateOf(sortingBottomSheetParam.showLinksSelection.value)
     }
     val foldersSortingSelectedState = rememberSaveable {
-        mutableStateOf(sortingBottomSheetParam.shouldFoldersSelectionBeVisible.value)
+        mutableStateOf(sortingBottomSheetParam.showFoldersSelection.value)
     }
-    if (sortingBottomSheetParam.shouldBottomSheetBeVisible.value) {
-        val didAnyCheckBoxStateChanged = rememberSaveable {
-            mutableStateOf(false)
+    val didAnyCheckBoxStateChanged = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val hideBtmSheet: () -> Unit = {
+        coroutineScope.launch {
+            sortingBottomSheetParam.bottomModalSheetState.hide()
+        }.invokeOnCompletion {
+            sortingBottomSheetParam.onDismiss()
         }
-        val sortByUI: ComposableContent = {
-            sortingBtmSheetVM.sortingBtmSheetData().forEach {
-                Column(
-                    modifier = Modifier.combinedClickable(interactionSource = remember {
-                        MutableInteractionSource()
-                    }, indication = null, onClick = {
-                        sortingBottomSheetParam.onSelected(
-                            it.sortingType,
-                            linksSortingSelectedState.value,
-                            foldersSortingSelectedState.value
-                        )
-                        it.onClick()
-                        coroutineScope.launch {
-                            sortingBottomSheetParam.bottomModalSheetState.hide()
-                            sortingBottomSheetParam.shouldBottomSheetBeVisible.value = false
-                        }
-                    }, onLongClick = {}).pulsateEffect().fillMaxWidth().wrapContentHeight()
+    }
+    val sortByUI: ComposableContent = {
+        sortingBtmSheetVM.sortingBtmSheetData().forEach {
+            Column(
+                modifier = Modifier.combinedClickable(interactionSource = remember {
+                    MutableInteractionSource()
+                }, indication = null, onClick = {
+                    sortingBottomSheetParam.onSelected(
+                        it.sortingType,
+                        linksSortingSelectedState.value,
+                        foldersSortingSelectedState.value
+                    )
+                    it.onClick()
+                    hideBtmSheet()
+                }, onLongClick = {}).pulsateEffect().fillMaxWidth().wrapContentHeight()
+            ) {
+                Row(
+                    modifier = Modifier.padding(start = 15.dp).fillMaxWidth().wrapContentHeight(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(start = 15.dp).fillMaxWidth()
-                            .wrapContentHeight(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = it.sortingName,
-                            fontSize = 16.sp,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = if (it.sortingType == SortingType.valueOf(
-                                    AppPreferences.selectedSortingTypeType.value
-                                ) && !didAnyCheckBoxStateChanged.value
-                            ) MaterialTheme.colorScheme.primary else LocalTextStyle.current.color
-                        )
-                        RadioButton(
-                            selected = it.sortingType.name == AppPreferences.selectedSortingTypeType.value && !didAnyCheckBoxStateChanged.value,
-                            onClick = {
-                                sortingBottomSheetParam.onSelected(
-                                    it.sortingType,
-                                    linksSortingSelectedState.value,
-                                    foldersSortingSelectedState.value
-                                )
-                                it.onClick()
-                                coroutineScope.launch {
-                                    sortingBottomSheetParam.bottomModalSheetState.hide()
-                                    sortingBottomSheetParam.shouldBottomSheetBeVisible.value = false
-                                }
-                            },
-                            modifier = Modifier.padding(end = 5.dp)
-                        )
-                    }
+                    Text(
+                        text = it.sortingName,
+                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = if (it.sortingType == SortingType.valueOf(
+                                AppPreferences.selectedSortingTypeType.value
+                            ) && !didAnyCheckBoxStateChanged.value
+                        ) MaterialTheme.colorScheme.primary else LocalTextStyle.current.color
+                    )
+                    RadioButton(
+                        selected = it.sortingType.name == AppPreferences.selectedSortingTypeType.value && !didAnyCheckBoxStateChanged.value,
+                        onClick = {
+                            sortingBottomSheetParam.onSelected(
+                                it.sortingType,
+                                linksSortingSelectedState.value,
+                                foldersSortingSelectedState.value
+                            )
+                            it.onClick()
+                            hideBtmSheet()
+                        },
+                        modifier = Modifier.padding(end = 5.dp)
+                    )
                 }
             }
         }
-        ModalBottomSheet(
-            sheetState = sortingBottomSheetParam.bottomModalSheetState, onDismissRequest = {
-                coroutineScope.launch {
-                    sortingBottomSheetParam.bottomModalSheetState.hide()
-                }
-                sortingBottomSheetParam.shouldBottomSheetBeVisible.value = false
-            }) {
-            Column(
-                modifier = Modifier.animateContentSize()
-            ) {
+    }
+    ModalBottomSheet(
+        sheetState = sortingBottomSheetParam.bottomModalSheetState, onDismissRequest = hideBtmSheet
+    ) {
+        Column(
+            modifier = Modifier.animateContentSize()
+        ) {
+            Text(
+                text = Localization.Key.SortBy.rememberLocalizedString(),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(start = 15.dp)
+            )
+            if (sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN) {
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+            if (((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN && foldersSortingSelectedState.value) || (sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN && linksSortingSelectedState.value)) || ((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN && foldersSortingSelectedState.value) || sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN && linksSortingSelectedState.value)) {
                 Text(
                     text = Localization.Key.SortBy.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 15.dp)
+                    modifier = Modifier.padding(start = 15.dp, top = 20.dp)
                 )
-                if (sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-                if (((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN && foldersSortingSelectedState.value) || (sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.REGULAR_FOLDER_SCREEN && linksSortingSelectedState.value)) || ((sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN && foldersSortingSelectedState.value) || sortingBottomSheetParam.sortingBtmSheetType == SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN && linksSortingSelectedState.value)) {
-                    Text(
-                        text = Localization.Key.SortBy.rememberLocalizedString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(start = 15.dp, top = 20.dp)
-                    )
-                    sortByUI()
-                }
-                if (sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.REGULAR_FOLDER_SCREEN && sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN) {
-                    sortByUI()
-                }
-                ItemDivider(
-                    paddingValues = PaddingValues(
-                        top = 10.dp, start = 15.dp, end = 15.dp, bottom = 18.dp
-                    )
-                )
-                SettingComponent(
-                    SettingComponentParam(
-                        title = Localization.Key.ForceShuffleLinks.rememberLocalizedString(),
-                        doesDescriptionExists = true,
-                        description = Localization.Key.ForceShuffleLinksDesc.rememberLocalizedString(),
-                        isSwitchNeeded = true,
-                        isSwitchEnabled = AppPreferences.forceShuffleLinks,
-                        onSwitchStateChange = {
-                            AppPreferences.forceShuffleLinks.value = it
-                            sortingBtmSheetVM.changeSettingPreferenceValue(
-                                preferenceKey = booleanPreferencesKey(
-                                    AppPreferenceType.FORCE_SHUFFLE_LINKS.name
-                                ),
-                                newValue = AppPreferences.forceShuffleLinks.value,
-                                onCompletion = {
-                                    coroutineScope.launch {
-                                        sortingBottomSheetParam.bottomModalSheetState.hide()
-                                    }.invokeOnCompletion {
-                                        sortingBottomSheetParam.shouldBottomSheetBeVisible.value =
-                                            false
-                                    }
-                                })
-                        },
-                        isIconNeeded = mutableStateOf(false)
-                    )
-                )
-                Spacer(
-                    modifier = Modifier.navigationBarsPadding()
-                )
+                sortByUI()
             }
+            if (sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.REGULAR_FOLDER_SCREEN && sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN) {
+                sortByUI()
+            }
+            ItemDivider(
+                paddingValues = PaddingValues(
+                    top = 10.dp, start = 15.dp, end = 15.dp, bottom = 18.dp
+                )
+            )
+            SettingComponent(
+                SettingComponentParam(
+                    title = Localization.Key.ForceShuffleLinks.rememberLocalizedString(),
+                    doesDescriptionExists = true,
+                    description = Localization.Key.ForceShuffleLinksDesc.rememberLocalizedString(),
+                    isSwitchNeeded = true,
+                    isSwitchEnabled = AppPreferences.forceShuffleLinks,
+                    onSwitchStateChange = {
+                        AppPreferences.forceShuffleLinks.value = it
+                        sortingBtmSheetVM.changeSettingPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.FORCE_SHUFFLE_LINKS.name
+                            ),
+                            newValue = AppPreferences.forceShuffleLinks.value,
+                            onCompletion = hideBtmSheet
+                        )
+                    },
+                    isIconNeeded = rememberSaveable {
+                        mutableStateOf(false)
+                    })
+            )
+            Spacer(
+                modifier = Modifier.navigationBarsPadding()
+            )
         }
     }
 }

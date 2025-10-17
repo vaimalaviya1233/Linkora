@@ -126,7 +126,7 @@ fun defaultFolderIds(): List<Long> = listOf(
     Constants.DEFAULT_PANELS_ID
 )
 
-fun initializeIfServerConfigured(init: () -> Unit) {
+fun ifServerConfigured(init: () -> Unit) {
     if (AppPreferences.isServerConfigured()) {
         init()
     }

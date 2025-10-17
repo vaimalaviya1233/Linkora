@@ -25,8 +25,15 @@ interface LocalTagsRepo {
     fun getAllLinkTags(): Flow<List<LinkTag>>
 
     fun getTagsBasedOnTheLinkId(linkId: Long): Flow<List<Tag>>
+    suspend fun getTags(linkId: Long): List<Tag>
 
     fun getTagsForLinks(linkIds: List<Long>): Flow<Map<Long, List<Tag>>>
 
     fun search(query: String,sortOption: String): Flow<List<Tag>>
+
+
+    suspend fun getLocalTagIds(remoteIds: List<Long>): List<Long>
+    suspend fun getLocalTags(remoteIds: List<Long>): List<Tag>
+
+    suspend fun getLocalTagId(remoteId: Long): Long
 }

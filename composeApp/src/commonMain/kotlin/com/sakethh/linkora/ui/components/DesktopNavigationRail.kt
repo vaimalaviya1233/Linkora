@@ -39,15 +39,16 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.ui.utils.linkoraLog
 
 @Composable
 fun DesktopNavigationRail(
     rootRouteList: List<Navigation.Root>,
     appVM: AppVM,
     currentRoute: NavDestination?,
-    isDataSyncingFromPullRefresh: MutableState<Boolean>
+    isDataSyncingFromPullRefresh: MutableState<Boolean>,
+    onNavigate:()-> Unit
 ) {
     val localNavController = LocalNavController.current
     Row {
@@ -65,8 +66,8 @@ fun DesktopNavigationRail(
                         start = 15.dp, end = 15.dp, top = 15.dp
                     ), selected = isSelected, onClick = {
                         if (currentRoute?.hasRoute(navRouteItem::class) == false) {
-                            CollectionsScreenVM.resetCollectionDetailPaneInfo()
                             localNavController.navigate(navRouteItem)
+                            onNavigate()
                         }
                     }, icon = {
                         Icon(

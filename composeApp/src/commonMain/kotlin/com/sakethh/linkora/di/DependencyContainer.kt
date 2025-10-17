@@ -16,8 +16,8 @@ import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteLinksRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteMultiActionRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemotePanelsRepoImpl
-import com.sakethh.linkora.data.remote.repository.RemoteSyncRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteTagsRepoImpl
+import com.sakethh.linkora.data.remote.repository.sync.RemoteSyncRepoImpl
 import com.sakethh.linkora.network.Network
 import com.sakethh.linkora.network.repository.NetworkRepoImpl
 import com.sakethh.linkora.preferences.AppPreferences
@@ -76,8 +76,11 @@ object DependencyContainer {
                 AppPreferences.WEB_SOCKET_SCHEME
             },
             localTagsRepo = localTagsRepo,
+            remoteTagsRepo = remoteTagsRepo,
+            tagsDao = LinkoraSDK.getInstance().localDatabase.tagsDao
         )
     }
+
     val pendingSyncQueueRepo by lazy {
         PendingSyncQueueRepoImpl(LinkoraSDK.getInstance().localDatabase.pendingSyncQueueDao)
     }

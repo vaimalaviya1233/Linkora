@@ -1,14 +1,5 @@
 package com.sakethh.linkora.data.local.repository
 
-import com.sakethh.linkora.utils.baseUrl
-import com.sakethh.linkora.utils.defaultFolderIds
-import com.sakethh.linkora.utils.ifNot
-import com.sakethh.linkora.utils.isATwitterUrl
-import com.sakethh.linkora.utils.isAValidLink
-import com.sakethh.linkora.utils.isNotNullOrNotBlank
-import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
-import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
-import com.sakethh.linkora.utils.wrappedResultFlow
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.TagsDao
@@ -25,14 +16,25 @@ import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
 import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.twitter.TwitterMetaDataDTO
 import com.sakethh.linkora.domain.mapToResultFlow
-import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.ScrapedLinkInfo
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.tag.LinkTag
+import com.sakethh.linkora.domain.model.tag.LinkTagDTO
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
+import com.sakethh.linkora.utils.baseUrl
+import com.sakethh.linkora.utils.defaultFolderIds
+import com.sakethh.linkora.utils.ifNot
+import com.sakethh.linkora.utils.isATwitterUrl
+import com.sakethh.linkora.utils.isAValidLink
+import com.sakethh.linkora.utils.isNotNullOrNotBlank
+import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
+import com.sakethh.linkora.utils.wrappedResultFlow
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -43,7 +45,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
 import java.time.Instant
@@ -63,17 +64,20 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun addANewLink(
-        link: Link,
-        selectedTagIds: List<Long>?,
-        linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
+        link: Link, selectedTagIds: List<Long>?, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         if (link.linkType == LinkType.HISTORY_LINK) {
             linksDao.deleteLinksFromHistory(link.url)
         }
         var newLinkId: Long? = null
         val eventTimestamp = Instant.now().epochSecond
+        val remoteTagIds = if (selectedTagIds != null) {
+            tagsDao.getRemoteTagIds(selectedTagIds)
+        } else {
+            emptyList()
+        }
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(),
+            performRemoteOperation = !viaSocket,
             onRemoteOperationFailure = {
                 if (newLinkId == null) return@performLocalOperationWithRemoteSyncFlow
 
@@ -85,12 +89,13 @@ class LocalLinksRepoImpl(
                                 linksDao.getLink(newLinkId!!).copy(
                                     idOfLinkedFolder = link.idOfLinkedFolder,
                                     lastModified = eventTimestamp
-                                ).asAddLinkDTO().copy(offlineSyncItemId = newLinkId!!)
+                                ).asAddLinkDTO(remoteTagIds).copy(offlineSyncItemId = newLinkId!!)
                             )
                         } else {
                             Json.encodeToString(
                                 linksDao.getLink(newLinkId!!).copy(lastModified = eventTimestamp)
-                                    .asAddLinkDTO().copy(offlineSyncItemId = newLinkId!!)
+                                    .asAddLinkDTO(remoteTagIds)
+                                    .copy(offlineSyncItemId = newLinkId!!)
                             )
                         }
                     )
@@ -105,12 +110,12 @@ class LocalLinksRepoImpl(
                     remoteLinksRepo.addANewLink(
                         linksDao.getLink(newLinkId!!).copy(
                             idOfLinkedFolder = remoteIdOfLinkedFolder, lastModified = eventTimestamp
-                        ).asAddLinkDTO()
+                        ).asAddLinkDTO(remoteTagIds)
                     )
                 } else {
                     remoteLinksRepo.addANewLink(
                         linksDao.getLink(newLinkId!!).copy(lastModified = eventTimestamp)
-                            .asAddLinkDTO()
+                            .asAddLinkDTO(remoteTagIds)
                     )
                 }
             },
@@ -184,8 +189,7 @@ class LocalLinksRepoImpl(
                 tagsDao.createLinkTags(
                     linksTags = selectedTagIds.map { tagId ->
                         LinkTag(
-                            linkId = newLinkId,
-                            tagId = tagId
+                            linkId = newLinkId, tagId = tagId
                         )
                     })
             }
@@ -193,7 +197,7 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun addMultipleLinks(links: List<Link>): List<Long> {
-       return linksDao.addMultipleLinks(links)
+        return linksDao.addMultipleLinks(links)
     }
 
     override suspend fun getSortedLinks(
@@ -446,7 +450,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 val linkDTO =
                     linksDao.getLink(linkId).copy(note = newNote, lastModified = eventTimestamp)
-                        .asLinkDTO(id = linkId)
+                        .asLinkDTO(id = linkId, remoteLinkTags = TODO())
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
@@ -484,7 +488,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 val linkDTO =
                     linksDao.getLink(linkId).copy(title = newTitle, lastModified = eventTimestamp)
-                        .asLinkDTO(linkId)
+                        .asLinkDTO(linkId, remoteLinkTags = TODO())
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
@@ -523,14 +527,27 @@ class LocalLinksRepoImpl(
         linksDao.deleteAllLinks()
     }
 
-    override suspend fun updateALink(link: Link, viaSocket: Boolean): Flow<Result<Unit>> {
+    override suspend fun updateALink(
+        link: Link, updatedLinkTagsPair: LinkTagsPair?, viaSocket: Boolean
+    ): Flow<Result<Unit>> {
+        val remoteLinkTagDTOs = if (link.remoteId != null) {
+            updatedLinkTagsPair?.tags?.map {
+                LinkTagDTO(linkId = link.remoteId, tagId = it.remoteId ?: -54545)
+            }
+        } else {
+            null
+        }
         val remoteId = getRemoteIdOfLink(link.localId)
         val eventTimestamp = Instant.now().epochSecond
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 if (remoteId != null) {
-                    remoteLinksRepo.updateLink(link.asLinkDTO(id = remoteId))
+                    remoteLinksRepo.updateLink(
+                        link.asLinkDTO(
+                            id = remoteId, remoteLinkTags = remoteLinkTagDTOs ?: emptyList()
+                        )
+                    )
                 } else {
                     emptyFlow()
                 }
@@ -544,13 +561,36 @@ class LocalLinksRepoImpl(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.UPDATE_LINK.name,
                         payload = Json.encodeToString(
-                            link.asLinkDTO(id = link.localId).copy(eventTimestamp = eventTimestamp)
+                            link.asLinkDTO(
+                                id = link.localId, remoteLinkTags = remoteLinkTagDTOs ?: emptyList()
+                            ).copy(eventTimestamp = eventTimestamp)
                         )
                     )
                 )
             }) {
+
             linksDao.updateALink(link)
             linksDao.updateLinkTimestamp(eventTimestamp, link.localId)
+
+            if (updatedLinkTagsPair == null) return@performLocalOperationWithRemoteSyncFlow
+
+
+            val tagsAttachedToTheLink = tagsDao.getTags(linkId = updatedLinkTagsPair.link.localId)
+
+            val newlySelectedTags = updatedLinkTagsPair.tags.filter { curFilterTag ->
+                curFilterTag !in tagsAttachedToTheLink
+            }
+
+            val unselectedTags = tagsAttachedToTheLink.filter { curFilterTag ->
+                curFilterTag !in updatedLinkTagsPair.tags
+            }
+            tagsDao.deleteLinkTagsBasedOnTags(unselectedTags.map { it.localId })
+            tagsDao.createLinkTags(newlySelectedTags.map {
+                LinkTag(
+                    linkId = updatedLinkTagsPair.link.localId, tagId = it.localId
+                )
+            })
+
         }
     }
 
@@ -562,13 +602,14 @@ class LocalLinksRepoImpl(
             remoteOperation = {
                 if (remoteId != null) {
                     remoteLinksRepo.updateLink(
-                        linksDao.getLink(link.localId).asLinkDTO(id = remoteId).run {
-                            copy(
-                                idOfLinkedFolder = foldersDao.getRemoteIdOfAFolder(
-                                    idOfLinkedFolder ?: -45454
+                        linksDao.getLink(link.localId)
+                            .asLinkDTO(id = remoteId, remoteLinkTags = TODO()).run {
+                                copy(
+                                    idOfLinkedFolder = foldersDao.getRemoteIdOfAFolder(
+                                        idOfLinkedFolder ?: -45454
+                                    )
                                 )
-                            )
-                        })
+                            })
                 } else {
                     emptyFlow()
                 }
@@ -582,7 +623,8 @@ class LocalLinksRepoImpl(
                     PendingSyncQueue(
                         operation = RemoteRoute.Link.UPDATE_LINK.name,
                         payload = Json.encodeToString(
-                            linksDao.getLink(link.localId).asLinkDTO(id = link.localId)
+                            linksDao.getLink(link.localId)
+                                .asLinkDTO(id = link.localId, remoteLinkTags = TODO())
                                 .copy(eventTimestamp = eventTimestamp)
                         )
                     )

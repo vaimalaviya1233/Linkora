@@ -1,11 +1,10 @@
 package com.sakethh.linkora.ui.domain.model
 
-import androidx.compose.runtime.MutableState
 import com.sakethh.linkora.domain.model.Folder
 
 data class AddNewFolderDialogBoxParam(
-    val shouldBeVisible: MutableState<Boolean>,
+    val onDismiss: () -> Unit,
     val inAChildFolderScreen: Boolean,
     val onFolderCreateClick: (folderName: String, folderNote: String, onCompletion: () -> Unit) -> Unit,
-    val thisFolder: Folder?
+    val currentFolder: Folder?
 )

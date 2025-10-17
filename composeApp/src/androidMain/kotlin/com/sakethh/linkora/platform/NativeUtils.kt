@@ -1,8 +1,10 @@
 package com.sakethh.linkora.platform
 
 import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -13,13 +15,13 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.sakethh.linkora.R
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.R
+import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
+import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
-import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.worker.RefreshAllLinksWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -39,8 +41,7 @@ actual class NativeUtils(private val context: Context) {
     }
 
     actual suspend fun onRefreshAllLinks(
-        localLinksRepo: LocalLinksRepo,
-        preferencesRepository: PreferencesRepository
+        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
     ) {
         val workManager = WorkManager.getInstance(context)
         val request = OneTimeWorkRequestBuilder<RefreshAllLinksWorker>().setConstraints(
@@ -99,5 +100,32 @@ actual class NativeUtils(private val context: Context) {
         actual fun clearNotification() {
             notificationManager.cancelAll()
         }
+    }
+
+    private val packageManager = context.packageManager
+    private val packageName = context.applicationContext.packageName
+
+    actual fun onIconChange(
+        allIconCodes: List<String>, newIconCode: String, onCompletion: () -> Unit
+    ) {
+        allIconCodes.forEach {
+            if (it != newIconCode) {
+                packageManager.setComponentEnabledSetting(
+                    ComponentName(packageName, "$packageName.$it"),
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP
+                )
+            }
+        }
+
+        val newAppIconComponent = ComponentName(packageName, "$packageName.$newIconCode")
+
+        packageManager.setComponentEnabledSetting(
+            newAppIconComponent,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP
+        )
+
+        onCompletion()
     }
 }

@@ -176,7 +176,6 @@ object Localization {
         AppIntroSlide2Folder1Note(
             "cool stuff i might use later"
         ),
-        AppIntroSlide1WelcomeToLabel("Welcome to"),
         AppIntroSlide1SwipeLabel("Swipe through or hit Next to discover Linkora's features."),
         AppIntroSlide1Label(
             "Linkora keeps your links private.\nSync and organize—nothing leaves your device unless you set up your own server.\nNo tracking, no cloud."
@@ -651,10 +650,10 @@ object Localization {
         ),
         UpdatingChangesOnRemoteServer(defaultValue = "Updating Changes on Remote Server"),
         LOLCATplAck(
-            defaultValue = "Menu Bottom Sheet and Link Dialog Box for Android tablet/desktop platforms are inspired by and based on the mockups created by LOLCATpl."
+            defaultValue = "LOLCATpl made this logo. Across the app on all platforms, Linkora's improved UI components are inspired and based on the designs made by LOLCATpl."
         ),
         MondsternAck(
-            defaultValue = "Linkora app icon is painted by mondstern."
+            defaultValue = "mondstern painted this logo, which was based on the legacy logo."
         ),
         AckEndingText(defaultValue = "And, of course, the underlying libraries used by these also impact Linkora's behavior."),
         LOLCATplOnDiscord(

@@ -5,7 +5,11 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.FontDownload
+import androidx.compose.material.icons.rounded.FormatShapes
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.TextFormat
+import androidx.compose.material.icons.rounded.TypeSpecimen
 import androidx.compose.runtime.mutableStateOf
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -13,16 +17,18 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferenceType
-import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.platform.NativeUtils
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.domain.AppIconCode
 import com.sakethh.linkora.ui.navigation.Navigation
 import kotlinx.coroutines.launch
 
 open class SettingsScreenViewModel(
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository, private val nativeUtils: NativeUtils
 ) : ViewModel() {
 
     fun generalSection(platform: Platform): List<SettingComponentParam> {
@@ -145,158 +151,27 @@ open class SettingsScreenViewModel(
                     icon = Icons.Rounded.Home
                 )
             )
+
+            add(
+                SettingComponentParam(
+                    title = "Use Custom App Version Label",
+                    doesDescriptionExists = true,
+                    description = "Enables a custom font-based version label throughout the app.",
+                    isSwitchNeeded = true,
+                    isSwitchEnabled = AppPreferences.useCustomAppVersionLabel,
+                    onSwitchStateChange = {
+                        AppPreferences.useCustomAppVersionLabel.value = it
+                        changeSettingPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.CUSTOM_VERSION_APP_LABEL.name
+                            ), newValue = it
+                        )
+                    },
+                    isIconNeeded = mutableStateOf(true),
+                    icon = Icons.Rounded.TextFormat
+                )
+            )
         }
-    }
-
-    fun acknowledgementSection(): List<SettingComponentParam> {
-        return listOf(
-            SettingComponentParam(
-                title = "Kotlin",
-                doesDescriptionExists = true,
-                description = "Apache License (Version 2.0)",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {},
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/JetBrains/kotlin")
-                },
-                isIconNeeded = mutableStateOf(false),
-                shouldArrowIconBeAppear = mutableStateOf(true)
-            ),
-            SettingComponentParam(
-                title = "Android Jetpack",
-                doesDescriptionExists = true,
-                description = "Apache License (Version 2.0)",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {},
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/androidx/androidx")
-                },
-                shouldArrowIconBeAppear = mutableStateOf(true),
-                isIconNeeded = mutableStateOf(false)
-            ),
-            SettingComponentParam(
-                title = "Coil",
-                doesDescriptionExists = true,
-                description = "Apache License (Version 2.0)",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/coil-kt/coil")
-                },
-                shouldArrowIconBeAppear = mutableStateOf(true),
-                isIconNeeded = mutableStateOf(false)
-            ),
-            SettingComponentParam(
-                title = "jsoup",
-                doesDescriptionExists = true,
-                description = "MIT License",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/jhy/jsoup")
-                },
-                shouldArrowIconBeAppear = mutableStateOf(true),
-                isIconNeeded = mutableStateOf(false)
-            ),
-            SettingComponentParam(
-                title = "Material Design 3",
-                doesDescriptionExists = true,
-                description = "Apache License (Version 2.0)",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://m3.material.io/")
-                },
-                shouldArrowIconBeAppear = mutableStateOf(true),
-                isIconNeeded = mutableStateOf(false)
-            ),
-            SettingComponentParam(
-                title = "ktor-client",
-                doesDescriptionExists = true,
-                description = "Apache License (Version 2.0)",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/ktorio/ktor")
-                },
-                shouldArrowIconBeAppear = mutableStateOf(true),
-                isIconNeeded = mutableStateOf(false)
-            ),
-            SettingComponentParam(
-                title = "kotlinx.serialization",
-                doesDescriptionExists = true,
-                description = "Apache License (Version 2.0)",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/Kotlin/kotlinx.serialization")
-                },
-                shouldArrowIconBeAppear = mutableStateOf(true),
-                isIconNeeded = mutableStateOf(false)
-            ),
-            SettingComponentParam(
-                title = "Material Icons",
-                doesDescriptionExists = true,
-                description = "Apache License (Version 2.0)",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/google/material-design-icons")
-                },
-                isIconNeeded = mutableStateOf(false),
-                shouldArrowIconBeAppear = mutableStateOf(true)
-            ),
-            SettingComponentParam(
-                title = "vxTwitter",
-                doesDescriptionExists = true,
-                description = "WTFPL License",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://github.com/dylanpdx/BetterTwitFix")
-                },
-                isIconNeeded = mutableStateOf(false),
-                shouldArrowIconBeAppear = mutableStateOf(true)
-            ),
-            SettingComponentParam(
-                title = "Poppins",
-                doesDescriptionExists = true,
-                description = "Open Font License",
-                isSwitchNeeded = false,
-                isSwitchEnabled = mutableStateOf(false),
-                onSwitchStateChange = {
-
-                },
-                onAcknowledgmentClick = { uriHandler ->
-                    uriHandler.openUri("https://fonts.google.com/specimen/Poppins")
-                },
-                isIconNeeded = mutableStateOf(false),
-                shouldArrowIconBeAppear = mutableStateOf(true)
-            ),
-        )
     }
 
     fun <T> changeSettingPreferenceValue(
@@ -318,4 +193,22 @@ open class SettingsScreenViewModel(
         }
     }
 
+    private val allIconCodes = AppIconCode.entries.map { it.name }
+
+    fun onIconChange(newIconCode: String, onCompletion: () -> Unit) {
+        nativeUtils.onIconChange(
+            allIconCodes = allIconCodes,
+            newIconCode = newIconCode,
+            onCompletion = {
+                viewModelScope.launch {
+                    preferencesRepository.changePreferenceValue(
+                        preferenceKey = stringPreferencesKey(
+                            AppPreferenceType.SELECTED_APP_ICON.name
+                        ), newValue = newIconCode
+                    )
+                }.invokeOnCompletion {
+                    onCompletion()
+                }
+            })
+    }
 }

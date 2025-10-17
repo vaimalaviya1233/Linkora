@@ -111,17 +111,18 @@ fun BottomNavOnSelection(
                 )
             }
         }
+        val currentFolder = appVM.currentContextOfFAB.value.currentFolder
         val showPasteButton =
-            appVM.transferActionType.value != TransferActionType.NONE && (selectedAndInRoot.value.not() || CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder != null) && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
-        if ((CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId in defaultFolderIds().dropWhile {
+            (appVM.transferActionType.value != TransferActionType.NONE && !selectedAndInRoot.value||  currentFolder != null) && currentFolder?.localId != Constants.ALL_LINKS_ID
+        if (!(CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && currentFolder?.localId in defaultFolderIds().dropWhile {
                 it == Constants.ARCHIVE_ID
-            }).not()) {
+            })) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if ((appVM.transferActionType.value == TransferActionType.NONE && showPasteButton.not()) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
+                if ((appVM.transferActionType.value == TransferActionType.NONE && !showPasteButton) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
                     Text(
                         text = Localization.Key.MultiActionsLabel.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
@@ -136,12 +137,10 @@ fun BottomNavOnSelection(
                 ) {
                     if (showPasteButton) {
                         IconButton(onClick = {
-                            if (CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder == null) {
-                                return@IconButton
-                            }
+
                             if (appVM.transferActionType.value == TransferActionType.COPY) {
                                 appVM.copySelectedItems(
-                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                    folderId = 0/*CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!*/,
                                     onStart = {
                                         showLoadingProgressBarOnTransferAction.value = true
                                     },
@@ -150,7 +149,7 @@ fun BottomNavOnSelection(
                                     })
                             } else {
                                 appVM.moveSelectedItems(
-                                    folderId = CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!,
+                                    folderId = 0/*CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!*/,
                                     onStart = {
                                         showLoadingProgressBarOnTransferAction.value = true
                                     },
@@ -252,7 +251,7 @@ fun BottomNavOnSelection(
             )
         }
         val showNavigateToCollectionScreen =
-            selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true && CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId != Constants.ALL_LINKS_ID
+            selectedAndInRoot.value && currentRoute?.hasRoute(Navigation.Root.CollectionsScreen::class) != true
         if (CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && CollectionsScreenVM.selectedFoldersViaLongClick.any {
                 it.parentFolderId != null
             }) {
@@ -267,7 +266,7 @@ fun BottomNavOnSelection(
                     start = 15.dp,
                     end = 15.dp,
                     top = 5.dp,
-                    bottom = if (showNavigateToCollectionScreen.not()) 5.dp else 0.dp
+                    bottom = if (!showNavigateToCollectionScreen) 5.dp else 0.dp
                 )
             ) {
                 Text(

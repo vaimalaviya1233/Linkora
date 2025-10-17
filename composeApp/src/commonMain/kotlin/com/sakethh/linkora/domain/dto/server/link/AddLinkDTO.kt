@@ -4,6 +4,7 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.dto.server.Correlation
+import com.sakethh.linkora.domain.dto.server.tag.TagDTO
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -20,5 +21,6 @@ data class AddLinkDTO(
     val mediaType: MediaType,
     val correlation: Correlation = AppPreferences.getCorrelation(),
     val eventTimestamp: Long,
+    val tags: List<Long>,
     val offlineSyncItemId: Long = 0
 )

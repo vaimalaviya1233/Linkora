@@ -9,15 +9,14 @@ data class CollectionDetailPaneInfo(
     val currentFolder: Folder?,
     val currentTag: Tag?,
     val collectionType: CollectionType?,
-    val isAnyCollectionSelected: Boolean
 )
 
 enum class CollectionType {
-    FOLDER, TAG
+    FOLDER,
+    TAG
 }
 
 @Serializable
 data class SearchNavigated(
-    val navigatedFromSearchScreen: Boolean,
-    val navigatedWithFolderId: Long
+    val navigatedFromSearchScreen: Boolean, val navigatedWithFolderId: Long
 )

@@ -59,4 +59,6 @@ actual class NativeUtils {
         actual fun showNotification() = Unit
         actual fun clearNotification() = Unit
     }
+
+    actual fun onIconChange(allIconCodes: List<String>, newIconCode: String, onCompletion: () -> Unit) = Unit
 }
