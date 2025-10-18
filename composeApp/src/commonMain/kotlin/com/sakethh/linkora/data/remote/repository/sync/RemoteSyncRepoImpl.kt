@@ -19,6 +19,7 @@ import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.WebSocketEvent
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -186,7 +187,30 @@ class RemoteSyncRepoImpl(
                         send(Result.Loading("Processing folder with id: ${it.id}"))
                         applyFolderUpdates(it)
                     }
-
+                    remoteResponse.tags.forEach {
+                        val localTag = try {
+                            val localId = tagsDao.getLocalTagId(it.id)
+                            tagsDao.getATag(localId)
+                        } catch (_: Exception) {
+                            null
+                        }
+                        if (localTag == null) {
+                            tagsDao.createATag(
+                                Tag(
+                                    remoteId = it.id,
+                                    lastModified = it.eventTimestamp,
+                                    name = it.name
+                                )
+                            )
+                        } else {
+                            tagsDao.updateATag(
+                                localTag.copy(
+                                    name = it.name, lastModified = it.eventTimestamp
+                                )
+                            )
+                        }
+                    }
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(remoteResponse.tags.maxOf { it.eventTimestamp })
                     coroutineScope {
                         awaitAll(async {
                             send(Result.Loading("Processing links..."))
