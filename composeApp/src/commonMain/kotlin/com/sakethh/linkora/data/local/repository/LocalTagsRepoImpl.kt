@@ -150,7 +150,7 @@ class LocalTagsRepoImpl(
                     PendingSyncQueue(
                         operation = RemoteRoute.Tag.RENAME_TAG.name, payload = Json.encodeToString(
                             RenameTagDTO(
-                                newName = tag.name,
+                                newName = newName,
                                 id = tag.remoteId,
                                 eventTimestamp = eventTimestamp
                             )
