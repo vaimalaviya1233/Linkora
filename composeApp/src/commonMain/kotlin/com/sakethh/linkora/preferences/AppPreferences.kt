@@ -154,7 +154,7 @@ object AppPreferences {
                     launch {
                         shouldUseForceDarkTheme.value = preferencesRepository.readPreferenceValue(
                             preferenceKey = booleanPreferencesKey(AppPreferenceType.DARK_THEME.name),
-                        ) ?: showFollowSystemThemeOption.not()
+                        ) ?: !showFollowSystemThemeOption
                     },
                     launch {
                         shouldUseDynamicTheming.value = preferencesRepository.readPreferenceValue(

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
 
-actual val showFollowSystemThemeOption: Boolean = true
+actual val showFollowSystemThemeOption: Boolean = false
 actual val BUILD_FLAVOUR: String = "desktop"
 actual val platform: @Composable () -> Platform = {
     Platform.Desktop

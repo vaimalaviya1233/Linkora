@@ -210,7 +210,11 @@ class RemoteSyncRepoImpl(
                             )
                         }
                     }
-                    preferencesRepository.updateLastSyncedWithServerTimeStamp(remoteResponse.tags.maxOf { it.eventTimestamp })
+                    try {
+                        val maxTimestamp = remoteResponse.tags.maxOf { it.eventTimestamp }
+                        preferencesRepository.updateLastSyncedWithServerTimeStamp(maxTimestamp)
+                    } catch (_: Exception) {
+                    }
                     coroutineScope {
                         awaitAll(async {
                             send(Result.Loading("Processing links..."))
