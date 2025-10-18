@@ -84,7 +84,7 @@ class RemoteSyncRepoImpl(
     foldersDao: FoldersDao,
     localTagsRepo: LocalTagsRepo,
     remoteTagsRepo: RemoteTagsRepo,
-    tagsDao: TagsDao,
+    private val tagsDao: TagsDao,
 ) : RemoteSyncRepo {
 
 
@@ -357,8 +357,10 @@ class RemoteSyncRepoImpl(
                 PendingSyncQueue(
                     operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
                     payload = Json.Default.encodeToString(
-                        currentLink.asAddLinkDTO(TODO())
-                            .copy(offlineSyncItemId = currentLink.localId)
+                        currentLink.asAddLinkDTO(
+                            remoteTagIds = tagsDao.getTags(currentLink.localId).map {
+                                it.remoteId ?: -45454
+                            }).copy(offlineSyncItemId = currentLink.localId)
                     )
                 )
             )
