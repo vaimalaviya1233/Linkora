@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.preferences.AppPreferenceType
@@ -46,9 +45,6 @@ import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
-import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.MediaType
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.link.GridViewLinkUIComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
@@ -69,7 +65,7 @@ fun LayoutSettingsScreen() {
         topAppBarText = Localization.Key.LinkLayoutSettings.rememberLocalizedString(),
         navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
-        when (AppPreferences.currentlySelectedLinkLayout.value) {
+        when (AppPreferences.selectedLinkLayout.value) {
             Layout.REGULAR_LIST_VIEW.name, Layout.TITLE_ONLY_LIST_VIEW.name -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
@@ -150,7 +146,7 @@ fun LayoutSettingsScreen() {
                             onShare = {
                                 LinkoraSDK.getInstance().nativeUtils.onShare(it)
                             },
-                            forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name,
+                            forTitleOnlyView = AppPreferences.selectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name,
                         )
                     }
                     item {
@@ -327,7 +323,7 @@ private fun LinkViewRadioButtonComponent(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth().clickable {
-            AppPreferences.currentlySelectedLinkLayout.value = linkLayout.name
+            AppPreferences.selectedLinkLayout.value = linkLayout.name
             settingsScreenViewModel.changeSettingPreferenceValue(
                 preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
                 newValue = linkLayout.name
@@ -335,9 +331,9 @@ private fun LinkViewRadioButtonComponent(
         }.padding(paddingValues)
     ) {
         RadioButton(
-            selected = AppPreferences.currentlySelectedLinkLayout.value == linkLayout.name,
+            selected = AppPreferences.selectedLinkLayout.value == linkLayout.name,
             onClick = {
-                AppPreferences.currentlySelectedLinkLayout.value = linkLayout.name
+                AppPreferences.selectedLinkLayout.value = linkLayout.name
                 settingsScreenViewModel.changeSettingPreferenceValue(
                     preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
                     newValue = linkLayout.name

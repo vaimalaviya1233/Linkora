@@ -50,12 +50,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
-import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
+import com.sakethh.linkora.ui.utils.pressScaleEffect
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -153,36 +155,9 @@ fun LinkListItemComposable(
             )
         }
         if (linkUIComponentParam.tags != null) {
-            LazyRow(
-                modifier = Modifier.padding(top = 5.dp, end = 15.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(linkUIComponentParam.tags) { tag ->
-                    AssistChip(
-                        colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                            0.5f
-                        )
-                    ), border = AssistChipDefaults.assistChipBorder(
-                        enabled = true,
-                        borderColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f)
-                    ), onClick = {
-                        linkUIComponentParam.onTagClick(tag)
-                    }, label = {
-                        Text(
-                            text = tag.name,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }, leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Tag,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    })
-                }
-            }
+            TagsRow(tags = linkUIComponentParam.tags, onTagClick = {
+                linkUIComponentParam.onTagClick(it)
+            })
         }
 
         if (AppPreferences.enableBaseURLForLinkViews.value) {
@@ -215,15 +190,6 @@ fun LinkListItemComposable(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        /*IconButton(onClick = {
-                            linkUIComponentParam.onForceOpenInExternalBrowserClicked()
-                            localURIHandler.openUri(linkUIComponentParam.link.url)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.OpenInBrowser,
-                                contentDescription = null
-                            )
-                        }*/
                         IconButton(onClick = {
                             localClipBoardManager.setText(
                                 AnnotatedString(linkUIComponentParam.link.url)
@@ -261,6 +227,42 @@ fun LinkListItemComposable(
                 color = MaterialTheme.colorScheme.outline,
                 paddingValues = PaddingValues(top = 2.5.dp, bottom = 2.5.dp, end = 10.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun TagsRow(
+    modifier: Modifier = Modifier.padding(top = 5.dp, end = 15.dp).fillMaxWidth(),
+    tags: List<Tag>,
+    onTagClick: (Tag) -> Unit,
+    chipColorOpacity: Float = 0.5f
+) {
+    LazyRow(
+        modifier = modifier, horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(tags) { tag ->
+            AssistChip(
+                colors = AssistChipDefaults.assistChipColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(chipColorOpacity)
+            ), border = AssistChipDefaults.assistChipBorder(
+                enabled = true,
+                borderColor = MaterialTheme.colorScheme.secondaryContainer.copy(chipColorOpacity)
+            ), onClick = {
+                onTagClick(tag)
+            }, label = {
+                Text(
+                    text = tag.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }, leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Tag,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            })
         }
     }
 }

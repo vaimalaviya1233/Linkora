@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,15 +32,20 @@ import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.components.InfoCard
+import com.sakethh.linkora.ui.components.link.TagsRow
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.utils.rememberLocalizedString
 
 @Composable
 fun NonMobileMenu(
-    menuBtmSheetFor: MenuBtmSheetType,
-    currentLink: Link?,
+    menuBtmSheetParam: MenuBtmSheetParam,
+    currentLinkTagsPair: LinkTagsPair,
     currentFolder: Folder?,
     commonMenuContent: ComposableContent
 ) {
+    val menuBtmSheetFor = remember { 
+        menuBtmSheetParam.menuBtmSheetFor
+    }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (menuBtmSheetFor in menuBtmSheetLinkEntries()) {
             Column(
@@ -49,19 +55,24 @@ fun NonMobileMenu(
                 CoilImage(
                     modifier = Modifier.animateContentSize().fillMaxWidth()
                         .clip(RoundedCornerShape(15.dp)).height(200.dp),
-                    imgURL = currentLink!!.imgURL,
-                    userAgent = currentLink.userAgent
+                    imgURL = currentLinkTagsPair.link.imgURL,
+                    userAgent = currentLinkTagsPair.link.userAgent
                         ?: AppPreferences.primaryJsoupUserAgent.value,
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    text = currentLink.title,
+                    text = currentLinkTagsPair.link.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
                 )
+                if (currentLinkTagsPair.tags.isNotEmpty()) {
+                    TagsRow(tags = currentLinkTagsPair.tags, onTagClick = {
+                        menuBtmSheetParam.onTagClick(it)
+                    })
+                }
                 Spacer(Modifier.height(5.dp))
                 Text(
-                    text = currentLink.baseURL,
+                    text = currentLinkTagsPair.link.baseURL,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clip(RoundedCornerShape(5.dp))
@@ -71,7 +82,7 @@ fun NonMobileMenu(
                     modifier = Modifier.fillMaxWidth()
                         .padding(end = 5.dp, top = 15.dp, bottom = 12.dp)
                 )
-                if (currentLink.note.isNotBlank()) {
+                if (currentLinkTagsPair.link.note.isNotBlank()) {
                     Text(
                         text = Localization.Key.SavedNote.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
@@ -79,7 +90,7 @@ fun NonMobileMenu(
                     )
                     Spacer(Modifier.height(5.dp))
                     Text(
-                        text = currentLink.note,
+                        text = currentLinkTagsPair.link.note,
                         style = MaterialTheme.typography.titleMedium,
                     )
                 } else {

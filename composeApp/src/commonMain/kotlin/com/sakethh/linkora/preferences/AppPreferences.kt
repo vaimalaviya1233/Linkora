@@ -25,7 +25,6 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 object AppPreferences {
@@ -58,7 +57,7 @@ object AppPreferences {
     val totalLocalAppStrings = mutableIntStateOf(328)
     val totalRemoteStrings = mutableIntStateOf(0)
     val remoteStringsLastUpdatedOn = mutableStateOf("")
-    val currentlySelectedLinkLayout = mutableStateOf(Layout.REGULAR_LIST_VIEW.name)
+    val selectedLinkLayout = mutableStateOf(Layout.REGULAR_LIST_VIEW.name)
     val enableBorderForNonListViews = mutableStateOf(true)
     val enableTitleForNonListViews = mutableStateOf(true)
     val enableBaseURLForLinkViews = mutableStateOf(true)
@@ -309,11 +308,11 @@ object AppPreferences {
                                 ) ?: ""
                     },
                     launch {
-                        currentlySelectedLinkLayout.value =
+                        selectedLinkLayout.value =
                             preferencesRepository.readPreferenceValue(
                                 preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
 
-                                ) ?: currentlySelectedLinkLayout.value
+                                ) ?: selectedLinkLayout.value
                     },
                     launch {
                         shouldFollowAmoledTheme.value = preferencesRepository.readPreferenceValue(

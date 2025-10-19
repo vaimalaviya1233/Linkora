@@ -28,7 +28,6 @@ import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.tag.Tag
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.GridViewLinkUIComponent
@@ -67,7 +66,7 @@ fun CollectionLayoutManager(
                     linkMoreIconClick(linkTagsPair)
                 },
                 onLinkClick = {
-                    if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
+                    if (!CollectionsScreenVM.isSelectionEnabled.value) {
                         onLinkClick(linkTagsPair)
                     } else {
                         if (CollectionsScreenVM.selectedLinksViaLongClick.contains(linkTagsPair.link)) {
@@ -156,7 +155,7 @@ fun CollectionLayoutManager(
         )
     }
 
-    when (AppPreferences.currentlySelectedLinkLayout.value) {
+    when (AppPreferences.selectedLinkLayout.value) {
         Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> {
 
             LazyColumn(
@@ -177,7 +176,7 @@ fun CollectionLayoutManager(
                 items(items = linksTagsPairs) {
                     LinkListItemComposable(
                         linkUIComponentParam = linkUIComponentParam(it),
-                        forTitleOnlyView = AppPreferences.currentlySelectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name,
+                        forTitleOnlyView = AppPreferences.selectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name,
                         onShare = {
                             LinkoraSDK.getInstance().nativeUtils.onShare(it)
                         })
@@ -231,7 +230,7 @@ fun CollectionLayoutManager(
                 items(linksTagsPairs) {
                     GridViewLinkUIComponent(
                         linkUIComponentParam = linkUIComponentParam(it),
-                        forStaggeredView = AppPreferences.currentlySelectedLinkLayout.value == Layout.STAGGERED_VIEW.name
+                        forStaggeredView = AppPreferences.selectedLinkLayout.value == Layout.STAGGERED_VIEW.name
                     )
                 }
                 item(span = {
@@ -270,7 +269,7 @@ fun CollectionLayoutManager(
                 items(linksTagsPairs) {
                     GridViewLinkUIComponent(
                         linkUIComponentParam = linkUIComponentParam(it),
-                        forStaggeredView = AppPreferences.currentlySelectedLinkLayout.value == Layout.STAGGERED_VIEW.name
+                        forStaggeredView = AppPreferences.selectedLinkLayout.value == Layout.STAGGERED_VIEW.name
                     )
                 }
 

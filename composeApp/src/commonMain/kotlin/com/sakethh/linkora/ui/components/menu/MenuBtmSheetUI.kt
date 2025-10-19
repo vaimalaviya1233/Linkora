@@ -70,14 +70,11 @@ fun MenuBtmSheetUI(
             menuBtmSheetParam.btmModalSheetState.expand()
         }
     }
-    val isNoteBtnSelected = rememberSaveable(menuBtmSheetParam.showNote.value) {
+    val showNote = rememberSaveable(menuBtmSheetParam.showNote.value) {
         mutableStateOf(menuBtmSheetParam.showNote.value)
     }
     val platform = platform()
     val localClipboard = LocalClipboardManager.current
-    val currentLink = remember(menuBtmSheetParam.link) {
-        menuBtmSheetParam.link
-    }
     val currentFolder = remember(menuBtmSheetParam.folder) {
         menuBtmSheetParam.folder
     }
@@ -114,7 +111,7 @@ fun MenuBtmSheetUI(
                 onClick = {
                     localClipboard.setText(
                         AnnotatedString(
-                            text = menuBtmSheetParam.link?.url ?: ""
+                            text = menuBtmSheetParam.linkTagsPair?.link?.url ?: ""
                         )
                     )
                     hideContent()
@@ -128,7 +125,7 @@ fun MenuBtmSheetUI(
                     shape = lastItemShape,
                     modifier = Modifier.weight(1f).pressScaleEffect(),
                     onClick = {
-                        menuBtmSheetParam.onShare(menuBtmSheetParam.link!!.url)
+                        menuBtmSheetParam.onShare(menuBtmSheetParam.linkTagsPair!!.link.url)
                         hideContent()
                     },
                     text = "Share",
@@ -148,7 +145,7 @@ fun MenuBtmSheetUI(
                                 menuBtmSheetParam.btmModalSheetState.hide()
                             }
                         }.invokeOnCompletion {
-                            isNoteBtnSelected.value = true
+                            showNote.value = true
                             coroutineScope.launch {
                                 menuBtmSheetParam.btmModalSheetState.show()
                             }
@@ -176,7 +173,7 @@ fun MenuBtmSheetUI(
             }
 
             if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
-                val markedAsImportant = currentLink!!.linkType == LinkType.IMPORTANT_LINK
+                val markedAsImportant = menuBtmSheetParam.linkTagsPair!!.link.linkType == LinkType.IMPORTANT_LINK
 
                 IndividualMenuComponent(
                     onClick = {
@@ -191,7 +188,7 @@ fun MenuBtmSheetUI(
             val isArchived = if (menuBtmSheetParam.menuBtmSheetFor is MenuBtmSheetType.Folder) {
                 currentFolder!!.isArchived
             } else {
-                currentLink!!.linkType == LinkType.ARCHIVE_LINK
+                menuBtmSheetParam.linkTagsPair!!.link.linkType == LinkType.ARCHIVE_LINK
             }
             val inChildFolder = currentFolder != null && currentFolder.parentFolderId != null
 
@@ -206,7 +203,7 @@ fun MenuBtmSheetUI(
                 )
             }
 
-            if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor) && currentLink!!.note.isNotBlank() || menuBtmSheetFolderEntries().contains(
+            if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor) && menuBtmSheetParam.linkTagsPair!!.link.note.isNotBlank() || menuBtmSheetFolderEntries().contains(
                     menuBtmSheetParam.menuBtmSheetFor
                 ) && currentFolder!!.note.isNotBlank()
             ) {
@@ -235,7 +232,7 @@ fun MenuBtmSheetUI(
                     elementImageVector = if (menuBtmSheetParam.menuBtmSheetFor == MenuBtmSheetType.Folder.RegularFolder) Icons.Outlined.FolderDelete else Icons.Outlined.DeleteForever
                 )
             }
-            if ((platform == Platform.Android.Mobile && AppPreferences.currentlySelectedLinkLayout.value in listOf(
+            if ((platform == Platform.Android.Mobile && AppPreferences.selectedLinkLayout.value in listOf(
                     Layout.STAGGERED_VIEW.name, Layout.GRID_VIEW.name
                 ) && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries()) || (platform !is Platform.Android.Mobile && menuBtmSheetParam.menuBtmSheetFor in menuBtmSheetLinkEntries())
             ) {
@@ -277,15 +274,14 @@ fun MenuBtmSheetUI(
         if (platform is Platform.Android.Mobile) {
             MobileMenu(
                 menuBtmSheetParam,
-                menuBtmSheetParam.menuBtmSheetFor,
-                currentLink,
+                menuBtmSheetParam.linkTagsPair!!,
                 currentFolder,
-                isNoteBtnSelected,
+                showNote,
                 commonContent
             )
         } else {
             NonMobileMenu(
-                menuBtmSheetParam.menuBtmSheetFor, currentLink, currentFolder, commonContent
+                menuBtmSheetParam, menuBtmSheetParam.linkTagsPair!!, currentFolder, commonContent
             )
         }
     }

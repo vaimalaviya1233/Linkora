@@ -76,7 +76,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @OptIn(FlowPreview::class, ExperimentalMaterial3Api::class)
@@ -496,7 +495,7 @@ class AppVM(
     var showRenameDialogBox by mutableStateOf(false)
     var showDeleteDialogBox by mutableStateOf(false)
 
-    val menuBtmModalSheetState = SheetState(skipPartiallyExpanded = true, density = density)
+    val menuBtmSheetState = SheetState(skipPartiallyExpanded = true, density = density)
     var selectedFolderForMenuBtmSheet by mutableStateOf(
         Folder(
             name = "", note = "", parentFolderId = null, localId = 0L, isArchived = false
@@ -517,7 +516,7 @@ class AppVM(
             ), tags = emptyList()
         )
     )
-    var menuBtmModalSheetVisible by mutableStateOf(false)
+    var showMenuSheet by mutableStateOf(false)
     var showAddLinkDialog by mutableStateOf(false)
     var showNewFolderDialog by mutableStateOf(false)
     var showSortingBtmSheet by mutableStateOf(false)
@@ -551,7 +550,7 @@ class AppVM(
                         if (eventType.selectedLinkForMenuBtmSheet != null) {
                             selectedLinkTagsForMenuBtmSheet = eventType.selectedLinkForMenuBtmSheet
                         }
-                        menuBtmModalSheetVisible = true
+                        showMenuSheet = true
                     }
 
                     is UIEvent.Type.ShowRenameDialogBox -> showRenameDialogBox = true
