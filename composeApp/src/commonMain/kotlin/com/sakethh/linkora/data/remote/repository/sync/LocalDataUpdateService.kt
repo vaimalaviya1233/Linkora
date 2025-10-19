@@ -530,8 +530,8 @@ class LocalDataUpdateService(
                         link = link.copy(linkType = LinkType.IMPORTANT_LINK),
                         linkSaveConfig = LinkSaveConfig.Companion.forceSaveWithoutRetrieving(),
                         viaSocket = true,
-                        selectedTagIds = TODO()
-                    ).collectAndUpdateTimestamp(idBasedDTO.eventTimestamp)
+                        selectedTagIds = localTagsRepo.getTags(localLinkId).map { it.localId })
+                        .collectAndUpdateTimestamp(idBasedDTO.eventTimestamp)
                 }
             }
 

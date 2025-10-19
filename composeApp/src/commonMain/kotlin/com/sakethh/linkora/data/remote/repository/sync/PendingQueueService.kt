@@ -19,6 +19,8 @@ import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.DeleteDuplicateLinksDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
+import com.sakethh.linkora.domain.dto.server.link.UpdateNoteOfALinkDTO
+import com.sakethh.linkora.domain.dto.server.link.UpdateTitleOfTheLinkDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.DeleteAFolderFromAPanelDTO
@@ -287,12 +289,10 @@ class PendingQueueService(
 
                     RemoteRoute.Link.UPDATE_LINK_TITLE.name -> {
                         send(Result.Loading(message = "[LINK] Updating link title from queue item (ID: ${queueItem.id})"))
-                        val linkDTO = Json.Default.decodeFromString<LinkDTO>(queueItem.payload)
-                        val remoteLinkId = localLinksRepo.getRemoteLinkId(linkDTO.id)!!
-                        remoteLinksRepo.updateLink(
-                            linkDTO.copy(
-                                id = remoteLinkId
-                            )
+                        val updateTitleOfTheLinkDTO = Json.Default.decodeFromString<UpdateTitleOfTheLinkDTO>(queueItem.payload)
+                        val remoteLinkId = localLinksRepo.getRemoteLinkId(updateTitleOfTheLinkDTO.linkId)!!
+                        remoteLinksRepo.updateLinkTitle(
+                            updateTitleOfTheLinkDTO.copy(linkId = remoteLinkId)
                         ).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
@@ -301,9 +301,9 @@ class PendingQueueService(
 
                     RemoteRoute.Link.UPDATE_LINK_NOTE.name -> {
                         send(Result.Loading(message = "[LINK] Updating link note from queue item (ID: ${queueItem.id})"))
-                        val linkDTO = Json.Default.decodeFromString<LinkDTO>(queueItem.payload)
-                        val remoteLinkId = localLinksRepo.getRemoteLinkId(linkDTO.id)!!
-                        remoteLinksRepo.updateLink(linkDTO.copy(id = remoteLinkId))
+                        val updateNoteOfALinkDTO = Json.Default.decodeFromString<UpdateNoteOfALinkDTO>(queueItem.payload)
+                        val remoteLinkId = localLinksRepo.getRemoteLinkId(updateNoteOfALinkDTO.linkId)!!
+                        remoteLinksRepo.updateALinkNote(updateNoteOfALinkDTO.copy(linkId =  remoteLinkId))
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
