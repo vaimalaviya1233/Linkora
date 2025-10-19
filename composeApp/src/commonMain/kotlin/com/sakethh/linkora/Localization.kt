@@ -82,7 +82,6 @@ object Localization {
      }*/
 
     enum class Key(val defaultValue: String) {
-        /***** THE SACRED SCRAPING RITUAL BEGINS *****/
         Settings(defaultValue = "Settings"),
         Theme(defaultValue = "Theme"),
         General(defaultValue = "General"),
@@ -304,18 +303,18 @@ object Localization {
             defaultValue = "Import using JSON file"
         ),
         ImportUsingJsonFileDesc(
-            defaultValue = "Import data from external JSON file based on Linkora Schema."
+            defaultValue = "Use a Linkora-compatible JSON file to import your data"
         ),
         ImportDataFromHtmlFile(defaultValue = "Import data from HTML file"),
         ImportDataFromHtmlFileDesc(
-            defaultValue = "Import data from an external HTML file that follows the standard bookmarks import/export format."
+            defaultValue = "Load data from a bookmarks-compatible HTML file"
         ),
         ExportDataAsJson(defaultValue = "Export Data as JSON"),
-        ExportDataAsJsonDesc(defaultValue = "Export All Data to a JSON File"),
+        ExportDataAsJsonDesc(defaultValue = "Exports all data in Linkora-compatible JSON format"),
         ExportDataAsHtml(
             defaultValue = "Export Data as HTML"
         ),
-        ExportDataAsHtmlDesc(defaultValue = "Export All Your Data (Excluding Panels) as HTML File"),
+        ExportDataAsHtmlDesc(defaultValue = "Export all your data as an HTML file (excluding Panels and Tags). Compatible with browser-based import tools."),
         Sync(
             defaultValue = "Sync"
         ),
@@ -371,7 +370,7 @@ object Localization {
         LinkLayoutSettings(
             defaultValue = "Link Layout Settings"
         ),
-        ChooseTheLayoutYouLikeBest(defaultValue = "Choose the layout you like best"),
+        ChooseTheLayoutYouLikeBest(defaultValue = "Select your preferred layout"),
         FeedPreview(
             defaultValue = "Feed Preview"
         ),
@@ -387,7 +386,7 @@ object Localization {
         UseDynamicTheming(
             defaultValue = "Use dynamic theming"
         ),
-        UseDynamicThemingDesc(defaultValue = "Change colour themes within the app based on your wallpaper."),
+        UseDynamicThemingDesc(defaultValue = "Automatically sync the app's color theme with your wallpaper."),
         UseAmoledTheme(
             defaultValue = "Use Amoled Theme"
         ),
@@ -466,7 +465,7 @@ object Localization {
             defaultValue = "Are you sure you want to delete all folders, links, panels, and localized strings?"
         ),
         SavedNote(defaultValue = "Saved Note"),
-        NoNoteAdded(defaultValue = "You haven't added a note for this."),
+        NoNoteAdded(defaultValue = "You haven't added a note for this yet."),
         Delete(
             defaultValue = "Delete"
         ),
@@ -589,7 +588,7 @@ object Localization {
             defaultValue = "Linkora wouldn't be possible without the following open-source software, libraries."
         ),
         UserAgent(defaultValue = "User Agent"),
-        UserAgentDesc(defaultValue = "Detects images and titles from webpage meta tags. Detected data may vary based on the agent string used."),
+        UserAgentDesc(defaultValue = "Helps detect images and titles from webpage meta tags. Results may vary based on the agent string."),
         LocalizationServerDesc(
             defaultValue = "Linkora’s localization server lets you update strings without updating the app. By default, it uses Linkora’s server.\n\nYou can switch to your own server if needed. Changes will reflect in Linkora’s network requests for language or string updates.\n\nOnly change this if you’re sure about what you’re doing."
         ),
@@ -661,10 +660,10 @@ object Localization {
         ),
         MondsternOnDiscord(defaultValue = "mondstern on Pixelfed"),
         NoFoldersOrLinksFound(
-            defaultValue = "No folders or links found. Please add some folders or links to get started!"
+            defaultValue = "Nothing here yet. Add folders or links to begin."
         ),
         FoldersExistsButNotLinks(
-            defaultValue = "You have folders, but no links yet. Add some links to organize your content."
+            defaultValue = "Folders are in. Now add links to organize your content."
         ),
         NoFoldersFound(defaultValue = "No folders found. Add folders to get started."),
         ExportingDataToJSON(
@@ -682,12 +681,12 @@ object Localization {
         ),
         NoFoldersInThePanel(defaultValue = "No folders in this panel. Add folders in this panel to get started."),
         NoLinksFound(
-            defaultValue = "No links found. Please add some links to get started!"
+            defaultValue = "No links available. Start by adding a few."
         ),
         NoArchiveLinksFound(
             defaultValue = "No links found."
         ),
-        NoRemoteLangPacks(defaultValue = "No remote language packs found. Load them from the server."),
+        NoRemoteLangPacks(defaultValue = "No remote language packs found.\nLoad from the server to start using Linkora in your language."),
         StringsLocalizedStatus(
             defaultValue = "${LinkoraPlaceHolder.First.value}/${LinkoraPlaceHolder.Second.value} strings localized"
         ),
@@ -697,11 +696,11 @@ object Localization {
         ),
         NotificationPermissionDesc(defaultValue = "Linkora requires notification permission to display the progress of data syncing, including link refreshes."),
         NoPanelsFound(
-            defaultValue = "No panels available. Create panels and add respective folders to organize by projects, research, tasks, events, or any other category."
+            defaultValue = "No panels yet.\nCreate panels and link folders to organize your work by topic or purpose."
         ),
         SearchInLinkora(defaultValue = "Search Linkora: Browse through all your saved links and folders."),
         NoSearchResults(
-            defaultValue = "Nothing matched your search. Remember, you can search both by title and note. Give it another try!"
+            defaultValue = "No results found."
         ),
         NoHistoryFound(defaultValue = "No history found. Your history is clean!"),
         StartingImportingProcess(
@@ -764,7 +763,6 @@ object Localization {
         ArchivedSuccessfully("Archived successfully."),
         DeletedSuccessfully("Deleted successfully."),
         ServerCertificateSavedSuccessfully("Server certificate saved successfully."),
-        Both("Both"),
-        /*****  SCRAPING RITUAL COMPLETE  *****/
+        Both("Both")
     }
 }
