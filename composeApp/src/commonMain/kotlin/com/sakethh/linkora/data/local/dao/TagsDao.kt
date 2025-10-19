@@ -104,4 +104,7 @@ interface TagsDao {
 
     @Query("SELECT remoteId FROM tags WHERE localId IN (:localIds)")
     suspend fun getRemoteTagIds(localIds: List<Long>): List<Long>
+
+    @Query("SELECT * FROM tags WHERE remoteId IS NULL")
+    suspend fun getUnsyncedTags(): List<Tag>
 }

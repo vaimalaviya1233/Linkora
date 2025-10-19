@@ -16,6 +16,7 @@ import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
 import com.sakethh.linkora.domain.dto.server.panel.UpdatePanelNameDTO
+import com.sakethh.linkora.domain.dto.server.tag.CreateTagDTO
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.WebSocketEvent
@@ -376,6 +377,24 @@ class RemoteSyncRepoImpl(
                 )
             )
             send(Result.Loading(message = "[FOLDERS] Queued folder (ID: ${currentFolder.localId}) for sync"))
+        }
+
+        send(Result.Loading(message = "[TAGS] Fetching unsynced tags"))
+        tagsDao.getUnsyncedTags().forEach { currentTag ->
+            send(Result.Loading(message = "[TAGS] Processing tag (ID: ${currentTag.localId}, Name: ${currentTag.name})"))
+            pendingSyncQueueRepo.addInQueue(
+                PendingSyncQueue(
+                    operation = RemoteRoute.Tag.CREATE_TAG.name,
+                    payload = Json.encodeToString(
+                        CreateTagDTO(
+                            name = currentTag.name,
+                            eventTimestamp = currentTag.lastModified,
+                            offlineSyncItemId = currentTag.localId
+                        )
+                    )
+                )
+            )
+            send(Result.Loading(message = "[TAGS] Queued tag (ID: ${currentTag.localId}) for sync"))
         }
 
         send(Result.Loading(message = "[LINKS] Fetching unsynced links"))
