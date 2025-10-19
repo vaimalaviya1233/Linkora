@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Tag
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -19,9 +18,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.tag.Tag
-import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.components.menu.IndividualMenuComponent
 import com.sakethh.linkora.ui.components.menu.MenuNonImageHeader
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -48,30 +45,24 @@ fun TagMenu(
             }.invokeOnCompletion {
                 onHide()
             }
-        }, dragHandle = {
-            if (platform() !is Platform.Android.Mobile) {
-                BottomSheetDefaults.DragHandle()
-            }
-        }) {
-            if (platform() is Platform.Android.Mobile) {
-                MenuNonImageHeader(onClick = {
-                    localClipBoardManager.setText(AnnotatedString(tag.name))
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        pushUIEvent(
-                            UIEvent.Type.ShowSnackbar(
-                                Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
-                            )
+        }, dragHandle = null) {
+            MenuNonImageHeader(onClick = {
+                localClipBoardManager.setText(AnnotatedString(tag.name))
+                coroutineScope.launch {
+                    sheetState.hide()
+                    pushUIEvent(
+                        UIEvent.Type.ShowSnackbar(
+                            Localization.Key.CopiedTitleToTheClipboard.getLocalizedString()
                         )
-                    }.invokeOnCompletion {
-                        onHide()
-                    }
-                }, text = tag.name, leadingIcon = Icons.Default.Tag)
-                ItemDivider(
-                    colorOpacity = 0.25f, paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
-                )
-                Spacer(Modifier.height(5.dp))
-            }
+                    )
+                }.invokeOnCompletion {
+                    onHide()
+                }
+            }, text = tag.name, leadingIcon = Icons.Default.Tag)
+            ItemDivider(
+                colorOpacity = 0.25f, paddingValues = PaddingValues(start = 25.dp, end = 25.dp)
+            )
+            Spacer(Modifier.height(5.dp))
             IndividualMenuComponent(
                 onClick = onRename,
                 elementName = "Rename",
