@@ -6,11 +6,11 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asJSONExportSchema
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.JSONExportSchema
-import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.model.legacy.LegacyExportSchema
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.PanelFolder
+import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.domain.repository.ImportDataRepo
@@ -103,18 +103,33 @@ class ImportDataRepoImpl(
             }
             val updatedLinkTags = mutableListOf<LinkTag>()
 
-            send(Result.Loading(message = "Adding non-folder linked links to local repository."))
-            localLinksRepo.addMultipleLinks(destNonFolderLinks).let { newLinkIds ->
+            fun mapLinkTagsToNewLinkIds(
+                previousLinkIds: List<Long>, newLinkIds: List<Long>
+            ): List<LinkTag> {
+                require(previousLinkIds.size == newLinkIds.size)
 
-                val newTagLinkIds = deserializedData.linkTags.filter {
-                    it.linkId in srcNonFolderLinks.map { it.localId }
-                }.mapIndexed { index, linkTag ->
-                    linkTag.copy(linkId = newLinkIds[index])
+                val linkIdPair = previousLinkIds.mapIndexed { index, previousId ->
+                    previousId to newLinkIds[index]
                 }
 
-                updatedLinkTags.addAll(newTagLinkIds)
+                return deserializedData.linkTags.filter {
+                    it.linkId in previousLinkIds
+                }.map { filteredLinkTag ->
+                    filteredLinkTag.copy(linkId = linkIdPair.find {
+                        it.first == filteredLinkTag.linkId
+                    }?.second ?: -54544)
+                }
             }
 
+            send(Result.Loading(message = "Adding non-folder linked links to local repository."))
+            localLinksRepo.addMultipleLinks(destNonFolderLinks).let { newLinkIds ->
+                updatedLinkTags.addAll(
+                    mapLinkTagsToNewLinkIds(
+                        previousLinkIds = srcNonFolderLinks.map { it.localId },
+                        newLinkIds = newLinkIds
+                    )
+                )
+            }
             var latestFolderId = localFoldersRepo.getLatestFoldersTableID()
             send(Result.Loading(message = "Retrieved latest folder ID: $latestFolderId"))
             val updatedPanelFolders = mutableListOf<PanelFolder>()
@@ -156,13 +171,12 @@ class ImportDataRepoImpl(
                         }
 
                         localLinksRepo.addMultipleLinks(destFolderLinks).let { newLinkIds ->
-                            val newLinkTags = deserializedData.linkTags.filter {
-                                it.linkId in srcFolderLinks.map { it.localId }
-                            }.mapIndexed { index, linkTag ->
-                                linkTag.copy(linkId = newLinkIds[index])
-                            }
-
-                            updatedLinkTags.addAll(newLinkTags)
+                            updatedLinkTags.addAll(
+                                mapLinkTagsToNewLinkIds(
+                                    previousLinkIds = srcFolderLinks.map { it.localId },
+                                    newLinkIds = newLinkIds
+                                )
+                            )
                         }
 
                         updatedPanelFolders.addAll(deserializedData.panels.panelFolders.filter {
@@ -187,13 +201,12 @@ class ImportDataRepoImpl(
                 }
 
                 localLinksRepo.addMultipleLinks(destFolderLinks).let { newLinkIds ->
-                    val newLinkTags = deserializedData.linkTags.filter {
-                        it.linkId in srcFolderLinks.map { it.localId }
-                    }.mapIndexed { index, linkTag ->
-                        linkTag.copy(linkId = newLinkIds[index])
-                    }
-
-                    updatedLinkTags.addAll(newLinkTags)
+                    updatedLinkTags.addAll(
+                        mapLinkTagsToNewLinkIds(
+                            previousLinkIds = srcFolderLinks.map { it.localId },
+                            newLinkIds = newLinkIds
+                        )
+                    )
                 }
 
                 updatedPanelFolders.addAll(deserializedData.panels.panelFolders.filter {
@@ -226,7 +239,7 @@ class ImportDataRepoImpl(
 
             deserializedData.tags.forEach { currentTag ->
                 localTagsRepo.createATag(currentTag.copy(localId = 0)).collectLatest {
-                    it.onSuccess {currTagNewId->
+                    it.onSuccess { currTagNewId ->
                         localTagsRepo.createLinkTags(updatedLinkTags.filter {
                             it.tagId == currentTag.localId
                         }.map {
