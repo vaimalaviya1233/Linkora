@@ -71,6 +71,32 @@ class LocalDataUpdateService(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
         when (deserializedWebSocketEvent.operation) {
+
+            RemoteRoute.Folder.UPDATE_FOLDER.name -> {
+                val folderDTO =
+                    json.decodeFromJsonElement<FolderDTO>(deserializedWebSocketEvent.payload)
+                if (folderDTO.correlation.isSameAsCurrentClient()) {
+                    preferencesRepository.updateLastSyncedWithServerTimeStamp(folderDTO.eventTimestamp)
+                    return
+                }
+                val localFolderId = localFoldersRepo.getLocalIdOfAFolder(folderDTO.id)
+                if (localFolderId != null) {
+                    localFoldersRepo.updateFolder(
+                        viaSocket = true, folder = Folder(
+                            name = folderDTO.name,
+                            note = folderDTO.note,
+                            parentFolderId = if (folderDTO.parentFolderId == null) null else localFoldersRepo.getLocalIdOfAFolder(
+                                folderDTO.parentFolderId
+                            ),
+                            localId = localFolderId,
+                            remoteId = folderDTO.id,
+                            isArchived = folderDTO.isArchived,
+                            lastModified = folderDTO.eventTimestamp,
+                        )
+                    ).collectAndUpdateTimestamp(folderDTO.eventTimestamp)
+                }
+            }
+
             RemoteRoute.Tag.CREATE_TAG.name -> {
                 val tagDto =
                     Json.Default.decodeFromJsonElement<TagDTO>(deserializedWebSocketEvent.payload)
@@ -84,7 +110,7 @@ class LocalDataUpdateService(
                         lastModified = tagDto.eventTimestamp,
                         name = tagDto.name
                     )
-                ).collect()
+                ).collectAndUpdateTimestamp(tagDto.eventTimestamp)
             }
 
             RemoteRoute.Tag.DELETE_TAG.name -> {
@@ -96,7 +122,7 @@ class LocalDataUpdateService(
                 }
                 localTagsRepo.deleteATag(
                     viaSocket = true, id = localTagsRepo.getLocalTagId(iDBasedDTO.id)
-                ).collect()
+                ).collectAndUpdateTimestamp(iDBasedDTO.eventTimestamp)
             }
 
             RemoteRoute.Tag.RENAME_TAG.name -> {
@@ -110,7 +136,7 @@ class LocalDataUpdateService(
                     viaSocket = true,
                     localTagId = localTagsRepo.getLocalTagId(renameTagDTO.id),
                     newName = renameTagDTO.newName,
-                ).collect()
+                ).collectAndUpdateTimestamp(renameTagDTO.eventTimestamp)
             }
 
             RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name -> {

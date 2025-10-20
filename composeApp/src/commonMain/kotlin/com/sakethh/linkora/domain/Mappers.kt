@@ -2,10 +2,8 @@ package com.sakethh.linkora.domain
 
 import androidx.compose.runtime.Composable
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
+import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.link.AddLinkDTO
 import com.sakethh.linkora.domain.dto.server.link.LinkDTO
 import com.sakethh.linkora.domain.model.Folder
@@ -17,6 +15,9 @@ import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.model.tag.LinkTagDTO
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -71,6 +72,15 @@ fun Folder.asAddFolderDTO(): AddFolderDTO = AddFolderDTO(
     name = this.name,
     note = this.note,
     parentFolderId = this.parentFolderId,
+    isArchived = this.isArchived,
+    eventTimestamp = this.lastModified
+)
+
+fun Folder.asFolderDTO(remoteId: Long, remoteParentFolderId: Long?): FolderDTO = FolderDTO(
+    id = remoteId,
+    name = this.name,
+    note = this.note,
+    parentFolderId = remoteParentFolderId,
     isArchived = this.isArchived,
     eventTimestamp = this.lastModified
 )

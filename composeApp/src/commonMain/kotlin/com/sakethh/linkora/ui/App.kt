@@ -63,6 +63,7 @@ import com.sakethh.linkora.ui.components.MobileBottomNavBar
 import com.sakethh.linkora.ui.components.RenameDialogBox
 import com.sakethh.linkora.ui.components.RenameDialogBoxParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
@@ -458,23 +459,13 @@ fun App(
                             if (menuBtmSheetFolderEntries().contains(appVM.menuBtmSheetFor)) {
                                 collectionsScreenVM.deleteAFolder(
                                     appVM.selectedFolderForMenuBtmSheet, onCompletion = {
-                                        coroutineScope.launch {
-                                            appVM.menuBtmSheetState.hide()
-                                        }.invokeOnCompletion {
-                                            appVM.showMenuSheet = false
-                                        }
-
+                                        hideMenuSheet()
                                         onCompletion()
                                     })
                             } else {
                                 collectionsScreenVM.deleteALink(
                                     appVM.selectedLinkTagsForMenuBtmSheet.link, onCompletion = {
-                                        coroutineScope.launch {
-                                            appVM.menuBtmSheetState.hide()
-                                        }.invokeOnCompletion {
-                                            appVM.showMenuSheet = false
-                                        }
-
+                                        hideMenuSheet()
                                         onCompletion()
                                     })
                             }
@@ -498,15 +489,25 @@ fun App(
                     selectedTags = appVM.selectedLinkTagsForMenuBtmSheet.tags,
                     allTags = allTags,
                     onSave = { newTitle: String, newNote: String, selectedTags: List<Tag>, onCompletion: () -> Unit ->
-                        collectionsScreenVM.updateLink(updatedLinkTagsPair = appVM.selectedLinkTagsForMenuBtmSheet.run {
-                            copy(
-                                link = link.copy(title = newTitle, note = newNote),
-                                tags = selectedTags
-                            )
-                        }, onCompletion = {
-                            slideDownAndHideRenameSheet()
-                            onCompletion()
-                        })
+                        if (appVM.menuBtmSheetFor is MenuBtmSheetType.Link) {
+                            collectionsScreenVM.updateLink(updatedLinkTagsPair = appVM.selectedLinkTagsForMenuBtmSheet.run {
+                                copy(
+                                    link = link.copy(title = newTitle, note = newNote),
+                                    tags = selectedTags
+                                )
+                            }, onCompletion = {
+                                slideDownAndHideRenameSheet()
+                                onCompletion()
+                            })
+                        } else {
+                            collectionsScreenVM.updateFolder(
+                                newFolderData = appVM.selectedFolderForMenuBtmSheet.copy(
+                                    name = newTitle, note = newNote
+                                ), onCompletion = {
+                                    slideDownAndHideRenameSheet()
+                                    onCompletion()
+                                })
+                        }
                     },
                     showDialogBox = appVM.showRenameDialogBox,
                     existingFolderName = appVM.selectedFolderForMenuBtmSheet.name,

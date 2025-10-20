@@ -13,6 +13,7 @@ import com.sakethh.linkora.domain.dto.server.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
+import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
@@ -247,6 +248,12 @@ class PendingQueueService(
                         send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after marking folder as regular"))
                     }
 
+                    RemoteRoute.Folder.UPDATE_FOLDER.name -> {
+                        val folderDTO = Utils.json.decodeFromString<FolderDTO>(queueItem.payload)
+                        remoteFoldersRepo.updateFolder(folderDTO)
+                            .removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
+
                     RemoteRoute.Folder.UPDATE_FOLDER_NAME.name -> {
                         send(Result.Loading(message = "[FOLDER] Updating folder name from queue item (ID: ${queueItem.id})"))
                         val updateFolderNameDTO =
@@ -289,8 +296,10 @@ class PendingQueueService(
 
                     RemoteRoute.Link.UPDATE_LINK_TITLE.name -> {
                         send(Result.Loading(message = "[LINK] Updating link title from queue item (ID: ${queueItem.id})"))
-                        val updateTitleOfTheLinkDTO = Json.Default.decodeFromString<UpdateTitleOfTheLinkDTO>(queueItem.payload)
-                        val remoteLinkId = localLinksRepo.getRemoteLinkId(updateTitleOfTheLinkDTO.linkId)!!
+                        val updateTitleOfTheLinkDTO =
+                            Json.Default.decodeFromString<UpdateTitleOfTheLinkDTO>(queueItem.payload)
+                        val remoteLinkId =
+                            localLinksRepo.getRemoteLinkId(updateTitleOfTheLinkDTO.linkId)!!
                         remoteLinksRepo.updateLinkTitle(
                             updateTitleOfTheLinkDTO.copy(linkId = remoteLinkId)
                         ).removeQueueItemAndSyncTimestamp(
@@ -301,9 +310,11 @@ class PendingQueueService(
 
                     RemoteRoute.Link.UPDATE_LINK_NOTE.name -> {
                         send(Result.Loading(message = "[LINK] Updating link note from queue item (ID: ${queueItem.id})"))
-                        val updateNoteOfALinkDTO = Json.Default.decodeFromString<UpdateNoteOfALinkDTO>(queueItem.payload)
-                        val remoteLinkId = localLinksRepo.getRemoteLinkId(updateNoteOfALinkDTO.linkId)!!
-                        remoteLinksRepo.updateALinkNote(updateNoteOfALinkDTO.copy(linkId =  remoteLinkId))
+                        val updateNoteOfALinkDTO =
+                            Json.Default.decodeFromString<UpdateNoteOfALinkDTO>(queueItem.payload)
+                        val remoteLinkId =
+                            localLinksRepo.getRemoteLinkId(updateNoteOfALinkDTO.linkId)!!
+                        remoteLinksRepo.updateALinkNote(updateNoteOfALinkDTO.copy(linkId = remoteLinkId))
                             .removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )

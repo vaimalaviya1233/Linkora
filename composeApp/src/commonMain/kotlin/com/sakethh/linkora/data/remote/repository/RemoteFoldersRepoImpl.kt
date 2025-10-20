@@ -1,6 +1,5 @@
 package com.sakethh.linkora.data.remote.repository
 
-import com.sakethh.linkora.utils.postFlow
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -8,15 +7,17 @@ import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.ChangeParentFolderDTO
+import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
+import com.sakethh.linkora.utils.postFlow
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 
 class RemoteFoldersRepoImpl(
-    private val syncServerClient:()-> HttpClient,
+    private val syncServerClient: () -> HttpClient,
     private val baseUrl: () -> String,
     private val authToken: () -> String
 ) : RemoteFoldersRepo {
@@ -28,6 +29,15 @@ class RemoteFoldersRepoImpl(
             authToken = authToken,
             endPoint = RemoteRoute.Folder.CREATE_FOLDER.name,
             outgoingBody = addFolderDTO,
+        )
+    }
+
+    override suspend fun updateFolder(folderDTO: FolderDTO): Flow<Result<TimeStampBasedResponse>> {
+        return postFlow(
+            syncServerClient = syncServerClient,
+            baseUrl = baseUrl,
+            authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER.name,
+            outgoingBody = folderDTO,
         )
     }
 
@@ -54,7 +64,8 @@ class RemoteFoldersRepoImpl(
         return postFlow(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
-            authToken = authToken, endPoint = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
+            authToken = authToken,
+            endPoint = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -65,7 +76,8 @@ class RemoteFoldersRepoImpl(
         return postFlow(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
-            authToken = authToken, endPoint = RemoteRoute.Folder.CHANGE_PARENT_FOLDER.name,
+            authToken = authToken,
+            endPoint = RemoteRoute.Folder.CHANGE_PARENT_FOLDER.name,
             outgoingBody = changeParentFolderDTO
         )
     }
@@ -76,7 +88,8 @@ class RemoteFoldersRepoImpl(
         return postFlow(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
-            authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
+            authToken = authToken,
+            endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NAME.name,
             outgoingBody = updateFolderNameDTO
         )
     }
@@ -87,7 +100,8 @@ class RemoteFoldersRepoImpl(
         return postFlow(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
-            authToken = authToken, endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name,
+            authToken = authToken,
+            endPoint = RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name,
             outgoingBody = updateFolderNoteDTO
         )
     }
@@ -96,7 +110,8 @@ class RemoteFoldersRepoImpl(
         return postFlow(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
-            authToken = authToken, endPoint = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
+            authToken = authToken,
+            endPoint = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
             outgoingBody = idBasedDTO
         )
     }

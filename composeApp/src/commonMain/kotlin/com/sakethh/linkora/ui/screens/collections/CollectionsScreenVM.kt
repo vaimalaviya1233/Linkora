@@ -15,7 +15,6 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
-import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
@@ -99,6 +98,7 @@ open class CollectionsScreenVM(
             }
         }
     }
+
     fun clearDetailPaneHistory() {
         viewModelScope.launch {
             _detailPaneHistory.emit(emptyList())
@@ -530,10 +530,9 @@ open class CollectionsScreenVM(
             if (link.linkType == LinkType.ARCHIVE_LINK) {
                 // we can also revert to the same folder from where it was originally archived, but this should be fine
                 localLinksRepo.updateALink(
-                   link =  link.copy(
+                    link = link.copy(
                         linkType = LinkType.SAVED_LINK, idOfLinkedFolder = null
-                    ),
-                    updatedLinkTagsPair = null
+                    ), updatedLinkTagsPair = null
                 ).collectLatest {
                     it.onSuccess {
                         pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.UnArchived.getLocalizedString() + it.getRemoteOnlyFailureMsg()))
@@ -555,9 +554,18 @@ open class CollectionsScreenVM(
     fun updateLink(updatedLinkTagsPair: LinkTagsPair, onCompletion: () -> Unit) {
         viewModelScope.launch {
             localLinksRepo.updateALink(
-                link = updatedLinkTagsPair.link,
-                updatedLinkTagsPair = updatedLinkTagsPair
+                link = updatedLinkTagsPair.link, updatedLinkTagsPair = updatedLinkTagsPair
             ).collectLatest {
+                it.pushSnackbarOnFailure()
+            }
+        }.invokeOnCompletion {
+            onCompletion()
+        }
+    }
+
+    fun updateFolder(newFolderData: Folder, onCompletion: () -> Unit) {
+        viewModelScope.launch {
+            localFoldersRepo.updateFolder(newFolderData).collectLatest {
                 it.pushSnackbarOnFailure()
             }
         }.invokeOnCompletion {

@@ -106,7 +106,7 @@ interface FoldersDao {
     suspend fun renameAFolderNote(folderID: Long, newNote: String)
 
     @Update
-    suspend fun updateAFolderData(foldersTable: Folder)
+    suspend fun updateFolder(foldersTable: Folder)
 
     @Query("UPDATE folders SET lastModified =:timestamp WHERE localId =:localFolderID")
     suspend fun updateFolderTimestamp(timestamp: Long, localFolderID: Long)

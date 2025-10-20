@@ -7,9 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface LocalFoldersRepo {
     suspend fun insertANewFolder(
-        folder: Folder,
-        ignoreFolderAlreadyExistsException: Boolean,
-        viaSocket: Boolean = false
+        folder: Folder, ignoreFolderAlreadyExistsException: Boolean, viaSocket: Boolean = false
     ): Flow<Result<Long>>
 
     suspend fun duplicateAFolder(actualFolderId: Long, parentFolderID: Long?): Flow<Result<Long>>
@@ -36,8 +34,7 @@ interface LocalFoldersRepo {
     suspend fun getLastIDOfFoldersTable(): Flow<Result<Long>>
 
     suspend fun doesThisChildFolderExists(
-        folderName: String,
-        parentFolderID: Long?
+        folderName: String, parentFolderID: Long?
     ): Flow<Result<Int>>
 
     suspend fun doesThisRootFolderExists(folderName: String): Flow<Result<Boolean>>
@@ -49,20 +46,17 @@ interface LocalFoldersRepo {
     fun getFoldersCount(): Flow<Result<Int>>
 
     suspend fun changeTheParentIdOfASpecificFolder(
-        sourceFolderId: Long,
-        targetParentId: Long?
+        sourceFolderId: Long, targetParentId: Long?
     ): Flow<Result<Unit>>
 
     suspend fun getRootFolders(sortOption: String): Flow<Result<List<Folder>>>
 
     suspend fun getChildFolders(
-        parentFolderId: Long,
-        sortOption: String
+        parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Folder>>>
 
     fun sortFoldersAsNonResultFlow(
-        parentFolderId: Long,
-        sortOption: String
+        parentFolderId: Long, sortOption: String
     ): Flow<List<Folder>>
 
 
@@ -79,38 +73,35 @@ interface LocalFoldersRepo {
 
 
     suspend fun markFolderAsArchive(
-        folderID: Long,
-        viaSocket: Boolean = false
+        folderID: Long, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
 
     suspend fun markFolderAsRegularFolder(
-        folderID: Long,
-        viaSocket: Boolean = false
+        folderID: Long, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun markFoldersAsRoot(
-        folderIDs: List<Long>,
-        viaSocket: Boolean = false
+        folderIDs: List<Long>, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>>
 
     suspend fun updateLocalFolderData(folder: Folder): Flow<Result<Unit>>
+    suspend fun updateFolder(
+        folder: Folder, viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
 
     suspend fun deleteAFolderNote(
-        folderID: Long,
-        viaSocket: Boolean = false
+        folderID: Long, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun deleteAFolder(
-        folderID: Long,
-        viaSocket: Boolean = false
+        folderID: Long, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun deleteMultipleFolders(
-        folderIDs: List<Long>,
-        viaSocket: Boolean = false
+        folderIDs: List<Long>, viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
     suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long): Flow<Result<Unit>>
