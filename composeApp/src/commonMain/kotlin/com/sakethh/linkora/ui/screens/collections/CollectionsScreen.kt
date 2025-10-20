@@ -72,7 +72,6 @@ import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
-import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -87,24 +86,29 @@ import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CollectionsScreen(
-    collectionsScreenVM: CollectionsScreenVM, currentFABContext: (CurrentFABContext)-> Unit
+    collectionsScreenVM: CollectionsScreenVM, currentFABContext: (CurrentFABContext) -> Unit
 ) {
-    var fabHiddenFromDetailPaneTrigger = rememberSaveable {
-        false
+    val anyCollectionSelected by collectionsScreenVM.isPaneSelected.collectAsStateWithLifecycle()
+    val platform = LocalPlatform.current
+
+    LaunchedEffect(Unit) {
+        currentFABContext(CurrentFABContext.ROOT)
     }
-    LaunchedEffect(fabHiddenFromDetailPaneTrigger) {
-        currentFABContext(CurrentFABContext(FABContext.REGULAR))
+
+    LaunchedEffect(anyCollectionSelected) {
+        if (!anyCollectionSelected && platform !is Platform.Android.Mobile) {
+            currentFABContext(CurrentFABContext.ROOT)
+        }
     }
+
     val rootFolders by collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
-    val platform = LocalPlatform.current
     val topAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var isRootContentSwitcherBtmSheetVisible by rememberSaveable {
         mutableStateOf(false)
@@ -502,8 +506,7 @@ fun CollectionsScreen(
             }
             if (platform() is Platform.Android.Mobile) return@Row
             VerticalDivider(modifier = Modifier.padding(start = 20.dp))
-            val isCollectionSelected by collectionsScreenVM.isPaneSelected.collectAsStateWithLifecycle()
-            if (!isCollectionSelected) {
+            if (!anyCollectionSelected) {
                 Box(
                     modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {

@@ -45,6 +45,7 @@ import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.TransferActionType
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -104,7 +105,7 @@ class AppVM(
 
     val isPerformingStartupSync = mutableStateOf(false)
 
-    var currentContextOfFAB = mutableStateOf(CurrentFABContext.ROOT)
+    var currentContextOfFAB = mutableStateOf(CurrentFABContext(fabContext = FABContext.HIDE))
         private set
 
     fun updateFABContext(currentFABContext: CurrentFABContext) {

@@ -29,6 +29,7 @@ import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.domain.LinkSaveConfig
@@ -72,7 +74,6 @@ import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,6 +105,14 @@ fun CollectionDetailPane(
     val showAllLinksCollection =
         if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo.currentFolder?.localId == Constants.ALL_LINKS_ID else peekCollectionPaneHistory?.currentFolder?.localId == Constants.ALL_LINKS_ID
 
+    DisposableEffect(Unit) {
+        onDispose {
+            if (platform is Platform.Android.Mobile && navController.currentBackStackEntry?.destination?.hasRoute<Navigation.Root.CollectionsScreen>() == true) {
+                currentFABContext(CurrentFABContext.ROOT)
+            }
+        }
+    }
+
     LaunchedEffect(currentFolder) {
         if (currentTag != null || (currentFolder != null && (currentFolder.localId == Constants.ALL_LINKS_ID || currentFolder.localId >= 0))) {
             currentFABContext(
@@ -121,6 +130,8 @@ fun CollectionDetailPane(
             )
             return@LaunchedEffect
         }
+
+        // for archive:
         currentFABContext(CurrentFABContext(FABContext.HIDE))
     }
 
@@ -142,7 +153,7 @@ fun CollectionDetailPane(
                 }
             }, title = {
                 val isTag =
-                    if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo?.collectionType == CollectionType.TAG
+                    if (collectionsScreenVM.collectionDetailPaneInfo != null) collectionsScreenVM.collectionDetailPaneInfo.collectionType == CollectionType.TAG
                     else collectionsScreenVM.peekPaneHistory.collectAsStateWithLifecycle().value?.collectionType == CollectionType.TAG
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (isTag) {
@@ -426,7 +437,10 @@ fun CollectionDetailPane(
                     peekCollectionPaneHistory?.currentFolder?.localId == it.localId
                 },
                 nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection,
-                emptyDataText = if (peekCollectionPaneHistory?.collectionType == CollectionType.TAG) "This tag wasn't attached to any links." else "",
+                emptyDataText = if (currentTag != null) "This tag wasn't attached to any links." else if (currentFolder?.localId in listOf(
+                        Constants.SAVED_LINKS_ID, Constants.IMPORTANT_LINKS_ID
+                    )
+                ) Localization.Key.NoLinksFound.rememberLocalizedString() else "",
                 onAttachedTagClick = {
                     if (currentTag?.localId == it.localId) {
                         return@CollectionLayoutManager

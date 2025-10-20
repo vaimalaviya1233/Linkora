@@ -28,7 +28,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
@@ -39,19 +43,16 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.sakethh.linkora.platform.FileManager
-import com.sakethh.linkora.platform.NativeUtils
-import com.sakethh.linkora.platform.PermissionManager
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.Constants
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.inDoubleQuotes
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.platform.FileManager
+import com.sakethh.linkora.platform.NativeUtils
+import com.sakethh.linkora.platform.PermissionManager
+import com.sakethh.linkora.platform.showFollowSystemThemeOption
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.App
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
@@ -61,12 +62,18 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.platform.showFollowSystemThemeOption
+import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.inDoubleQuotes
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import linkora.composeapp.generated.resources.Res
+import linkora.composeapp.generated.resources.linkora_char
 import okio.Path.Companion.toPath
+import org.jetbrains.compose.resources.Font
 import java.io.File
 
 val linkoraSpecificFolder = System.getProperty("user.home").run {
@@ -94,7 +101,8 @@ suspend fun main() {
             },
             dataStore = PreferenceDataStoreFactory.createWithPath {
                 linkoraSpecificFolder.resolve(Constants.DATA_STORE_NAME).absolutePath.toPath()
-            }, dataSyncingNotificationService = NativeUtils.DataSyncingNotificationService()
+            },
+            dataSyncingNotificationService = NativeUtils.DataSyncingNotificationService()
         )
     )
 
@@ -183,10 +191,22 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
                         start = if (AppPreferences.isServerConfigured().not()) 15.dp else 5.dp
                     )
                 )
-                Text(
-                    text = Localization.Key.Linkora.rememberLocalizedString(),
-                    style = MaterialTheme.typography.labelSmall,
-                )
+                if (AppPreferences.useCustomAppVersionLabel.value) {
+                    Text(
+                        text = "!", style = TextStyle(
+                            fontFamily = FontFamily(
+                                Font(
+                                    Res.font.linkora_char, FontWeight.Normal
+                                )
+                            ), fontWeight = FontWeight.Normal
+                        ), fontSize = 65.sp
+                    )
+                } else {
+                    Text(
+                        text = Localization.Key.Linkora.rememberLocalizedString(),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically

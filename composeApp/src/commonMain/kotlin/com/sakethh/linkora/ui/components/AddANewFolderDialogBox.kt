@@ -113,7 +113,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
         }
     }, title = {
         Text(
-            text = if (addNewFolderDialogBoxParam.inAChildFolderScreen && addNewFolderDialogBoxParam.currentFolder != null) Localization.rememberLocalizedString(
+            text = if (addNewFolderDialogBoxParam.inCollectionDetailPane && addNewFolderDialogBoxParam.currentFolder != null) Localization.rememberLocalizedString(
                 Localization.Key.CreateANewFolderIn
             ).replace(
                     LinkoraPlaceHolder.First.value,

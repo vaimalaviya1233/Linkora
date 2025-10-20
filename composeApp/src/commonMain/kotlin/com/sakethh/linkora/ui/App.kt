@@ -288,11 +288,9 @@ fun App(
                 AddANewFolderDialogBox(
                     AddNewFolderDialogBoxParam(
                         onDismiss = {
-                        appVM.showNewFolderDialog = false
-                    },
-                        inAChildFolderScreen = currentFABContext.currentFolder?.parentFolderId.run {
-                            this != null && this > 0
+                            appVM.showNewFolderDialog = false
                         },
+                        inCollectionDetailPane = currentFABContext.currentFolder != null,
                         onFolderCreateClick = { folderName, folderNote, onCompletion ->
                             if (menuBtmSheetFolderEntries().contains(appVM.menuBtmSheetFor)) {
                                 collectionsScreenVM.insertANewFolder(

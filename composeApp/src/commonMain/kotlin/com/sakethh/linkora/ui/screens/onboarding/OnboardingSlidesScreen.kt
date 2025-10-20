@@ -41,6 +41,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,11 +66,13 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.LinkListItemComposable
+import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
@@ -82,7 +85,13 @@ import org.jetbrains.compose.resources.painterResource
 private data class OnboardingSlide(val screen: @Composable () -> Unit)
 
 @Composable
-fun OnboardingSlidesScreen(onOnboardingComplete: () -> Unit) {
+fun OnboardingSlidesScreen(
+    onOnboardingComplete: () -> Unit,
+    currentFABContext: (CurrentFABContext) -> Unit
+) {
+    LaunchedEffect(Unit) {
+        currentFABContext(CurrentFABContext(fabContext = FABContext.HIDE))
+    }
     val pagerState = rememberPagerState { 4 }
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
@@ -402,7 +411,10 @@ private fun Slide3() {
                 }
             }
         }
-        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth().animateContentSize()) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth().animateContentSize()
+        ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 when (it) {
                     0 -> {

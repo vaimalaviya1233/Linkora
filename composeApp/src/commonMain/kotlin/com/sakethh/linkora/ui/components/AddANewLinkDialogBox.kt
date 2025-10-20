@@ -916,7 +916,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 onDismiss = {
                 shouldShowNewFolderDialog.value = false
             },
-                inAChildFolderScreen = addTheFolderInRoot.value.not(),
+                inCollectionDetailPane = !addTheFolderInRoot.value,
                 onFolderCreateClick = { folderName, folderNote, onCompletion ->
                     collectionsScreenVM.insertANewFolder(
                         folder = Folder(

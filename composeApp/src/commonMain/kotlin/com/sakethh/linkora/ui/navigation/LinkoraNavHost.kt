@@ -94,7 +94,7 @@ fun LinkoraNavHost(
             SnapshotsScreen()
         }
         composable<Navigation.Root.OnboardingSlidesScreen> {
-            OnboardingSlidesScreen(onOnboardingComplete = onOnboardingComplete)
+            OnboardingSlidesScreen(onOnboardingComplete = onOnboardingComplete,currentFABContext)
         }
     }
 }

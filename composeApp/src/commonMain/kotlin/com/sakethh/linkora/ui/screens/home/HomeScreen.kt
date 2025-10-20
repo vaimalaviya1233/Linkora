@@ -83,7 +83,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
     LaunchedEffect(Unit) {
-        currentFABContext(CurrentFABContext(fabContext = FABContext.REGULAR))
+        currentFABContext(CurrentFABContext.ROOT)
     }
     val navController = LocalNavController.current
     val homeScreenVM: HomeScreenVM =

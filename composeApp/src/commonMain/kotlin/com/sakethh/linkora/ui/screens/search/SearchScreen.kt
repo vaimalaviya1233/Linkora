@@ -64,7 +64,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun SearchScreen(currentFABContext: (CurrentFABContext)-> Unit) {
     LaunchedEffect(Unit) {
-        currentFABContext(CurrentFABContext(FABContext.REGULAR))
+        currentFABContext(CurrentFABContext.ROOT)
     }
     val searchScreenVM: SearchScreenVM = linkoraViewModel()
     val platform = LocalPlatform.current
