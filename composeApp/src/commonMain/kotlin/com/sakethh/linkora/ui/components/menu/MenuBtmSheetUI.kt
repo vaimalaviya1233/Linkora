@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.TextSnippet
 import androidx.compose.material.icons.filled.CopyAll
@@ -136,7 +138,11 @@ fun MenuBtmSheetUI(
     }
 
     val commonContent: ComposableContent = {
-        Column {
+        Column(
+            modifier = if (platform is Platform.Android.Mobile) Modifier else Modifier.verticalScroll(
+                rememberScrollState()
+            )
+        ) {
             if (platform is Platform.Android.Mobile) {
                 IndividualMenuComponent(
                     onClick = {
@@ -173,7 +179,8 @@ fun MenuBtmSheetUI(
             }
 
             if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
-                val markedAsImportant = menuBtmSheetParam.linkTagsPair!!.link.linkType == LinkType.IMPORTANT_LINK
+                val markedAsImportant =
+                    menuBtmSheetParam.linkTagsPair!!.link.linkType == LinkType.IMPORTANT_LINK
 
                 IndividualMenuComponent(
                     onClick = {

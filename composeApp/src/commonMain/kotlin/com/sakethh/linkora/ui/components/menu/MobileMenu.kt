@@ -172,27 +172,32 @@ fun MobileMenu(
         }
 
         if (!showNote.value) {
-            val commonModifier = Modifier.padding(start = 10.dp, end = 10.dp).fillMaxWidth()
-            if (showTags) {
-                Text(
-                    text = "Associated Tags",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = commonModifier,
-                    fontSize = 12.sp
+            if (menuBtmSheetLinkEntries().contains(
+                    menuBtmSheetFor
                 )
-                TagsRow(
-                    modifier = commonModifier, tags = currentLinkTagsPair.tags, onTagClick = {
-                        menuBtmSheetParam.onTagClick(it)
-                    })
-            }
-            if (showTags) {
-                hostComponent()
+            ) {
+                val commonModifier = Modifier.padding(start = 10.dp, end = 10.dp).fillMaxWidth()
+                if (showTags) {
+                    Text(
+                        text = "Associated Tags",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = commonModifier,
+                        fontSize = 12.sp
+                    )
+                    TagsRow(
+                        modifier = commonModifier, tags = currentLinkTagsPair.tags, onTagClick = {
+                            menuBtmSheetParam.onTagClick(it)
+                        })
+                }
+                if (showTags) {
+                    hostComponent()
+                }
             }
             commonMenuContent()
         } else {
             val note =
-                if (menuBtmSheetLinkEntries().contains(menuBtmSheetFor)) currentLinkTagsPair.link!!.note else currentFolder!!.note
+                if (menuBtmSheetLinkEntries().contains(menuBtmSheetFor)) currentLinkTagsPair.link.note else currentFolder!!.note
             if (note.isNotEmpty()) {
                 Text(
                     text = Localization.Key.SavedNote.rememberLocalizedString(),
