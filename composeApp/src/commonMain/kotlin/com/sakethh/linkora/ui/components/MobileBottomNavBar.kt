@@ -23,6 +23,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -58,6 +60,7 @@ fun MobileBottomNavBar(rootRouteList:List<Navigation.Root>, isPerformingStartupS
 
                     val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                     NavigationBarItem(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                         selected = isSelected,
                         onClick = {
                             isSelected.ifNot {

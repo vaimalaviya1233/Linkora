@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -53,7 +55,7 @@ fun SettingsAppInfoComponent(
             top = paddingValues?.calculateTopPadding() ?: 20.dp,
             end = paddingValues?.calculateEndPadding(LayoutDirection.Ltr) ?: 20.dp,
             start = paddingValues?.calculateStartPadding(LayoutDirection.Ltr) ?: 20.dp
-        ).wrapContentHeight().fillMaxWidth().combinedClickable(interactionSource = remember {
+        ).wrapContentHeight().fillMaxWidth().pointerHoverIcon(icon = PointerIcon.Hand).combinedClickable(interactionSource = remember {
             MutableInteractionSource()
         }, indication = null, onClick = {
             onClick()

@@ -177,7 +177,7 @@ fun DataSettingsScreen() {
                             style = MaterialTheme.typography.titleLarge
                         )
                         Spacer(modifier = Modifier.width(5.dp))
-                        FilledTonalIconButton(modifier = Modifier.size(24.dp), onClick = {
+                        FilledTonalIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).size(24.dp), onClick = {
                             if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) importFileSelectionMethod.value =
                                 ImportFileSelectionMethod.FilePicker.name else importFileSelectionMethod.value =
                                 ImportFileSelectionMethod.FileLocationString.name
@@ -587,7 +587,7 @@ fun DataSettingsScreen() {
                                         modifier = Modifier.fillMaxWidth(0.85f), progress = {
                                             DataSettingsScreenVM.refreshLinksState.value.currentIteration.toFloat() / DataSettingsScreenVM.totalLinksForRefresh.value
                                         })
-                                    IconButton(onClick = {
+                                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                                         dataSettingsScreenVM.cancelRefreshingAllLinks()
                                     }) {
                                         Icon(
@@ -657,7 +657,7 @@ fun DataSettingsScreen() {
         AlertDialog(onDismissRequest = {
             showFileLocationPickerDialog.value = false
         }, confirmButton = {
-            Button(modifier = Modifier.fillMaxWidth(), onClick = {
+            Button(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth(), onClick = {
                 dataSettingsScreenVM.importDataFromAFile(
                     importFileType = ImportFileType.valueOf(
                     selectedImportFormat.value
@@ -679,7 +679,7 @@ fun DataSettingsScreen() {
                 )
             }
         }, dismissButton = {
-            OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
+            OutlinedButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth(), onClick = {
                 showFileLocationPickerDialog.value = false
             }) {
                 Text(

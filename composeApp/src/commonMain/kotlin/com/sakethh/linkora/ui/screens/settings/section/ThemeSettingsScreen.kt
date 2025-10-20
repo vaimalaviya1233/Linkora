@@ -57,7 +57,7 @@ fun ThemeSettingsScreen() {
                             isSwitchEnabled = AppPreferences.shouldFollowSystemTheme,
                             onSwitchStateChange = {
                                 AppPreferences.shouldFollowSystemTheme.value =
-                                    AppPreferences.shouldFollowSystemTheme.value.not()
+                                    !AppPreferences.shouldFollowSystemTheme.value
                                 settingsScreenViewModel.changeSettingPreferenceValue(
                                     booleanPreferencesKey(AppPreferenceType.FOLLOW_SYSTEM_THEME.name),
                                     it
@@ -80,7 +80,7 @@ fun ThemeSettingsScreen() {
                             isSwitchEnabled = AppPreferences.shouldUseForceDarkTheme,
                             onSwitchStateChange = {
                                 AppPreferences.shouldUseForceDarkTheme.value =
-                                    AppPreferences.shouldUseForceDarkTheme.value.not()
+                                    !AppPreferences.shouldUseForceDarkTheme.value
                                 settingsScreenViewModel.changeSettingPreferenceValue(
                                     booleanPreferencesKey(AppPreferenceType.DARK_THEME.name), it
                                 )
@@ -102,7 +102,7 @@ fun ThemeSettingsScreen() {
                             isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
                             onSwitchStateChange = {
                                 AppPreferences.shouldUseAmoledTheme.value =
-                                    AppPreferences.shouldUseAmoledTheme.value.not()
+                                    !AppPreferences.shouldUseAmoledTheme.value
                                 settingsScreenViewModel.changeSettingPreferenceValue(
                                     booleanPreferencesKey(AppPreferenceType.AMOLED_THEME_STATE.name),
                                     it
@@ -125,7 +125,7 @@ fun ThemeSettingsScreen() {
                             isSwitchEnabled = AppPreferences.shouldUseDynamicTheming,
                             onSwitchStateChange = {
                                 AppPreferences.shouldUseDynamicTheming.value =
-                                    AppPreferences.shouldUseDynamicTheming.value.not()
+                                    !AppPreferences.shouldUseDynamicTheming.value
                                 settingsScreenViewModel.changeSettingPreferenceValue(
                                     booleanPreferencesKey(AppPreferenceType.DYNAMIC_THEMING.name),
                                     it

@@ -12,9 +12,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.getLocalizedString
 
 @Composable
@@ -23,14 +26,14 @@ fun TagDeletionConfirmation(
 ) {
     if (showConfirmation) {
         AlertDialog(onDismissRequest = onHide, confirmButton = {
-            Button(onClick = onDelete, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = onDelete, modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()) {
                 Text(
                     text = Localization.Key.Delete.getLocalizedString(),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
         }, dismissButton = {
-            OutlinedButton(onClick = onHide, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = onHide, modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()) {
                 Text(
                     text = Localization.Key.Cancel.getLocalizedString(),
                     style = MaterialTheme.typography.titleSmall

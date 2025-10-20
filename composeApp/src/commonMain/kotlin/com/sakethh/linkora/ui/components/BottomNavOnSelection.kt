@@ -33,6 +33,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
@@ -91,7 +93,7 @@ fun BottomNavOnSelection(
             return@Column
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = {
+            IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                 CollectionsScreenVM.clearAllSelections()
             }) {
                 Icon(
@@ -157,7 +159,7 @@ fun BottomNavOnSelection(
                                         showLoadingProgressBarOnTransferAction.value = false
                                     })
                             }
-                        }, modifier = Modifier.padding(end = 6.5.dp)) {
+                        }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(end = 6.5.dp)) {
                             Icon(
                                 imageVector = Icons.Default.ContentPaste, contentDescription = null
                             )
@@ -167,7 +169,7 @@ fun BottomNavOnSelection(
                     if (appVM.transferActionType.value != TransferActionType.NONE) {
                         return@Row
                     }
-                    IconButton(onClick = {
+                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
                     }) {
                         Icon(
@@ -177,9 +179,9 @@ fun BottomNavOnSelection(
                     if (CollectionsScreenVM.selectedLinksViaLongClick.any {
                             it.linkType == LinkType.ARCHIVE_LINK
                         }.not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
-                            it.isArchived.not()
+                            !it.isArchived
                         }) {
-                        IconButton(onClick = {
+                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                             appVM.archiveSelectedItems(onStart = {
                                 showLoadingProgressBarOnTransferAction.value = true
                             }, onCompletion = {
@@ -196,7 +198,7 @@ fun BottomNavOnSelection(
                         } || CollectionsScreenVM.selectedLinksViaLongClick.any {
                             it.linkType == LinkType.ARCHIVE_LINK
                         }) {
-                        IconButton(onClick = {
+                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                             appVM.markSelectedItemsAsRegular(onStart = {
                                 showLoadingProgressBarOnTransferAction.value = true
                             }, onCompletion = {
@@ -208,14 +210,14 @@ fun BottomNavOnSelection(
                             )
                         }
                     }
-                    IconButton(onClick = {
+                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         appVM.transferActionType.value = TransferActionType.COPY
                     }) {
                         Icon(
                             imageVector = Icons.Default.CopyAll, contentDescription = null
                         )
                     }
-                    IconButton(onClick = {
+                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         appVM.transferActionType.value = TransferActionType.MOVE
                     }) {
                         Icon(
@@ -229,7 +231,7 @@ fun BottomNavOnSelection(
                                 MaterialTheme.colorScheme.outline
                             )
                         )
-                        IconButton(onClick = {
+                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                             LinkoraSDK.getInstance().nativeUtils.onShare(
                                 CollectionsScreenVM.selectedLinksViaLongClick.joinToString(
                                     "\n"
@@ -262,7 +264,7 @@ fun BottomNavOnSelection(
                     }, onCompletion = {
                         showLoadingProgressBarOnTransferAction.value = false
                     })
-                }, modifier = Modifier.fillMaxWidth().padding(
+                }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(
                     start = 15.dp,
                     end = 15.dp,
                     top = 5.dp,
@@ -279,7 +281,7 @@ fun BottomNavOnSelection(
             Button(
                 onClick = {
                     localNavController.navigate(Navigation.Root.CollectionsScreen)
-                }, modifier = Modifier.fillMaxWidth().padding(
+                }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(
                     start = 15.dp, end = 15.dp, top = 5.dp, bottom = 5.dp
                 )
             ) {

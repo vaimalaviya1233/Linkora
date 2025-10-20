@@ -40,6 +40,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
@@ -99,7 +101,7 @@ fun MenuBtmSheetUI(
             QuickActionItem(
                 shape = RoundedCornerShape(
                     topStart = 20.dp, topEnd = 8.dp, bottomStart = 20.dp, bottomEnd = 8.dp
-                ), modifier = Modifier.weight(1f).pressScaleEffect(), onClick = {
+                ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).weight(1f).pressScaleEffect(), onClick = {
                     menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
                     hideContent()
                 }, text = "Open", icon = Icons.Default.OpenInNew
@@ -109,7 +111,7 @@ fun MenuBtmSheetUI(
             )
             QuickActionItem(
                 shape = if (platform is Platform.Android.Mobile) RoundedCornerShape(8.dp) else lastItemShape,
-                modifier = Modifier.weight(1f).pressScaleEffect(),
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).weight(1f).pressScaleEffect(),
                 onClick = {
                     localClipboard.setText(
                         AnnotatedString(
@@ -125,7 +127,7 @@ fun MenuBtmSheetUI(
             if (platform is Platform.Android.Mobile) {
                 QuickActionItem(
                     shape = lastItemShape,
-                    modifier = Modifier.weight(1f).pressScaleEffect(),
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).weight(1f).pressScaleEffect(),
                     onClick = {
                         menuBtmSheetParam.onShare(menuBtmSheetParam.linkTagsPair!!.link.url)
                         hideContent()

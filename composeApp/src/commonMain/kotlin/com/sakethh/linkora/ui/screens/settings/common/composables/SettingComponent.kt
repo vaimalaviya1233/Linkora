@@ -25,6 +25,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,7 +43,7 @@ fun SettingComponent(
 ) {
     val uriHandler = LocalUriHandler.current
     Row(
-        modifier = Modifier
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             .combinedClickable(
                 interactionSource = remember {
                     MutableInteractionSource()
@@ -57,6 +59,7 @@ fun SettingComponent(
         if (settingComponentParam.isIconNeeded.value && settingComponentParam.icon != null) {
             Spacer(modifier = Modifier.width(10.dp))
             IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                 colors = if (settingComponentParam.shouldFilledIconBeUsed.value) IconButtonDefaults.filledTonalIconButtonColors() else IconButtonDefaults.iconButtonColors(),
                 onClick = { settingComponentParam.onSwitchStateChange(!settingComponentParam.isSwitchEnabled.value) }) {
                 Icon(
@@ -116,7 +119,7 @@ fun SettingComponent(
         }
         if (settingComponentParam.shouldArrowIconBeAppear.value) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                IconButton(onClick = {
+                IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                     settingComponentParam.onAcknowledgmentClick(
                         uriHandler
                     )

@@ -46,6 +46,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -191,7 +193,7 @@ fun GeneralSettingsScreen() {
                     ) {
                         AppIconCode.entries.forEach {
                             key(it.name) {
-                                Box(Modifier.pressScaleEffect().clickable(onClick = {
+                                Box(Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect().clickable(onClick = {
                                     settingsScreenViewModel.onIconChange(
                                         newIconCode = it.name,
                                         onCompletion = {
@@ -268,7 +270,7 @@ fun GeneralSettingsScreen() {
                     ), currentlySelectedRoute.value
                 )
                 showInitialNavigationChangerDialogBox = false
-            }, modifier = Modifier.fillMaxWidth()) {
+            }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()) {
                 Text(
                     text = Localization.Key.Confirm.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium
@@ -277,7 +279,7 @@ fun GeneralSettingsScreen() {
         }, dismissButton = {
             OutlinedButton(onClick = {
                 showInitialNavigationChangerDialogBox = false
-            }, modifier = Modifier.fillMaxWidth()) {
+            }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()) {
                 Text(
                     text = Localization.Key.Cancel.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleSmall
@@ -291,13 +293,14 @@ fun GeneralSettingsScreen() {
                     Navigation.Root.CollectionsScreen
                 ).forEach {
                     Row(
-                        modifier = Modifier.fillMaxWidth().clickable(onClick = {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable(onClick = {
                             currentlySelectedRoute.value = it.toString()
                         }, indication = null, interactionSource = remember {
                             MutableInteractionSource()
                         }).pressScaleEffect(), verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             selected = currentlySelectedRoute.value == it.toString(),
                             onClick = {
                                 currentlySelectedRoute.value = it.toString()

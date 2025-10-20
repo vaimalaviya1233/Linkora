@@ -32,6 +32,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -103,7 +105,7 @@ fun SearchScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                     Row {
                         if (searchScreenVM.isSearchActive.value) {
                             SortingIconButton()
-                            IconButton(modifier = Modifier.pressScaleEffect(), onClick = {
+                            IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
                                 if (searchScreenVM.searchQuery.value == "") {
                                     searchScreenVM.isSearchActive.value = false
                                 } else {
@@ -318,7 +320,7 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier.animateContentSize()
     ) {
         Spacer(modifier = Modifier.width(10.dp))
-        androidx.compose.material3.FilterChip(selected = isSelected, onClick = onClick, label = {
+        androidx.compose.material3.FilterChip(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), selected = isSelected, onClick = onClick, label = {
             Text(
                 text = text, style = MaterialTheme.typography.titleSmall
             )

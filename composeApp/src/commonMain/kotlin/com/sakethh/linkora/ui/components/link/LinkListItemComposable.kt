@@ -42,6 +42,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
@@ -76,7 +78,7 @@ fun LinkListItemComposable(
             if (linkUIComponentParam.isItemSelected.value) MaterialTheme.colorScheme.primary.copy(
                 0.25f
             ) else Color.Transparent
-        ).combinedClickable(interactionSource = remember {
+        ).pointerHoverIcon(icon = PointerIcon.Hand).combinedClickable(interactionSource = remember {
             MutableInteractionSource()
         }, indication = null, onClick = {
             linkUIComponentParam.onLinkClick()
@@ -190,7 +192,7 @@ fun LinkListItemComposable(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = {
+                        IconButton(modifier=Modifier.pointerHoverIcon(icon = PointerIcon.Hand),onClick = {
                             localClipBoardManager.setText(
                                 AnnotatedString(linkUIComponentParam.link.url)
                             )
@@ -200,13 +202,13 @@ fun LinkListItemComposable(
                             )
                         }
                         if (platform is Platform.Android) {
-                            IconButton(onClick = {
+                            IconButton(modifier=Modifier.pointerHoverIcon(icon = PointerIcon.Hand),onClick = {
                                 onShare(linkUIComponentParam.link.url)
                             }) {
                                 Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
                             }
                         }
-                        IconButton(onClick = {
+                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                             linkUIComponentParam.onMoreIconClick()
                         }) {
                             Icon(
@@ -262,7 +264,7 @@ fun TagsRow(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-            })
+            }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand))
         }
     }
 }

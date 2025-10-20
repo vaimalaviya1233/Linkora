@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
@@ -41,7 +43,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
     AlertDialog(dismissButton = {
         if (!isFolderCreationInProgress.value) {
             androidx.compose.material3.OutlinedButton(
-                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = addNewFolderDialogBoxParam.onDismiss) {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = addNewFolderDialogBoxParam.onDismiss) {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.Cancel),
                     style = MaterialTheme.typography.titleSmall,
@@ -52,7 +54,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
     }, confirmButton = {
         if (!isFolderCreationInProgress.value) {
             Button(
-                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
                     isFolderCreationInProgress.value = true
                     addNewFolderDialogBoxParam.onFolderCreateClick(
                         folderNameTextFieldValue.value, noteTextFieldValue.value, {

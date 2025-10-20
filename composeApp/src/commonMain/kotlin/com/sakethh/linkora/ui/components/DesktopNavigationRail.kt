@@ -28,6 +28,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
@@ -62,7 +64,7 @@ fun DesktopNavigationRail(
 
                     val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                     NavigationRailItem(
-                        modifier = Modifier.padding(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                         start = 15.dp, end = 15.dp, top = 15.dp
                     ), selected = isSelected, onClick = {
                         if (currentRoute?.hasRoute(navRouteItem::class) == false) {
@@ -121,7 +123,7 @@ fun DesktopNavigationRail(
                                         isDataSyncingFromPullRefresh.value = false
                                     })
                             }
-                        }) {
+                        }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)) {
                             Icon(
                                 imageVector = Icons.Default.CloudSync, contentDescription = null
                             )

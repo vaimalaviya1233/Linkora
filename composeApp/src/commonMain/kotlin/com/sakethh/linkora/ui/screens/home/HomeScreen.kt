@@ -46,6 +46,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,12 +61,10 @@ import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.platform.PlatformSpecificBackHandler
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
-import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -76,12 +76,11 @@ import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
+fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
     LaunchedEffect(Unit) {
         currentFABContext(CurrentFABContext.ROOT)
     }
@@ -124,7 +123,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = {
                         navController.navigate(Navigation.Home.PanelsManagerScreen)
-                    }) {
+                    }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)) {
                         Icon(imageVector = Icons.Default.Tune, contentDescription = null)
                     }
                     SortingIconButton()
@@ -140,14 +139,15 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable(onClick = {
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable(onClick = {
                         shouldPanelsBtmSheetBeVisible.value = true
                         coroutineScope.launch {
                             panelsBtmSheetState.show()
                         }
                     }, indication = null, interactionSource = remember {
                         MutableInteractionSource()
-                    }).pressScaleEffect().fillMaxWidth().padding(start = 5.dp, end = 5.dp),
+                    }).pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                        .padding(start = 5.dp, end = 5.dp),
                 ) {
                     Spacer(Modifier.width(5.dp))
                     FilledTonalIconButton(onClick = {
@@ -155,7 +155,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                         coroutineScope.launch {
                             panelsBtmSheetState.show()
                         }
-                    }, modifier = Modifier.size(22.dp)) {
+                    }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).size(22.dp)) {
                         Icon(imageVector = Icons.Default.ArrowDownward, contentDescription = null)
                     }
                     Spacer(Modifier.width(10.dp))
@@ -188,7 +188,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
                         }.start()
-                    }) {
+                    }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)) {
                         Text(
                             text = panelFolder.folderName,
                             style = MaterialTheme.typography.titleLarge,
@@ -302,15 +302,18 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                     )
                 }
                 items(panels.value) { panel ->
-                    Row(modifier = Modifier.fillMaxWidth().clickable {
-                        homeScreenVM.selectedPanelData.value = panel
-                        homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.localId)
-                        coroutineScope.launch {
-                            panelsBtmSheetState.hide()
-                        }.invokeOnCompletion {
-                            shouldPanelsBtmSheetBeVisible.value = false
-                        }
-                    }.padding(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            homeScreenVM.selectedPanelData.value = panel
+                            homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.localId)
+                            coroutineScope.launch {
+                                panelsBtmSheetState.hide()
+                            }.invokeOnCompletion {
+                                shouldPanelsBtmSheetBeVisible.value = false
+                            }
+                        }.pointerHoverIcon(icon = PointerIcon.Hand).padding(5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         RadioButton(
                             selected = homeScreenVM.selectedPanelData.value!!.localId == panel.localId,
                             onClick = {
@@ -321,7 +324,9 @@ fun HomeScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                                 }.invokeOnCompletion {
                                     shouldPanelsBtmSheetBeVisible.value = false
                                 }
-                            })
+                            },
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                        )
                         Spacer(Modifier.width(5.dp))
                         Text(
                             text = panel.panelName,

@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.preferences.AppPreferences
 import kotlinx.coroutines.launch
@@ -43,10 +45,11 @@ fun RootCollectionSwitcher(
                 remember {
                     listOf(0 to "Folders", 1 to "Tags")
                 }.forEach { contentType ->
-                    Row(modifier = Modifier.fillMaxWidth().clickable {
+                    Row(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable {
                         onSourceClick(contentType.first)
                     }.padding(5.dp), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             selected = contentType.first == AppPreferences.selectedCollectionSourceId,
                             onClick = {
                                 onSourceClick(contentType.first)

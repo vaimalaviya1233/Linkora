@@ -34,6 +34,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,7 +69,7 @@ import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
-import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetUI
+import com.sakethh.linkora.ui.components.sorting.SortingBottomSheet
 import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
@@ -191,9 +193,11 @@ fun App(
                     visible = currentFABContext.fabContext != FABContext.HIDE && !CollectionsScreenVM.isSelectionEnabled.value,
                 ) {
                     if (currentFABContext.fabContext == FABContext.ADD_LINK_IN_FOLDER) {
-                        FloatingActionButton(onClick = {
-                            appVM.showAddLinkDialog = true
-                        }) {
+                        FloatingActionButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            onClick = {
+                                appVM.showAddLinkDialog = true
+                            }) {
                             Icon(
                                 imageVector = Icons.Default.AddLink, contentDescription = null
                             )
@@ -268,7 +272,7 @@ fun App(
                 visible = isReducedTransparencyBoxVisible.value, enter = fadeIn(), exit = fadeOut()
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxSize()
                         .background(MaterialTheme.colorScheme.background.copy(0.95f)).clickable {
                             AppVM.isMainFabRotated.value = false
                         })
@@ -518,7 +522,7 @@ fun App(
             )
 
             if (appVM.showSortingBtmSheet) {
-                SortingBottomSheetUI(
+                SortingBottomSheet(
                     SortingBottomSheetParam(
                         onDismiss = {
                         appVM.showSortingBtmSheet = false

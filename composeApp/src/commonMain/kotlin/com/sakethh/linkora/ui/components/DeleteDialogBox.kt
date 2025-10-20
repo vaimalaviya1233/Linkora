@@ -19,6 +19,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,7 +57,7 @@ fun DeleteDialogBox(
     AlertDialog(modifier = Modifier.animateContentSize(), confirmButton = {
         if (isDeletionInProgress.value.not()) {
             Button(
-                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
                     isDeletionInProgress.value = true
                     deleteDialogBoxParam.onDeleteClick({
                         isDeletionInProgress.value = false
@@ -72,7 +74,7 @@ fun DeleteDialogBox(
     }, dismissButton = {
         if (isDeletionInProgress.value.not()) {
             OutlinedButton(
-                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = deleteDialogBoxParam.onDismiss) {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = deleteDialogBoxParam.onDismiss) {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.Cancel),
                     style = MaterialTheme.typography.titleSmall,
@@ -93,10 +95,10 @@ fun DeleteDialogBox(
     }, text = {
         if (isDeletionInProgress.value.not() && AppPreferences.canPushToServer() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.REMOVE_ENTIRE_DATA) {
             Row(
-                modifier = Modifier.fillMaxWidth().clickable {
-                    if (isDeletionInProgress.value.not()) {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable {
+                    if (!isDeletionInProgress.value) {
                         deleteEverythingFromRemote.value =
-                            deleteEverythingFromRemote.value.not()
+                            !deleteEverythingFromRemote.value
                     }
                 }, verticalAlignment = Alignment.CenterVertically
             ) {

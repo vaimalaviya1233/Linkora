@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -31,7 +33,7 @@ fun QuickActionItem(
         shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
         onClick = onClick,
-        modifier = modifier.padding(start = 2.5.dp, end = 2.5.dp)
+        modifier = modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 2.5.dp, end = 2.5.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.Center,

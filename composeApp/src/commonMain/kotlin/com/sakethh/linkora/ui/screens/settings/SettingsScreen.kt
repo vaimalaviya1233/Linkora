@@ -41,6 +41,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -112,7 +114,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         modifier = Modifier.padding(start = 10.dp, top = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        FilledIconButton(modifier = Modifier.pressScaleEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
                             uriHandler.openUri("https://www.github.com/LinkoraApp")
                         }) {
                             Icon(
@@ -121,7 +123,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                                 modifier = Modifier.size(24.dp),
                             )
                         }
-                        FilledIconButton(modifier = Modifier.pressScaleEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
                             uriHandler.openUri("https://discord.gg/ZDBXNtv8MD")
                         }) {
                             Icon(
@@ -130,7 +132,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                                 modifier = Modifier.size(24.dp),
                             )
                         }
-                        FilledIconButton(modifier = Modifier.pressScaleEffect(), onClick = {
+                        FilledIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
                             uriHandler.openUri("https://www.twitter.com/LinkoraApp")
                         }) {
                             Icon(
@@ -151,7 +153,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     Button(
                         onClick = {
                             uriHandler.openUri("https://github.com/LinkoraApp/localization-server")
-                        }, modifier = Modifier.padding(start = 15.dp).pressScaleEffect()
+                        }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 15.dp).pressScaleEffect()
                     ) {
                         Icon(imageVector = Icons.Default.Translate, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
@@ -165,7 +167,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         onClick = {
                             uriHandler.openUri("https://ko-fi.com/sakethpathike")
                         },
-                        modifier = Modifier.padding(start = 15.dp, bottom = 15.dp).pressScaleEffect()
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 15.dp, bottom = 15.dp).pressScaleEffect()
                     ) {
                         Icon(imageVector = Icons.Default.Coffee, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))

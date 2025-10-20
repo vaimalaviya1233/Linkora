@@ -33,6 +33,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -201,7 +203,7 @@ fun ServerSetupScreen(
                                             isCertificateInProcessing.value = false
                                         })
                                     }
-                                }, modifier = Modifier.fillMaxWidth().padding(
+                                }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(
                                     start = 15.dp, end = 15.dp, bottom = 15.dp
                                 ).pressScaleEffect()
                             ) {
@@ -259,7 +261,7 @@ fun ServerSetupScreen(
                             serverManagementViewModel.testServerConnection(
                                 serverUrl = serverUrl.value, token = securityToken.value
                             )
-                        }, modifier = Modifier.fillMaxWidthWithPadding().pressScaleEffect()
+                        }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding().pressScaleEffect()
                     ) {
                         Text(
                             text = Localization.rememberLocalizedString(Localization.Key.TestServerAvailability),
@@ -291,7 +293,7 @@ fun ServerSetupScreen(
                     } else {
                         Spacer(Modifier.height(15.dp))
                     }
-                    Column(modifier = Modifier.clickable(onClick = {
+                    Column(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable(onClick = {
                         selectedSyncType.value = syncType
                     }, indication = null, interactionSource = remember {
                         MutableInteractionSource()
@@ -300,6 +302,7 @@ fun ServerSetupScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                                 selected = syncType == selectedSyncType.value, onClick = {
                                     selectedSyncType.value = syncType
                                 })
@@ -331,7 +334,7 @@ fun ServerSetupScreen(
                             showImportLogsFromServer.value = false
                             navController.navigateUp()
                         })
-                    }, modifier = Modifier.fillMaxWidthWithPadding().pressScaleEffect()
+                    }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding().pressScaleEffect()
                 ) {
                     Text(
                         text = Localization.rememberLocalizedString(Localization.Key.UseThisConnection),

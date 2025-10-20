@@ -33,6 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -294,7 +296,7 @@ private fun LinkViewPreferenceSwitch(
     onClick: () -> Unit, title: String, isSwitchChecked: Boolean
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = {
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable(onClick = {
             onClick()
         }, interactionSource = remember {
             MutableInteractionSource()
@@ -308,6 +310,7 @@ private fun LinkViewPreferenceSwitch(
             modifier = Modifier.fillMaxWidth(0.75f)
         )
         Switch(
+            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
             checked = isSwitchChecked, onCheckedChange = {
                 onClick()
             })
@@ -322,7 +325,7 @@ private fun LinkViewRadioButtonComponent(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().clickable {
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable {
             AppPreferences.selectedLinkLayout.value = linkLayout.name
             settingsScreenViewModel.changeSettingPreferenceValue(
                 preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),

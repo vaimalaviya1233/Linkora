@@ -57,6 +57,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -286,7 +288,7 @@ fun CollectionsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(
-                            modifier = Modifier.padding(start = 15.dp)
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 15.dp)
                             .clickable(indication = null, interactionSource = remember {
                                 MutableInteractionSource()
                             }) {
@@ -301,7 +303,7 @@ fun CollectionsScreen(
                                 coroutineScope.launch {
                                     rootContentSwitcherBtmSheetState.show()
                                 }
-                            }, modifier = Modifier.size(22.dp)) {
+                            }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).size(22.dp)) {
                                 Icon(
                                     imageVector = Icons.Default.ArrowDownward,
                                     contentDescription = null
@@ -555,7 +557,7 @@ private fun DefaultFolderComponent(
     name: String, icon: ImageVector, onClick: () -> Unit, isSelected: Boolean
 ) {
     Card(
-        modifier = Modifier.padding(
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
             end = if (platform() == Platform.Android.Mobile) 15.dp else 0.dp,
             start = 15.dp,
             top = 15.dp

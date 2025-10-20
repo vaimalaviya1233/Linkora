@@ -24,6 +24,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.domain.model.tag.Tag
@@ -44,7 +46,7 @@ fun TagSelectionComponent(
             paddingValues
         ).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        IconButton(onClick = {
+        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
             coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
         }) {
             Icon(imageVector = Icons.Default.AddCircle, contentDescription = null)
@@ -77,7 +79,7 @@ fun TagSelectionComponent(
                             imageVector = Icons.Default.Tag,
                             contentDescription = null
                         )
-                    })
+                    }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand))
             }
         }
     }

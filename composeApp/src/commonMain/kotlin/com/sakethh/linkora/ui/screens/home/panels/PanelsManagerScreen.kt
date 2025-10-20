@@ -32,6 +32,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -92,7 +94,7 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
             modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
         ) {
             Button(
-                modifier = Modifier.padding(15.dp).navigationBarsPadding().fillMaxWidth()
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(15.dp).navigationBarsPadding().fillMaxWidth()
                     .pressScaleEffect(0.9f), onClick = {
                     isAddANewPanelDialogBoxVisible.value = true
                 }) {
@@ -106,7 +108,7 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
     }, topBar = {
         Column {
             MediumTopAppBar(navigationIcon = {
-                IconButton(onClick = {
+                IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                     navController.navigateUp()
                 }) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "")

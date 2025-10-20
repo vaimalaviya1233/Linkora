@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -69,7 +71,7 @@ fun NewVersionUpdateBtmContent(
         }
         item {
             Button(
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth()
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 20.dp, end = 20.dp).fillMaxWidth()
                     .pressScaleEffect(), onClick = {
                     coroutineScope.launch {
                         if (modalBtmSheetState.isVisible) {

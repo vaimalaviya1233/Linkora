@@ -24,6 +24,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +49,7 @@ fun SelectableFolderUIComponent(
             modifier = Modifier
                 .clickable {
                     onClick()
-                }
+                }.pointerHoverIcon(icon = PointerIcon.Hand)
                 .fillMaxWidth()
                 .requiredHeight(75.dp)) {
             Box(

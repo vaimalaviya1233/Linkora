@@ -42,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -73,7 +75,7 @@ fun SpecificPanelManagerScreen(
         modifier = Modifier.padding(top = paddingValues.calculateTopPadding()).fillMaxSize(),
         topBar = {
             MediumTopAppBar(navigationIcon = {
-                IconButton(onClick = {
+                IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                     navController.navigateUp()
                 }) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "")
@@ -91,7 +93,7 @@ fun SpecificPanelManagerScreen(
                 OutlinedTextField(
                     trailingIcon = {
                         if (specificPanelManagerScreenVM.foldersSearchQuery.value.isNotBlank()) {
-                            IconButton(onClick = {
+                            IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                                 specificPanelManagerScreenVM.updateFoldersSearchQuery("")
                             }) {
                                 Icon(imageVector = Icons.Default.Clear, contentDescription = null)
@@ -135,7 +137,7 @@ fun SpecificPanelManagerScreen(
                         text = Localization.Key.Panels.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleLarge,
                         fontSize = 16.sp,
-                        modifier = Modifier.clickable {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable {
                             navController.navigateUp()
                         })
                     Icon(
@@ -164,7 +166,7 @@ fun SpecificPanelManagerScreen(
                 items(foldersOfTheSelectedPanel.value) { folderItem ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().pressScaleEffect().clickable(onClick = {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect().clickable(onClick = {
                             specificPanelManagerScreenVM.removeAFolderFromAPanel(
                                 panelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
                                 folderId = folderItem.folderId
@@ -197,7 +199,7 @@ fun SpecificPanelManagerScreen(
                 items(foldersToIncludeInPanel.value) { folderToIncludeInPanel ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().pressScaleEffect().clickable(onClick = {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect().clickable(onClick = {
                             specificPanelManagerScreenVM.addANewFolderInAPanel(
                                 PanelFolder(
                                     folderId = folderToIncludeInPanel.localId,

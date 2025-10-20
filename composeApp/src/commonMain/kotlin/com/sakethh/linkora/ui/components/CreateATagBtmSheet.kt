@@ -21,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +73,7 @@ fun CreateATagBtmSheet(
                 )
                 OutlinedButton(
                     onClick = onCancel,
-                    modifier = Modifier.pressScaleEffect().fillMaxWidth()
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect().fillMaxWidth()
                         .padding(start = 15.dp, end = 15.dp)
                 ) {
                     Text(
@@ -80,7 +82,7 @@ fun CreateATagBtmSheet(
                     )
                 }
                 Button(
-                    modifier = Modifier.fillMaxWidth().pressScaleEffect()
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect()
                         .padding(start = 15.dp, end = 15.dp, bottom = 5.dp)
                         .bottomNavPaddingAcrossPlatforms(), onClick = {
                         onCreateClick(newTag)

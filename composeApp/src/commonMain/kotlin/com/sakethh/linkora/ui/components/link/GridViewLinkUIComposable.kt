@@ -24,6 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,6 +51,7 @@ fun GridViewLinkUIComponent(
         colors = CardDefaults.cardColors(containerColor = if (linkUIComponentParam.isSelectionModeEnabled.value) colorScheme.primaryContainer else CardDefaults.cardColors().containerColor),
         modifier = Modifier.fillMaxWidth().animateContentSize()
             .then(if (!forStaggeredView) Modifier.wrapContentHeight() else Modifier)
+            .pointerHoverIcon(icon = PointerIcon.Hand)
             .combinedClickable(onClick = {
                 if (!linkUIComponentParam.isSelectionModeEnabled.value) {
                     linkUIComponentParam.onMoreIconClick()

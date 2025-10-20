@@ -13,6 +13,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -67,7 +69,7 @@ fun AddANewPanelDialogBox(addANewPanelParam: AddANewPanelParam) {
         }, confirmButton = {
             if (isInProgress.value) return@AlertDialog
             Button(
-                modifier = Modifier
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                     .fillMaxWidth()
                     .pressScaleEffect(), onClick = {
                     isInProgress.value = true
@@ -87,7 +89,7 @@ fun AddANewPanelDialogBox(addANewPanelParam: AddANewPanelParam) {
         }, dismissButton = {
             if (isInProgress.value.not()) {
                 androidx.compose.material3.OutlinedButton(
-                    modifier = Modifier
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                         .fillMaxWidth()
                         .pressScaleEffect(),
                     onClick = {

@@ -1,8 +1,6 @@
 package com.sakethh.linkora
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,10 +22,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -46,12 +45,10 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.data.local.LocalDatabase
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
-import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.FileManager
 import com.sakethh.linkora.platform.NativeUtils
 import com.sakethh.linkora.platform.PermissionManager
-import com.sakethh.linkora.platform.showFollowSystemThemeOption
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.App
 import com.sakethh.linkora.ui.LocalNavController
@@ -60,11 +57,8 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.DesktopTypography
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
-import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.inDoubleQuotes
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -134,7 +128,7 @@ suspend fun main() {
             ) {
                 LinkoraTheme(
                     typography = DesktopTypography,
-                    colorScheme = if (AppPreferences.shouldUseForceDarkTheme.value || (showFollowSystemThemeOption.not())) DarkColors else LightColors
+                    colorScheme = if (AppPreferences.shouldUseForceDarkTheme.value) DarkColors else LightColors
                 ) {
                     Scaffold(
                         topBar = {
@@ -157,7 +151,7 @@ suspend fun main() {
 
 @Composable
 private fun ApplicationScope.TopDecorator(windowState: WindowState) {
-    val coroutineScope = rememberCoroutineScope()
+    rememberCoroutineScope()
     Column {
         Box(Modifier.fillMaxWidth().padding(2.dp), contentAlignment = Alignment.CenterEnd) {
             Row(
@@ -168,22 +162,7 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
                 if (AppPreferences.isServerConfigured()) {
                     Spacer(Modifier.padding(start = 15.dp))
                     Icon(
-                        imageVector = Icons.Default.WbCloudy,
-                        contentDescription = null,
-                        modifier = Modifier.clickable(onClick = {
-                            coroutineScope.pushUIEvent(
-                                UIEvent.Type.ShowSnackbar(
-                                    Localization.Key.LinkoraIsConnectedToAServer.getLocalizedString()
-                                        .replace(
-                                            LinkoraPlaceHolder.First.value,
-                                            AppPreferences.serverSyncType.value.asUIString()
-                                                .inDoubleQuotes()
-                                        )
-                                )
-                            )
-                        }, indication = null, interactionSource = remember {
-                            MutableInteractionSource()
-                        })
+                        imageVector = Icons.Default.WbCloudy, contentDescription = null
                     )
                 }
                 Spacer(
@@ -211,26 +190,29 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {
-                    windowState.isMinimized = true
-                }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                        windowState.isMinimized = true
+                    }) {
                     Icon(imageVector = Icons.Default.Minimize, contentDescription = null)
                 }
-                IconButton(onClick = {
-                    if (windowState.placement == WindowPlacement.Fullscreen) {
-                        windowState.placement = WindowPlacement.Floating
-                    } else {
-                        windowState.placement = WindowPlacement.Fullscreen
-                    }
-                }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                        if (windowState.placement == WindowPlacement.Fullscreen) {
+                            windowState.placement = WindowPlacement.Floating
+                        } else {
+                            windowState.placement = WindowPlacement.Fullscreen
+                        }
+                    }) {
                     Icon(
                         imageVector = if (windowState.placement != WindowPlacement.Fullscreen) Icons.Default.Maximize else Icons.Outlined.Window,
                         contentDescription = null
                     )
                 }
-                IconButton(onClick = {
-                    this@TopDecorator.exitApplication()
-                }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                        this@TopDecorator.exitApplication()
+                    }) {
                     Icon(imageVector = Icons.Default.Close, contentDescription = null)
                 }
             }

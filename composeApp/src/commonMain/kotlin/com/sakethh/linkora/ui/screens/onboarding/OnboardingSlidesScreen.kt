@@ -52,6 +52,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -132,7 +134,7 @@ fun OnboardingSlidesScreen(
                 AnimatedVisibility(
                     visible = pagerState.currentPage != 0, enter = fadeIn(), exit = fadeOut()
                 ) {
-                    FilledTonalButton(modifier = Modifier.pressScaleEffect(), onClick = {
+                    FilledTonalButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
                         if (pagerState.isScrollInProgress) return@FilledTonalButton
                         coroutineScope.launch {
                             try {
@@ -151,7 +153,7 @@ fun OnboardingSlidesScreen(
                     }
                 }
                 Spacer(Modifier.width(15.dp))
-                Button(modifier = Modifier.pressScaleEffect(), onClick = {
+                Button(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
                     if (pagerState.currentPage == pagerState.pageCount - 1) {
                         onOnboardingComplete()
                         navController.navigate(Navigation.Root.HomeScreen) {
@@ -375,7 +377,7 @@ private fun Slide3() {
             Spacer(Modifier.width(5.dp))
             FilledTonalIconButton(onClick = {
 
-            }, modifier = Modifier.size(22.dp)) {
+            }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).size(22.dp)) {
                 Icon(imageVector = Icons.Default.ArrowDownward, contentDescription = null)
             }
             Spacer(Modifier.width(10.dp))
@@ -393,7 +395,7 @@ private fun Slide3() {
             divider = {}) {
             (0..1).forEach {
                 key(it) {
-                    Tab(selected = pagerState.currentPage == it, onClick = {
+                    Tab(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), selected = pagerState.currentPage == it, onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(it)
                         }.start()

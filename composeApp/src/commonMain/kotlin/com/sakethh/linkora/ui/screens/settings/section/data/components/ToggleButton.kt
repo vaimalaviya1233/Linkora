@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.domain.ComposableContent
 
@@ -18,7 +20,7 @@ fun ToggleButton(
     shape: Shape, checked: Boolean, onCheckedChange: (Boolean) -> Unit, content: ComposableContent
 ) {
     Box(
-        modifier = Modifier.clip(shape).clickable { onCheckedChange(!checked) }.background(
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clip(shape).clickable { onCheckedChange(!checked) }.background(
             MaterialTheme.colorScheme.primary.copy(
                 if (checked) 1f else 0.125f
             )

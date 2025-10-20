@@ -19,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 
@@ -30,7 +32,7 @@ fun SettingSectionComponent(
         Spacer(modifier = Modifier.height(10.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
+            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                 .fillMaxWidth()
                 .pressScaleEffect()
                 .clickable(interactionSource = remember {
@@ -40,7 +42,7 @@ fun SettingSectionComponent(
                 }, indication = null)
         ) {
             Spacer(modifier = Modifier.width(10.dp))
-            FilledTonalIconButton(onClick = { settingSectionComponentParam.onClick() }) {
+            FilledTonalIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = { settingSectionComponentParam.onClick() }) {
                 Icon(
                     imageVector = settingSectionComponentParam.sectionIcon,
                     contentDescription = null
@@ -58,7 +60,7 @@ fun SettingSectionComponent(
                     contentAlignment = Alignment.CenterEnd
                 ) {
                     Row {
-                        IconButton(onClick = { settingSectionComponentParam.onClick() }) {
+                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = { settingSectionComponentParam.onClick() }) {
                             Icon(
                                 imageVector = Icons.Default.ChevronRight,
                                 contentDescription = null

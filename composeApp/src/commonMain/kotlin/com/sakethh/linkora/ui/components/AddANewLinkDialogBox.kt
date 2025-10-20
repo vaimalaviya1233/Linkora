@@ -77,6 +77,8 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -254,7 +256,7 @@ fun AddANewLinkDialogBox(
                     }
                     if (!isDataExtractingForTheLink.value) {
                         IconButton(
-                            modifier = Modifier.align(Alignment.TopEnd).padding(15.dp),
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).align(Alignment.TopEnd).padding(15.dp),
                             onClick = onDismiss
                         ) {
                             Icon(
@@ -378,7 +380,7 @@ private fun TopPartOfAddANewLinkDialogBox(
         Box(modifier = Modifier.fillMaxWidth().animateContentSize()) {
             if (!isForceSaveWithoutFetchingMetaDataEnabled.value && !AppPreferences.isAutoDetectTitleForLinksEnabled.value && !AppPreferences.forceSaveWithoutFetchingAnyMetaData.value) {
                 Row(
-                    modifier = Modifier.padding(top = if (AppPreferences.isAutoDetectTitleForLinksEnabled.value) 0.dp else 10.dp)
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(top = if (AppPreferences.isAutoDetectTitleForLinksEnabled.value) 0.dp else 10.dp)
                         .fillMaxWidth().clickable {
                             if (!isDataExtractingForTheLink) {
                                 isAutoDetectTitleEnabled.value = !isAutoDetectTitleEnabled.value
@@ -407,7 +409,7 @@ private fun TopPartOfAddANewLinkDialogBox(
 
         if (!isAutoDetectTitleEnabled.value && !AppPreferences.isAutoDetectTitleForLinksEnabled.value && !AppPreferences.forceSaveWithoutFetchingAnyMetaData.value) {
             Row(
-                modifier = Modifier.padding(top = 10.dp).fillMaxWidth().clickable {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(top = 10.dp).fillMaxWidth().clickable {
                     if (!isDataExtractingForTheLink) {
                         isForceSaveWithoutFetchingMetaDataEnabled.value =
                             !isForceSaveWithoutFetchingMetaDataEnabled.value
@@ -518,7 +520,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp)
             ) {
                 FilledTonalButton(
-                    modifier = Modifier.pressScaleEffect().fillMaxWidth(0.8f), onClick = {
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect().fillMaxWidth(0.8f), onClick = {
                         if (!isDataExtractingForTheLink.value) {
                             isDropDownMenuIconClicked.value = !isDropDownMenuIconClicked.value
                             AddANewLinkDialogBox.subFoldersList.clear()
@@ -535,7 +537,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
                 FilledTonalIconButton(
-                    modifier = Modifier.pressScaleEffect(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(
                         0.75f
                     ), onClick = {
                         if (!isDataExtractingForTheLink.value) {
@@ -614,7 +616,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary
-                ), modifier = Modifier.padding(
+                ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                     end = 20.dp,
                     top = if (isDropDownMenuIconClicked.value) 20.dp else 5.dp,
                     start = 20.dp
@@ -649,7 +651,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
             }
             if (currentlyInFolder.isNull()) {
                 Button(
-                    modifier = Modifier.padding(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                         end = 20.dp,
                         start = 20.dp,
                         top = if (isDropDownMenuIconClicked.value) 0.dp else 5.dp
@@ -677,7 +679,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
             OutlinedButton(
                 colors = ButtonDefaults.outlinedButtonColors(), border = BorderStroke(
                     width = 1.dp, color = MaterialTheme.colorScheme.secondary
-                ), modifier = Modifier.padding(
+                ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                     end = 20.dp, start = 20.dp
                 ).fillMaxWidth().pressScaleEffect(), onClick = {
                     collectionsScreenVM.clearSelectedTags()
@@ -692,7 +694,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
             }
             Button(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                modifier = Modifier.padding(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                     end = 20.dp, top = 10.dp, start = 20.dp
                 ).fillMaxWidth().pressScaleEffect(),
                 onClick = {
@@ -774,7 +776,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                                     text = subFolder.name,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontSize = 16.sp,
-                                    modifier = Modifier.clickable {
+                                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable {
                                         AddANewLinkDialogBox.changeParentFolderId(
                                             subFolder.localId, collectionsScreenVM.viewModelScope
                                         )
@@ -850,7 +852,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     }
                     item {
                         FilledTonalButton(
-                            modifier = Modifier.padding(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                                 top = 5.dp, end = 15.dp, start = 15.dp
                             ).fillMaxWidth().pressScaleEffect(), onClick = {
                                 addTheFolderInRoot.value = false
@@ -867,7 +869,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             }
                         }
                         Button(
-                            modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp),
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(start = 15.dp, end = 15.dp),
                             onClick = {
                                 isDropDownMenuIconClicked.value = false
                                 AddANewLinkDialogBox.subFoldersList.clear()
@@ -889,7 +891,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 if (AddANewLinkDialogBox.childFolders.value.isNotEmpty()) {
                     item {
                         FilledTonalButton(
-                            modifier = Modifier.padding(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                                 end = 20.dp, top = 15.dp, start = 20.dp, bottom = 15.dp
                             ).fillMaxWidth().pressScaleEffect(), onClick = {
                                 addTheFolderInRoot.value = false
@@ -941,7 +943,7 @@ private fun FolderSelectorComponent(
     onSubDirectoryIconClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth().clickable {
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable {
             onItemClick()
         }) {
         Row(
@@ -968,7 +970,7 @@ private fun FolderSelectorComponent(
                         )
                         Spacer(modifier = Modifier.width(20.dp))
                     }
-                    IconButton(onClick = {
+                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         onSubDirectoryIconClick()
                     }) {
                         Icon(

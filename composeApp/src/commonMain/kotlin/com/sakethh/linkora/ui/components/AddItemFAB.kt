@@ -32,6 +32,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
@@ -124,7 +126,7 @@ fun AddItemFab(
                 )
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.pressScaleEffect(), onClick = {
+                    modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onCreateATagClick()
                         addItemFABParam.isMainFabRotated.value = false
@@ -185,7 +187,7 @@ fun AddItemFab(
                 )
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.pressScaleEffect(), onClick = {
+                    modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onShowDialogForNewFolder()
                         addItemFABParam.isMainFabRotated.value = false
@@ -236,7 +238,7 @@ fun AddItemFab(
             FloatingActionButton(
                 modifier = Modifier.rotate(
                     addItemFABParam.rotationAnimatable.value
-                ).pressScaleEffect(), onClick = {
+                ).pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                     if (addItemFABParam.isMainFabRotated.value) {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onShowAddLinkDialog()

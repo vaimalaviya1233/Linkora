@@ -27,6 +27,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
@@ -65,7 +67,7 @@ fun LogsScreen(
             }
         }, bottomBar = {
             BottomAppBar(modifier = Modifier.fillMaxWidth()) {
-                FilledTonalButton(modifier = Modifier.fillMaxWidth().padding(15.dp), onClick = {
+                FilledTonalButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(15.dp), onClick = {
                     onCancel()
                 }) {
                     Text(
@@ -76,7 +78,7 @@ fun LogsScreen(
             }
         }) {
             Box(
-                modifier = Modifier.padding(it)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(it)
                     .clickable(onClick = {}, indication = null, interactionSource = remember {
                         MutableInteractionSource()
                     }).fillMaxSize()

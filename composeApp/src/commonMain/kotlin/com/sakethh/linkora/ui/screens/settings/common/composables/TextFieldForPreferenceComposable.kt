@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,6 +72,7 @@ fun TextFieldForPreference(
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             FilledTonalIconToggleButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                 checked = !readonly, onCheckedChange = {
                     onConfirmButtonClick()
                 }) {
@@ -79,9 +82,7 @@ fun TextFieldForPreference(
                 )
             }
             Spacer(modifier = Modifier.height(15.dp))
-            FilledTonalIconButton(onClick = {
-                onResetButtonClick()
-            }) {
+            FilledTonalIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = onResetButtonClick) {
                 Icon(
                     imageVector = Icons.Default.Restore, contentDescription = null
                 )

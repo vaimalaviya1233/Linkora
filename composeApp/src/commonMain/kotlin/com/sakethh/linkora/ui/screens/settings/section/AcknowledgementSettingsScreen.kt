@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -120,7 +122,7 @@ private fun AcknowledgeComponent(
             onClick = {
                 localUriHandler.openUri(btnRedirectUrl)
             },
-            modifier = Modifier.fillMaxWidth().padding(start = 15.dp, top = 10.dp, end = 15.dp)
+            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(start = 15.dp, top = 10.dp, end = 15.dp)
                 .pressScaleEffect()
         ) {
             Text(

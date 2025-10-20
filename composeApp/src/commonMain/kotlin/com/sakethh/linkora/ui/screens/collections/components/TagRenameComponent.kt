@@ -21,11 +21,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +65,7 @@ fun TagRenameComponent(
                     Text(text = "New tag name", style = MaterialTheme.typography.titleSmall)
                 })
             Button(
-                modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp), onClick = {
+                modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(start = 15.dp, end = 15.dp), onClick = {
                     onSave(newTagName)
                 }) {
                 Text(text = "Update", style = MaterialTheme.typography.titleMedium)

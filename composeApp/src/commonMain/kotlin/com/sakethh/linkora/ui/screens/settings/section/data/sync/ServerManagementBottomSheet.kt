@@ -25,6 +25,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -116,7 +118,7 @@ fun ServerManagementBottomSheet(
                 item {
                     Spacer(Modifier.height(30.dp))
                     FilledTonalButton(
-                        modifier = Modifier.fillMaxWidthWithPadding(),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding(),
                         onClick = {
                             navController.navigate(Navigation.Settings.Data.ServerSetupScreen)
                         }) {
@@ -128,7 +130,7 @@ fun ServerManagementBottomSheet(
                 }
                 item {
                     Button(
-                        modifier = Modifier.fillMaxWidthWithPadding(),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer

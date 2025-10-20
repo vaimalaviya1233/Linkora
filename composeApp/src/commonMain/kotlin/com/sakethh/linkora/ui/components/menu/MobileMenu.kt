@@ -34,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -124,7 +126,7 @@ fun MobileMenu(
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.clickable(interactionSource = null, onClick = {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable(interactionSource = null, onClick = {
                             localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.linkTagsPair!!.link.title))
                         }, indication = null).padding(end = 20.dp)
                     )
@@ -210,7 +212,7 @@ fun MobileMenu(
                     text = note,
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 20.sp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().pointerHoverIcon(icon = PointerIcon.Hand)
                         .combinedClickable(onClick = {}, onLongClick = {
                             localClipBoardManager.setText(
                                 AnnotatedString(
@@ -252,7 +254,7 @@ fun MobileMenu(
 @Composable
 fun MenuNonImageHeader(onClick: () -> Unit, leadingIcon: ImageVector, text: String) {
     Row(
-        modifier = Modifier.combinedClickable(interactionSource = remember {
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).combinedClickable(interactionSource = remember {
             MutableInteractionSource()
         }, indication = null, onClick = onClick).pressScaleEffect().fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically

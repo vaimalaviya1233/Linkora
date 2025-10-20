@@ -38,6 +38,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -140,7 +142,7 @@ fun CollectionDetailPane(
             MediumTopAppBar(scrollBehavior = topAppBarScrollBehavior, actions = {
                 SortingIconButton()
             }, navigationIcon = {
-                IconButton(onClick = {
+                IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                     if (collectionsScreenVM.collectionDetailPaneInfo != null) {
                         navController.navigateUp()
                     } else {
@@ -177,7 +179,7 @@ fun CollectionDetailPane(
                         Localization.Key.Links.rememberLocalizedString(),
                         Localization.Key.Folders.rememberLocalizedString()
                     ).forEachIndexed { index, screenName ->
-                        Tab(selected = pagerState.currentPage == index, onClick = {
+                        Tab(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), selected = pagerState.currentPage == index, onClick = {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(index)
                             }.start()

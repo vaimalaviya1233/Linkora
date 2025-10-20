@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +50,7 @@ fun IndividualMenuComponent(
                     0.1f
                 ) else Color.Transparent
             )
+            .pointerHoverIcon(icon = PointerIcon.Hand)
             .combinedClickable(
                 interactionSource = remember {
                     MutableInteractionSource()
@@ -72,7 +75,7 @@ fun IndividualMenuComponent(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
-                    modifier = Modifier.padding(10.dp), onClick = { onClick() },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(10.dp), onClick = { onClick() },
                     colors = IconButtonDefaults.filledTonalIconButtonColors()
                 ) {
                     Icon(imageVector = elementImageVector, contentDescription = null)
@@ -88,14 +91,14 @@ fun IndividualMenuComponent(
             }
             if (inPanelsScreen) {
                 Row {
-                    IconButton(onClick = onRenameClick) {
+                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = onRenameClick) {
                         Icon(
                             imageVector = Icons.Default.DriveFileRenameOutline,
                             contentDescription = null
                         )
                     }
 
-                    IconButton(onClick = onDeleteClick) {
+                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = onDeleteClick) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = null)
                     }
                 }

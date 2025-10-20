@@ -37,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -111,6 +113,7 @@ fun RenameDialogBox(
 
                         if (platform() != Platform.Android.Mobile && !showProgressBar) {
                             IconButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                                 onClick = renameDialogBoxParam.onHide
                             ) {
                                 Icon(
@@ -193,7 +196,7 @@ fun RenameDialogBox(
                 }
                 item {
                     Button(
-                        modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
                             showProgressBar = true
                             renameDialogBoxParam.onSave(
                                 newFolderOrTitleName, newNote, selectedTags, {
@@ -208,7 +211,7 @@ fun RenameDialogBox(
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     OutlinedButton(
-                        modifier = Modifier.fillMaxWidth().pressScaleEffect(),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(),
                         onClick = renameDialogBoxParam.onHide
                     ) {
                         Text(

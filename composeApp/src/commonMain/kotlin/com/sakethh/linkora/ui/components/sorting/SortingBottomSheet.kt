@@ -27,6 +27,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -46,7 +48,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun SortingBottomSheetUI(
+fun SortingBottomSheet(
     sortingBottomSheetParam: SortingBottomSheetParam
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -67,10 +69,10 @@ fun SortingBottomSheetUI(
             sortingBottomSheetParam.onDismiss()
         }
     }
-    val sortByUI: ComposableContent = {
+    val sortByContent: ComposableContent = {
         sortingBtmSheetVM.sortingBtmSheetData().forEach {
             Column(
-                modifier = Modifier.combinedClickable(interactionSource = remember {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).combinedClickable(interactionSource = remember {
                     MutableInteractionSource()
                 }, indication = null, onClick = {
                     sortingBottomSheetParam.onSelected(
@@ -107,7 +109,7 @@ fun SortingBottomSheetUI(
                             it.onClick()
                             hideBtmSheet()
                         },
-                        modifier = Modifier.padding(end = 5.dp)
+                        modifier = Modifier.padding(end = 5.dp).pointerHoverIcon(icon = PointerIcon.Hand)
                     )
                 }
             }
@@ -137,10 +139,10 @@ fun SortingBottomSheetUI(
                     fontSize = 14.sp,
                     modifier = Modifier.padding(start = 15.dp, top = 20.dp)
                 )
-                sortByUI()
+                sortByContent()
             }
             if (sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.REGULAR_FOLDER_SCREEN && sortingBottomSheetParam.sortingBtmSheetType != SortingBtmSheetType.ARCHIVE_FOLDER_SCREEN) {
-                sortByUI()
+                sortByContent()
             }
             ItemDivider(
                 paddingValues = PaddingValues(

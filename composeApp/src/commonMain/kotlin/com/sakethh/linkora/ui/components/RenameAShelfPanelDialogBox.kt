@@ -13,6 +13,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
@@ -40,7 +42,7 @@ fun RenameAShelfPanelDialogBox(
         }, confirmButton = {
             if (isInProgress.value) return@AlertDialog
             Button(
-                modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
                     isInProgress.value = true
                     onRenameClick(newShelfName.value, {
                         isInProgress.value = false
@@ -81,7 +83,7 @@ fun RenameAShelfPanelDialogBox(
         }, dismissButton = {
             if (isInProgress.value.not()) {
                 OutlinedButton(
-                    modifier = Modifier.fillMaxWidth().pressScaleEffect(), onClick = {
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
                         isDialogBoxVisible.value = false
                     }) {
                     Text(
