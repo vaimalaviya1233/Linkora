@@ -5,11 +5,8 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.rounded.FontDownload
-import androidx.compose.material.icons.rounded.FormatShapes
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.TextFormat
-import androidx.compose.material.icons.rounded.TypeSpecimen
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.UriHandler
 import androidx.datastore.preferences.core.Preferences
@@ -23,6 +20,7 @@ import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.platform.NativeUtils
 import com.sakethh.linkora.preferences.AppPreferenceType
@@ -204,16 +202,16 @@ open class SettingsScreenViewModel(
         return listOf(
             LinkUIComponentParam(
                 link = Link(
-                    title = "Red Dead Redemption 2 - Rockstar Games",
-                    baseURL = "rockstargames.com",
-                    imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/games/fob/640/reddeadredemption2.jpg",
-                    url = "https://www.rockstargames.com/reddeadredemption2",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "RDR2 is the epic tale of outlaw Arthur Morgan and the infamous Van der Linde gang, on the run across America at the dawn of the modern age.",
-                    idOfLinkedFolder = null
-                ),
+                title = "Red Dead Redemption 2 - Rockstar Games",
+                baseURL = "rockstargames.com",
+                imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/games/fob/640/reddeadredemption2.jpg",
+                url = "https://www.rockstargames.com/reddeadredemption2",
+                userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                note = "RDR2 is the epic tale of outlaw Arthur Morgan and the infamous Van der Linde gang, on the run across America at the dawn of the modern age.",
+                idOfLinkedFolder = null
+            ),
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.rockstargames.com/reddeadredemption2")
@@ -222,32 +220,31 @@ open class SettingsScreenViewModel(
                 isSelectionModeEnabled = mutableStateOf(false),
                 isItemSelected = mutableStateOf(false),
                 onLongClick = { -> },
-                tags = null,
-                onTagClick = {}
-            ),
+                tags = listOf(Tag(name = "oh arthur")),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
-                    title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
-                    baseURL = "store.epicgames.com",
-                    imgURL = listOf(
-                        "https://pbs.twimg.com/media/FUPM2TrWYAAQsXm?format=jpg",
-                        "https://pbs.twimg.com/media/FLJx9epWYAADM0O?format=jpg",
-                        "https://pbs.twimg.com/media/FAdLIY8WUAEgLRM?format=jpg",
-                        "https://pbs.twimg.com/media/ETUI-RDWsAE2UYR?format=jpg",
-                        "https://pbs.twimg.com/media/ET9J7vTWsAYVtvG?format=jpg",
-                        "https://pbs.twimg.com/media/GRo2CKkWUAEsdEl?format=jpg",
-                        "https://pbs.twimg.com/media/FezZxQYWQAQ4K3f?format=jpg",
-                        "https://pbs.twimg.com/media/FezaHWkX0AIWvvU?format=jpg",
-                        "https://i.redd.it/qoa6gk4ii8571.jpg",
-                        "https://i.redd.it/8psapajhi8571.jpg"
-                    ).random(),
-                    url = "https://store.epicgames.com/en-US/p/a-plague-tale-requiem",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "The plague ravages the Kingdom of France. Amicia and her younger brother Hugo are pursued by the Inquisition through villages devastated by the disease.",
-                    idOfLinkedFolder = null
-                ),
+                title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
+                baseURL = "store.epicgames.com",
+                imgURL = listOf(
+                    "https://pbs.twimg.com/media/FUPM2TrWYAAQsXm?format=jpg",
+                    "https://pbs.twimg.com/media/FLJx9epWYAADM0O?format=jpg",
+                    "https://pbs.twimg.com/media/FAdLIY8WUAEgLRM?format=jpg",
+                    "https://pbs.twimg.com/media/ETUI-RDWsAE2UYR?format=jpg",
+                    "https://pbs.twimg.com/media/ET9J7vTWsAYVtvG?format=jpg",
+                    "https://pbs.twimg.com/media/GRo2CKkWUAEsdEl?format=jpg",
+                    "https://pbs.twimg.com/media/FezZxQYWQAQ4K3f?format=jpg",
+                    "https://pbs.twimg.com/media/FezaHWkX0AIWvvU?format=jpg",
+                    "https://i.redd.it/qoa6gk4ii8571.jpg",
+                    "https://i.redd.it/8psapajhi8571.jpg"
+                ).random(),
+                url = "https://store.epicgames.com/en-US/p/a-plague-tale-requiem",
+                userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                note = "The plague ravages the Kingdom of France. Amicia and her younger brother Hugo are pursued by the Inquisition through villages devastated by the disease.",
+                idOfLinkedFolder = null
+            ),
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
                     localUriHandler.openUri("https://store.epicgames.com/en-US/p/a-plague-tale-requiem")
@@ -257,19 +254,18 @@ open class SettingsScreenViewModel(
                 isItemSelected = mutableStateOf(false),
                 onLongClick = { -> },
                 tags = null,
-                onTagClick = {}
-            ),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
-                    title = "Shadow of the Tomb Raider",
-                    imgURL = "https://images.ctfassets.net/x77ixfmkpoiv/4UnPNfdN8Yq2aZvOhIdBx9/1b641d296ebb37bfa3eca8873c25a321/SOTTR_Product_Image.jpg",
-                    url = "https://www.tombraider.com/products/games/shadow-of-the-tomb-raider",
-                    userAgent = AppPreferences.primaryJsoupUserAgent.value,
-                    linkType = LinkType.SAVED_LINK,
-                    localId = 0L,
-                    note = "As Lara Croft races to save the world from a Maya apocalypse, she must become the Tomb Raider she is destined to be.",
-                    idOfLinkedFolder = null
-                ),
+                title = "Shadow of the Tomb Raider",
+                imgURL = "https://images.ctfassets.net/x77ixfmkpoiv/4UnPNfdN8Yq2aZvOhIdBx9/1b641d296ebb37bfa3eca8873c25a321/SOTTR_Product_Image.jpg",
+                url = "https://www.tombraider.com/products/games/shadow-of-the-tomb-raider",
+                userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                note = "As Lara Croft races to save the world from a Maya apocalypse, she must become the Tomb Raider she is destined to be.",
+                idOfLinkedFolder = null
+            ),
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.tombraider.com/products/games/shadow-of-the-tomb-raider")
@@ -279,18 +275,17 @@ open class SettingsScreenViewModel(
                 isItemSelected = mutableStateOf(false),
                 onLongClick = { -> },
                 tags = null,
-                onTagClick = {}
-            ),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
                     title = "Nas | Spotify",
                     baseURL = "open.spotify.com",
-                    imgURL = "https://i.scdn.co/image/ab6761610000e5eb153198caeef9e3bda92f9285",
+                    imgURL = "https://cdn.prod.website-files.com/673de86e5b9b97bfffe3e0e4/67563ebf6f96ce8ad4d79ae4_Nas-Website.png",
                     url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
-                    note = "half man, half amazing.",
+                    note = "he's da man",
                     idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
@@ -301,19 +296,18 @@ open class SettingsScreenViewModel(
                 onLinkClick = { ->
                     localUriHandler.openUri("https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q")
                 },
-                tags = null,
-                onTagClick = {}
-            ),
+                tags = listOf(Tag(name = "half man, half amazing.")),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
-                    title = "Photos From 2024",
-                    baseURL = "reddit.com",
-                    imgURL = "https://i.redd.it/j14an1zv6aae1.jpg",
-                    url = "https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/",
+                    title = "Listen Gentle - YouTube Music",
+                    baseURL = "music.youtube.com",
+                    imgURL = "https://lh3.googleusercontent.com/hloaKrX1jN1EfSLOUA11tgHZ3faSc5QFHNbMuB9bO-QTAdQRl-1oMZEXNQxOlk-p_sWBlf9Dd-4cal14",
+                    url = "https://music.youtube.com/watch?v=Q5jl_fmMd8M",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
-                    note = "",
+                    note = "listen to this RN!!! If you like this (you will), you'll love the album, also check out McKinley's previous work such as Beautiful Paradise Jazz.",
                     idOfLinkedFolder = null
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
@@ -322,11 +316,10 @@ open class SettingsScreenViewModel(
                 onLongClick = { -> },
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
-                    localUriHandler.openUri("https://www.reddit.com/r/nas/comments/1hqsamj/photos_from_2024/")
+                    localUriHandler.openUri("https://music.youtube.com/watch?v=Q5jl_fmMd8M")
                 },
                 tags = null,
-                onTagClick = {}
-            ),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
                     title = "Hacker (small type)",
@@ -347,9 +340,8 @@ open class SettingsScreenViewModel(
                 onLinkClick = { ->
                     localUriHandler.openUri("https://twitter.com/CatWorkers/status/1819121250226127061")
                 },
-                tags = null,
-                onTagClick = {}
-            ),
+                tags = listOf(Tag(name = "\uD83D\uDE97")),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
                     title = "Nas - You're da Man (from Made You Look: God's Son Live)",
@@ -372,20 +364,19 @@ open class SettingsScreenViewModel(
                     localUriHandler.openUri("https://www.youtube.com/watch?v=3vlqI5TPVjQ")
                 },
                 tags = null,
-                onTagClick = {}
-            ),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
-                    title = "Nas - Mastermind (from Made You Look: God's Son Live)",
-                    baseURL = "youtube.com",
-                    imgURL = "https://i.ytimg.com/vi/scCey_wI46w/maxresdefault.jpg",
-                    url = "https://www.youtube.com/watch?v=scCey_wI46w",
+                    title = "Clipse, Nas, Pusha T, Malice - Let God Sort Em Out/Chandeliers - YouTube Music",
+                    baseURL = "music.youtube.com",
+                    imgURL = "https://i.ytimg.com/vi/qQH24C1Jrx0/maxresdefault.jpg",
+                    url = "https://music.youtube.com/watch?v=78YNulckDng",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
                     linkType = LinkType.SAVED_LINK,
                     localId = 0L,
                     note = "",
                     idOfLinkedFolder = null,
-                    mediaType = MediaType.VIDEO
+                    mediaType = MediaType.IMAGE
                 ),
                 onForceOpenInExternalBrowserClicked = { -> },
                 isSelectionModeEnabled = mutableStateOf(false),
@@ -393,11 +384,10 @@ open class SettingsScreenViewModel(
                 onLongClick = { -> },
                 onMoreIconClick = { -> },
                 onLinkClick = { ->
-                    localUriHandler.openUri("https://www.youtube.com/watch?v=scCey_wI46w")
+                    localUriHandler.openUri("https://music.youtube.com/watch?v=78YNulckDng")
                 },
                 tags = null,
-                onTagClick = {}
-            ),
+                onTagClick = {}),
             LinkUIComponentParam(
                 link = Link(
                     title = "Nas - Rare (Official Video)",
@@ -419,9 +409,8 @@ open class SettingsScreenViewModel(
                 onLinkClick = { ->
                     localUriHandler.openUri("https://www.youtube.com/watch?v=66OFYWBrg3o")
                 },
-                tags = null,
-                onTagClick = {}
-            ),
+                tags = listOf(Tag(name = "KD"), Tag(name = "Kings Disease")),
+                onTagClick = {}),
         ).sortedBy {
             it.link.title
         }
@@ -464,27 +453,13 @@ open class SettingsScreenViewModel(
             title = Localization.Key.ShowBottomFadedEdge.getLocalizedString(),
             isSwitchChecked = AppPreferences.enableFadedEdgeForNonListViews
         ),
-        LinkPref(
-            onClick = {
-                AppPreferences.showVideoTagOnUIIfApplicable.value =
-                    !AppPreferences.showVideoTagOnUIIfApplicable.value
-                changeSettingPreferenceValue(
-                    preferenceKey = booleanPreferencesKey(AppPreferenceType.SHOW_VIDEO_TAG_IF_APPLICABLE.name),
-                    newValue = AppPreferences.showVideoTagOnUIIfApplicable.value
-                )
-            },
-            title = Localization.Key.ShowVideoTagOnUIIfApplicable.getLocalizedString(),
-            isSwitchChecked = AppPreferences.showVideoTagOnUIIfApplicable
-        ),
     )
 
     private val allIconCodes = AppIconCode.entries.map { it.name }
 
     fun onIconChange(newIconCode: String, onCompletion: () -> Unit) {
         nativeUtils.onIconChange(
-            allIconCodes = allIconCodes,
-            newIconCode = newIconCode,
-            onCompletion = {
+            allIconCodes = allIconCodes, newIconCode = newIconCode, onCompletion = {
                 viewModelScope.launch {
                     preferencesRepository.changePreferenceValue(
                         preferenceKey = stringPreferencesKey(

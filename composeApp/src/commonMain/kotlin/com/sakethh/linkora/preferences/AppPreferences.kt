@@ -71,7 +71,7 @@ object AppPreferences {
     val serverSyncType = mutableStateOf(SyncType.TwoWay)
     val useLinkoraTopDecoratorOnDesktop = mutableStateOf(true)
     val refreshLinksWorkerTag = mutableStateOf("52ae3f4a-d37f-4fdb-a6b6-4397b99ef1bd")
-    val showVideoTagOnUIIfApplicable = mutableStateOf(true)
+    val showVideoTagOnUIIfApplicable = mutableStateOf(false)
     val forceShuffleLinks = mutableStateOf(false)
     val showNoteInListViewLayout = mutableStateOf(true)
     val areSnapshotsEnabled = mutableStateOf(false)
@@ -351,12 +351,6 @@ object AppPreferences {
                                 )
                             }
                         }
-                    },
-                    launch {
-                        showVideoTagOnUIIfApplicable.value =
-                            preferencesRepository.readPreferenceValue(
-                                preferenceKey = booleanPreferencesKey(AppPreferenceType.SHOW_VIDEO_TAG_IF_APPLICABLE.name)
-                            ) ?: showVideoTagOnUIIfApplicable.value
                     },
                     launch {
                         forceShuffleLinks.value = preferencesRepository.readPreferenceValue(
