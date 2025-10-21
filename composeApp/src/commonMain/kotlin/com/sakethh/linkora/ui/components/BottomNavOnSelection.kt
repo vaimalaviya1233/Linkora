@@ -115,7 +115,8 @@ fun BottomNavOnSelection(
         }
         val currentFolder = appVM.currentContextOfFAB.value.currentFolder
         val showPasteButton =
-            (appVM.transferActionType.value != TransferActionType.NONE && !selectedAndInRoot.value||  currentFolder != null) && currentFolder?.localId != Constants.ALL_LINKS_ID
+            (if (platform is Platform.Android.Mobile) currentFolder != null else true) && (appVM.transferActionType.value != TransferActionType.NONE && (if (platform is Platform.Android.Mobile) !selectedAndInRoot.value else currentFolder != null)) && currentFolder?.localId != Constants.ALL_LINKS_ID
+
         if (!(CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && currentFolder?.localId in defaultFolderIds().dropWhile {
                 it == Constants.ARCHIVE_ID
             })) {
@@ -138,28 +139,33 @@ fun BottomNavOnSelection(
                     modifier = Modifier.animateContentSize()
                 ) {
                     if (showPasteButton) {
-                        IconButton(onClick = {
+                        IconButton(
+                            onClick = {
+                                require(currentFolder != null)
 
-                            if (appVM.transferActionType.value == TransferActionType.COPY) {
-                                appVM.copySelectedItems(
-                                    folderId = 0/*CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!*/,
-                                    onStart = {
-                                        showLoadingProgressBarOnTransferAction.value = true
-                                    },
-                                    onCompletion = {
-                                        showLoadingProgressBarOnTransferAction.value = false
-                                    })
-                            } else {
-                                appVM.moveSelectedItems(
-                                    folderId = 0/*CollectionsScreenVM.collectionDetailPaneInfo.value.currentFolder?.localId!!*/,
-                                    onStart = {
-                                        showLoadingProgressBarOnTransferAction.value = true
-                                    },
-                                    onCompletion = {
-                                        showLoadingProgressBarOnTransferAction.value = false
-                                    })
-                            }
-                        }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(end = 6.5.dp)) {
+                                if (appVM.transferActionType.value == TransferActionType.COPY) {
+                                    appVM.copySelectedItems(
+                                        folderId = currentFolder.localId,
+                                        onStart = {
+                                            showLoadingProgressBarOnTransferAction.value = true
+                                        },
+                                        onCompletion = {
+                                            showLoadingProgressBarOnTransferAction.value = false
+                                        })
+                                } else {
+                                    appVM.moveSelectedItems(
+                                        folderId = currentFolder.localId,
+                                        onStart = {
+                                            showLoadingProgressBarOnTransferAction.value = true
+                                        },
+                                        onCompletion = {
+                                            showLoadingProgressBarOnTransferAction.value = false
+                                        })
+                                }
+                            },
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                .padding(end = 6.5.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.ContentPaste, contentDescription = null
                             )
@@ -169,9 +175,10 @@ fun BottomNavOnSelection(
                     if (appVM.transferActionType.value != TransferActionType.NONE) {
                         return@Row
                     }
-                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                        coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
-                    }) {
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                            coroutineScope.pushUIEvent(UIEvent.Type.ShowDeleteDialogBox)
+                        }) {
                         Icon(
                             imageVector = Icons.Default.Delete, contentDescription = null
                         )
@@ -181,13 +188,15 @@ fun BottomNavOnSelection(
                         }.not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
                             !it.isArchived
                         }) {
-                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                            appVM.archiveSelectedItems(onStart = {
-                                showLoadingProgressBarOnTransferAction.value = true
-                            }, onCompletion = {
-                                showLoadingProgressBarOnTransferAction.value = false
-                            })
-                        }) {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            onClick = {
+                                appVM.archiveSelectedItems(onStart = {
+                                    showLoadingProgressBarOnTransferAction.value = true
+                                }, onCompletion = {
+                                    showLoadingProgressBarOnTransferAction.value = false
+                                })
+                            }) {
                             Icon(
                                 imageVector = Icons.Default.Archive, contentDescription = null
                             )
@@ -198,28 +207,32 @@ fun BottomNavOnSelection(
                         } || CollectionsScreenVM.selectedLinksViaLongClick.any {
                             it.linkType == LinkType.ARCHIVE_LINK
                         }) {
-                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                            appVM.markSelectedItemsAsRegular(onStart = {
-                                showLoadingProgressBarOnTransferAction.value = true
-                            }, onCompletion = {
-                                showLoadingProgressBarOnTransferAction.value = false
-                            })
-                        }) {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            onClick = {
+                                appVM.markSelectedItemsAsRegular(onStart = {
+                                    showLoadingProgressBarOnTransferAction.value = true
+                                }, onCompletion = {
+                                    showLoadingProgressBarOnTransferAction.value = false
+                                })
+                            }) {
                             Icon(
                                 imageVector = Icons.Default.Unarchive, contentDescription = null
                             )
                         }
                     }
-                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                        appVM.transferActionType.value = TransferActionType.COPY
-                    }) {
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                            appVM.transferActionType.value = TransferActionType.COPY
+                        }) {
                         Icon(
                             imageVector = Icons.Default.CopyAll, contentDescription = null
                         )
                     }
-                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                        appVM.transferActionType.value = TransferActionType.MOVE
-                    }) {
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                            appVM.transferActionType.value = TransferActionType.MOVE
+                        }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
                             contentDescription = null
@@ -231,12 +244,14 @@ fun BottomNavOnSelection(
                                 MaterialTheme.colorScheme.outline
                             )
                         )
-                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                            LinkoraSDK.getInstance().nativeUtils.onShare(
-                                CollectionsScreenVM.selectedLinksViaLongClick.joinToString(
-                                    "\n"
-                                ) { it.url })
-                        }) {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            onClick = {
+                                LinkoraSDK.getInstance().nativeUtils.onShare(
+                                    CollectionsScreenVM.selectedLinksViaLongClick.joinToString(
+                                        "\n"
+                                    ) { it.url })
+                            }) {
                             Icon(
                                 imageVector = Icons.Default.Share, contentDescription = null
                             )
@@ -264,12 +279,14 @@ fun BottomNavOnSelection(
                     }, onCompletion = {
                         showLoadingProgressBarOnTransferAction.value = false
                     })
-                }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(
-                    start = 15.dp,
-                    end = 15.dp,
-                    top = 5.dp,
-                    bottom = if (!showNavigateToCollectionScreen) 5.dp else 0.dp
-                )
+                },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                    .padding(
+                        start = 15.dp,
+                        end = 15.dp,
+                        top = 5.dp,
+                        bottom = if (!showNavigateToCollectionScreen) 5.dp else 0.dp
+                    )
             ) {
                 Text(
                     text = Localization.Key.MarkSelectedFoldersAsRoot.rememberLocalizedString(),
@@ -281,9 +298,11 @@ fun BottomNavOnSelection(
             Button(
                 onClick = {
                     localNavController.navigate(Navigation.Root.CollectionsScreen)
-                }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(
-                    start = 15.dp, end = 15.dp, top = 5.dp, bottom = 5.dp
-                )
+                },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                    .padding(
+                        start = 15.dp, end = 15.dp, top = 5.dp, bottom = 5.dp
+                    )
             ) {
                 Text(
                     text = Localization.Key.NavigateToCollectionsScreen.rememberLocalizedString(),
