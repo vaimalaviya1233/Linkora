@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -267,6 +268,18 @@ open class CollectionsScreenVM(
                     preferencesRepo.changePreferenceValue(
                         preferenceKey = intPreferencesKey(
                             AppPreferenceType.COLLECTION_SOURCE_ID.name
+                        ), newValue = it
+                    )
+                }
+            }
+
+            viewModelScope.launch {
+                snapshotFlow {
+                    AppPreferences.showTagsInAddNewLinkDialogBox
+                }.cancellable().collectLatest {
+                    preferencesRepo.changePreferenceValue(
+                        preferenceKey = booleanPreferencesKey(
+                            AppPreferenceType.SHOW_TAGS_BY_DEFAULT_IN_ADD_LINK.name
                         ), newValue = it
                     )
                 }

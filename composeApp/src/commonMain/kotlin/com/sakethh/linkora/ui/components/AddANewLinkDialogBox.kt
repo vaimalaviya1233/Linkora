@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -493,6 +494,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
     }
 
     val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
+
     val selectedFolderForSavingTheLink = rememberDeserializableMutableObject {
         mutableStateOf(
             Folder(
@@ -513,24 +515,47 @@ private fun BottomPartOfAddANewLinkDialogBox(
         ),
         verticalArrangement = if (platform() is Platform.Android.Mobile) Arrangement.Top else Arrangement.Center
     ) {
-        Text(
-            text = "Attach Tags",
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(
-                start = 20.dp, top = 10.dp, end = 20.dp
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().clickable(onClick = {
+                AppPreferences.showTagsInAddNewLinkDialogBox =
+                    !AppPreferences.showTagsInAddNewLinkDialogBox
+            }, indication = null, interactionSource = null)
+        ) {
+            IconButton(
+                modifier = Modifier.padding(
+                    start = 5.dp
+                ), onClick = {
+                    AppPreferences.showTagsInAddNewLinkDialogBox =
+                        !AppPreferences.showTagsInAddNewLinkDialogBox
+                }) {
+                Icon(
+                    imageVector = if (AppPreferences.showTagsInAddNewLinkDialogBox) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+            Text(
+                text = "Attach Tags",
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = 18.sp
             )
-        )
-
-        TagSelectionComponent(
-            allTags = allTags, selectedTags = collectionsScreenVM.selectedTags, onClick = {
-                if (collectionsScreenVM.selectedTags.contains(it)) {
-                    collectionsScreenVM.unSelectATag(it)
-                } else {
-                    collectionsScreenVM.selectATag(it)
-                }
-            })
+        }
+        Box(modifier = Modifier.fillMaxWidth().animateContentSize()) {
+            if (AppPreferences.showTagsInAddNewLinkDialogBox) {
+                TagSelectionComponent(
+                    paddingValues = PaddingValues(start = 15.dp, end = 25.dp),
+                    allTags = allTags,
+                    selectedTags = collectionsScreenVM.selectedTags,
+                    onClick = {
+                        if (collectionsScreenVM.selectedTags.contains(it)) {
+                            collectionsScreenVM.unSelectATag(it)
+                        } else {
+                            collectionsScreenVM.selectATag(it)
+                        }
+                    })
+            }
+        }
 
         if (currentlyInFolder == null) {
             Text(
@@ -539,7 +564,9 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 18.sp,
                 modifier = Modifier.padding(
-                    start = 20.dp, top = 10.dp, end = 20.dp
+                    start = 20.dp,
+                    top = if (AppPreferences.showTagsInAddNewLinkDialogBox) 10.dp else 0.dp,
+                    end = 20.dp
                 )
             )
             Row(
@@ -582,62 +609,63 @@ private fun BottomPartOfAddANewLinkDialogBox(
             }
         }
 
+        Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
+            if (isDropDownMenuIconClicked.value) {
 
-        if (isDropDownMenuIconClicked.value) {
-
-            SelectableFolderUIComponent(
-                onClick = {
-                    isDropDownMenuIconClicked.value = false
-                    selectedFolderForSavingTheLink.value = defaultSavedLinksFolder()
-                },
-                folderName = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
-                imageVector = Icons.Outlined.Link,
-                isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.SAVED_LINKS_ID
-            )
-
-            SelectableFolderUIComponent(
-                onClick = {
-                    isDropDownMenuIconClicked.value = false
-                    selectedFolderForSavingTheLink.value = defaultImpLinksFolder()
-                },
-                folderName = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
-                imageVector = Icons.Outlined.StarOutline,
-                isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.IMPORTANT_LINKS_ID
-            )
-
-            rootFolders.value.forEach {
-                key(it) {
-                    FolderSelectorComponent(
-                        onItemClick = {
+                SelectableFolderUIComponent(
+                    onClick = {
                         isDropDownMenuIconClicked.value = false
-                        selectedFolderForSavingTheLink.value = it
+                        selectedFolderForSavingTheLink.value = defaultSavedLinksFolder()
                     },
-                        isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
-                            mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
-                        },
-                        folderName = it.name,
-                        onSubDirectoryIconClick = {
-                            AddANewLinkDialogBox.changeParentFolderId(
-                                it.localId, collectionsScreenVM.viewModelScope
-                            )
-                            AddANewLinkDialogBox.subFoldersList.add(it)
-                            isChildFoldersBottomSheetExpanded.value = true
-                            coroutineScope.launch {
-                                btmSheetState.expand()
-                                try {
-                                    if (lazyRowState.layoutInfo.totalItemsCount - 1 < 0) return@launch
-                                    lazyRowState.animateScrollToItem(lazyRowState.layoutInfo.totalItemsCount - 1)
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-                            selectedFolderForSavingTheLink.value = it
-                        })
-                }
+                    folderName = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
+                    imageVector = Icons.Outlined.Link,
+                    isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.SAVED_LINKS_ID
+                )
 
-            }
-            if (!isDropDownMenuIconClicked.value) {
-                Spacer(modifier = Modifier.height(20.dp))
+                SelectableFolderUIComponent(
+                    onClick = {
+                        isDropDownMenuIconClicked.value = false
+                        selectedFolderForSavingTheLink.value = defaultImpLinksFolder()
+                    },
+                    folderName = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
+                    imageVector = Icons.Outlined.StarOutline,
+                    isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.IMPORTANT_LINKS_ID
+                )
+
+                rootFolders.value.forEach {
+                    key(it) {
+                        FolderSelectorComponent(
+                            onItemClick = {
+                            isDropDownMenuIconClicked.value = false
+                            selectedFolderForSavingTheLink.value = it
+                        },
+                            isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
+                                mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
+                            },
+                            folderName = it.name,
+                            onSubDirectoryIconClick = {
+                                AddANewLinkDialogBox.changeParentFolderId(
+                                    it.localId, collectionsScreenVM.viewModelScope
+                                )
+                                AddANewLinkDialogBox.subFoldersList.add(it)
+                                isChildFoldersBottomSheetExpanded.value = true
+                                coroutineScope.launch {
+                                    btmSheetState.expand()
+                                    try {
+                                        if (lazyRowState.layoutInfo.totalItemsCount - 1 < 0) return@launch
+                                        lazyRowState.animateScrollToItem(lazyRowState.layoutInfo.totalItemsCount - 1)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
+                                selectedFolderForSavingTheLink.value = it
+                            })
+                    }
+
+                }
+                if (!isDropDownMenuIconClicked.value) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
         }
         if (!isDataExtractingForTheLink.value && screenType == ScreenType.INTENT_ACTIVITY) {

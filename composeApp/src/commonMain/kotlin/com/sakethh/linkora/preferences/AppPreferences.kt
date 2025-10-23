@@ -89,6 +89,7 @@ object AppPreferences {
     val isBackupAutoDeletionEnabled = mutableStateOf(false)
     var selectedCollectionSourceId by mutableIntStateOf(0)
     var selectedAppIcon by mutableStateOf(AppIconCode.new_logo.name)
+    var showTagsInAddNewLinkDialogBox by mutableStateOf(false)
     suspend fun lastSyncedLocally(preferencesRepository: PreferencesRepository): Long {
         return preferencesRepository.readPreferenceValue(
             preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
@@ -463,6 +464,12 @@ object AppPreferences {
                                 AppPreferenceType.CUSTOM_VERSION_APP_LABEL.name
                             )
                         ) ?: useCustomAppVersionLabel.value
+                    }, launch {
+                        showTagsInAddNewLinkDialogBox = preferencesRepository.readPreferenceValue(
+                            preferenceKey = booleanPreferencesKey(
+                                AppPreferenceType.SHOW_TAGS_BY_DEFAULT_IN_ADD_LINK.name
+                            )
+                        ) ?: true
                     }
                 ).joinAll()
             }
