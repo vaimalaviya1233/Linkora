@@ -258,7 +258,27 @@ open class CollectionsScreenVM(
     private val _currentCollectionSource get() = if (AppPreferences.selectedCollectionSourceId == 0) Localization.Key.Folders.getLocalizedString() else "Tags"
     var currentCollectionSource by mutableStateOf(_currentCollectionSource)
 
+    var foldersSearchQuery by mutableStateOf("")
+    private val _foldersSearchQueryResult = MutableStateFlow(emptyList<Folder>())
+    val foldersSearchQueryResult = _foldersSearchQueryResult.asStateFlow()
+
     init {
+        viewModelScope.launch {
+            combine(snapshotFlow {
+                foldersSearchQuery
+            }, snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }) { query, sortingType ->
+                Pair(query, sortingType)
+            }.cancellable().collectLatest { (query, sortingType) ->
+                localFoldersRepo.search(query = query, sortOption = sortingType).collectLatest {
+                    it.onSuccess {
+                        _foldersSearchQueryResult.emit(it.data)
+                    }
+                }
+            }
+        }
+
         if (preferencesRepo != null) {
             viewModelScope.launch {
                 snapshotFlow {
