@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.data.local.repository.SnapshotRepoService
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.LinkType
@@ -116,15 +117,13 @@ class AppVM(
     val startDestination: MutableState<Navigation.Root> = mutableStateOf(Navigation.Root.HomeScreen)
     val onBoardingCompleted = mutableStateOf(false)
 
-    private var snapshotsJob: Job? = null
-    val isAnySnapshotOngoing = mutableStateOf(false)
 
     suspend fun getLastSyncedTime(): Long {
         return preferencesRepository.readPreferenceValue(
             preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
         ) ?: 0
     }
-
+    val isAnySnapshotOngoing = mutableStateOf(false)
     init {
 
         runBlocking {
@@ -155,108 +154,21 @@ class AppVM(
             }
         }
 
+        val snapshotRepoService = SnapshotRepoService(
+            linksRepo = linksRepo,
+            foldersRepo = foldersRepo,
+            localPanelsRepo = localPanelsRepo,
+            exportDataRepo = exportDataRepo,
+            localTagsRepo = localTagsRepo,
+            fileManager = fileManager,
+            coroutineScope = viewModelScope
+        )
+
         viewModelScope.launch {
             snapshotFlow {
-                AppPreferences.areSnapshotsEnabled.value
-            }.debounce(1000).collectLatest {
-                if (it) {
-                    snapshotsJob = this.launch(Dispatchers.Default) {
-                        linkoraLog("data checks for snapshots are now live")
-                        septetCombine(
-                            linksRepo.getAllLinksAsFlow(),
-                            foldersRepo.getAllFoldersAsFlow(),
-                            localPanelsRepo.getAllThePanels(),
-                            localPanelsRepo.getAllThePanelFoldersAsAFlow(),
-                            snapshotFlow {
-                                forceSnapshot.value
-                            },
-                            localTagsRepo.getAllTags(AppPreferences.selectedSortingTypeType.value),
-                            localTagsRepo.getAllLinkTags()
-                        ) { links, folders, panels, panelFolders, _, tags, linkTags ->
-                            AllTablesDTO(
-                                links = links,
-                                folders = folders,
-                                panels = panels,
-                                panelFolders = panelFolders,
-                                tags = tags,
-                                linkTagsPairs = linkTags,
-                            )
-                        }.cancellable()
-                            .drop(1) // ignore the first emission which gets fired when the app launches
-                            .debounce(1000).flowOn(Dispatchers.Default).collectLatest {
-                                if (pauseSnapshots || (it.links + it.folders + it.panelFolders + it.panels).isEmpty()) return@collectLatest
-                                try {
-                                    isAnySnapshotOngoing.value = true
-                                    if (AppPreferences.isBackupAutoDeletionEnabled.value) {
-                                        fileManager.deleteAutoBackups(
-                                            backupLocation = AppPreferences.currentBackupLocation.value,
-                                            threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
-                                            onCompletion = {
-                                                linkoraLog(
-                                                    "Deleted $it snapshot files as the threshold was ${AppPreferences.backupAutoDeleteThreshold.intValue}"
-                                                )
-                                            })
-                                    }
-
-                                    if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.JSON.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
-
-                                        val serializedJsonExportString = JSONExportSchema(
-                                            schemaVersion = JSONExportSchema.VERSION,
-                                            links = it.links.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            },
-                                            folders = it.folders.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            },
-                                            panels = PanelForJSONExportSchema(panels = it.panels.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            }, panelFolders = it.panelFolders.map {
-                                                it.copy(
-                                                    remoteId = null, lastModified = 0
-                                                )
-                                            }),
-                                            tags = it.tags.map {
-                                                it.copy(remoteId = null, lastModified = 0)
-                                            },
-                                            linkTags = it.linkTagsPairs.map {
-                                                it.copy(remoteId = null, lastModified = 0)
-                                            }).run {
-                                            Json.encodeToString(this)
-                                        }
-
-                                        fileManager.exportSnapshotData(
-                                            rawExportString = serializedJsonExportString,
-                                            fileType = FileType.JSON,
-                                            exportLocation = AppPreferences.currentBackupLocation.value
-                                        )
-                                    }
-
-                                    if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.HTML.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
-                                        fileManager.exportSnapshotData(
-                                            rawExportString = exportDataRepo.rawExportDataAsHTML(
-                                                links = it.links, folders = it.folders
-                                            ),
-                                            fileType = ExportFileType.HTML,
-                                            exportLocation = AppPreferences.currentBackupLocation.value
-                                        )
-                                    }
-                                } catch (e: Exception) {
-                                    e.pushSnackbar()
-                                } finally {
-                                    isAnySnapshotOngoing.value = false
-                                }
-                            }
-                    }
-                } else {
-                    linkoraLog("cancelled data checks for snapshots")
-                    snapshotsJob?.cancel()
-                }
+                snapshotRepoService.isAnySnapshotOngoing.value
+            }.collectLatest {
+                isAnySnapshotOngoing.value = it
             }
         }
 
@@ -352,10 +264,9 @@ class AppVM(
 
         var pauseSnapshots = false
 
-        private val forceSnapshot = mutableStateOf(false)
 
         fun forceSnapshot() {
-            forceSnapshot.value = !forceSnapshot.value
+            SnapshotRepoService.forceSnapshot.value = !SnapshotRepoService.forceSnapshot.value
         }
 
         fun shutdownSocketConnection() {

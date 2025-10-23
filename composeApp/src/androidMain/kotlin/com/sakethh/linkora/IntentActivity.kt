@@ -24,15 +24,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
+import com.sakethh.linkora.data.local.repository.SnapshotRepoService
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
-import com.sakethh.linkora.domain.ExportFileType
-import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.domain.SnapshotFormat
-import com.sakethh.linkora.domain.model.JSONExportSchema
-import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -49,14 +45,11 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 class IntentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,7 +144,7 @@ class IntentActivity : ComponentActivity() {
                     AddANewLinkDialogBox(
                         onDismiss = {
                             showUI = false
-                        } ,
+                        },
                         screenType = ScreenType.ROOT_SCREEN,
                         currentFolder = null,
                         collectionsScreenVM = viewModel(factory = CollectionScreenVMAssistedFactory.createForIntentActivity()),
@@ -173,75 +166,35 @@ class IntentActivityVM(
     private val exportDataRepo: ExportDataRepo,
     private val fileManager: FileManager
 ) : ViewModel() {
+    private val snapshotRepoService = SnapshotRepoService(
+        linksRepo = localLinksRepo,
+        foldersRepo = localFoldersRepo,
+        localPanelsRepo = localPanelsRepo,
+        exportDataRepo = exportDataRepo,
+        localTagsRepo = localTagsRepo,
+        fileManager = fileManager,
+        coroutineScope = viewModelScope
+    )
+
     fun createADataSnapshot(onCompletion: () -> Unit) {
-        viewModelScope.launch {
-            val allLinks = async { localLinksRepo.getAllLinks() }
-            val allFolders = async { localFoldersRepo.getAllFoldersAsList() }
-            val allPanels = async { localPanelsRepo.getAllThePanelsAsAList() }
-            val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
-            val allTags = async { localTagsRepo.getAllTagsAsList() }
-            val allLinkTagsPairs = async { localTagsRepo.getAllLinkTagsAsList() }
-            if (AppPreferences.isBackupAutoDeletionEnabled.value) {
-                fileManager.deleteAutoBackups(
-                    backupLocation = AppPreferences.currentBackupLocation.value,
-                    threshold = AppPreferences.backupAutoDeleteThreshold.intValue,
-                    onCompletion = {
-                        linkoraLog(
-                            "Deleted $it snapshot files as the threshold was ${AppPreferences.backupAutoDeleteThreshold.intValue}"
-                        )
-                    })
-            }
-
-            if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.JSON.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
-
-                val serializedJsonExportString = JSONExportSchema(
-                    schemaVersion = JSONExportSchema.VERSION,
-                    links = allLinks.await().map {
-                        it.copy(
-                            remoteId = null, lastModified = 0
-                        )
-                    },
-                    folders = allFolders.await().map {
-                        it.copy(
-                            remoteId = null, lastModified = 0
-                        )
-                    },
-                    panels = PanelForJSONExportSchema(panels = allPanels.await().map {
-                        it.copy(
-                            remoteId = null, lastModified = 0
-                        )
-                    }, panelFolders = allPanelFolders.await().map {
-                        it.copy(
-                            remoteId = null, lastModified = 0
-                        )
-                    }),
-                    tags = allTags.await().map {
-                        it.copy(remoteId = null, lastModified = 0)
-                    },
-                    linkTags = allLinkTagsPairs.await().map {
-                        it.copy(remoteId = null, lastModified = 0)
-                    }).run {
-                    Json.encodeToString(this)
-                }
-
-                fileManager.exportSnapshotData(
-                    exportLocation = AppPreferences.currentBackupLocation.value,
-                    rawExportString = serializedJsonExportString,
-                    fileType = FileType.JSON
+        if (AppPreferences.isBackupAutoDeletionEnabled.value) {
+            viewModelScope.launch {
+                val allLinks = async { localLinksRepo.getAllLinks() }
+                val allFolders = async { localFoldersRepo.getAllFoldersAsList() }
+                val allPanels = async { localPanelsRepo.getAllThePanelsAsAList() }
+                val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
+                val allTags = async { localTagsRepo.getAllTagsAsList() }
+                val allLinkTagsPairs = async { localTagsRepo.getAllLinkTagsAsList() }
+                snapshotRepoService.createAManualSnapshot(
+                    allLinks = allLinks.await(),
+                    allFolders = allFolders.await(),
+                    allPanels = allPanels.await(),
+                    allPanelFolders = allPanelFolders.await(),
+                    allTags = allTags.await(),
+                    allLinkTagsPairs = allLinkTagsPairs.await(),
+                    onCompletion = onCompletion
                 )
             }
-
-            if (AppPreferences.snapshotExportFormatID.value == SnapshotFormat.HTML.id.toString() || AppPreferences.snapshotExportFormatID.value == SnapshotFormat.BOTH.id.toString()) {
-                fileManager.exportSnapshotData(
-                    rawExportString = exportDataRepo.rawExportDataAsHTML(
-                        links = allLinks.await(), folders = allFolders.await()
-                    ),
-                    fileType = ExportFileType.HTML,
-                    exportLocation = AppPreferences.currentBackupLocation.value,
-                )
-            }
-        }.invokeOnCompletion {
-            onCompletion()
         }
     }
 }
