@@ -55,7 +55,7 @@ import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 
-data class RenameDialogBoxParam @OptIn(ExperimentalMaterial3Api::class) constructor(
+data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class) constructor(
     val showDialogBox: Boolean,
     val sheetState: SheetState,
     val onHide: () -> Unit,
@@ -70,18 +70,18 @@ data class RenameDialogBoxParam @OptIn(ExperimentalMaterial3Api::class) construc
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RenameDialogBox(
-    renameDialogBoxParam: RenameDialogBoxParam
+fun RenameFolderOrLinkDialog(
+    renameFolderOrLinkDialogParam: RenameFolderOrLinkDialogParam
 ) {
-    if (renameDialogBoxParam.showDialogBox) {
+    if (renameFolderOrLinkDialogParam.showDialogBox) {
         var selectedTags by rememberDeserializableMutableObject {
-            mutableStateOf(renameDialogBoxParam.selectedTags)
+            mutableStateOf(renameFolderOrLinkDialogParam.selectedTags)
         }
-        var newFolderOrTitleName by rememberSaveable(renameDialogBoxParam.existingTitle) {
-            mutableStateOf(renameDialogBoxParam.existingTitle)
+        var newFolderOrTitleName by rememberSaveable(renameFolderOrLinkDialogParam.existingTitle) {
+            mutableStateOf(renameFolderOrLinkDialogParam.existingTitle)
         }
-        var newNote by rememberSaveable(renameDialogBoxParam.existingNote) {
-            mutableStateOf(renameDialogBoxParam.existingNote)
+        var newNote by rememberSaveable(renameFolderOrLinkDialogParam.existingNote) {
+            mutableStateOf(renameFolderOrLinkDialogParam.existingNote)
         }
         var showProgressBar by rememberSaveable {
             mutableStateOf(false)
@@ -102,8 +102,8 @@ fun RenameDialogBox(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.dialogBoxFor) && renameDialogBoxParam.existingFolderName?.isNotBlank() == true) Localization.Key.RenameFolder.rememberLocalizedString()
-                                .replaceFirstPlaceHolderWith(renameDialogBoxParam.existingFolderName) else Localization.Key.ChangeLinkData.rememberLocalizedString(),
+                            text = if (menuBtmSheetFolderEntries().contains(renameFolderOrLinkDialogParam.dialogBoxFor) && renameFolderOrLinkDialogParam.existingFolderName?.isNotBlank() == true) Localization.Key.RenameFolder.rememberLocalizedString()
+                                .replaceFirstPlaceHolderWith(renameFolderOrLinkDialogParam.existingFolderName) else Localization.Key.ChangeLinkData.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 22.sp,
                             lineHeight = 27.sp,
@@ -114,7 +114,7 @@ fun RenameDialogBox(
                         if (platform() != Platform.Android.Mobile && !showProgressBar) {
                             IconButton(
                                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                                onClick = renameDialogBoxParam.onHide
+                                onClick = renameFolderOrLinkDialogParam.onHide
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close, contentDescription = null
@@ -127,7 +127,7 @@ fun RenameDialogBox(
                     OutlinedTextField(
                         label = {
                             Text(
-                                text = if (menuBtmSheetFolderEntries().contains(renameDialogBoxParam.dialogBoxFor)) Localization.Key.NewName.rememberLocalizedString()
+                                text = if (menuBtmSheetFolderEntries().contains(renameFolderOrLinkDialogParam.dialogBoxFor)) Localization.Key.NewName.rememberLocalizedString()
                                 else Localization.Key.NewTitle.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp
@@ -161,7 +161,7 @@ fun RenameDialogBox(
                     )
                 }
 
-                if (renameDialogBoxParam.dialogBoxFor is MenuBtmSheetType.Link) {
+                if (renameFolderOrLinkDialogParam.dialogBoxFor is MenuBtmSheetType.Link) {
                     item {
                         Text(
                             text = "Attach Tags",
@@ -172,7 +172,7 @@ fun RenameDialogBox(
 
                         TagSelectionComponent(
                             paddingValues = PaddingValues(),
-                            allTags = renameDialogBoxParam.allTags,
+                            allTags = renameFolderOrLinkDialogParam.allTags,
                             selectedTags = selectedTags,
                             onClick = { currTag ->
                                 if (selectedTags.contains(currTag)) {
@@ -198,7 +198,7 @@ fun RenameDialogBox(
                     Button(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
                             showProgressBar = true
-                            renameDialogBoxParam.onSave(
+                            renameFolderOrLinkDialogParam.onSave(
                                 newFolderOrTitleName, newNote, selectedTags, {
                                     showProgressBar = true
                                 })
@@ -212,7 +212,7 @@ fun RenameDialogBox(
                     Spacer(modifier = Modifier.height(2.dp))
                     OutlinedButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(),
-                        onClick = renameDialogBoxParam.onHide
+                        onClick = renameFolderOrLinkDialogParam.onHide
                     ) {
                         Text(
                             text = Localization.Key.Cancel.rememberLocalizedString(),
@@ -225,12 +225,12 @@ fun RenameDialogBox(
         }
         if (platform() == Platform.Android.Mobile) {
             ModalBottomSheet(
-                sheetState = renameDialogBoxParam.sheetState,
+                sheetState = renameFolderOrLinkDialogParam.sheetState,
                 modifier = Modifier.imePadding(),
                 properties = ModalBottomSheetProperties(shouldDismissOnBackPress = false),
                 onDismissRequest = {
                     if (!showProgressBar) {
-                        renameDialogBoxParam.onHide()
+                        renameFolderOrLinkDialogParam.onHide()
                     }
                 }) {
                 content()
@@ -243,7 +243,7 @@ fun RenameDialogBox(
                 properties = DialogProperties(usePlatformDefaultWidth = false),
                 onDismissRequest = {
                     if (!showProgressBar) {
-                        renameDialogBoxParam.onHide()
+                        renameFolderOrLinkDialogParam.onHide()
                     }
                 }) {
                 content()

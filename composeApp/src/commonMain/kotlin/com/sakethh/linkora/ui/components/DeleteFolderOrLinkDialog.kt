@@ -37,7 +37,7 @@ enum class DeleteDialogBoxType {
     SELECTED_DATA
 }
 
-data class DeleteDialogBoxParam(
+data class DeleteFolderOrLinkDialogParam(
     val onDismiss:()-> Unit,
     val deleteDialogBoxType: DeleteDialogBoxType,
     val onDeleteClick: (onCompletion: () -> Unit, deleteEverythingFromRemote: Boolean) -> Unit,
@@ -45,8 +45,8 @@ data class DeleteDialogBoxParam(
 )
 
 @Composable
-fun DeleteDialogBox(
-    deleteDialogBoxParam: DeleteDialogBoxParam
+fun DeleteFolderOrLinkDialog(
+    deleteFolderOrLinkDialogParam: DeleteFolderOrLinkDialogParam
 ) {
     val isDeletionInProgress: MutableState<Boolean> = rememberSaveable {
         mutableStateOf(false)
@@ -59,9 +59,9 @@ fun DeleteDialogBox(
             Button(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
                     isDeletionInProgress.value = true
-                    deleteDialogBoxParam.onDeleteClick({
+                    deleteFolderOrLinkDialogParam.onDeleteClick({
                         isDeletionInProgress.value = false
-                        deleteDialogBoxParam.onDismiss()
+                        deleteFolderOrLinkDialogParam.onDismiss()
                     }, deleteEverythingFromRemote.value)
                 }) {
                 Text(
@@ -74,7 +74,7 @@ fun DeleteDialogBox(
     }, dismissButton = {
         if (isDeletionInProgress.value.not()) {
             OutlinedButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = deleteDialogBoxParam.onDismiss) {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = deleteFolderOrLinkDialogParam.onDismiss) {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.Cancel),
                     style = MaterialTheme.typography.titleSmall,
@@ -84,8 +84,8 @@ fun DeleteDialogBox(
         }
     }, title = {
         Text(
-            text = if (isDeletionInProgress.value) Localization.Key.DeletionInProgress.rememberLocalizedString() else deleteDialogBoxParam.deleteDialogBoxType.getTitle(
-                areFoldersSelectable = deleteDialogBoxParam.areFoldersSelectable
+            text = if (isDeletionInProgress.value) Localization.Key.DeletionInProgress.rememberLocalizedString() else deleteFolderOrLinkDialogParam.deleteDialogBoxType.getTitle(
+                areFoldersSelectable = deleteFolderOrLinkDialogParam.areFoldersSelectable
             ),
             style = MaterialTheme.typography.titleMedium,
             fontSize = 22.sp,
@@ -93,7 +93,7 @@ fun DeleteDialogBox(
             textAlign = TextAlign.Start
         )
     }, text = {
-        if (isDeletionInProgress.value.not() && AppPreferences.canPushToServer() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.REMOVE_ENTIRE_DATA) {
+        if (isDeletionInProgress.value.not() && AppPreferences.canPushToServer() && deleteFolderOrLinkDialogParam.deleteDialogBoxType == DeleteDialogBoxType.REMOVE_ENTIRE_DATA) {
             Row(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable {
                     if (!isDeletionInProgress.value) {
@@ -112,7 +112,7 @@ fun DeleteDialogBox(
                 )
             }
         }
-        if (isDeletionInProgress.value.not() && deleteDialogBoxParam.deleteDialogBoxType == DeleteDialogBoxType.FOLDER) {
+        if (isDeletionInProgress.value.not() && deleteFolderOrLinkDialogParam.deleteDialogBoxType == DeleteDialogBoxType.FOLDER) {
             Text(
                 text = Localization.Key.FolderDeletionLabel.rememberLocalizedString(),
                 style = MaterialTheme.typography.titleSmall,
@@ -126,7 +126,7 @@ fun DeleteDialogBox(
         }
     }, onDismissRequest = {
         if (isDeletionInProgress.value.not()) {
-            deleteDialogBoxParam.onDismiss()
+            deleteFolderOrLinkDialogParam.onDismiss()
         }
     })
 }

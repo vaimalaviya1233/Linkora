@@ -1,5 +1,7 @@
 package com.sakethh.linkora.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,7 +37,11 @@ fun LinkoraNavHost(
 ) {
     val localNavController = LocalNavController.current
     NavHost(
-        navController = localNavController, startDestination = startDestination
+        navController = localNavController, startDestination = startDestination,
+        enterTransition = { fadeIn() },
+        exitTransition = { fadeOut() },
+        popEnterTransition = { fadeIn() },
+        popExitTransition = { fadeOut() },
     ) {
         composable<Navigation.Root.HomeScreen> {
             HomeScreen(currentFABContext)
@@ -94,7 +100,7 @@ fun LinkoraNavHost(
             SnapshotsScreen()
         }
         composable<Navigation.Root.OnboardingSlidesScreen> {
-            OnboardingSlidesScreen(onOnboardingComplete = onOnboardingComplete,currentFABContext)
+            OnboardingSlidesScreen(onOnboardingComplete = onOnboardingComplete, currentFABContext)
         }
     }
 }

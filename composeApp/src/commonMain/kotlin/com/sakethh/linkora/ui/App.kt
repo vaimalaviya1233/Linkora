@@ -57,13 +57,13 @@ import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.BottomNavOnSelection
 import com.sakethh.linkora.ui.components.CreateATagBtmSheet
-import com.sakethh.linkora.ui.components.DeleteDialogBox
-import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
+import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialog
+import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialogParam
 import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.DesktopNavigationRail
 import com.sakethh.linkora.ui.components.MobileBottomNavBar
-import com.sakethh.linkora.ui.components.RenameDialogBox
-import com.sakethh.linkora.ui.components.RenameDialogBoxParam
+import com.sakethh.linkora.ui.components.RenameFolderOrLinkDialog
+import com.sakethh.linkora.ui.components.RenameFolderOrLinkDialogParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
@@ -82,7 +82,7 @@ import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.collections.components.TagDeletionConfirmation
 import com.sakethh.linkora.ui.screens.collections.components.TagMenu
-import com.sakethh.linkora.ui.screens.collections.components.TagRenameComponent
+import com.sakethh.linkora.ui.screens.collections.components.RenameTagComponent
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.currentSavedServerConfig
@@ -442,8 +442,8 @@ fun App(
                 )
             }
             if (appVM.showDeleteDialogBox) {
-                DeleteDialogBox(
-                    DeleteDialogBoxParam(
+                DeleteFolderOrLinkDialog(
+                    DeleteFolderOrLinkDialogParam(
                         onDismiss = {
                             appVM.showDeleteDialogBox = false
                         },
@@ -456,7 +456,7 @@ fun App(
                         onDeleteClick = { onCompletion, _ ->
                             if (CollectionsScreenVM.isSelectionEnabled.value) {
                                 appVM.deleteSelectedItems(onStart = {}, onCompletion)
-                                return@DeleteDialogBoxParam
+                                return@DeleteFolderOrLinkDialogParam
                             }
                             if (menuBtmSheetFolderEntries().contains(appVM.menuBtmSheetFor)) {
                                 collectionsScreenVM.deleteAFolder(
@@ -486,8 +486,8 @@ fun App(
                 }
             }
             val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
-            RenameDialogBox(
-                renameDialogBoxParam = RenameDialogBoxParam(
+            RenameFolderOrLinkDialog(
+                renameFolderOrLinkDialogParam = RenameFolderOrLinkDialogParam(
                     selectedTags = appVM.selectedLinkTagsForMenuBtmSheet.tags,
                     allTags = allTags,
                     onSave = { newTitle: String, newNote: String, selectedTags: List<Tag>, onCompletion: () -> Unit ->
@@ -579,7 +579,7 @@ fun App(
             })
             val tagRenameBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-            TagRenameComponent(
+            RenameTagComponent(
                 sheetState = tagRenameBtmSheetState,
                 showComponent = showTagRenameComponent,
                 existingName = appVM.selectedTagForBtmTagSheet.name,

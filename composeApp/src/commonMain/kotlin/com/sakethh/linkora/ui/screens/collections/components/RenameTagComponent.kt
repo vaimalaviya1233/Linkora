@@ -1,4 +1,4 @@
-package com.sakethh.linkora.ui.components
+package com.sakethh.linkora.ui.screens.collections.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
@@ -9,7 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -18,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -25,64 +25,65 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.utils.pressScaleEffect
-import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
-import com.sakethh.linkora.utils.rememberLocalizedString
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateATagBtmSheet(
+fun RenameTagComponent(
+    showComponent: Boolean,
     sheetState: SheetState,
-    showBtmSheet: Boolean,
-    onCancel: () -> Unit,
-    onCreateClick: (tagName: String) -> Unit
+    existingName: String,
+    onHide: () -> Unit,
+    onSave: (newName: String) -> Unit
 ) {
-    val focusRequester = remember {
+    var newTagName by rememberSaveable(existingName) {
+        mutableStateOf(existingName)
+    }
+    val tagFieldFocusRequester = remember {
         FocusRequester()
     }
-    if (showBtmSheet) {
-        var newTag by rememberSaveable {
-            mutableStateOf("")
-        }
-        var showLinearProgressBar by rememberSaveable {
-            mutableStateOf(false)
-        }
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
-        ModalBottomSheet(sheetState = sheetState, onDismissRequest = {
-            if (!showLinearProgressBar) {
-                onCancel()
+    var showLinearProgressBar by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val coroutineScope = rememberCoroutineScope()
+    val hideComponent: () -> Unit = {
+        if (!showLinearProgressBar) {
+            coroutineScope.launch {
+                sheetState.hide()
+            }.invokeOnCompletion {
+                onHide()
             }
-        }) {
+        }
+    }
+    if (showComponent) {
+        LaunchedEffect(Unit) {
+            showLinearProgressBar = false
+        }
+        ModalBottomSheet(sheetState = sheetState, onDismissRequest = hideComponent) {
             Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
                 Text(
-                    text = "Create A Tag",
+                    text = "Rename Tag Name",
                     style = MaterialTheme.typography.titleMedium,
-                    fontSize = 22.sp,
+                    fontSize = 24.sp,
                     modifier = Modifier.padding(start = 15.dp)
                 )
                 TextField(
                     enabled = !showLinearProgressBar,
-                    label = {
-                        Text(
-                            text = "Tag Name", style = MaterialTheme.typography.titleSmall
-                        )
-                    },
+                    value = newTagName,
                     textStyle = MaterialTheme.typography.titleSmall,
-                    value = newTag,
                     onValueChange = {
-                        newTag = it
+                        newTagName = it
                     },
-                    modifier = Modifier.fillMaxWidth().padding(15.dp)
-                        .focusRequester(focusRequester = focusRequester)
-                )
+                    modifier = Modifier.padding(15.dp).fillMaxWidth()
+                        .focusRequester(tagFieldFocusRequester),
+                    label = {
+                        Text(text = "New tag name", style = MaterialTheme.typography.titleSmall)
+                    })
                 if (showLinearProgressBar) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth().padding(
@@ -93,33 +94,17 @@ fun CreateATagBtmSheet(
                     )
                     return@Column
                 }
-                OutlinedButton(
-                    onClick = onCancel,
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect()
-                        .fillMaxWidth().padding(
-                            start = 15.dp,
-                            end = 15.dp,
-                        )
-                ) {
-                    Text(
-                        text = Localization.Key.Cancel.rememberLocalizedString(),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                }
                 Button(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
-                        .pressScaleEffect().padding(start = 15.dp, end = 15.dp, bottom = 5.dp)
-                        .bottomNavPaddingAcrossPlatforms(), onClick = {
-                        showLinearProgressBar = true
-                        onCreateClick(newTag)
+                    modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand)
+                        .fillMaxWidth().padding(start = 15.dp, end = 15.dp), onClick = {
+                        onSave(newTagName)
                     }) {
-                    Text(
-                        text = "Create",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Text(text = "Update", style = MaterialTheme.typography.titleMedium)
                 }
             }
+        }
+        LaunchedEffect(Unit) {
+            tagFieldFocusRequester.requestFocus()
         }
     }
 }

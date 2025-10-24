@@ -82,8 +82,8 @@ import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.components.DeleteDialogBox
-import com.sakethh.linkora.ui.components.DeleteDialogBoxParam
+import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialog
+import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialogParam
 import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
@@ -737,8 +737,8 @@ fun DataSettingsScreen() {
         operationDesc = Localization.Key.InitiateManualSyncDescAlt.rememberLocalizedString()
     )
     if (shouldDeleteEntireDialogBoxAppear.value){
-        DeleteDialogBox(
-            deleteDialogBoxParam = DeleteDialogBoxParam(
+        DeleteFolderOrLinkDialog(
+            deleteFolderOrLinkDialogParam = DeleteFolderOrLinkDialogParam(
                 onDismiss = {
                     shouldDeleteEntireDialogBoxAppear.value = false
                 },
