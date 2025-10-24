@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.settings.section
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Start
 import androidx.compose.material.icons.filled.VideoLabel
@@ -29,6 +32,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -60,22 +64,16 @@ import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.AppIconCode
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingComponent
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
+import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.rememberLocalizedString
-import linkora.composeapp.generated.resources.LOLCATpl_logo
-import linkora.composeapp.generated.resources.Res
-import linkora.composeapp.generated.resources.legacy_logo
-import linkora.composeapp.generated.resources.mondstern_logo
-import linkora.composeapp.generated.resources.new_logo
-import linkora.composeapp.generated.resources.oh_arthur
-import linkora.composeapp.generated.resources.weather_logo
 import org.jetbrains.compose.resources.painterResource
-import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,8 +88,11 @@ fun GeneralSettingsScreen() {
     val isLinkoraTopAppBarEnabled = rememberSaveable {
         mutableStateOf(AppPreferences.useLinkoraTopDecoratorOnDesktop.value)
     }
-    var selectedAppIcon by rememberSaveable {
+    var tempSelectedAppIcon by rememberSaveable {
         mutableStateOf(AppPreferences.selectedAppIcon)
+    }
+    var showIconSwitchDialogBox by rememberSaveable {
+        mutableStateOf(false)
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.GeneralSettingsScreen.toString(),
@@ -193,18 +194,18 @@ fun GeneralSettingsScreen() {
                     ) {
                         AppIconCode.entries.forEach {
                             key(it.name) {
-                                Box(Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect().clickable(onClick = {
-                                    settingsScreenViewModel.onIconChange(
-                                        newIconCode = it.name,
-                                        onCompletion = {
-                                            selectedAppIcon = it.name
-                                        })
-                                }, indication = null, interactionSource = remember {
-                                    MutableInteractionSource()
-                                }).size(65.dp), contentAlignment = Alignment.Center) {
+                                Box(
+                                    Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                        .pressScaleEffect().clickable(onClick = {
+                                            showIconSwitchDialogBox = true
+                                            tempSelectedAppIcon = it.name
+                                        }, indication = null, interactionSource = remember {
+                                            MutableInteractionSource()
+                                        }).size(65.dp), contentAlignment = Alignment.Center
+                                ) {
                                     with(this@FlowRow) {
                                         AnimatedVisibility(
-                                            selectedAppIcon == it.name,
+                                            AppPreferences.selectedAppIcon == it.name,
                                             enter = fadeIn(),
                                             exit = fadeOut()
                                         ) {
@@ -226,7 +227,6 @@ fun GeneralSettingsScreen() {
                             }
                         }
                     }
-
                     Text(
                         text = "App Icon Currently in Use",
                         style = MaterialTheme.typography.titleSmall,
@@ -236,7 +236,7 @@ fun GeneralSettingsScreen() {
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Text(
-                        text = selectedAppIcon,
+                        text = AppPreferences.selectedAppIcon,
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(
                             start = 15.dp, end = 15.dp, bottom = 15.dp
@@ -250,6 +250,88 @@ fun GeneralSettingsScreen() {
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
+    }
+    var showIconSwitchingProgressbar by rememberSaveable {
+        mutableStateOf(false)
+    }
+    if (showIconSwitchDialogBox) {
+        AlertDialog(modifier = Modifier.animateContentSize(), onDismissRequest = {
+            if (!showIconSwitchingProgressbar) {
+                showIconSwitchDialogBox = false
+            }
+        }, confirmButton = {
+            if (!showIconSwitchingProgressbar) {
+                Button(
+                    onClick = {
+                        showIconSwitchingProgressbar = true
+                        settingsScreenViewModel.onIconChange(
+                            newIconCode = tempSelectedAppIcon, onCompletion = {
+                                showIconSwitchDialogBox = false
+                            })
+                    },
+                    modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = Localization.Key.Confirm.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            } else {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+        }, dismissButton = {
+            if (!showIconSwitchingProgressbar) {
+                OutlinedButton(
+                    onClick = {
+                        showIconSwitchDialogBox = false
+                    },
+                    modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = Localization.Key.Cancel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+            }
+        }, title = {
+            Column {
+                AppIconCode.entries.find {
+                    it.name == tempSelectedAppIcon
+                }?.let {
+                    Image(
+                        painter = painterResource(it.icon),
+                        modifier = Modifier.clip(RoundedCornerShape(15.dp)).border(
+                            width = 1.5.dp,
+                            color = MaterialTheme.colorScheme.primary.copy(0.5f),
+                            shape = RoundedCornerShape(15.dp)
+                        ).size(75.dp),
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                }
+                Text(
+                    text = "Change App Icon",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 22.sp
+                )
+            }
+        }, text = {
+            Column {
+                Text(
+                    text = "After confirming changes, the app will close automatically to apply them. Notifications will continue to display the default Linkora icon and name.",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontSize = 18.sp
+                )
+                if (tempSelectedAppIcon == AppIconCode.must_be_weather.name) {
+                    InfoCard(
+                        paddingValues = PaddingValues(top = 10.dp),
+                        info = "The app name will be displayed as \"Weather\" instead of \"Linkora\" in your app drawer."
+                    )
+                }
+            }
+        })
     }
     if (showInitialNavigationChangerDialogBox) {
         val currentlySelectedRoute = rememberSaveable {
@@ -293,11 +375,12 @@ fun GeneralSettingsScreen() {
                     Navigation.Root.CollectionsScreen
                 ).forEach {
                     Row(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable(onClick = {
-                            currentlySelectedRoute.value = it.toString()
-                        }, indication = null, interactionSource = remember {
-                            MutableInteractionSource()
-                        }).pressScaleEffect(), verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                            .clickable(onClick = {
+                                currentlySelectedRoute.value = it.toString()
+                            }, indication = null, interactionSource = remember {
+                                MutableInteractionSource()
+                            }).pressScaleEffect(), verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),

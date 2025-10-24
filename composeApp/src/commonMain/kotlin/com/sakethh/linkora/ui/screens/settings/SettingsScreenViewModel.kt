@@ -480,6 +480,7 @@ open class SettingsScreenViewModel(
     private val allIconCodes = AppIconCode.entries.map { it.name }
 
     fun onIconChange(newIconCode: String, onCompletion: () -> Unit) {
+        AppPreferences.selectedAppIcon = newIconCode
         nativeUtils.onIconChange(
             allIconCodes = allIconCodes, newIconCode = newIconCode, onCompletion = {
                 viewModelScope.launch {
