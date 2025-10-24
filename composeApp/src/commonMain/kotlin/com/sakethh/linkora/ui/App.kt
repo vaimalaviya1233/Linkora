@@ -66,7 +66,7 @@ import com.sakethh.linkora.ui.components.RenameFolderOrLinkDialog
 import com.sakethh.linkora.ui.components.RenameFolderOrLinkDialogParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheetUI
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheet
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheet
@@ -325,7 +325,7 @@ fun App(
                 }
             }
             if (appVM.showMenuSheet) {
-                MenuBtmSheetUI(
+                MenuBtmSheet(
                     menuBtmSheetParam = MenuBtmSheetParam(
                         onDismiss = {
                             appVM.showMenuSheet = false

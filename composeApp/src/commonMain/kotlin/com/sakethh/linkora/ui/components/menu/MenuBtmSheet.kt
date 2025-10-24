@@ -62,7 +62,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun MenuBtmSheetUI(
+fun MenuBtmSheet(
     menuBtmSheetParam: MenuBtmSheetParam
 ) {
     val coroutineScope = rememberCoroutineScope()

@@ -126,9 +126,10 @@ fun MobileMenu(
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable(interactionSource = null, onClick = {
-                            localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.linkTagsPair!!.link.title))
-                        }, indication = null).padding(end = 20.dp)
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .clickable(interactionSource = null, onClick = {
+                                localClipBoardManager.setText(AnnotatedString(menuBtmSheetParam.linkTagsPair!!.link.title))
+                            }, indication = null).padding(end = 20.dp)
                     )
                     if (!showTags) {
                         Spacer(Modifier.height(5.dp))
@@ -139,7 +140,7 @@ fun MobileMenu(
         }
         if (menuBtmSheetLinkEntries().contains(
                 menuBtmSheetFor
-            ) && currentLinkTagsPair.link.imgURL.isEmpty()
+            ) && (!AppPreferences.showAssociatedImageInLinkMenu.value || currentLinkTagsPair.link.imgURL.isEmpty())
         ) {
             MenuNonImageHeader(
                 onClick = {
@@ -254,9 +255,10 @@ fun MobileMenu(
 @Composable
 fun MenuNonImageHeader(onClick: () -> Unit, leadingIcon: ImageVector, text: String) {
     Row(
-        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).combinedClickable(interactionSource = remember {
-            MutableInteractionSource()
-        }, indication = null, onClick = onClick).pressScaleEffect().fillMaxWidth(),
+        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+            .combinedClickable(interactionSource = remember {
+                MutableInteractionSource()
+            }, indication = null, onClick = onClick).pressScaleEffect().fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
