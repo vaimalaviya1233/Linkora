@@ -68,13 +68,13 @@ open class CollectionsScreenVM(
 ) : ViewModel() {
 
     companion object {
-        val selectedLinksViaLongClick = mutableStateListOf<Link>()
+        val selectedLinkTagPairsViaLongClick = mutableStateListOf<LinkTagsPair>()
         val selectedFoldersViaLongClick = mutableStateListOf<Folder>()
         val isSelectionEnabled = mutableStateOf(false)
 
         fun clearAllSelections() {
             isSelectionEnabled.value = false
-            selectedLinksViaLongClick.clear()
+            selectedLinkTagPairsViaLongClick.clear()
             selectedFoldersViaLongClick.clear()
         }
     }

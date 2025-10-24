@@ -14,16 +14,10 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.data.local.repository.SnapshotRepoService
-import com.sakethh.linkora.domain.ExportFileType
-import com.sakethh.linkora.domain.FileType
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
-import com.sakethh.linkora.domain.SnapshotFormat
 import com.sakethh.linkora.domain.asLinkType
-import com.sakethh.linkora.domain.dto.server.AllTablesDTO
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.JSONExportSchema
-import com.sakethh.linkora.domain.model.PanelForJSONExportSchema
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onFailure
@@ -53,32 +47,28 @@ import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.clearAllSelections
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedFoldersViaLongClick
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedLinksViaLongClick
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM.Companion.selectedLinkTagPairsViaLongClick
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.pushSnackbar
 import com.sakethh.linkora.utils.pushSnackbarOnFailure
-import com.sakethh.linkora.utils.septetCombine
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
+import java.time.Instant
 
 @OptIn(FlowPreview::class, ExperimentalMaterial3Api::class)
 class AppVM(
@@ -292,8 +282,8 @@ class AppVM(
 
     fun moveSelectedItems(folderId: Long, onStart: () -> Unit, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            localMultiActionRepo.moveMultipleItems(linkIds = selectedLinksViaLongClick.map {
-                it.localId
+            localMultiActionRepo.moveMultipleItems(linkIds = selectedLinkTagPairsViaLongClick.map {
+                it.link.localId
             }, folderIds = selectedFoldersViaLongClick.map {
                 it.localId
             }, linkType = folderId.asLinkType(), newParentFolderId = folderId).collectLatest {
@@ -312,7 +302,7 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.copyMultipleItems(
-                links = selectedLinksViaLongClick.toList(),
+                linkTagsPairs = selectedLinkTagPairsViaLongClick.toList(),
                 folders = selectedFoldersViaLongClick.toList(),
                 linkType = folderId.asLinkType(),
                 newParentFolderId = folderId
@@ -332,8 +322,8 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.archiveMultipleItems(
-                linkIds = selectedLinksViaLongClick.filter { it.linkType != LinkType.ARCHIVE_LINK }
-                .map { it.localId },
+                linkIds = selectedLinkTagPairsViaLongClick.filter { it.link.linkType != LinkType.ARCHIVE_LINK }
+                .map { it.link.localId },
                 folderIds = selectedFoldersViaLongClick.filter { it.isArchived.not() }
                     .map { it.localId }).collectLatest {
                 it.onSuccess {
@@ -357,8 +347,8 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.deleteMultipleItems(
-                linkIds = selectedLinksViaLongClick.toList()
-                .map { it.localId },
+                linkIds = selectedLinkTagPairsViaLongClick.toList()
+                .map { it.link.localId },
                 folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
                 it.onSuccess {
                     pushUIEvent(
@@ -394,8 +384,8 @@ class AppVM(
             localMultiActionRepo.unArchiveMultipleItems(
                 folderIds = selectedFoldersViaLongClick.filter { it.isArchived }
                 .map { it.localId },
-                linkIds = selectedLinksViaLongClick.filter { it.linkType == LinkType.ARCHIVE_LINK }
-                    .map { it.localId }).collect()
+                linkIds = selectedLinkTagPairsViaLongClick.filter { it.link.linkType == LinkType.ARCHIVE_LINK }
+                    .map { it.link.localId }).collect()
         }.invokeOnCompletion {
             clearAllSelections()
             onCompletion()

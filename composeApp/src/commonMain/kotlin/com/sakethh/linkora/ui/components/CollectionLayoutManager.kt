@@ -69,10 +69,10 @@ fun CollectionLayoutManager(
                     if (!CollectionsScreenVM.isSelectionEnabled.value) {
                         onLinkClick(linkTagsPair)
                     } else {
-                        if (CollectionsScreenVM.selectedLinksViaLongClick.contains(linkTagsPair.link)) {
-                            CollectionsScreenVM.selectedLinksViaLongClick.remove(linkTagsPair.link)
+                        if (CollectionsScreenVM.selectedLinkTagPairsViaLongClick.contains(linkTagsPair)) {
+                            CollectionsScreenVM.selectedLinkTagPairsViaLongClick.remove(linkTagsPair)
                         } else {
-                            CollectionsScreenVM.selectedLinksViaLongClick.add(linkTagsPair.link)
+                            CollectionsScreenVM.selectedLinkTagPairsViaLongClick.add(linkTagsPair)
                         }
                     }
                 },
@@ -80,14 +80,14 @@ fun CollectionLayoutManager(
 
                 },
                 isItemSelected = mutableStateOf(
-                    CollectionsScreenVM.selectedLinksViaLongClick.contains(
-                        linkTagsPair.link
+                    CollectionsScreenVM.selectedLinkTagPairsViaLongClick.contains(
+                        linkTagsPair
                     )
                 ),
                 onLongClick = {
                     if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
                         CollectionsScreenVM.isSelectionEnabled.value = true
-                        CollectionsScreenVM.selectedLinksViaLongClick.add(linkTagsPair.link)
+                        CollectionsScreenVM.selectedLinkTagPairsViaLongClick.add(linkTagsPair)
                     }
                 },
                 tags = linkTagsPair.tags,

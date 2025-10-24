@@ -18,6 +18,7 @@ import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.serialization.encodeToString
@@ -33,7 +34,7 @@ class LocalPanelsRepoImpl(
 ) : LocalPanelsRepo {
     override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Unit>> {
         var newPanelId: Long? = null
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -84,7 +85,7 @@ class LocalPanelsRepoImpl(
                 if (remotePanelId != null) {
                     remotePanelsRepo.deleteAPanel(
                         IDBasedDTO(
-                            id = id, eventTimestamp = Instant.now().epochSecond
+                            id = id, eventTimestamp = getSystemEpochSeconds()
                         )
                     )
                     // server already handles this internally, so no need to push it externally: remotePanelsRepo.deleteAllFoldersFromAPanel(remotePanelId)
@@ -116,7 +117,7 @@ class LocalPanelsRepoImpl(
         newName: String, panelId: Long, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val remotePanelId = panelsDao.getRemoteIdOfPanel(panelId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -165,7 +166,7 @@ class LocalPanelsRepoImpl(
         var newPanelFolderId: Long? = null
         val remoteIdOfFolder = foldersDao.getRemoteIdOfAFolder(panelFolder.folderId)
         val remoteIdOfConnectedPanel = panelsDao.getRemoteIdOfPanel(panelFolder.connectedPanelId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -237,7 +238,7 @@ class LocalPanelsRepoImpl(
     ): Flow<Result<Unit>> {
         val remotePanelId = panelsDao.getRemoteIdOfPanel(panelId)
         val remoteFolderId = foldersDao.getRemoteIdOfAFolder(folderID)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {

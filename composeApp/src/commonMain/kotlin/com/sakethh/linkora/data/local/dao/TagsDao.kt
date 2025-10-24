@@ -93,6 +93,16 @@ interface TagsDao {
     )
     fun getTagsWithLinkIds(linkIds: List<Long>): Flow<List<TagWithLinkId>>
 
+    @Transaction
+    @Query(
+        """
+    SELECT linkTag.linkId, tag.* FROM tags tag
+    INNER JOIN link_tags linkTag ON tag.localId = linkTag.tagId
+    WHERE linkTag.linkId IN (:linkIds)
+    """
+    )
+    suspend fun getTagsWithLinkIdsAsList(linkIds: List<Long>): List<TagWithLinkId>
+
     @Query("SELECT localId FROM tags WHERE remoteId IN (:remoteIds)")
     suspend fun getLocalTagIds(remoteIds: List<Long>): List<Long>
 

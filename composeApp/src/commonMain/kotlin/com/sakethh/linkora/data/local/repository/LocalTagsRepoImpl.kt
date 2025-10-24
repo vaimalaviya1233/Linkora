@@ -13,14 +13,13 @@ import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteTagsRepo
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.time.Instant
 
 class LocalTagsRepoImpl(
     private val tagsDao: TagsDao,
@@ -30,7 +29,7 @@ class LocalTagsRepoImpl(
 ) : LocalTagsRepo {
     override suspend fun createATag(tag: Tag, viaSocket: Boolean): Flow<Result<Long>> {
         var newTagId: Long? = null
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = !viaSocket,
             remoteOperation = {
@@ -57,7 +56,11 @@ class LocalTagsRepoImpl(
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Tag.CREATE_TAG.name, payload = Json.encodeToString(
-                            CreateTagDTO(name = tag.name, eventTimestamp = eventTimestamp, offlineSyncItemId = newTagId!!)
+                            CreateTagDTO(
+                                name = tag.name,
+                                eventTimestamp = eventTimestamp,
+                                offlineSyncItemId = newTagId!!
+                            )
                         )
                     )
                 )
@@ -85,7 +88,7 @@ class LocalTagsRepoImpl(
 
     override suspend fun deleteATag(id: Long, viaSocket: Boolean): Flow<Result<Unit>> {
         val tag = tagsDao.getATag(id)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = !viaSocket,
             remoteOperation = {
@@ -105,8 +108,7 @@ class LocalTagsRepoImpl(
 
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Tag.DELETE_TAG.name,
-                        payload = Json.encodeToString(
+                        operation = RemoteRoute.Tag.DELETE_TAG.name, payload = Json.encodeToString(
                             IDBasedDTO(
                                 id = tag.remoteId, eventTimestamp = eventTimestamp
                             )
@@ -126,7 +128,7 @@ class LocalTagsRepoImpl(
         localTagId: Long, newName: String, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val tag = tagsDao.getATag(localTagId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = !viaSocket,
             remoteOperation = {
@@ -185,11 +187,18 @@ class LocalTagsRepoImpl(
     override suspend fun getTags(linkId: Long): List<Tag> {
         return tagsDao.getTags(linkId)
     }
+
     override fun getTagsForLinks(linkIds: List<Long>): Flow<Map<Long, List<Tag>>> {
         return tagsDao.getTagsWithLinkIds(linkIds).map { flatList ->
             flatList.groupBy { it.linkId }.mapValues { entry ->
                 entry.value.map { it.tag }
             }
+        }
+    }
+
+    override suspend fun getTagsForLinksAsMap(linkIds: List<Long>): Map<Long, List<Tag>> {
+        return tagsDao.getTagsWithLinkIdsAsList(linkIds).groupBy { it.linkId }.mapValues { entry ->
+            entry.value.map { it.tag }
         }
     }
 
@@ -204,6 +213,7 @@ class LocalTagsRepoImpl(
     override suspend fun getLocalTags(remoteIds: List<Long>): List<Tag> {
         return tagsDao.getLocalTags(remoteIds)
     }
+
     override suspend fun getLocalTagId(remoteId: Long): Long {
         return tagsDao.getLocalTagId(remoteId)
     }

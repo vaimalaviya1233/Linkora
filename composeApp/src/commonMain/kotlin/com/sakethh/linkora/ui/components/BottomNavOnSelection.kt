@@ -103,7 +103,7 @@ fun BottomNavOnSelection(
             Column {
                 Text(
                     text = Localization.Key.SelectedLinksCount.rememberLocalizedString()
-                        .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedLinksViaLongClick.size.toString()),
+                        .replaceFirstPlaceHolderWith(CollectionsScreenVM.selectedLinkTagPairsViaLongClick.size.toString()),
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
@@ -183,8 +183,8 @@ fun BottomNavOnSelection(
                             imageVector = Icons.Default.Delete, contentDescription = null
                         )
                     }
-                    if (CollectionsScreenVM.selectedLinksViaLongClick.any {
-                            it.linkType == LinkType.ARCHIVE_LINK
+                    if (CollectionsScreenVM.selectedLinkTagPairsViaLongClick.any {
+                            it.link.linkType == LinkType.ARCHIVE_LINK
                         }.not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
                             !it.isArchived
                         }) {
@@ -204,8 +204,8 @@ fun BottomNavOnSelection(
                     }
                     if (CollectionsScreenVM.selectedFoldersViaLongClick.any {
                             it.isArchived
-                        } || CollectionsScreenVM.selectedLinksViaLongClick.any {
-                            it.linkType == LinkType.ARCHIVE_LINK
+                        } || CollectionsScreenVM.selectedLinkTagPairsViaLongClick.any {
+                            it.link.linkType == LinkType.ARCHIVE_LINK
                         }) {
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
@@ -248,9 +248,9 @@ fun BottomNavOnSelection(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             onClick = {
                                 LinkoraSDK.getInstance().nativeUtils.onShare(
-                                    CollectionsScreenVM.selectedLinksViaLongClick.joinToString(
+                                    CollectionsScreenVM.selectedLinkTagPairsViaLongClick.joinToString(
                                         "\n"
-                                    ) { it.url })
+                                    ) { it.link.url })
                             }) {
                             Icon(
                                 imageVector = Icons.Default.Share, contentDescription = null

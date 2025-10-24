@@ -24,6 +24,7 @@ import com.sakethh.linkora.domain.model.localization.LocalizedString
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import java.time.Instant
 
 @Database(
@@ -163,7 +164,7 @@ abstract class LocalDatabase : RoomDatabase() {
 
         val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(connection: SQLiteConnection) {
-                val timestamp = Instant.now().epochSecond
+                val timestamp = getSystemEpochSeconds()
 
                 connection.execSQL("CREATE TABLE IF NOT EXISTS `pending_sync_queue` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `operation` TEXT NOT NULL, `payload` TEXT NOT NULL)")
 

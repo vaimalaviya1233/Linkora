@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 fun <T> wrappedResultFlow(init: suspend (SendChannel<Result<T>>) -> T): Flow<Result<T>> {
     return channelFlow {
@@ -142,3 +144,6 @@ fun currentSavedServerConfig(): ServerConnection {
         webSocketScheme = AppPreferences.WEB_SOCKET_SCHEME
     )
 }
+
+@OptIn(ExperimentalTime::class)
+fun getSystemEpochSeconds() = Clock.System.now().epochSeconds

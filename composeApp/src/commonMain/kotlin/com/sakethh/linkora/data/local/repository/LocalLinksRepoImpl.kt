@@ -28,6 +28,7 @@ import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.utils.baseUrl
 import com.sakethh.linkora.utils.defaultFolderIds
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.utils.isATwitterUrl
 import com.sakethh.linkora.utils.isAValidLink
@@ -70,7 +71,7 @@ class LocalLinksRepoImpl(
             linksDao.deleteLinksFromHistory(link.url)
         }
         var newLinkId: Long? = null
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         val remoteTagIds = if (selectedTagIds != null) {
             tagsDao.getRemoteTagIds(selectedTagIds)
         } else {
@@ -316,7 +317,7 @@ class LocalLinksRepoImpl(
 
     override suspend fun deleteALinkNote(linkId: Long): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true,
             remoteOperation = {
@@ -353,7 +354,7 @@ class LocalLinksRepoImpl(
 
     override suspend fun deleteALink(linkId: Long, viaSocket: Boolean): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -373,7 +374,7 @@ class LocalLinksRepoImpl(
                             operation = RemoteRoute.Link.DELETE_A_LINK.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
-                                    remoteId, Instant.now().epochSecond
+                                    remoteId, getSystemEpochSeconds()
                                 )
                             )
                         )
@@ -394,7 +395,7 @@ class LocalLinksRepoImpl(
 
     override suspend fun archiveALink(linkId: Long, viaSocket: Boolean): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -429,7 +430,7 @@ class LocalLinksRepoImpl(
         linkId: Long, newNote: String, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -470,7 +471,7 @@ class LocalLinksRepoImpl(
         linkId: Long, newTitle: String, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(linkId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -540,7 +541,7 @@ class LocalLinksRepoImpl(
             null
         }
         val remoteId = getRemoteIdOfLink(link.localId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -598,7 +599,7 @@ class LocalLinksRepoImpl(
 
     override suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(link.localId)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         val remoteLinkTagDTOs = if (link.remoteId != null) {
             tagsDao.getTags(link.localId).map {
                 LinkTagDTO(linkId = link.remoteId, tagId = it.remoteId ?: -54545)
@@ -651,7 +652,7 @@ class LocalLinksRepoImpl(
                         title = scrapedLinkInfo.title,
                         imgURL = scrapedLinkInfo.imgUrl,
                         mediaType = scrapedLinkInfo.mediaType,
-                        lastModified = Instant.now().epochSecond
+                        lastModified = getSystemEpochSeconds()
                     )
                 )
             }
@@ -687,7 +688,7 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun deleteDuplicateLinks(viaSocket: Boolean): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         val linksToBeDeleted = mutableListOf<Link>()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),

@@ -186,7 +186,8 @@ object DependencyContainer {
             preferencesRepository = preferencesRepo,
             remoteMultiActionRepo = remoteMultiActionRepo,
             pendingSyncQueueRepo = pendingSyncQueueRepo,
-            localFoldersRepo = localFoldersRepo
+            localFoldersRepo = localFoldersRepo,
+            localTagsRepo = localTagsRepo
         )
     }
 

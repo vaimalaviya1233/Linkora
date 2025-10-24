@@ -202,6 +202,28 @@ open class SettingsScreenViewModel(
         return listOf(
             LinkUIComponentParam(
                 link = Link(
+                title = "This Could Be A Dream - YouTube Music",
+                baseURL = "music.youtube.com",
+                imgURL = "https://lh3.googleusercontent.com/KMdNxgppeQ_CEAv3mcwYde9s6ehw-r9MWnE4wC2T0Yhax1aOwYvfRLfHCbLBbW-UVQQEdYniiXThgso",
+                url = "https://music.youtube.com/watch?v=DbiB1AtCA9k",
+                userAgent = AppPreferences.primaryJsoupUserAgent.value,
+                linkType = LinkType.SAVED_LINK,
+                localId = 0L,
+                note = "",
+                idOfLinkedFolder = null
+            ),
+                onMoreIconClick = { -> },
+                onLinkClick = { ->
+                    localUriHandler.openUri("https://music.youtube.com/watch?v=DbiB1AtCA9k")
+                },
+                onForceOpenInExternalBrowserClicked = { -> },
+                isSelectionModeEnabled = mutableStateOf(false),
+                isItemSelected = mutableStateOf(false),
+                onLongClick = { -> },
+                tags = listOf(Tag(name = "TGWCT")),
+                onTagClick = {}),
+            LinkUIComponentParam(
+                link = Link(
                 title = "Red Dead Redemption 2 - Rockstar Games",
                 baseURL = "rockstargames.com",
                 imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/games/fob/640/reddeadredemption2.jpg",

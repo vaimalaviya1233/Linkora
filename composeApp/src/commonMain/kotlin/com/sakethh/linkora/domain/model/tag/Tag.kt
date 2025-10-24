@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
@@ -12,7 +13,7 @@ import java.time.Instant
 data class Tag(
     @PrimaryKey(autoGenerate = true) val localId: Long = 0,
     val remoteId: Long? = null,
-    val lastModified: Long = Instant.now().epochSecond,
+    val lastModified: Long = getSystemEpochSeconds(),
     val name: String
 )
 
@@ -34,5 +35,5 @@ data class LinkTag(
     val remoteId: Long? = null,
     val linkId: Long,
     val tagId: Long,
-    val lastModified: Long = Instant.now().epochSecond
+    val lastModified: Long = getSystemEpochSeconds()
 )

@@ -4,6 +4,7 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import kotlinx.coroutines.flow.Flow
 
 interface LocalMultiActionRepo {
@@ -23,7 +24,7 @@ interface LocalMultiActionRepo {
     ): Flow<Result<Unit>>
 
     suspend fun copyMultipleItems(
-        links: List<Link>,
+        linkTagsPairs: List<LinkTagsPair>,
         folders: List<Folder>,
         linkType: LinkType,
         newParentFolderId: Long,

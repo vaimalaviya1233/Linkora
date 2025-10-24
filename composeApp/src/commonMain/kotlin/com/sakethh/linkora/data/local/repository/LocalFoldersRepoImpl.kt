@@ -21,6 +21,7 @@ import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
 import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.isNotNull
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
@@ -264,7 +265,7 @@ class LocalFoldersRepoImpl(
         newFolderName: String,
         ignoreFolderAlreadyExistsException: Boolean
     ): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true,
             remoteOperation = {
@@ -318,7 +319,7 @@ class LocalFoldersRepoImpl(
     override suspend fun markFolderAsArchive(
         folderID: Long, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -353,7 +354,7 @@ class LocalFoldersRepoImpl(
     override suspend fun markFolderAsRegularFolder(
         folderID: Long, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -391,7 +392,7 @@ class LocalFoldersRepoImpl(
     }
 
     override suspend fun renameAFolderNote(folderID: Long, newNote: String): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = true,
             remoteOperation = {
@@ -429,12 +430,12 @@ class LocalFoldersRepoImpl(
 
     override suspend fun updateLocalFolderData(folder: Folder): Flow<Result<Unit>> {
         return performLocalOperationWithRemoteSyncFlow<Unit, Unit>(performRemoteOperation = false) {
-            foldersDao.updateFolder(folder.copy(lastModified = Instant.now().epochSecond))
+            foldersDao.updateFolder(folder.copy(lastModified = getSystemEpochSeconds()))
         }
     }
 
     override suspend fun updateFolder(folder: Folder, viaSocket: Boolean): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         val remoteFolderDTO = if (folder.remoteId != null) {
             folder.asFolderDTO(
                 remoteId = folder.remoteId,
@@ -477,7 +478,7 @@ class LocalFoldersRepoImpl(
     override suspend fun deleteAFolderNote(
         folderID: Long, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = !viaSocket,
             remoteOperation = {
@@ -512,7 +513,7 @@ class LocalFoldersRepoImpl(
     ): Flow<Result<Unit>> {
         // we need to hold the id because the local folder gets deleted first, so if we try to search after that, there will be nothing to search
         val remoteFolderId = getRemoteIdOfAFolder(folderID)
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
@@ -593,7 +594,7 @@ class LocalFoldersRepoImpl(
     override suspend fun markFoldersAsRoot(
         folderIDs: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {

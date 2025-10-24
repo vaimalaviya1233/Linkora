@@ -3,6 +3,7 @@ package com.sakethh.linkora.domain.repository.local
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.tag.Tag
+import com.sakethh.linkora.domain.model.tag.TagWithLinkId
 import kotlinx.coroutines.flow.Flow
 
 interface LocalTagsRepo {
@@ -28,6 +29,7 @@ interface LocalTagsRepo {
     suspend fun getTags(linkId: Long): List<Tag>
 
     fun getTagsForLinks(linkIds: List<Long>): Flow<Map<Long, List<Tag>>>
+    suspend fun getTagsForLinksAsMap(linkIds: List<Long>): Map<Long, List<Tag>>
 
     fun search(query: String,sortOption: String): Flow<List<Tag>>
 
