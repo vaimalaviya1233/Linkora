@@ -68,6 +68,7 @@ import linkora.composeapp.generated.resources.Res
 import linkora.composeapp.generated.resources.linkora_char
 import okio.Path.Companion.toPath
 import org.jetbrains.compose.resources.Font
+import java.awt.Dimension
 import java.io.File
 
 val linkoraSpecificFolder = System.getProperty("user.home").run {
@@ -123,6 +124,7 @@ suspend fun main() {
             title = Localization.Key.Linkora.getLocalizedString(),
             undecorated = AppPreferences.useLinkoraTopDecoratorOnDesktop.value
         ) {
+            window.minimumSize = Dimension(1054, 600)
             CompositionLocalProvider(
                 LocalNavController provides navController, LocalPlatform provides Platform.Desktop
             ) {
