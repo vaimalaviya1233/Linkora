@@ -46,7 +46,7 @@ fun String?.ifNullOrBlank(string: () -> String): String {
     }
 }
 
-fun String.baseUrl(throwOnException: Boolean = true): String {
+fun String.host(throwOnException: Boolean = true): String {
     return try {
         this.split("/")[2]
     } catch (e: Exception) {
@@ -74,10 +74,6 @@ fun Modifier.bottomNavPaddingAcrossPlatforms(): Modifier {
     }
 }
 
-fun Any?.isNotNull(): Boolean {
-    return this != null
-}
-
 // keeps the nav bar (what's it actually called?) transparent while still applying padding on top, end, bottom;
 // kinda a hacky workaround, but there doesn't seem to be any clear documentation on how to handle this properly
 fun Modifier.addEdgeToEdgeScaffoldPadding(paddingValues: PaddingValues) = this.padding(
@@ -96,7 +92,7 @@ fun String?.isNotNullOrNotBlank(): Boolean {
 
 fun String.isAValidLink(): Boolean {
     return try {
-        this.baseUrl()
+        this.host()
         true
     } catch (e: Exception) {
         false
@@ -137,20 +133,20 @@ fun <T> Result.Success<T>.getRemoteOnlyFailureMsg(): String {
 }
 
 fun Exception?.pushSnackbar(coroutineScope: CoroutineScope) {
-    if (this.isNotNull()) {
-        coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))
+    if (this != null) {
+        coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this.message.toString()))
     }
 }
 
 suspend fun Exception?.pushSnackbar() {
-    if (this.isNotNull()) {
+    if (this != null) {
         pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))
     }
 }
 
 fun Throwable?.pushSnackbar(coroutineScope: CoroutineScope) {
-    if (this.isNotNull()) {
-        coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this?.message.toString()))
+    if (this != null) {
+        coroutineScope.pushUIEvent(UIEvent.Type.ShowSnackbar(this.message.toString()))
     }
 }
 

@@ -23,7 +23,6 @@ import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteMultiActionRepo
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
@@ -33,7 +32,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.json.Json
-import kotlin.time.ExperimentalTime
 
 class LocalMultiActionRepoImpl(
     private val linksDao: LinksDao,
@@ -51,14 +49,17 @@ class LocalMultiActionRepoImpl(
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                remoteMultiActionRepo.archiveMultipleItems(ArchiveMultipleItemsDTO(linkIds = linkIds.map {
-                    linksDao.getRemoteIdOfLocalLink(it) ?: -45454
-                }, folderIds = folderIds.map {
-                    foldersDao.getRemoteIdOfAFolder(it) ?: -45454
-                }.run {
-                    linkoraLog(this)
-                    this
-                }, eventTimestamp = eventTimestamp))
+                val remoteLinkIds = linksDao.getRemoteIds(linkIds)
+                val remoteFolderIds = foldersDao.getRemoteIds(folderIds)
+                require(remoteFolderIds != null && remoteLinkIds != null)
+
+                remoteMultiActionRepo.archiveMultipleItems(
+                    ArchiveMultipleItemsDTO(
+                        linkIds = remoteLinkIds,
+                        folderIds = remoteFolderIds,
+                        eventTimestamp = eventTimestamp
+                    )
+                )
             },
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
@@ -91,15 +92,12 @@ class LocalMultiActionRepoImpl(
         linkIds: List<Long>, folderIds: List<Long>, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val eventTimestamp = getSystemEpochSeconds()
-        val remoteLinkIds = linkIds.map {
-            linksDao.getRemoteIdOfLocalLink(it) ?: -45454
-        }
-        val remoteFolderIds = folderIds.map {
-            foldersDao.getRemoteIdOfAFolder(it) ?: -45454
-        }
+        val remoteLinkIds = linksDao.getRemoteIds(linkIds)
+        val remoteFolderIds = foldersDao.getRemoteIds(folderIds)
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
+                require(remoteFolderIds != null && remoteLinkIds != null)
                 remoteMultiActionRepo.deleteMultipleItems(
                     DeleteMultipleItemsDTO(
                         linkIds = remoteLinkIds,
@@ -112,18 +110,20 @@ class LocalMultiActionRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                pendingSyncQueueRepo.addInQueue(
-                    PendingSyncQueue(
-                        operation = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
-                        payload = Json.encodeToString(
-                            DeleteMultipleItemsDTO(
-                                linkIds = remoteLinkIds,
-                                folderIds = remoteFolderIds,
-                                eventTimestamp = eventTimestamp
+                if (remoteFolderIds != null && remoteLinkIds != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
+                            payload = Json.encodeToString(
+                                DeleteMultipleItemsDTO(
+                                    linkIds = remoteLinkIds,
+                                    folderIds = remoteFolderIds,
+                                    eventTimestamp = eventTimestamp
+                                )
                             )
                         )
                     )
-                )
+                }
             }) {
             coroutineScope {
                 awaitAll(async {
@@ -146,17 +146,18 @@ class LocalMultiActionRepoImpl(
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
+                val remoteLinkIds = linksDao.getRemoteIds(linkIds)
+                val remoteFolderIds = foldersDao.getRemoteIds(folderIds)
+                val remoteParentFolderId = foldersDao.getRemoteFolderId(newParentFolderId)
+
+                require(remoteFolderIds != null && remoteLinkIds != null && remoteParentFolderId != null)
+
                 remoteMultiActionRepo.moveMultipleItems(
                     MoveItemsDTO(
-                        folderIds = folderIds.map {
-                        foldersDao.getRemoteIdOfAFolder(it) ?: -45454
-                    },
-                        linkIds = linkIds.map {
-                            linksDao.getRemoteIdOfLocalLink(it) ?: -45454
-                        },
+                        folderIds = remoteFolderIds,
+                        linkIds = remoteLinkIds,
                         linkType = linkType,
-                        newParentFolderId = foldersDao.getRemoteIdOfAFolder(newParentFolderId)
-                            ?: -45454,
+                        newParentFolderId = remoteParentFolderId,
                         eventTimestamp = eventTimeStamp
                     )
                 )
@@ -198,7 +199,6 @@ class LocalMultiActionRepoImpl(
         newParentFolderId: Long,
         viaSocket: Boolean
     ): Flow<Result<Unit>> {
-
         val eventTimeStamp = getSystemEpochSeconds()
 
         val copiedLinksIds = mutableMapOf<Long, Long>()
@@ -206,15 +206,16 @@ class LocalMultiActionRepoImpl(
         lateinit var copiedFolders: List<CopyFolderDTO>
 
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(),
+            performRemoteOperation = !viaSocket,
             remoteOperation = {
+                val remoteParentFolderId = foldersDao.getRemoteFolderId(newParentFolderId)
+                require(remoteParentFolderId != null)
                 remoteMultiActionRepo.copyMultipleItems(
                     CopyItemsDTO(
                         folders = copiedFolders,
                         linkIds = copiedLinksIds.toMap(),
                         linkType = linkType,
-                        newParentFolderId = foldersDao.getRemoteIdOfAFolder(newParentFolderId)
-                            ?: -45454,
+                        newParentFolderId = remoteParentFolderId,
                         eventTimestamp = eventTimeStamp
                     )
                 )
@@ -242,9 +243,7 @@ class LocalMultiActionRepoImpl(
                                 folders = copiedFolders,
                                 linkIds = copiedLinksIds.toMap(),
                                 linkType = linkType,
-                                newParentFolderId = foldersDao.getRemoteIdOfAFolder(
-                                    newParentFolderId
-                                ) ?: -45454,
+                                newParentFolderId = newParentFolderId,
                                 eventTimestamp = eventTimeStamp
                             )
                         )
@@ -253,7 +252,7 @@ class LocalMultiActionRepoImpl(
             }) {
             coroutineScope {
                 awaitAll(async {
-                    linkTagsPairs.map {
+                    val newLinks = linkTagsPairs.map {
                         it.link.copy(
                             idOfLinkedFolder = newParentFolderId,
                             linkType = linkType,
@@ -261,15 +260,15 @@ class LocalMultiActionRepoImpl(
                             remoteId = null,
                             lastModified = eventTimeStamp
                         )
-                    }.let {
-                        linksDao.addMultipleLinks(it).forEachIndexed { index, newLinkId ->
-                            copiedLinksIds.put(
-                                newLinkId, linkTagsPairs[index].link.remoteId ?: -45454
-                            )
-                            localTagsRepo.createLinkTags(linkTagsPairs[index].tags.map {
-                                LinkTag(linkId = newLinkId, tagId = it.localId)
-                            })
+                    }
+                    linksDao.addMultipleLinks(newLinks).forEachIndexed { index, newLinkId ->
+                        copiedLinksIds.put(
+                            newLinkId, linkTagsPairs[index].link.remoteId ?: -45454
+                        )
+                        val newLinkTags = linkTagsPairs[index].tags.map {
+                            LinkTag(linkId = newLinkId, tagId = it.localId)
                         }
+                        localTagsRepo.createLinkTags(newLinkTags)
                     }
                 }, async {
                     copiedFolders = copyFolders(
@@ -282,63 +281,73 @@ class LocalMultiActionRepoImpl(
 
     private suspend fun copyFolders(
         parentFolderId: Long, folders: List<Folder>, eventTimestamp: Long
-    ): List<CopyFolderDTO> {
-        val copiedFolders = mutableListOf<CopyFolderDTO>()
-        folders.forEach { folder ->
-            foldersDao.insertANewFolder(
-                folder.copy(
-                    parentFolderId = parentFolderId,
-                    remoteId = null,
-                    localId = 0,
-                    lastModified = eventTimestamp
+    ): List<CopyFolderDTO> = coroutineScope {
+        val deferredCopiedFolders = folders.map { folder ->
+            async {
+                val newFolderId = foldersDao.insertANewFolder(
+                    folder.copy(
+                        parentFolderId = parentFolderId,
+                        remoteId = null,
+                        localId = 0,
+                        lastModified = eventTimestamp
+                    )
                 )
-            ).let { newFolderId ->
                 val linksOfCurrentFolder = linksDao.getLinksOfThisFolderAsList(
                     folder.localId
                 )
-                linksDao.addMultipleLinks(
+                val linksIdsOfCopiedFolder = linksDao.addMultipleLinks(
                     linksOfCurrentFolder.map {
                         it.copy(
                             idOfLinkedFolder = newFolderId,
                             localId = 0,
                             lastModified = eventTimestamp
                         )
-                    }).let { linksIdsOfCopiedFolder ->
+                    })
+
+                if (linksOfCurrentFolder.isNotEmpty()) {
                     val tagsForCurrentLinksBatch =
                         localTagsRepo.getTagsForLinksAsMap(linksOfCurrentFolder.map { it.localId })
 
-                    var currentIteration = -1
 
-                    val linkIdsMap = linksOfCurrentFolder.associate { link ->
-                        link.localId to linksIdsOfCopiedFolder[++currentIteration]
-                    }
+                    val linkIdsMap =
+                        linksOfCurrentFolder.map { it.localId }.zip(linksIdsOfCopiedFolder).toMap()
 
-                    localTagsRepo.createLinkTags(tagsForCurrentLinksBatch.flatMap { (linkId, tags) ->
-                        tags.map {
-                            LinkTag(linkId = linkIdsMap.getValue(linkId), tagId = it.localId)
+                    val newLinkTags = tagsForCurrentLinksBatch.flatMap { (oldLinkId, tags) ->
+                        val newLinkId = linkIdsMap[oldLinkId]
+                        if (newLinkId != null) {
+                            tags.map {
+                                LinkTag(linkId = newLinkId, tagId = it.localId)
+                            }
+                        } else {
+                            emptyList()
                         }
-                    })
-                    copiedFolders.add(
-                        CopyFolderDTO(
-                            currentFolder = CurrentFolder(
-                                localId = newFolderId, remoteId = folder.remoteId ?: -45454
-                            ),
-                            links = linksIdsOfCopiedFolder.zip(linksOfCurrentFolder) { id, link ->
+                    }
+                    localTagsRepo.createLinkTags(newLinkTags)
+                }
+                if (folder.remoteId != null) {
+                    CopyFolderDTO(
+                        currentFolder = CurrentFolder(
+                            localId = newFolderId, remoteId = folder.remoteId
+                        ), links = linksIdsOfCopiedFolder.zip(linksOfCurrentFolder) { id, link ->
+                            if (link.remoteId != null) {
                                 FolderLink(
-                                    localId = id, remoteId = link.remoteId ?: -45454
+                                    localId = id, remoteId = link.remoteId
                                 )
-                            },
-                            childFolders = copyFolders(
-                                parentFolderId = newFolderId,
-                                folders = foldersDao.getChildFoldersOfThisParentIDAsAList(folder.localId),
-                                eventTimestamp
-                            )
+                            } else {
+                                null
+                            }
+                        }.filterNotNull(), childFolders = copyFolders(
+                            parentFolderId = newFolderId,
+                            folders = foldersDao.getChildFoldersAsList(folder.localId),
+                            eventTimestamp
                         )
                     )
+                } else {
+                    null
                 }
             }
         }
-        return copiedFolders
+        deferredCopiedFolders.awaitAll().filterNotNull()
     }
 
 
@@ -347,13 +356,19 @@ class LocalMultiActionRepoImpl(
     ): Flow<Result<Unit>> {
         val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(),
+            performRemoteOperation = !viaSocket,
             remoteOperation = {
-                remoteMultiActionRepo.markItemsAsRegular(MarkItemsRegularDTO(foldersIds = folderIds.map {
-                    foldersDao.getRemoteIdOfAFolder(it) ?: -45454
-                }, linkIds = linkIds.map {
-                    linksDao.getRemoteIdOfLocalLink(it) ?: -45454
-                }, eventTimestamp = eventTimestamp))
+                val remoteLinkIds = linksDao.getRemoteIds(linkIds)
+                val remoteFolderIds = foldersDao.getRemoteIds(folderIds)
+                require(remoteLinkIds != null && remoteFolderIds != null)
+
+                remoteMultiActionRepo.markItemsAsRegular(
+                    MarkItemsRegularDTO(
+                        foldersIds = remoteFolderIds,
+                        linkIds = remoteLinkIds,
+                        eventTimestamp = eventTimestamp
+                    )
+                )
             },
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)

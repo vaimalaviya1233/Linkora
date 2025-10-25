@@ -1,7 +1,5 @@
 package com.sakethh.linkora.data.local.repository
 
-import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
-import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.PanelsDao
 import com.sakethh.linkora.domain.RemoteRoute
@@ -19,11 +17,11 @@ import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import com.sakethh.linkora.utils.getSystemEpochSeconds
+import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
+import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.time.Instant
 
 class LocalPanelsRepoImpl(
     private val panelsDao: PanelsDao,
@@ -79,34 +77,33 @@ class LocalPanelsRepoImpl(
 
     override suspend fun deleteAPanel(id: Long, viaSocket: Boolean): Flow<Result<Unit>> {
         val remotePanelId = panelsDao.getRemoteIdOfPanel(id)
+        val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                if (remotePanelId != null) {
-                    remotePanelsRepo.deleteAPanel(
-                        IDBasedDTO(
-                            id = id, eventTimestamp = getSystemEpochSeconds()
-                        )
+                require(remotePanelId != null)
+                remotePanelsRepo.deleteAPanel(
+                    IDBasedDTO(
+                        id = remotePanelId, eventTimestamp = getSystemEpochSeconds()
                     )
-                    // server already handles this internally, so no need to push it externally: remotePanelsRepo.deleteAllFoldersFromAPanel(remotePanelId)
-                } else {
-                    emptyFlow()
-                }
+                )
             },
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
-            }, onRemoteOperationFailure = {
-                if (remotePanelId != null) {pendingSyncQueueRepo.addInQueue(
-                    PendingSyncQueue(
-                        operation = RemoteRoute.Panel.DELETE_A_PANEL.name,
-                        payload = Json.encodeToString(
-                            IDBasedDTO(
-                                id = remotePanelId,
-                                eventTimestamp = 0
+            },
+            onRemoteOperationFailure = {
+                if (remotePanelId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Panel.DELETE_A_PANEL.name,
+                            payload = Json.encodeToString(
+                                IDBasedDTO(
+                                    id = remotePanelId, eventTimestamp = eventTimestamp
+                                )
                             )
                         )
                     )
-                )}
+                }
             }) {
             panelsDao.deleteAPanel(id)
             panelsDao.deleteConnectedFoldersOfPanel(id)
@@ -119,29 +116,26 @@ class LocalPanelsRepoImpl(
         val remotePanelId = panelsDao.getRemoteIdOfPanel(panelId)
         val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
-            performRemoteOperation = viaSocket.not(),
+            performRemoteOperation = !viaSocket,
             remoteOperation = {
-                if (remotePanelId != null) {
-                    remotePanelsRepo.updateAPanelName(
-                        UpdatePanelNameDTO(
-                            newName, remotePanelId, eventTimestamp = eventTimestamp
-                        )
+                require(remotePanelId != null)
+                remotePanelsRepo.updateAPanelName(
+                    UpdatePanelNameDTO(
+                        newName, remotePanelId, eventTimestamp = eventTimestamp
                     )
-                } else {
-                    emptyFlow()
-                }
+                )
             },
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
                 panelsDao.updatePanelTimestamp(panelId, it.eventTimestamp)
-            }, onRemoteOperationFailure = {
+            },
+            onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
                         payload = Json.encodeToString(
                             UpdatePanelNameDTO(
-                                newName, panelId,
-                                eventTimestamp = eventTimestamp
+                                newName, panelId, eventTimestamp = eventTimestamp
                             )
                         )
                     )
@@ -164,27 +158,23 @@ class LocalPanelsRepoImpl(
         panelFolder: PanelFolder, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         var newPanelFolderId: Long? = null
-        val remoteIdOfFolder = foldersDao.getRemoteIdOfAFolder(panelFolder.folderId)
+        val remoteIdOfFolder = foldersDao.getRemoteFolderId(panelFolder.folderId)
         val remoteIdOfConnectedPanel = panelsDao.getRemoteIdOfPanel(panelFolder.connectedPanelId)
         val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
                 if (newPanelFolderId == null) return@performLocalOperationWithRemoteSyncFlow emptyFlow()
-
-                if (remoteIdOfFolder != null && remoteIdOfConnectedPanel != null) {
-                    remotePanelsRepo.addANewFolderInAPanel(
-                        AddANewPanelFolderDTO(
-                            folderId = remoteIdOfFolder,
-                            panelPosition = panelFolder.panelPosition,
-                            folderName = panelFolder.folderName,
-                            connectedPanelId = remoteIdOfConnectedPanel,
-                            eventTimestamp = eventTimestamp
-                        )
+                require(remoteIdOfFolder != null && remoteIdOfConnectedPanel != null)
+                remotePanelsRepo.addANewFolderInAPanel(
+                    AddANewPanelFolderDTO(
+                        folderId = remoteIdOfFolder,
+                        panelPosition = panelFolder.panelPosition,
+                        folderName = panelFolder.folderName,
+                        connectedPanelId = remoteIdOfConnectedPanel,
+                        eventTimestamp = eventTimestamp
                     )
-                } else {
-                    emptyFlow()
-                }
+                )
             },
             remoteOperationOnSuccess = {
                 if (newPanelFolderId == null) return@performLocalOperationWithRemoteSyncFlow
@@ -237,38 +227,38 @@ class LocalPanelsRepoImpl(
         panelId: Long, folderID: Long, viaSocket: Boolean
     ): Flow<Result<Unit>> {
         val remotePanelId = panelsDao.getRemoteIdOfPanel(panelId)
-        val remoteFolderId = foldersDao.getRemoteIdOfAFolder(folderID)
+        val remoteFolderId = foldersDao.getRemoteFolderId(folderID)
         val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = viaSocket.not(),
             remoteOperation = {
-                if (remotePanelId != null && remoteFolderId != null) {
-                    remotePanelsRepo.deleteAFolderFromAPanel(
-                        DeleteAFolderFromAPanelDTO(
-                            panelId = remotePanelId,
-                            folderID = remoteFolderId,
-                            eventTimestamp = eventTimestamp
-                        )
+                require(remotePanelId != null && remoteFolderId != null)
+                remotePanelsRepo.deleteAFolderFromAPanel(
+                    DeleteAFolderFromAPanelDTO(
+                        panelId = remotePanelId,
+                        folderID = remoteFolderId,
+                        eventTimestamp = eventTimestamp
                     )
-                } else {
-                    emptyFlow()
-                }
+                )
             },
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
-            }, onRemoteOperationFailure = {
-                if (remotePanelId != null && remoteFolderId != null) {pendingSyncQueueRepo.addInQueue(
-                    PendingSyncQueue(
-                        operation = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
-                        payload = Json.encodeToString(
-                            DeleteAFolderFromAPanelDTO(
-                                panelId = remotePanelId,
-                                folderID = remoteFolderId,
-                                eventTimestamp = eventTimestamp
+            },
+            onRemoteOperationFailure = {
+                if (remotePanelId != null && remoteFolderId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
+                            payload = Json.encodeToString(
+                                DeleteAFolderFromAPanelDTO(
+                                    panelId = remotePanelId,
+                                    folderID = remoteFolderId,
+                                    eventTimestamp = eventTimestamp
+                                )
                             )
                         )
                     )
-                )}
+                }
             }) {
             panelsDao.deleteAFolderFromAPanel(panelId, folderID)
         }
@@ -298,6 +288,9 @@ class LocalPanelsRepoImpl(
         return panelsDao.getPanel(panelId)
     }
 
+    override suspend fun getPanelFolder(localId: Long): PanelFolder {
+        return panelsDao.getPanelFolder(localId)
+    }
     override suspend fun getLocalPanelId(remoteId: Long): Long? {
         return panelsDao.getLocalPanelId(remoteId)
     }

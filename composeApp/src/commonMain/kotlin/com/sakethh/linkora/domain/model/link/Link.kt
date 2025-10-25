@@ -4,13 +4,12 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.baseUrl
+import com.sakethh.linkora.utils.host
 import com.sakethh.linkora.utils.isATwitterUrl
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.Serializable
-import java.time.Instant
 
 @Entity(tableName = "links")
 @Serializable
@@ -20,7 +19,7 @@ data class Link(
     val remoteId: Long? = null,
     val title: String,
     val url: String,
-    val baseURL: String = if (url.isATwitterUrl()) "twitter.com" else url.baseUrl(throwOnException = false), // called baseUrl, but in some non-ui cases it kinda acts like host. back then I showed baseUrl instead of just host, so stuck with it
+    val baseURL: String = if (url.isATwitterUrl()) "twitter.com" else url.host(throwOnException = false), // called baseUrl, but in some non-ui cases it kinda acts like host. back then I showed baseUrl instead of just host, so stuck with it
     val imgURL: String,
     val note: String,
     val idOfLinkedFolder: Long?,

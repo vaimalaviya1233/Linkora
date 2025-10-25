@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.baseUrl
+import com.sakethh.linkora.utils.host
 import com.sakethh.linkora.utils.getVideoPlatformBaseUrls
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.ui.components.CoilImage
@@ -85,7 +85,7 @@ fun GridViewLinkUIComponent(
                     userAgent = linkUIComponentParam.link.userAgent
                         ?: AppPreferences.primaryJsoupUserAgent.value
                 )
-                if (AppPreferences.showVideoTagOnUIIfApplicable.value && (linkUIComponentParam.link.mediaType == MediaType.VIDEO || linkUIComponentParam.link.url.baseUrl(
+                if (AppPreferences.showVideoTagOnUIIfApplicable.value && (linkUIComponentParam.link.mediaType == MediaType.VIDEO || linkUIComponentParam.link.url.host(
                         throwOnException = false
                     ) in getVideoPlatformBaseUrls())
                 ) {
@@ -124,7 +124,7 @@ fun GridViewLinkUIComponent(
         }
         if (!linkUIComponentParam.isSelectionModeEnabled.value && AppPreferences.enableBaseURLForLinkViews.value) {
             Text(
-                text = linkUIComponentParam.link.url.baseUrl(throwOnException = false),
+                text = linkUIComponentParam.link.url.host(throwOnException = false),
                 modifier = Modifier.padding(10.dp).background(
                     color = MaterialTheme.colorScheme.primary.copy(0.25f),
                     shape = RoundedCornerShape(5.dp)

@@ -40,50 +40,21 @@ interface FoldersDao {
     @Query("SELECT localId FROM folders WHERE localId = (SELECT MAX(localId) FROM folders)")
     suspend fun getLatestFoldersTableID(): Long
 
-    @Query("SELECT COUNT(*) FROM links WHERE idOfLinkedFolder = :folderID")
-    suspend fun getSizeOfLinksOfThisFolder(folderID: Long): Int
-
     @Query("SELECT * FROM folders WHERE localId = :folderID")
     suspend fun getThisFolderData(folderID: Long): Folder
 
-    @Query("SELECT MAX(localId) FROM folders")
-    suspend fun getLastIDOfFoldersTable(): Long
-
     @Query("SELECT COUNT(*) FROM folders WHERE name = :folderName AND parentFolderID = :parentFolderID")
-    suspend fun doesThisChildFolderExists(folderName: String, parentFolderID: Long?): Int
+    suspend fun doesFolderExists(folderName: String, parentFolderID: Long?): Int
 
     @Query("SELECT COUNT(*) FROM folders WHERE name = :folderName AND parentFolderID IS NULL")
     suspend fun doesThisRootFolderExists(folderName: String): Boolean
 
-    @Query("SELECT EXISTS(SELECT * FROM folders WHERE localId = :folderID AND isArchived = 1)")
-    suspend fun isThisFolderMarkedAsArchive(folderID: Long): Boolean
-
-    @Query("SELECT * FROM folders ORDER BY localId DESC LIMIT 1")
-    suspend fun getNewestFolder(): Folder
-
-    @Query("SELECT COUNT(localId) FROM folders")
-    fun getFoldersCount(): Flow<Int>
-
-    @Query("UPDATE folders SET parentFolderID = :targetParentId WHERE localId IN (:sourceFolderIds)")
-    suspend fun changeTheParentIdOfASpecificFolder(
-        sourceFolderIds: List<Long>,
-        targetParentId: Long?
-    )
-
-    @Query("UPDATE folders SET parentFolderID = :targetParentId WHERE localId = :sourceFolderId")
-    suspend fun changeTheParentIdOfASpecificFolder(
-        sourceFolderId: Long,
-        targetParentId: Long?
-    )
+    @Query("SELECT * FROM folders WHERE parentFolderID = :parentFolderID")
+    fun getChildFoldersAsFlow(parentFolderID: Long?): Flow<List<Folder>>
 
     @Query("SELECT * FROM folders WHERE parentFolderID = :parentFolderID")
-    fun getChildFoldersOfThisParentIDAsFlow(parentFolderID: Long?): Flow<List<Folder>>
+    suspend fun getChildFoldersAsList(parentFolderID: Long?): List<Folder>
 
-    @Query("SELECT * FROM folders WHERE parentFolderID = :parentFolderID")
-    suspend fun getChildFoldersOfThisParentIDAsAList(parentFolderID: Long?): List<Folder>
-
-    @Query("SELECT COUNT(*) FROM folders WHERE parentFolderID = :parentFolderID")
-    suspend fun getSizeOfChildFoldersOfThisParentID(parentFolderID: Long?): Int
 
     @Query("UPDATE folders SET name = :newFolderName WHERE localId = :folderID")
     suspend fun renameAFolderName(folderID: Long, newFolderName: String)
@@ -175,7 +146,10 @@ interface FoldersDao {
     suspend fun deleteAllFolders()
 
     @Query("SELECT remoteId FROM folders WHERE localId = :localId LIMIT 1")
-    suspend fun getRemoteIdOfAFolder(localId: Long): Long?
+    suspend fun getRemoteFolderId(localId: Long): Long?
+
+    @Query("SELECT remoteId FROM folders WHERE localId IN (:localIds)")
+    suspend fun getRemoteIds(localIds: List<Long>): List<Long>?
 
     @Query("SELECT localId FROM folders WHERE remoteId = :remoteId")
     suspend fun getLocalIdOfAFolder(remoteId: Long): Long?

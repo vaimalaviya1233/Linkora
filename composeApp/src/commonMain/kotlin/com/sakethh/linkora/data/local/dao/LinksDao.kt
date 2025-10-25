@@ -143,7 +143,7 @@ interface LinksDao {
     suspend fun updateALink(link: Link)
 
     @Query("SELECT remoteId FROM links WHERE localId = :localId LIMIT 1")
-    suspend fun getRemoteIdOfLocalLink(localId: Long): Long?
+    suspend fun getRemoteId(localId: Long): Long?
 
     @Query("SELECT localId FROM links WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getLocalIdOfALink(remoteId: Long): Long?
@@ -205,5 +205,5 @@ interface LinksDao {
     suspend fun unarchiveLinks(linksIds: List<Long>, eventTimestamp: Long)
 
     @Query("SELECT remoteId FROM tags WHERE localId IN (:localIds)")
-    suspend fun getRemoteIds(localIds: List<Long>): List<Long>
+    suspend fun getRemoteIds(localIds: List<Long>): List<Long>?
 }

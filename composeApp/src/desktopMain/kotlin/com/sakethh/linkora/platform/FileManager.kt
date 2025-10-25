@@ -4,7 +4,7 @@ import com.sakethh.linkora.Localization
 import com.sakethh.linkora.utils.duplicate
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.ifNot
-import com.sakethh.linkora.utils.isNotNull
+
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
@@ -69,10 +69,10 @@ actual class FileManager {
         )
         fileDialog.isVisible = true
         val sourceFile = File(fileDialog.directory, fileDialog.file).duplicate()
-        return if (sourceFile.isNotNull() && sourceFile!!.extension == importFileType.name.lowercase()) {
+        return if (sourceFile!= null && sourceFile!!.extension == importFileType.name.lowercase()) {
             onStart()
             sourceFile
-        } else if (sourceFile.isNotNull() && sourceFile!!.extension != importFileType.name.lowercase()) {
+        } else if (sourceFile!= null && sourceFile!!.extension != importFileType.name.lowercase()) {
             UIEvent.pushUIEvent(
                 UIEvent.Type.ShowSnackbar(
                     Localization.Key.FileTypeNotSupportedOnDesktopImport.getLocalizedString()

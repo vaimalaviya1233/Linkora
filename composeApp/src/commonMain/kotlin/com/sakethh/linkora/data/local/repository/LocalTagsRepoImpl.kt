@@ -17,7 +17,6 @@ import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
@@ -92,7 +91,7 @@ class LocalTagsRepoImpl(
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = !viaSocket,
             remoteOperation = {
-                if (tag.remoteId == null) return@performLocalOperationWithRemoteSyncFlow emptyFlow()
+                require(tag.remoteId != null)
                 remoteTagsRepo.deleteATag(
                     IDBasedDTO(
                         id = tag.remoteId, eventTimestamp = eventTimestamp
@@ -104,17 +103,18 @@ class LocalTagsRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                if (tag.remoteId == null) return@performLocalOperationWithRemoteSyncFlow
-
-                pendingSyncQueueRepo.addInQueue(
-                    PendingSyncQueue(
-                        operation = RemoteRoute.Tag.DELETE_TAG.name, payload = Json.encodeToString(
-                            IDBasedDTO(
-                                id = tag.remoteId, eventTimestamp = eventTimestamp
+                if (tag.remoteId != null) {
+                    pendingSyncQueueRepo.addInQueue(
+                        PendingSyncQueue(
+                            operation = RemoteRoute.Tag.DELETE_TAG.name,
+                            payload = Json.encodeToString(
+                                IDBasedDTO(
+                                    id = tag.remoteId, eventTimestamp = eventTimestamp
+                                )
                             )
                         )
                     )
-                )
+                }
             }) {
             tagsDao.deleteATag(id)
         }
@@ -132,7 +132,7 @@ class LocalTagsRepoImpl(
         return performLocalOperationWithRemoteSyncFlow(
             performRemoteOperation = !viaSocket,
             remoteOperation = {
-                if (tag.remoteId == null) return@performLocalOperationWithRemoteSyncFlow emptyFlow()
+                require(tag.remoteId != null)
                 remoteTagsRepo.renameATag(
                     renameTagDTO = RenameTagDTO(
                         id = tag.remoteId, newName = newName, eventTimestamp = eventTimestamp
@@ -146,15 +146,11 @@ class LocalTagsRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                if (tag.remoteId == null) return@performLocalOperationWithRemoteSyncFlow
-
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
                         operation = RemoteRoute.Tag.RENAME_TAG.name, payload = Json.encodeToString(
                             RenameTagDTO(
-                                newName = newName,
-                                id = tag.remoteId,
-                                eventTimestamp = eventTimestamp
+                                newName = newName, id = tag.localId, eventTimestamp = eventTimestamp
                             )
                         )
                     )
