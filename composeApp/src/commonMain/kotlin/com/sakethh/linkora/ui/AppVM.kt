@@ -13,7 +13,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.data.local.repository.SnapshotRepoService
+import com.sakethh.linkora.data.local.repository.SnapshotRepoImpl
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.RemoteRoute
 import com.sakethh.linkora.domain.asLinkType
@@ -31,6 +31,7 @@ import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.domain.repository.local.SnapshotRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.network.Network
 import com.sakethh.linkora.platform.FileManager
@@ -54,7 +55,6 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
-import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.pushSnackbar
 import com.sakethh.linkora.utils.pushSnackbarOnFailure
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -68,7 +68,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.time.Instant
 
 @OptIn(FlowPreview::class, ExperimentalMaterial3Api::class)
 class AppVM(
@@ -84,7 +83,8 @@ class AppVM(
     private val localTagsRepo: LocalTagsRepo,
     permissionManager: PermissionManager,
     private val fileManager: FileManager,
-    private val dataSyncingNotificationService: NativeUtils.DataSyncingNotificationService
+    private val dataSyncingNotificationService: NativeUtils.DataSyncingNotificationService,
+    private val snapshotRepo: SnapshotRepo
 ) : ServerManagementViewModel(
     networkRepo = networkRepo,
     preferencesRepository = preferencesRepository,
@@ -113,7 +113,9 @@ class AppVM(
             preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
         ) ?: 0
     }
+
     val isAnySnapshotOngoing = mutableStateOf(false)
+
     init {
 
         runBlocking {
@@ -144,20 +146,19 @@ class AppVM(
             }
         }
 
-        val snapshotRepoService = SnapshotRepoService(
-            linksRepo = linksRepo,
-            foldersRepo = foldersRepo,
-            localPanelsRepo = localPanelsRepo,
-            exportDataRepo = exportDataRepo,
-            localTagsRepo = localTagsRepo,
-            fileManager = fileManager,
-            coroutineScope = viewModelScope
-        )
+        with(viewModelScope) {
+            snapshotRepo.collectLatestAndExport()
+        }
 
         viewModelScope.launch {
             snapshotFlow {
-                snapshotRepoService.isAnySnapshotOngoing.value
+                snapshotRepo.isAnySnapshotOngoing.value
             }.collectLatest {
+                if (it) {
+                    linkoraLog("Snapshot in progress")
+                } else {
+                    linkoraLog("No snapshot in progress")
+                }
                 isAnySnapshotOngoing.value = it
             }
         }
@@ -166,7 +167,7 @@ class AppVM(
             snapshotFlow {
                 CollectionsScreenVM.isSelectionEnabled.value
             }.collectLatest {
-                if (it.not()) {
+                if (!it) {
                     transferActionType.value = TransferActionType.NONE
                 }
             }
@@ -256,7 +257,7 @@ class AppVM(
 
 
         fun forceSnapshot() {
-            SnapshotRepoService.forceSnapshot.value = !SnapshotRepoService.forceSnapshot.value
+            SnapshotRepoImpl.forceTriggerASnapshot()
         }
 
         fun shutdownSocketConnection() {
@@ -347,8 +348,7 @@ class AppVM(
         onStart()
         viewModelScope.launch {
             localMultiActionRepo.deleteMultipleItems(
-                linkIds = selectedLinkTagPairsViaLongClick.toList()
-                .map { it.link.localId },
+                linkIds = selectedLinkTagPairsViaLongClick.toList().map { it.link.localId },
                 folderIds = selectedFoldersViaLongClick.toList().map { it.localId }).collectLatest {
                 it.onSuccess {
                     pushUIEvent(

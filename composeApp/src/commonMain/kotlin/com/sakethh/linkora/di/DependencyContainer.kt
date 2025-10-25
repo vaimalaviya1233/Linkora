@@ -192,6 +192,21 @@ object DependencyContainer {
     }
 
     val snapshotRepo by lazy {
-        SnapshotRepoImpl(snapshotDao = LinkoraSDK.getInstance().localDatabase.snapshotDao)
+        SnapshotRepoImpl(
+            snapshotDao = LinkoraSDK.getInstance().localDatabase.snapshotDao,
+            isSnapshotsEnabled = AppPreferences.areSnapshotsEnabled,
+            snapshotExportFormatId = {
+                AppPreferences.snapshotExportFormatID.value.toInt()
+            },
+            autoDeleteSnapshots = {
+                AppPreferences.backupAutoDeletionEnabled.value
+            },
+            linksRepo = localLinksRepo,
+            foldersRepo = localFoldersRepo,
+            localPanelsRepo = localPanelsRepo,
+            exportDataRepo = exportDataRepo,
+            localTagsRepo = localTagsRepo,
+            fileManager = LinkoraSDK.getInstance().fileManager,
+        )
     }
 }

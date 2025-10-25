@@ -75,8 +75,8 @@ fun SnapshotsScreen() {
     val localFocusManager = LocalFocusManager.current
 
     val isBackupAutoDeletionEnabled =
-        rememberSaveable(AppPreferences.isBackupAutoDeletionEnabled.value) {
-            mutableStateOf(AppPreferences.isBackupAutoDeletionEnabled.value)
+        rememberSaveable(AppPreferences.backupAutoDeletionEnabled.value) {
+            mutableStateOf(AppPreferences.backupAutoDeletionEnabled.value)
         }
     val platform = platform()
     val navController = LocalNavController.current

@@ -306,7 +306,7 @@ class DataSettingsScreenVM(
                     AppPreferenceType.BACKUP_AUTO_DELETION_ENABLED.name
                 ), newValue = isEnabled
             )
-            AppPreferences.isBackupAutoDeletionEnabled.value = isEnabled
+            AppPreferences.backupAutoDeletionEnabled.value = isEnabled
         }
     }
 

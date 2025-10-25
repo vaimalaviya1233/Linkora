@@ -21,7 +21,8 @@ object APPVMAssistedFactory {
                 permissionManager = LinkoraSDK.getInstance().permissionManager,
                 fileManager = LinkoraSDK.getInstance().fileManager,
                 dataSyncingNotificationService = LinkoraSDK.getInstance().dataSyncingNotificationService,
-                localTagsRepo = DependencyContainer.localTagsRepo
+                localTagsRepo = DependencyContainer.localTagsRepo,
+                snapshotRepo = DependencyContainer.snapshotRepo
             )
         }
     }

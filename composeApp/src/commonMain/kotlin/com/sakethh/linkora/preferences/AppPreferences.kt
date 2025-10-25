@@ -86,7 +86,7 @@ object AppPreferences {
     val currentExportLocation = mutableStateOf("")
     val currentBackupLocation = mutableStateOf("")
     val backupAutoDeleteThreshold = mutableIntStateOf(10)
-    val isBackupAutoDeletionEnabled = mutableStateOf(false)
+    val backupAutoDeletionEnabled = mutableStateOf(false)
     var selectedCollectionSourceId by mutableIntStateOf(0)
     var selectedAppIcon by mutableStateOf(AppIconCode.new_logo.name)
     var showTagsInAddNewLinkDialogBox by mutableStateOf(false)
@@ -416,7 +416,7 @@ object AppPreferences {
                         ) == true
                     },
                     launch {
-                        isBackupAutoDeletionEnabled.value =
+                        backupAutoDeletionEnabled.value =
                             preferencesRepository.readPreferenceValue(
                                 preferenceKey = booleanPreferencesKey(
                                     AppPreferenceType.BACKUP_AUTO_DELETION_ENABLED.name

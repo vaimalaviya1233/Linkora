@@ -24,17 +24,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
-import com.sakethh.linkora.data.local.repository.SnapshotRepoService
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
-import com.sakethh.linkora.platform.FileManager
+import com.sakethh.linkora.domain.repository.local.SnapshotRepo
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
@@ -63,9 +61,8 @@ class IntentActivity : ComponentActivity() {
                         localLinksRepo = DependencyContainer.localLinksRepo,
                         localFoldersRepo = DependencyContainer.localFoldersRepo,
                         localPanelsRepo = DependencyContainer.localPanelsRepo,
-                        exportDataRepo = DependencyContainer.exportDataRepo,
-                        fileManager = LinkoraSDK.getInstance().fileManager,
-                        localTagsRepo = DependencyContainer.localTagsRepo
+                        localTagsRepo = DependencyContainer.localTagsRepo,
+                        snapshotRepo = DependencyContainer.snapshotRepo
                     )
                 }
             })
@@ -163,21 +160,10 @@ class IntentActivityVM(
     private val localFoldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val localTagsRepo: LocalTagsRepo,
-    private val exportDataRepo: ExportDataRepo,
-    private val fileManager: FileManager
+    private val snapshotRepo: SnapshotRepo
 ) : ViewModel() {
-    private val snapshotRepoService = SnapshotRepoService(
-        linksRepo = localLinksRepo,
-        foldersRepo = localFoldersRepo,
-        localPanelsRepo = localPanelsRepo,
-        exportDataRepo = exportDataRepo,
-        localTagsRepo = localTagsRepo,
-        fileManager = fileManager,
-        coroutineScope = viewModelScope
-    )
-
     fun createADataSnapshot(onCompletion: () -> Unit) {
-        if (AppPreferences.isBackupAutoDeletionEnabled.value) {
+        if (AppPreferences.areSnapshotsEnabled.value) {
             viewModelScope.launch {
                 val allLinks = async { localLinksRepo.getAllLinks() }
                 val allFolders = async { localFoldersRepo.getAllFoldersAsList() }
@@ -185,7 +171,8 @@ class IntentActivityVM(
                 val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
                 val allTags = async { localTagsRepo.getAllTagsAsList() }
                 val allLinkTagsPairs = async { localTagsRepo.getAllLinkTagsAsList() }
-                snapshotRepoService.createAManualSnapshot(
+
+                snapshotRepo.createAManualSnapshot(
                     allLinks = allLinks.await(),
                     allFolders = allFolders.await(),
                     allPanels = allPanels.await(),
