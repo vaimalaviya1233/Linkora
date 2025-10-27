@@ -27,11 +27,15 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
@@ -44,12 +48,10 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
-import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -59,17 +61,39 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(currentFABContext: (CurrentFABContext)-> Unit) {
+fun SearchScreen(
+    currentFABContext: (CurrentFABContext) -> Unit,
+    forceActiveSearch: Boolean,
+    cancelForceSearchActive: () -> Unit,
+) {
+    val searchScreenVM: SearchScreenVM = linkoraViewModel()
+    val searchBarFocusRequester = remember {
+        FocusRequester()
+    }
     LaunchedEffect(Unit) {
         currentFABContext(CurrentFABContext.ROOT)
     }
-    val searchScreenVM: SearchScreenVM = linkoraViewModel()
-    val platform = LocalPlatform.current
+    DisposableEffect(Unit) {
+        onDispose {
+            if (forceActiveSearch) {
+                searchBarFocusRequester.freeFocus()
+            }
+            cancelForceSearchActive()
+        }
+    }
+    LaunchedEffect(forceActiveSearch) {
+        if (forceActiveSearch) {
+            searchBarFocusRequester.requestFocus()
+            searchScreenVM.isSearchActive.value = true
+        }
+    }
+    LaunchedEffect(!searchScreenVM.isSearchActive.value) {
+        cancelForceSearchActive()
+    }
     val historyLinkTagsPairs = searchScreenVM.linkTagsPairs.collectAsStateWithLifecycle()
     val searchQueryLinkResults = searchScreenVM.linkQueryResults.collectAsStateWithLifecycle()
     val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
@@ -78,7 +102,7 @@ fun SearchScreen(currentFABContext: (CurrentFABContext)-> Unit) {
     val localUriHandler = LocalUriHandler.current
     val navController = LocalNavController.current
     val searchBarPadding =
-        animateDpAsState(if (searchScreenVM.isSearchActive.value.not()) 15.dp else 0.dp)
+        animateDpAsState(if (!searchScreenVM.isSearchActive.value) 15.dp else 0.dp)
     val availableFolderFilters by searchScreenVM.availableFolderFilters.collectAsStateWithLifecycle()
     val availableLinkFilters by searchScreenVM.availableLinkFilters.collectAsStateWithLifecycle()
     Column(modifier = Modifier.fillMaxSize()) {
@@ -99,19 +123,22 @@ fun SearchScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                         maxLines = 1
                     )
                 },
-                modifier = Modifier.animateContentSize().padding(searchBarPadding.value)
-                    .fillMaxWidth().wrapContentHeight(),
+                modifier = Modifier.focusRequester(searchBarFocusRequester).animateContentSize()
+                    .padding(searchBarPadding.value).fillMaxWidth().wrapContentHeight(),
                 trailingIcon = {
                     Row {
                         if (searchScreenVM.isSearchActive.value) {
                             SortingIconButton()
-                            IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
-                                if (searchScreenVM.searchQuery.value == "") {
-                                    searchScreenVM.isSearchActive.value = false
-                                } else {
-                                    searchScreenVM.updateSearchQuery("")
-                                }
-                            }) {
+                            IconButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                    .pressScaleEffect(), onClick = {
+                                    if (searchScreenVM.searchQuery.value == "") {
+                                        searchScreenVM.isSearchActive.value = false
+                                        cancelForceSearchActive()
+                                    } else {
+                                        searchScreenVM.updateSearchQuery("")
+                                    }
+                                }) {
                                 Icon(imageVector = Icons.Default.Clear, contentDescription = null)
                             }
                         }
@@ -320,16 +347,21 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier.animateContentSize()
     ) {
         Spacer(modifier = Modifier.width(10.dp))
-        androidx.compose.material3.FilterChip(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), selected = isSelected, onClick = onClick, label = {
-            Text(
-                text = text, style = MaterialTheme.typography.titleSmall
-            )
-        }, leadingIcon = {
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check, contentDescription = null
+        androidx.compose.material3.FilterChip(
+            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+            selected = isSelected,
+            onClick = onClick,
+            label = {
+                Text(
+                    text = text, style = MaterialTheme.typography.titleSmall
                 )
-            }
-        })
+            },
+            leadingIcon = {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.Check, contentDescription = null
+                    )
+                }
+            })
     }
 }

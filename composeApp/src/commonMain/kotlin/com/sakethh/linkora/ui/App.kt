@@ -57,19 +57,19 @@ import com.sakethh.linkora.ui.components.AddItemFABParam
 import com.sakethh.linkora.ui.components.AddItemFab
 import com.sakethh.linkora.ui.components.BottomNavOnSelection
 import com.sakethh.linkora.ui.components.CreateATagBtmSheet
+import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialog
 import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialogParam
-import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.DesktopNavigationRail
 import com.sakethh.linkora.ui.components.MobileBottomNavBar
 import com.sakethh.linkora.ui.components.RenameFolderOrLinkDialog
 import com.sakethh.linkora.ui.components.RenameFolderOrLinkDialogParam
+import com.sakethh.linkora.ui.components.menu.MenuBtmSheet
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetParam
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
-import com.sakethh.linkora.ui.components.menu.MenuBtmSheet
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
-import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheet
+import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
 import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
@@ -80,9 +80,9 @@ import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.navigation.LinkoraNavHost
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
+import com.sakethh.linkora.ui.screens.collections.components.RenameTagComponent
 import com.sakethh.linkora.ui.screens.collections.components.TagDeletionConfirmation
 import com.sakethh.linkora.ui.screens.collections.components.TagMenu
-import com.sakethh.linkora.ui.screens.collections.components.RenameTagComponent
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.currentSavedServerConfig
@@ -148,6 +148,9 @@ fun App(
         }
     }
     val currentFABContext by appVM.currentContextOfFAB
+    var forceSearchActive by rememberSaveable {
+        mutableStateOf(false)
+    }
     Row(modifier = Modifier.fillMaxSize().then(modifier)) {
         if (appVM.onBoardingCompleted.value && (platform() == Platform.Desktop || platform() == Platform.Android.Tablet)) {
             DesktopNavigationRail(
@@ -183,8 +186,10 @@ fun App(
                     isPerformingStartupSync = appVM.isPerformingStartupSync.value,
                     platform = platform,
                     inRootScreen = inRootScreen,
-                    currentRoute = currentRoute
-                )
+                    currentRoute = currentRoute,
+                    onDoubleTap = { navigationRoot ->
+                        forceSearchActive = navigationRoot is Navigation.Root.SearchScreen
+                    })
             },
             floatingActionButton = {
                 AnimatedVisibility(
@@ -261,6 +266,10 @@ fun App(
                     collectionsScreenVM = collectionsScreenVM,
                     currentFABContext = {
                         appVM.updateFABContext(it)
+                    },
+                    forceSearchActive = forceSearchActive,
+                    cancelForceSearchActive = {
+                        forceSearchActive = false
                     })
                 Indicator(
                     state = pullToRefreshState,

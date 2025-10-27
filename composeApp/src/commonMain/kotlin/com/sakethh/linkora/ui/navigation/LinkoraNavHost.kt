@@ -33,7 +33,9 @@ fun LinkoraNavHost(
     startDestination: Navigation.Root,
     onOnboardingComplete: () -> Unit,
     currentFABContext: (CurrentFABContext) -> Unit,
-    collectionsScreenVM: CollectionsScreenVM
+    collectionsScreenVM: CollectionsScreenVM,
+    forceSearchActive: Boolean,
+    cancelForceSearchActive: () -> Unit
 ) {
     val localNavController = LocalNavController.current
     NavHost(
@@ -47,7 +49,11 @@ fun LinkoraNavHost(
             HomeScreen(currentFABContext)
         }
         composable<Navigation.Root.SearchScreen> {
-            SearchScreen(currentFABContext)
+            SearchScreen(
+                currentFABContext = currentFABContext,
+                forceActiveSearch = forceSearchActive,
+                cancelForceSearchActive = cancelForceSearchActive
+            )
         }
         composable<Navigation.Root.CollectionsScreen> {
             CollectionsScreen(
