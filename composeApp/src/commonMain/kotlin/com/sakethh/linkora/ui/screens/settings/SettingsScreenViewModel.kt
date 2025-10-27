@@ -29,6 +29,11 @@ import com.sakethh.linkora.ui.domain.AppIconCode
 import com.sakethh.linkora.ui.domain.model.LinkPref
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.onboarding.OnboardingSlide
+import com.sakethh.linkora.ui.screens.onboarding.Slide1
+import com.sakethh.linkora.ui.screens.onboarding.Slide2
+import com.sakethh.linkora.ui.screens.onboarding.Slide3
+import com.sakethh.linkora.ui.screens.onboarding.Slide4
 import com.sakethh.linkora.utils.getLocalizedString
 import kotlinx.coroutines.launch
 
@@ -494,4 +499,15 @@ open class SettingsScreenViewModel(
                 }
             })
     }
+
+    val onboardingSlides: List<OnboardingSlide> = listOf(OnboardingSlide {
+        Slide1()
+    }, OnboardingSlide {
+        Slide2()
+    }, OnboardingSlide {
+        Slide3()
+    }, OnboardingSlide {
+        Slide4()
+    })
+
 }

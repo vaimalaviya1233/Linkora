@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -44,7 +45,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -61,9 +61,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.LinkoraSDK
+import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.tag.Tag
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.folder.FolderComponent
@@ -74,6 +77,7 @@ import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkUIComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
+import com.sakethh.linkora.ui.screens.settings.SettingsScreenViewModel
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -84,12 +88,11 @@ import linkora.composeapp.generated.resources.mondstern_logo
 import linkora.composeapp.generated.resources.new_logo
 import org.jetbrains.compose.resources.painterResource
 
-private data class OnboardingSlide(val screen: @Composable () -> Unit)
+data class OnboardingSlide(val screen: @Composable () -> Unit)
 
 @Composable
 fun OnboardingSlidesScreen(
-    onOnboardingComplete: () -> Unit,
-    currentFABContext: (CurrentFABContext) -> Unit
+    onOnboardingComplete: () -> Unit, currentFABContext: (CurrentFABContext) -> Unit
 ) {
     LaunchedEffect(Unit) {
         currentFABContext(CurrentFABContext(fabContext = FABContext.HIDE))
@@ -97,24 +100,15 @@ fun OnboardingSlidesScreen(
     val pagerState = rememberPagerState { 4 }
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
-    val slides = remember {
-        listOf(OnboardingSlide {
-            Slide1()
-        }, OnboardingSlide {
-            Slide2()
-        }, OnboardingSlide {
-            Slide3()
-        }, OnboardingSlide {
-            Slide4()
-        })
-    }
+    val settingsScreenViewModel: SettingsScreenViewModel = linkoraViewModel()
+    val slides = settingsScreenViewModel.onboardingSlides
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
             state = pagerState, modifier = Modifier.fillMaxSize()
         ) {
             Box(
                 modifier = Modifier.background(MaterialTheme.colorScheme.surface).fillMaxSize()
-                    .graphicsLayer {
+                    .navigationBarsPadding().graphicsLayer {
                         val pageOffset =
                             (pagerState.currentPage - it) + pagerState.currentPageOffsetFraction
                         val scale = lerp(1f, 2f, pageOffset)
@@ -125,27 +119,33 @@ fun OnboardingSlidesScreen(
             }
         }
         Box(
-            modifier = Modifier.fillMaxWidth().align(Alignment.BottomEnd),
+            modifier = Modifier.fillMaxWidth().navigationBarsPadding().align(Alignment.BottomEnd),
             contentAlignment = Alignment.CenterEnd
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(15.dp)
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.then(
+                    if (platform() is Platform.Desktop) Modifier.padding(15.dp) else Modifier.padding(
+                        end = 15.dp
+                    )
+                )
             ) {
                 AnimatedVisibility(
                     visible = pagerState.currentPage != 0, enter = fadeIn(), exit = fadeOut()
                 ) {
-                    FilledTonalButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
-                        if (pagerState.isScrollInProgress) return@FilledTonalButton
-                        coroutineScope.launch {
-                            try {
-                                pagerState.animateScrollToPage(
-                                    pagerState.currentPage - 1, animationSpec = tween(750)
-                                )
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                    FilledTonalButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .pressScaleEffect(), onClick = {
+                            if (pagerState.isScrollInProgress) return@FilledTonalButton
+                            coroutineScope.launch {
+                                try {
+                                    pagerState.animateScrollToPage(
+                                        pagerState.currentPage - 1, animationSpec = tween(750)
+                                    )
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
-                        }
-                    }) {
+                        }) {
                         Text(
                             text = Localization.Key.PreviousPage.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleMedium
@@ -153,25 +153,27 @@ fun OnboardingSlidesScreen(
                     }
                 }
                 Spacer(Modifier.width(15.dp))
-                Button(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
-                    if (pagerState.currentPage == pagerState.pageCount - 1) {
-                        onOnboardingComplete()
-                        navController.navigate(Navigation.Root.HomeScreen) {
-                            popUpTo(0)
+                Button(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                        .pressScaleEffect(), onClick = {
+                        if (pagerState.currentPage == pagerState.pageCount - 1) {
+                            onOnboardingComplete()
+                            navController.navigate(Navigation.Root.HomeScreen) {
+                                popUpTo(0)
+                            }
+                            return@Button
                         }
-                        return@Button
-                    }
-                    if (pagerState.isScrollInProgress) return@Button
-                    coroutineScope.launch {
-                        try {
-                            pagerState.animateScrollToPage(
-                                pagerState.currentPage + 1, animationSpec = tween(750)
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+                        if (pagerState.isScrollInProgress) return@Button
+                        coroutineScope.launch {
+                            try {
+                                pagerState.animateScrollToPage(
+                                    pagerState.currentPage + 1, animationSpec = tween(750)
+                                )
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
-                    }
-                }) {
+                    }) {
                     val text = rememberSaveable(pagerState.currentPage) {
                         if (pagerState.currentPage == pagerState.pageCount - 1) {
                             Localization.Key.Done.getLocalizedString()
@@ -191,7 +193,7 @@ fun OnboardingSlidesScreen(
 }
 
 @Composable
-private fun Slide1() {
+fun Slide1() {
     Column(
         modifier = Modifier.padding(15.dp).fillMaxSize(),
         verticalArrangement = Arrangement.Bottom,
@@ -252,7 +254,7 @@ private fun SlideDesc(string: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun Slide2() {
+fun Slide2() {
     val localUriHandler = LocalUriHandler.current
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -313,7 +315,7 @@ private fun Slide2() {
             })
             LinkListItemComposable(
                 linkUIComponentParam = LinkUIComponentParam(
-                    link = Link(
+                link = Link(
                 title = "Nas | Spotify",
                 baseURL = "open.spotify.com",
                 imgURL = "https://ucarecdn.com/9b4d5145-a417-4ff9-a7e5-93a452a443c8/-/crop/974x818/26,197/-/preview/",
@@ -358,7 +360,7 @@ private fun Slide2() {
 }
 
 @Composable
-private fun Slide3() {
+fun Slide3() {
     val pagerState = rememberPagerState { 2 }
     val localUriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
@@ -395,11 +397,14 @@ private fun Slide3() {
             divider = {}) {
             (0..1).forEach {
                 key(it) {
-                    Tab(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), selected = pagerState.currentPage == it, onClick = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(it)
-                        }.start()
-                    }) {
+                    Tab(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                        selected = pagerState.currentPage == it,
+                        onClick = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(it)
+                            }.start()
+                        }) {
                         Text(
                             text = if (it == 0) Localization.Key.AppIntroSlide2Folder1Name.rememberLocalizedString() else Localization.Key.AppIntroSlide3Folder2Name.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleLarge,
@@ -414,8 +419,7 @@ private fun Slide3() {
             }
         }
         HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth().animateContentSize()
+            state = pagerState, modifier = Modifier.fillMaxWidth().animateContentSize()
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 when (it) {
@@ -443,7 +447,7 @@ private fun Slide3() {
                         )
                         LinkListItemComposable(
                             linkUIComponentParam = LinkUIComponentParam(
-                            link = Link(
+                                link = Link(
                             title = "Synchronization in Linkora • Saketh Pathike",
                             baseURL = "sakethpathike.github.io",
                             imgURL = "https://sakethpathike.github.io/images/ogImage-synchronization-in-linkora.png",
@@ -539,7 +543,7 @@ private fun Slide3() {
 }
 
 @Composable
-private fun Slide4() {
+fun Slide4() {
     Column(
         modifier = Modifier.padding(start = 15.dp, end = 15.dp, bottom = 75.dp).fillMaxSize(),
         verticalArrangement = Arrangement.Bottom
