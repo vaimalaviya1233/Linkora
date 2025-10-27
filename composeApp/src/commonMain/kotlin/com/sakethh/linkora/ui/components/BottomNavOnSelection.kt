@@ -184,8 +184,8 @@ fun BottomNavOnSelection(
                         )
                     }
                     if (CollectionsScreenVM.selectedLinkTagPairsViaLongClick.any {
-                            it.link.linkType == LinkType.ARCHIVE_LINK
-                        }.not() || CollectionsScreenVM.selectedFoldersViaLongClick.any {
+                            it.link.linkType != LinkType.ARCHIVE_LINK
+                        } || CollectionsScreenVM.selectedFoldersViaLongClick.any {
                             !it.isArchived
                         }) {
                         IconButton(
