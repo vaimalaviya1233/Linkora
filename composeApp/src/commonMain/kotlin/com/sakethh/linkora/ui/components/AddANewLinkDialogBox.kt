@@ -76,12 +76,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
@@ -120,6 +123,7 @@ import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
@@ -173,9 +177,6 @@ fun AddANewLinkDialogBox(
     }
 
     val lazyRowState = rememberLazyListState()
-    var manualClose by rememberSaveable {
-        mutableStateOf(false)
-    }
     val content: ComposableContent = {
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -195,10 +196,7 @@ fun AddANewLinkDialogBox(
                         currentFolder
                     )
                     BottomPartOfAddANewLinkDialogBox(
-                        onDismiss = {
-                            manualClose = true
-                            onDismiss()
-                        },
+                        onDismiss = onDismiss,
                         isDataExtractingForTheLink = isDataExtractingForTheLink,
                         screenType = screenType,
                         linkTextFieldValue = linkTextFieldValue,
@@ -310,6 +308,9 @@ private fun TopPartOfAddANewLinkDialogBox(
     isForceSaveWithoutFetchingMetaDataEnabled: MutableState<Boolean>,
     currentFolder: Folder?
 ) {
+    val focusRequester = remember {
+        FocusRequester()
+    }
     Column(
         modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
             .then(if (platform() is Platform.Android.Mobile) Modifier else Modifier.fillMaxHeight()),
@@ -337,7 +338,7 @@ private fun TopPartOfAddANewLinkDialogBox(
             readOnly = isDataExtractingForTheLink,
             modifier = Modifier.padding(
                 start = 20.dp, end = 20.dp, top = 20.dp
-            ).fillMaxWidth(),
+            ).fillMaxWidth().focusRequester(focusRequester),
             label = {
                 Text(
                     text = Localization.rememberLocalizedString(Localization.Key.LinkAddress),
@@ -467,6 +468,13 @@ private fun TopPartOfAddANewLinkDialogBox(
             }
         }
     }
+    val platform = platform()
+    LaunchedEffect(Unit) {
+        if (platform is Platform.Android.Mobile) {
+            delay(250)
+        }
+        focusRequester.requestFocus()
+    }
 }
 
 @OptIn(
@@ -523,10 +531,11 @@ private fun BottomPartOfAddANewLinkDialogBox(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable(onClick = {
-                AppPreferences.showTagsInAddNewLinkDialogBox =
-                    !AppPreferences.showTagsInAddNewLinkDialogBox
-            }, indication = null, interactionSource = null)
+            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                .clickable(onClick = {
+                    AppPreferences.showTagsInAddNewLinkDialogBox =
+                        !AppPreferences.showTagsInAddNewLinkDialogBox
+                }, indication = null, interactionSource = null)
         ) {
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(

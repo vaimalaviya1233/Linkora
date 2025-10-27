@@ -15,9 +15,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -39,6 +43,9 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
     }
     val noteTextFieldValue = rememberSaveable {
         mutableStateOf("")
+    }
+    val focusRequester = remember {
+        FocusRequester()
     }
     AlertDialog(dismissButton = {
         if (!isFolderCreationInProgress.value) {
@@ -77,7 +84,7 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
         Column(modifier = Modifier.verticalScroll(scrollState)) {
             OutlinedTextField(
                 readOnly = isFolderCreationInProgress.value,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.focusRequester(focusRequester).fillMaxWidth(),
                 maxLines = 1,
                 label = {
                     Text(
@@ -92,6 +99,9 @@ fun AddANewFolderDialogBox(addNewFolderDialogBoxParam: AddNewFolderDialogBoxPara
                 onValueChange = {
                     folderNameTextFieldValue.value = it
                 })
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
+            }
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
                 readOnly = isFolderCreationInProgress.value,
