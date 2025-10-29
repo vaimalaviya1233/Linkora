@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.CIOEngineConfig
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -65,6 +66,11 @@ object Network {
         }
 
         syncServerClient = HttpClient(CIO) {
+            install(HttpTimeout) {
+                this.socketTimeoutMillis = 240_000
+                this.connectTimeoutMillis = 240_000
+                this.requestTimeoutMillis = 240_000
+            }
             engine {
                 https {
                     trustManager = object : X509TrustManager {
