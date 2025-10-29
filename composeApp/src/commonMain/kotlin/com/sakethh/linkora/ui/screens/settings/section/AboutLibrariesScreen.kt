@@ -28,7 +28,6 @@ fun AboutLibrariesScreen() {
         LibrariesContainer(
             libraries,
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
-                .padding(start = 15.dp, end = 15.dp)
                 .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
         )
     }
