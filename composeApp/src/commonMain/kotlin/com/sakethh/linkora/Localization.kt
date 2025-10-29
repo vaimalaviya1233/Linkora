@@ -82,6 +82,27 @@ object Localization {
      }*/
 
     enum class Key(val defaultValue: String) {
+        SkipSavingExistingLinksLabel(defaultValue = "Skip saving existing links"),
+        SkipSavingExistingLinksDesc(defaultValue = "If enabled, a link won't be saved if it already exists in the destination. An error will be thrown instead."),
+        Copy(defaultValue = "Copy"),
+        Open(defaultValue = "Open"),
+        AttachTags(defaultValue = "Attach Tags"),
+        CreateANewTag(defaultValue = "Create A New Tag"),
+        TagDeletionConfirmation(defaultValue = "Are you sure you want to delete this tag?"),
+        SearchFoldersToAdd(defaultValue = "Search folders to add"),
+        CouldNotImportCert(defaultValue = "Could not import the certificate file."),
+        TagName(defaultValue = "Tag Name"),
+        SelectAnAppIcon(defaultValue = "Select an App Icon"),
+        ChangeAppIcon(defaultValue = "Change App Icon"),
+        ChangeAppIconDesc(defaultValue = "After confirming changes, the app will close automatically to apply them. Notifications will continue to display the default Linkora icon and name."),
+        ChangeInAppNameDesc(defaultValue = "The app name will be displayed as \"Weather\" instead of \"Linkora\" in your app drawer."),
+        AppIconCurrentlyInUse(defaultValue = "App Icon Currently in Use"),
+        NoTagsFound(defaultValue = "No tags found"),
+        Tags(defaultValue = "Tags"),
+        AddedCopyToImpLinks(defaultValue = "Added Copy to Important Links"),
+        NoAttachmentsToTags(defaultValue = "No links were attached to this tag."),
+        AboutLibraries(defaultValue = "About Libraries"),
+        Libraries(defaultValue = "Libraries"),
         Settings(defaultValue = "Settings"),
         Theme(defaultValue = "Theme"),
         General(defaultValue = "General"),
@@ -214,11 +235,14 @@ object Localization {
             defaultValue = "Important Links"
         ),
         Save(defaultValue = "Save"),
+        Update(defaultValue = "Update"),
+        SelectACollectionSource(defaultValue = "Select a collection source"),
         SaveInThisFolder(defaultValue = "Save in this folder"),
         Cancel(
             defaultValue = "Cancel"
         ),
-        FolderName(defaultValue = "Folder Name"),
+        FolderName(defaultValue = "Folder name"),
+        SearchForFolders(defaultValue = "Search for Folders..."),
         NoteForCreatingTheFolder(defaultValue = "Note For Creating The Folder"),
         AllLinks(
             defaultValue = "All Links"
@@ -234,11 +258,13 @@ object Localization {
             defaultValue = "Deleted the server connection successfully."
         ),
         UseInAppBrowser(defaultValue = "Use In-App Browser"),
+        UseCustomAppVersionLabel(defaultValue = "Use Custom App Version Label"),
+        UseCustomAppVersionDesc(defaultValue = "Enables a custom font-based version label throughout the app."),
         UseInAppBrowserDesc(defaultValue = "Enable this to open links within the app; otherwise, your default browser will open when clicking on links."),
         EnableHomeScreen(
             defaultValue = "Enable Home Screen"
         ),
-        EnableHomeScreenDesc(defaultValue = "If this is enabled, Home Screen option will be shown in Bottom Navigation Bar; if this setting is not enabled, Home screen option will NOT be shown."),
+        EnableHomeScreenDesc(defaultValue = "When disabled, Collections opens on launch if Home is set as the initial route."),
         AutoDetectTitle(
             defaultValue = "Auto-Detect Title"
         ),
@@ -538,6 +564,8 @@ object Localization {
         ),
         Panels(defaultValue = "Panels"),
         Snapshots(defaultValue = "Snapshots"),
+        RenameTagName(defaultValue = "Rename tag Name"),
+        NewTagName(defaultValue = "New tag name"),
         FoldersInThisPanel(defaultValue = "Folders in This Panel"),
         FoldersThatCanBeAddedToThisPanel(
             defaultValue = "Folders that can be added to this panel"
@@ -621,6 +649,10 @@ object Localization {
         LinkRefreshedSuccessfully(defaultValue = "The link data has been successfully refreshed."),
         Share(
             defaultValue = "Share"
+        ), Edit(
+            defaultValue = "Edit"
+        ),AssociatedTags(
+            defaultValue = "Associated Tags"
         ),
         ForceOpenInABrowser(defaultValue = "Open In A Browser"),
         WorkManagerDesc(defaultValue = "Work Manager is scheduling the links refreshing task. It will continue shortly.\nYou can close the app; this task will continue in the background."),

@@ -301,7 +301,7 @@ open class ServerManagementViewModel(
                     dataSyncLogs.add(Localization.Key.ReadingFile.getLocalizedString())
                 })
             if (generatedServerCertificate == null) {
-                pushUIEvent(UIEvent.Type.ShowSnackbar("Could not import the certificate file."))
+                pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.CouldNotImportCert.getLocalizedString()))
                 return@launch
             }
             _generatedServerCertificate = generatedServerCertificate

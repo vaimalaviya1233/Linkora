@@ -27,9 +27,11 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.utils.pressScaleEffect
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +69,7 @@ fun RenameTagComponent(
         ModalBottomSheet(sheetState = sheetState, onDismissRequest = hideComponent) {
             Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
                 Text(
-                    text = "Rename Tag Name",
+                    text = Localization.Key.RenameTagName.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 24.sp,
                     modifier = Modifier.padding(start = 15.dp)
@@ -82,7 +84,7 @@ fun RenameTagComponent(
                     modifier = Modifier.padding(15.dp).fillMaxWidth()
                         .focusRequester(tagFieldFocusRequester),
                     label = {
-                        Text(text = "New tag name", style = MaterialTheme.typography.titleSmall)
+                        Text(text = Localization.Key.NewTagName.rememberLocalizedString(), style = MaterialTheme.typography.titleSmall)
                     })
                 if (showLinearProgressBar) {
                     LinearProgressIndicator(
@@ -99,7 +101,7 @@ fun RenameTagComponent(
                         .fillMaxWidth().padding(start = 15.dp, end = 15.dp), onClick = {
                         onSave(newTagName)
                     }) {
-                    Text(text = "Update", style = MaterialTheme.typography.titleMedium)
+                    Text(text = Localization.Key.Update.rememberLocalizedString(), style = MaterialTheme.typography.titleMedium)
                 }
             }
         }

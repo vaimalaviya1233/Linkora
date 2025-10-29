@@ -104,7 +104,7 @@ fun MenuBtmSheet(
                 ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).weight(1f).pressScaleEffect(), onClick = {
                     menuBtmSheetParam.onForceLaunchInAnExternalBrowser()
                     hideContent()
-                }, text = "Open", icon = Icons.Default.OpenInNew
+                }, text = Localization.Key.Open.rememberLocalizedString(), icon = Icons.Default.OpenInNew
             )
             val lastItemShape = RoundedCornerShape(
                 topStart = 8.dp, topEnd = 20.dp, bottomStart = 8.dp, bottomEnd = 20.dp
@@ -120,7 +120,7 @@ fun MenuBtmSheet(
                     )
                     hideContent()
                 },
-                text = "Copy",
+                text = Localization.Key.Copy.rememberLocalizedString(),
                 icon = Icons.Default.CopyAll
             )
 
@@ -132,7 +132,7 @@ fun MenuBtmSheet(
                         menuBtmSheetParam.onShare(menuBtmSheetParam.linkTagsPair!!.link.url)
                         hideContent()
                     },
-                    text = "Share",
+                    text = Localization.Key.Share.rememberLocalizedString(),
                     icon = Icons.Default.Share
                 )
             }
@@ -167,7 +167,7 @@ fun MenuBtmSheet(
                 onClick = {
                     hideContent()
                     menuBtmSheetParam.onRename()
-                }, elementName = "Edit", elementImageVector = Icons.Outlined.Edit
+                }, elementName = Localization.Key.Edit.rememberLocalizedString(), elementImageVector = Icons.Outlined.Edit
             )
             if (menuBtmSheetLinkEntries().contains(menuBtmSheetParam.menuBtmSheetFor)) {
                 IndividualMenuComponent(

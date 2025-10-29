@@ -63,7 +63,7 @@ fun CreateATagBtmSheet(
         }) {
             Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
                 Text(
-                    text = "Create A Tag",
+                    text = Localization.Key.CreateANewTag.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 22.sp,
                     modifier = Modifier.padding(start = 15.dp)
@@ -72,7 +72,7 @@ fun CreateATagBtmSheet(
                     enabled = !showLinearProgressBar,
                     label = {
                         Text(
-                            text = "Tag Name", style = MaterialTheme.typography.titleSmall
+                            text = Localization.Key.TagName.rememberLocalizedString(), style = MaterialTheme.typography.titleSmall
                         )
                     },
                     textStyle = MaterialTheme.typography.titleSmall,
@@ -114,7 +114,7 @@ fun CreateATagBtmSheet(
                         onCreateClick(newTag)
                     }) {
                     Text(
-                        text = "Create",
+                        text = Localization.Key.Create.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )

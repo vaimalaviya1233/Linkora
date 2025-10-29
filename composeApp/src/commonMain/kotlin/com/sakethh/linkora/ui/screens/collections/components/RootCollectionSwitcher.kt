@@ -22,7 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 
 @Composable
@@ -37,13 +40,13 @@ fun RootCollectionSwitcher(
         ModalBottomSheet(onDismissRequest = onHide, sheetState = rootContentSwitcherBtmSheetState) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Select a collection source",
+                    text = Localization.Key.SelectACollectionSource.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(15.dp)
                 )
                 remember {
-                    listOf(0 to "Folders", 1 to "Tags")
+                    listOf(0 to Localization.Key.Folders.getLocalizedString(), 1 to Localization.Key.Tags.getLocalizedString())
                 }.forEach { contentType ->
                     Row(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable {
                         onSourceClick(contentType.first)

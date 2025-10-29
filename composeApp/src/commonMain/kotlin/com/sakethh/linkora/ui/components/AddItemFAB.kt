@@ -41,6 +41,7 @@ import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -104,7 +105,7 @@ fun AddItemFab(
                     )
                 ) {
                     Text(
-                        text = "Create A New Tag",
+                        text = Localization.Key.CreateANewTag.rememberLocalizedString(),
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontSize = 20.sp,
@@ -126,7 +127,8 @@ fun AddItemFab(
                 )
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                    modifier = Modifier.pressScaleEffect()
+                        .pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onCreateATagClick()
                         addItemFABParam.isMainFabRotated.value = false
@@ -187,7 +189,8 @@ fun AddItemFab(
                 )
             ) {
                 FloatingActionButton(
-                    modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                    modifier = Modifier.pressScaleEffect()
+                        .pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
                         addItemFABParam.isReducedTransparencyBoxVisible.value = false
                         addItemFABParam.onShowDialogForNewFolder()
                         addItemFABParam.isMainFabRotated.value = false

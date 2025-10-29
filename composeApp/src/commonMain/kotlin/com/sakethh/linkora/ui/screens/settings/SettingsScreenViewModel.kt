@@ -99,9 +99,9 @@ open class SettingsScreenViewModel(
                             }
                         },
                     ), SettingComponentParam(
-                        title = "Skip saving existing links",
+                        title = Localization.Key.SkipSavingExistingLinksLabel.getLocalizedString(),
                         doesDescriptionExists = true,
-                        description = "If enabled, a link won't be saved if it already exists in the destination. An error will be thrown instead.",
+                        description = Localization.Key.SkipSavingExistingLinksDesc.getLocalizedString(),
                         isSwitchNeeded = true,
                         isSwitchEnabled = AppPreferences.skipSavingExistingLink,
                         isIconNeeded = mutableStateOf(true),
@@ -144,9 +144,9 @@ open class SettingsScreenViewModel(
             }
             add(
                 SettingComponentParam(
-                    title = "Enable Home Screen",
+                    title = Localization.Key.EnableHomeScreen.getLocalizedString(),
                     doesDescriptionExists = true,
-                    description = "When disabled, Collections opens on launch if Home is set as the initial route.",
+                    description =Localization.Key.EnableHomeScreenDesc.getLocalizedString(),
                     isSwitchNeeded = true,
                     isSwitchEnabled = AppPreferences.isHomeScreenEnabled,
                     onSwitchStateChange = {
@@ -164,9 +164,9 @@ open class SettingsScreenViewModel(
 
             add(
                 SettingComponentParam(
-                    title = "Use Custom App Version Label",
+                    title = Localization.Key.UseCustomAppVersionLabel.getLocalizedString(),
                     doesDescriptionExists = true,
-                    description = "Enables a custom font-based version label throughout the app.",
+                    description = Localization.Key.UseCustomAppVersionDesc.getLocalizedString(),
                     isSwitchNeeded = true,
                     isSwitchEnabled = AppPreferences.useCustomAppVersionLabel,
                     onSwitchStateChange = {

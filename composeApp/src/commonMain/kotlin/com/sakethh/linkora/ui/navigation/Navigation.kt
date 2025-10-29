@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.navigation
 
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.utils.getLocalizedString
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -100,7 +101,7 @@ sealed interface Navigation {
             @Serializable
             data object SnapshotsScreen : Data {
                 override fun toString(): String =
-                    "Snapshots"
+                    Localization.Key.Snapshots.getLocalizedString()
             }
         }
     }

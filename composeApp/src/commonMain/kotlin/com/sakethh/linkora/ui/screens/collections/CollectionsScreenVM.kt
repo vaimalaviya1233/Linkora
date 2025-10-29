@@ -255,7 +255,7 @@ open class CollectionsScreenVM(
         }
     }
 
-    private val _currentCollectionSource get() = if (AppPreferences.selectedCollectionSourceId == 0) Localization.Key.Folders.getLocalizedString() else "Tags"
+    private val _currentCollectionSource get() = if (AppPreferences.selectedCollectionSourceId == 0) Localization.Key.Folders.getLocalizedString() else Localization.Key.Tags.getLocalizedString()
     var currentCollectionSource by mutableStateOf(_currentCollectionSource)
 
     var foldersSearchQuery by mutableStateOf("")
@@ -537,7 +537,7 @@ open class CollectionsScreenVM(
                 selectedTagIds = tagIds
             ).collectLatest {
                 it.onSuccess {
-                    pushUIEvent(UIEvent.Type.ShowSnackbar("Added Copy to Important Links"))
+                    pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.AddedCopyToImpLinks.getLocalizedString()))
                 }
                 it.pushSnackbarOnFailure()
             }

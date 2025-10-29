@@ -24,6 +24,7 @@ import com.sakethh.linkora.ui.components.menu.MenuNonImageHeader
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -65,12 +66,12 @@ fun TagMenu(
             Spacer(Modifier.height(5.dp))
             IndividualMenuComponent(
                 onClick = onRename,
-                elementName = "Rename",
+                elementName = Localization.Key.Rename.rememberLocalizedString(),
                 elementImageVector = Icons.Default.DriveFileRenameOutline
             )
             IndividualMenuComponent(
                 onClick = onDelete,
-                elementName = "Delete",
+                elementName = Localization.Key.Delete.rememberLocalizedString(),
                 elementImageVector = Icons.Default.Delete
             )
         }

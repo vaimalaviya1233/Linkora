@@ -439,7 +439,7 @@ fun CollectionDetailPane(
                     peekCollectionPaneHistory?.currentFolder?.localId == it.localId
                 },
                 nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection,
-                emptyDataText = if (currentTag != null) "This tag wasn't attached to any links." else if (currentFolder?.localId in listOf(
+                emptyDataText = if (currentTag != null) Localization.Key.NoAttachmentsToTags.rememberLocalizedString() else if (currentFolder?.localId in listOf(
                         Constants.SAVED_LINKS_ID, Constants.IMPORTANT_LINKS_ID
                     )
                 ) Localization.Key.NoLinksFound.rememberLocalizedString() else "",

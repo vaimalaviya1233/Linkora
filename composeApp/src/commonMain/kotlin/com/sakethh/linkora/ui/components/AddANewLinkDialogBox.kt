@@ -550,7 +550,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 )
             }
             Text(
-                text = "Attach Tags",
+                text = Localization.Key.AttachTags.rememberLocalizedString(),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.titleSmall,
                 fontSize = 18.sp
@@ -842,13 +842,13 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     shape = RoundedCornerShape(25.dp),
                     label = {
                         Text(
-                            text = "Folder name",
+                            text = Localization.Key.FolderName.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleSmall,
                         )
                     },
                     placeholder = {
                         Text(
-                            text = "Search for Folders...",
+                            text = Localization.Key.SearchForFolders.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleSmall,
                         )
                     },
@@ -860,7 +860,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 ) {
                     stickyHeader {
                         Text(
-                            text = "Search for Folders",
+                            text = Localization.Key.SearchForFolders.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 24.sp,
                             modifier = Modifier.background(BottomSheetDefaults.ContainerColor)
@@ -870,7 +870,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     }
                     if (foldersSearchQueryResult.isEmpty()) {
                         item {
-                            DataEmptyScreen(text = "No folders found.")
+                            DataEmptyScreen(text = Localization.Key.NoFoldersFound.rememberLocalizedString())
                         }
                     } else {
                         items(items = foldersSearchQueryResult, key = {

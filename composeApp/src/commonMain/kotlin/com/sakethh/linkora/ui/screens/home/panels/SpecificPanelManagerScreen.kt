@@ -110,7 +110,7 @@ fun SpecificPanelManagerScreen(
                         .navigationBarsPadding(),
                     placeholder = {
                         Text(
-                            text = "Search folders to add",
+                            text = Localization.Key.SearchFoldersToAdd.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.basicMarquee()
                         )

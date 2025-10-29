@@ -182,7 +182,7 @@ fun MobileMenu(
                 val commonModifier = Modifier.padding(start = 10.dp, end = 10.dp).fillMaxWidth()
                 if (showTags) {
                     Text(
-                        text = "Associated Tags",
+                        text = Localization.Key.AssociatedTags.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = commonModifier,

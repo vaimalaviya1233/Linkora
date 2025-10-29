@@ -178,7 +178,7 @@ fun SearchScreen(
                             }
                             if (searchScreenVM.tagsAvailableForFiltering) {
                                 FilterChip(
-                                    text = "Tags",
+                                    text = Localization.Key.Tags.rememberLocalizedString(),
                                     isSelected = searchScreenVM.appliedTagFiltering,
                                     onClick = {
                                         searchScreenVM.toggleTagFilter()

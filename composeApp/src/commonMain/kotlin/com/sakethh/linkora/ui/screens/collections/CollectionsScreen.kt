@@ -439,7 +439,7 @@ fun CollectionsScreen(
 
                                 1 -> {
                                     if (allTags.isEmpty()) {
-                                        DataEmptyScreen(text = "No tags found")
+                                        DataEmptyScreen(text = Localization.Key.NoTagsFound.rememberLocalizedString())
                                         return@HorizontalPager
                                     }
                                     allTags.forEach { currentTag ->

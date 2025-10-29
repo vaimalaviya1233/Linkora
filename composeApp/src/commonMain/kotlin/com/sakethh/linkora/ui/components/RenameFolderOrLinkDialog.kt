@@ -164,7 +164,7 @@ fun RenameFolderOrLinkDialog(
                 if (renameFolderOrLinkDialogParam.dialogBoxFor is MenuBtmSheetType.Link) {
                     item {
                         Text(
-                            text = "Attach Tags",
+                            text = Localization.Key.AttachTags.rememberLocalizedString(),
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.titleSmall,
                             fontSize = 18.sp

@@ -28,6 +28,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @Composable
 fun TagDeletionConfirmation(
@@ -81,7 +82,7 @@ fun TagDeletionConfirmation(
             },
             title = {
                 Text(
-                    text = "Delete for sure?",
+                    text = Localization.Key.TagDeletionConfirmation.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 24.sp
                 )

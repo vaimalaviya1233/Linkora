@@ -78,7 +78,7 @@ fun AcknowledgementScreen() {
             item {
                 SettingSectionComponent(SettingSectionComponentParam(onClick = {
                     navController.navigate(Navigation.Settings.AboutLibraries)
-                }, sectionIcon = Icons.Default.Info, sectionTitle = "About Libraries"))
+                }, sectionIcon = Icons.Default.Info, sectionTitle = Localization.Key.AboutLibraries.rememberLocalizedString()))
             }
             item {
                 Spacer(modifier = Modifier)

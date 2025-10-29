@@ -183,7 +183,7 @@ fun GeneralSettingsScreen() {
                 }
                 item {
                     Text(
-                        text = "Select an App Icon",
+                        text = Localization.Key.SelectAnAppIcon.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp, bottom = 15.dp),
                         fontSize = 16.sp
@@ -228,7 +228,7 @@ fun GeneralSettingsScreen() {
                         }
                     }
                     Text(
-                        text = "App Icon Currently in Use",
+                        text = Localization.Key.AppIconCurrentlyInUse.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(
                             start = 15.dp, end = 15.dp, top = 15.dp, bottom = 5.dp
@@ -312,7 +312,7 @@ fun GeneralSettingsScreen() {
                     Spacer(modifier = Modifier.height(5.dp))
                 }
                 Text(
-                    text = "Change App Icon",
+                    text = Localization.Key.ChangeAppIcon.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 22.sp
                 )
@@ -320,14 +320,14 @@ fun GeneralSettingsScreen() {
         }, text = {
             Column {
                 Text(
-                    text = "After confirming changes, the app will close automatically to apply them. Notifications will continue to display the default Linkora icon and name.",
+                    text = Localization.Key.ChangeAppIconDesc.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 18.sp
                 )
                 if (tempSelectedAppIcon == AppIconCode.must_be_weather.name) {
                     InfoCard(
                         paddingValues = PaddingValues(top = 10.dp),
-                        info = "The app name will be displayed as \"Weather\" instead of \"Linkora\" in your app drawer."
+                        info = Localization.Key.ChangeInAppNameDesc.rememberLocalizedString()
                     )
                 }
             }

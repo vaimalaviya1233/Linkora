@@ -10,9 +10,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.utils.rememberLocalizedString
 import linkora.composeapp.generated.resources.Res
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,7 +24,7 @@ fun AboutLibrariesScreen() {
         Res.readBytes("files/aboutlibraries.json").decodeToString()
     }
     SettingsSectionScaffold(
-        topAppBarText = "Libraries",
+        topAppBarText = Localization.Key.Libraries.rememberLocalizedString(),
         navController = LocalNavController.current
     ) { paddingValues, topAppBarScrollBehaviour ->
         LibrariesContainer(
