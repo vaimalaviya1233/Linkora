@@ -509,10 +509,6 @@ class LocalLinksRepoImpl(
         return linksDao.getAllLinksAsFlow()
     }
 
-    override suspend fun deleteAllLinks() {
-        linksDao.deleteAllLinks()
-    }
-
     override suspend fun updateALink(
         link: Link, updatedLinkTagsPair: LinkTagsPair?, viaSocket: Boolean
     ): Flow<Result<Unit>> {

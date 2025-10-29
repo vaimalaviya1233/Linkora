@@ -78,8 +78,6 @@ interface LocalFoldersRepo {
 
     fun search(query: String, sortOption: String): Flow<Result<List<Folder>>>
 
-    suspend fun deleteAllFolders()
-
     suspend fun getRemoteIdOfAFolder(localId: Long): Long?
     suspend fun getLocalIdOfAFolder(remoteId: Long): Long?
     suspend fun getUnSyncedFolders(): List<Folder>

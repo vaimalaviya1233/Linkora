@@ -387,10 +387,6 @@ class LocalFoldersRepoImpl(
         return foldersDao.search(query, sortOption).mapToResultFlow()
     }
 
-    override suspend fun deleteAllFolders() {
-        foldersDao.deleteAllFolders()
-    }
-
     override suspend fun getUnSyncedFolders(): List<Folder> {
         return foldersDao.getUnSyncedFolders()
     }

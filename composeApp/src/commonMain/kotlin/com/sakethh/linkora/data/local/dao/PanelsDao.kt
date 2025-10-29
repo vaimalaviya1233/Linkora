@@ -73,12 +73,6 @@ interface PanelsDao {
     @Query("SELECT * FROM panel_folder WHERE connectedPanelId = :panelId")
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
 
-    @Query("DELETE FROM panel")
-    suspend fun deleteAllPanels()
-
-    @Query("DELETE FROM panel_folder")
-    suspend fun deleteAllPanelFolders()
-
     @Query("SELECT * FROM panel WHERE localId=:panelId LIMIT 1") // there will always be only 1 panel with the given ID, but added `LIMIT 1` because why not.
     suspend fun getPanel(panelId: Long): Panel
 

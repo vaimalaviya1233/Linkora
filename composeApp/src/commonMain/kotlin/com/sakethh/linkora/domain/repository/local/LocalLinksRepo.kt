@@ -67,8 +67,6 @@ interface LocalLinksRepo {
     suspend fun getAllLinks(): List<Link>
     fun getAllLinksAsFlow(): Flow<List<Link>>
 
-    suspend fun deleteAllLinks()
-
     suspend fun updateALink(link: Link, updatedLinkTagsPair: LinkTagsPair?,viaSocket: Boolean = false): Flow<Result<Unit>>
 
     suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>>

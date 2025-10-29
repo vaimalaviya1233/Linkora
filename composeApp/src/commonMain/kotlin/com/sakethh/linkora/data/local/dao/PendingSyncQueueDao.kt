@@ -15,7 +15,4 @@ interface PendingSyncQueueDao {
 
     @Query("SELECT * FROM pending_sync_queue")
     suspend fun getAllItemsFromQueue(): List<PendingSyncQueue>
-
-    @Query("DELETE FROM pending_sync_queue")
-    suspend fun deleteAllItems()
 }

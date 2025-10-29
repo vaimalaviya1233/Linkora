@@ -22,6 +22,7 @@ import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onSuccess
+import com.sakethh.linkora.domain.repository.local.DatabaseUtils
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
@@ -62,8 +63,6 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import java.util.UUID
@@ -87,6 +86,7 @@ class RemoteSyncRepoImpl(
     localTagsRepo: LocalTagsRepo,
     remoteTagsRepo: RemoteTagsRepo,
     private val tagsDao: TagsDao,
+    private val localDatabaseUtils: DatabaseUtils
 ) : RemoteSyncRepo {
 
 
@@ -384,8 +384,7 @@ class RemoteSyncRepoImpl(
             send(Result.Loading(message = "[TAGS] Processing tag (ID: ${currentTag.localId}, Name: ${currentTag.name})"))
             pendingSyncQueueRepo.addInQueue(
                 PendingSyncQueue(
-                    operation = RemoteRoute.Tag.CREATE_TAG.name,
-                    payload = Json.encodeToString(
+                    operation = RemoteRoute.Tag.CREATE_TAG.name, payload = Json.encodeToString(
                         CreateTagDTO(
                             name = currentTag.name,
                             eventTimestamp = currentTag.lastModified,
@@ -471,24 +470,12 @@ class RemoteSyncRepoImpl(
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }) {
-            supervisorScope {
-                listOf(launch {
-                    localLinksRepo.deleteAllLinks()
-                }, launch {
-                    localFoldersRepo.deleteAllFolders()
-                }, launch {
-                    localPanelsRepo.deleteAllPanels()
-                    preferencesRepository.changePreferenceValue(
-                        preferenceKey = longPreferencesKey(
-                            AppPreferenceType.LAST_SELECTED_PANEL_ID.name
-                        ), newValue = Constants.DEFAULT_PANELS_ID
-                    )
-                }, launch {
-                    localPanelsRepo.deleteAllPanelFolders()
-                }, launch {
-                    pendingSyncQueueRepo.deleteAllItems()
-                })
-            }
+            localDatabaseUtils.resetDatabase()
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = longPreferencesKey(
+                    AppPreferenceType.LAST_SELECTED_PANEL_ID.name
+                ), newValue = Constants.DEFAULT_PANELS_ID
+            )
         }
     }
 }

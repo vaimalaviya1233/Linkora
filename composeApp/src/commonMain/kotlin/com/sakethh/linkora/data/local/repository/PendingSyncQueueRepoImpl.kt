@@ -17,8 +17,4 @@ class PendingSyncQueueRepoImpl(private val pendingSyncQueueDao: PendingSyncQueue
     override suspend fun getAllItemsFromQueue(): List<PendingSyncQueue> {
         return pendingSyncQueueDao.getAllItemsFromQueue()
     }
-
-    override suspend fun deleteAllItems() {
-        pendingSyncQueueDao.deleteAllItems()
-    }
 }

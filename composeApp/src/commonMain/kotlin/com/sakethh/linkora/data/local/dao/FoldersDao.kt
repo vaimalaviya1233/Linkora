@@ -142,9 +142,6 @@ interface FoldersDao {
     )
     fun search(query: String, sortOption: String): Flow<List<Folder>>
 
-    @Query("DELETE FROM folders")
-    suspend fun deleteAllFolders()
-
     @Query("SELECT remoteId FROM folders WHERE localId = :localId LIMIT 1")
     suspend fun getRemoteFolderId(localId: Long): Long?
 

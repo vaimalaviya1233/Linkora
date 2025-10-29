@@ -291,6 +291,7 @@ class LocalPanelsRepoImpl(
     override suspend fun getPanelFolder(localId: Long): PanelFolder {
         return panelsDao.getPanelFolder(localId)
     }
+
     override suspend fun getLocalPanelId(remoteId: Long): Long? {
         return panelsDao.getLocalPanelId(remoteId)
     }
@@ -309,14 +310,6 @@ class LocalPanelsRepoImpl(
 
     override suspend fun addMultiplePanelFolders(panelFolders: List<PanelFolder>) {
         panelsDao.addMultiplePanelFolders(panelFolders)
-    }
-
-    override suspend fun deleteAllPanels() {
-        panelsDao.deleteAllPanels()
-    }
-
-    override suspend fun deleteAllPanelFolders() {
-        panelsDao.deleteAllPanelFolders()
     }
 
     override suspend fun addMultiplePanels(panels: List<Panel>) {

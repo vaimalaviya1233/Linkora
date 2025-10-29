@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Html
 import androidx.compose.material.icons.filled.Refresh
@@ -68,23 +69,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
-import com.sakethh.linkora.platform.PlatformSpecificBackHandler
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
-import com.sakethh.linkora.utils.currentSavedServerConfig
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
+import com.sakethh.linkora.platform.PlatformSpecificBackHandler
+import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.platform.poppinsFontFamily
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialog
 import com.sakethh.linkora.ui.components.DeleteFolderOrLinkDialogParam
-import com.sakethh.linkora.ui.components.DeleteDialogBoxType
 import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.ImportFileSelectionMethod
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -94,9 +93,11 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingCompone
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementBottomSheet
 import com.sakethh.linkora.ui.screens.settings.section.data.sync.ServerManagementViewModel
-import com.sakethh.linkora.platform.platform
-import com.sakethh.linkora.platform.poppinsFontFamily
 import com.sakethh.linkora.ui.utils.pressScaleEffect
+import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.utils.currentSavedServerConfig
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,11 +178,13 @@ fun DataSettingsScreen() {
                             style = MaterialTheme.typography.titleLarge
                         )
                         Spacer(modifier = Modifier.width(5.dp))
-                        FilledTonalIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).size(24.dp), onClick = {
-                            if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) importFileSelectionMethod.value =
-                                ImportFileSelectionMethod.FilePicker.name else importFileSelectionMethod.value =
-                                ImportFileSelectionMethod.FileLocationString.name
-                        }) {
+                        FilledTonalIconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                .size(24.dp), onClick = {
+                                if (importFileSelectionMethod.value == ImportFileSelectionMethod.FileLocationString.name) importFileSelectionMethod.value =
+                                    ImportFileSelectionMethod.FilePicker.name else importFileSelectionMethod.value =
+                                    ImportFileSelectionMethod.FileLocationString.name
+                            }) {
                             Icon(
                                 imageVector = Icons.Default.SwitchLeft,
                                 contentDescription = null,
@@ -487,7 +490,29 @@ fun DataSettingsScreen() {
                         shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
                 )
             }
-
+            item {
+                HorizontalDivider(
+                    Modifier.padding(
+                        start = 15.dp,
+                        end = 15.dp,
+                        bottom = 30.dp,
+                    ), color = DividerDefaults.color.copy(0.5f)
+                )
+                SettingComponent(
+                    SettingComponentParam(
+                        isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                        title = Localization.rememberLocalizedString(Localization.Key.DeleteEntireDataPermanently),
+                        doesDescriptionExists = true,
+                        description = Localization.rememberLocalizedString(Localization.Key.DeleteEntireDataPermanentlyDesc),
+                        isSwitchNeeded = false,
+                        isSwitchEnabled = AppPreferences.shouldUseAmoledTheme,
+                        onSwitchStateChange = {
+                            shouldDeleteEntireDialogBoxAppear.value = true
+                        },
+                        icon = Icons.Default.DeleteForever,
+                        shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
+                )
+            }
             item {
                 HorizontalDivider(
                     Modifier.padding(
@@ -587,9 +612,11 @@ fun DataSettingsScreen() {
                                         modifier = Modifier.fillMaxWidth(0.85f), progress = {
                                             DataSettingsScreenVM.refreshLinksState.value.currentIteration.toFloat() / DataSettingsScreenVM.totalLinksForRefresh.value
                                         })
-                                    IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                                        dataSettingsScreenVM.cancelRefreshingAllLinks()
-                                    }) {
+                                    IconButton(
+                                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                                        onClick = {
+                                            dataSettingsScreenVM.cancelRefreshingAllLinks()
+                                        }) {
                                         Icon(
                                             imageVector = Icons.Default.Cancel,
                                             contentDescription = ""
@@ -657,31 +684,35 @@ fun DataSettingsScreen() {
         AlertDialog(onDismissRequest = {
             showFileLocationPickerDialog.value = false
         }, confirmButton = {
-            Button(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth(), onClick = {
-                dataSettingsScreenVM.importDataFromAFile(
-                    importFileType = ImportFileType.valueOf(
-                    selectedImportFormat.value
-                ),
-                    onStart = {
-                        showFileLocationPickerDialog.value = false
-                        isImportExportProgressUIVisible.value = true
-                    },
-                    onCompletion = {
-                        isImportExportProgressUIVisible.value = false
-                        showFileLocationPickerDialog.value = false
-                    },
-                    importFileSelectionMethod = ImportFileSelectionMethod.FileLocationString to fileLocation.value
-                )
-            }) {
+            Button(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth(),
+                onClick = {
+                    dataSettingsScreenVM.importDataFromAFile(
+                        importFileType = ImportFileType.valueOf(
+                        selectedImportFormat.value
+                    ),
+                        onStart = {
+                            showFileLocationPickerDialog.value = false
+                            isImportExportProgressUIVisible.value = true
+                        },
+                        onCompletion = {
+                            isImportExportProgressUIVisible.value = false
+                            showFileLocationPickerDialog.value = false
+                        },
+                        importFileSelectionMethod = ImportFileSelectionMethod.FileLocationString to fileLocation.value
+                    )
+                }) {
                 Text(
                     text = Localization.Key.ImportLabel.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleSmall
                 )
             }
         }, dismissButton = {
-            OutlinedButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth(), onClick = {
-                showFileLocationPickerDialog.value = false
-            }) {
+            OutlinedButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth(),
+                onClick = {
+                    showFileLocationPickerDialog.value = false
+                }) {
                 Text(
                     text = Localization.Key.Cancel.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleSmall
@@ -736,15 +767,17 @@ fun DataSettingsScreen() {
         operationTitle = Localization.Key.SyncingDataLabel.rememberLocalizedString(),
         operationDesc = Localization.Key.InitiateManualSyncDescAlt.rememberLocalizedString()
     )
-    if (shouldDeleteEntireDialogBoxAppear.value){
+    if (shouldDeleteEntireDialogBoxAppear.value) {
         DeleteFolderOrLinkDialog(
             deleteFolderOrLinkDialogParam = DeleteFolderOrLinkDialogParam(
                 onDismiss = {
-                    shouldDeleteEntireDialogBoxAppear.value = false
-                },
+                shouldDeleteEntireDialogBoxAppear.value = false
+            },
                 deleteDialogBoxType = DeleteDialogBoxType.REMOVE_ENTIRE_DATA,
                 onDeleteClick = { onCompletion, deleteEverythingFromRemote ->
-                    dataSettingsScreenVM.deleteEntireDatabase(deleteEverythingFromRemote, onCompletion)
+                    dataSettingsScreenVM.deleteEntireDatabase(
+                        deleteEverythingFromRemote, onCompletion
+                    )
                 })
         )
     }
