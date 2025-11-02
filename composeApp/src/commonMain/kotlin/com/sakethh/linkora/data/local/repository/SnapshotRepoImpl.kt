@@ -109,7 +109,7 @@ class SnapshotRepoImpl(
                             )
                         }.cancellable().drop(1).debounce(1000).flowOn(Dispatchers.Default)
                             .collectLatest {
-                                if (pauseSnapshots || (it.links + it.folders + it.panelFolders + it.panels).isEmpty()) return@collectLatest
+                                if (pauseSnapshots || (it.links + it.folders + it.panelFolders + it.panels + it.tags + it.linkTagsPairs).isEmpty()) return@collectLatest
                                 try {
                                     _isAnySnapshotOngoing.value = true
                                     createAManualSnapshot(
