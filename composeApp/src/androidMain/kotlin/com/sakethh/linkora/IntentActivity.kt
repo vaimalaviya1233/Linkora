@@ -11,10 +11,6 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -26,7 +22,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
 import com.sakethh.linkora.di.DependencyContainer
-import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
@@ -43,7 +38,6 @@ import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
@@ -75,20 +69,6 @@ class IntentActivity : ComponentActivity() {
                     background = if (AppPreferences.shouldUseAmoledTheme.value) Color(0xFF000000) else DarkColors.background,
                     surface = if (AppPreferences.shouldUseAmoledTheme.value) Color(0xFF000000) else DarkColors.surface
                 )
-                var showUI by rememberSaveable {
-                    mutableStateOf(true)
-                }
-                LaunchedEffect(showUI) {
-                    showUI.ifNot {
-                        if (MainActivity.wasLaunched) {
-                            this@IntentActivity.finishAndRemoveTask()
-                            return@ifNot
-                        }
-                        intentActivityVM.createADataSnapshot(onCompletion = {
-                            this@IntentActivity.finishAndRemoveTask()
-                        })
-                    }
-                }
                 LaunchedEffect(Unit) {
                     UIEvent.uiEvents.collectLatest {
                         if (it is UIEvent.Type.ShowSnackbar) {
@@ -140,9 +120,19 @@ class IntentActivity : ComponentActivity() {
                 ) {
                     AddANewLinkDialogBox(
                         onDismiss = {
-                            showUI = false
+                            if (MainActivity.wasLaunched) {
+                                this@IntentActivity.finishAndRemoveTask()
+                                return@AddANewLinkDialogBox
+                            }
+                            if (AppPreferences.areSnapshotsEnabled.value) {
+                                intentActivityVM.createADataSnapshot(onCompletion = {
+                                    this@IntentActivity.finishAndRemoveTask()
+                                })
+                            } else {
+                                this@IntentActivity.finishAndRemoveTask()
+                            }
                         },
-                        screenType = ScreenType.ROOT_SCREEN,
+                        screenType = ScreenType.INTENT_ACTIVITY,
                         currentFolder = null,
                         collectionsScreenVM = viewModel(factory = CollectionScreenVMAssistedFactory.createForIntentActivity()),
                         url = this@IntentActivity.intent?.getStringExtra(
@@ -163,25 +153,23 @@ class IntentActivityVM(
     private val snapshotRepo: SnapshotRepo
 ) : ViewModel() {
     fun createADataSnapshot(onCompletion: () -> Unit) {
-        if (AppPreferences.areSnapshotsEnabled.value) {
-            viewModelScope.launch {
-                val allLinks = async { localLinksRepo.getAllLinks() }
-                val allFolders = async { localFoldersRepo.getAllFoldersAsList() }
-                val allPanels = async { localPanelsRepo.getAllThePanelsAsAList() }
-                val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
-                val allTags = async { localTagsRepo.getAllTagsAsList() }
-                val allLinkTagsPairs = async { localTagsRepo.getAllLinkTagsAsList() }
+        viewModelScope.launch {
+            val allLinks = async { localLinksRepo.getAllLinks() }
+            val allFolders = async { localFoldersRepo.getAllFoldersAsList() }
+            val allPanels = async { localPanelsRepo.getAllThePanelsAsAList() }
+            val allPanelFolders = async { localPanelsRepo.getAllThePanelFoldersAsAList() }
+            val allTags = async { localTagsRepo.getAllTagsAsList() }
+            val allLinkTagsPairs = async { localTagsRepo.getAllLinkTagsAsList() }
 
-                snapshotRepo.createAManualSnapshot(
-                    allLinks = allLinks.await(),
-                    allFolders = allFolders.await(),
-                    allPanels = allPanels.await(),
-                    allPanelFolders = allPanelFolders.await(),
-                    allTags = allTags.await(),
-                    allLinkTagsPairs = allLinkTagsPairs.await(),
-                    onCompletion = onCompletion
-                )
-            }
+            snapshotRepo.createAManualSnapshot(
+                allLinks = allLinks.await(),
+                allFolders = allFolders.await(),
+                allPanels = allPanels.await(),
+                allPanelFolders = allPanelFolders.await(),
+                allTags = allTags.await(),
+                allLinkTagsPairs = allLinkTagsPairs.await(),
+                onCompletion = onCompletion
+            )
         }
     }
 }
