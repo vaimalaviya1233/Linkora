@@ -1,0 +1,7 @@
+If you use sync-server, you must use sync-server version v0.2.0 or later.
+
+- Added support for tags; tags are exported during JSON-export/snapshot, HTML type doesn't.
+- Folders can be searched and sorted while saving a link.
+- Double-tap on the search icon to open the search bar directly.
+- The addresses of selected links can be shared (split by a line).
+- Added support for alternate app icons.

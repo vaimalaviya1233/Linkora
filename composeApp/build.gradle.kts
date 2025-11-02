@@ -92,8 +92,8 @@ android {
         applicationId = "com.sakethh.linkora"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 43
-        versionName = "0.13.7"
+        versionCode = 44
+        versionName = "0.14.0"
     }
     packaging {
         resources {
@@ -122,7 +122,6 @@ android {
             )
             applicationIdSuffix = ".preview"
             versionNameSuffix = "-preview"
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -161,7 +160,7 @@ compose.desktop {
             )
             packageName = "Linkora"
             this.vendor = "Saketh Pathike"
-            this.packageVersion = "1.0.10"/*
+            this.packageVersion = "1.0.11"/*
 
             This logo (src/desktopMain/resources/logo.*) was painted by `mondstern`.
             The original post can be found here: https://pixelfed.social/p/mondstern/747494483548287527
