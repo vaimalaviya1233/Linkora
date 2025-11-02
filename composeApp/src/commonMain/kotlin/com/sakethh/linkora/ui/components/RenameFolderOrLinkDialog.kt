@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,6 +51,8 @@ import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -73,6 +76,7 @@ data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class)
 fun RenameFolderOrLinkDialog(
     renameFolderOrLinkDialogParam: RenameFolderOrLinkDialogParam
 ) {
+    val coroutineScope = rememberCoroutineScope()
     if (renameFolderOrLinkDialogParam.showDialogBox) {
         var selectedTags by rememberDeserializableMutableObject {
             mutableStateOf(renameFolderOrLinkDialogParam.selectedTags)
@@ -174,7 +178,7 @@ fun RenameFolderOrLinkDialog(
                             paddingValues = PaddingValues(),
                             allTags = renameFolderOrLinkDialogParam.allTags,
                             selectedTags = selectedTags,
-                            onClick = { currTag ->
+                            onTagClick = { currTag ->
                                 if (selectedTags.contains(currTag)) {
                                     selectedTags = selectedTags.filterNot {
                                         currTag == it
@@ -182,6 +186,8 @@ fun RenameFolderOrLinkDialog(
                                 } else {
                                     selectedTags += currTag
                                 }
+                            }, onCreateTagClick = {
+                                coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
                             })
                     }
                 }

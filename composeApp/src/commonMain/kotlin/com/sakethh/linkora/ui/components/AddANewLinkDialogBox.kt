@@ -66,7 +66,6 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -114,6 +113,7 @@ import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.defaultFolderIds
 import com.sakethh.linkora.utils.defaultImpLinksFolder
 import com.sakethh.linkora.utils.defaultSavedLinksFolder
@@ -498,6 +498,9 @@ private fun BottomPartOfAddANewLinkDialogBox(
     collectionsScreenVM: CollectionsScreenVM,
     currentFolder: Folder?,
 ) {
+    var showBtmSheetForNewTagAddition by rememberSaveable {
+        mutableStateOf(false)
+    }
     val coroutineScope = rememberCoroutineScope()
     val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
     val showNewFolderDialog = rememberSaveable {
@@ -562,12 +565,15 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     paddingValues = PaddingValues(start = 15.dp, end = 25.dp),
                     allTags = allTags,
                     selectedTags = collectionsScreenVM.selectedTags,
-                    onClick = {
+                    onTagClick = {
                         if (collectionsScreenVM.selectedTags.contains(it)) {
                             collectionsScreenVM.unSelectATag(it)
                         } else {
                             collectionsScreenVM.selectATag(it)
                         }
+                    },
+                    onCreateTagClick = {
+                        showBtmSheetForNewTagAddition = true
                     })
             }
         }
@@ -692,39 +698,6 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 }
             }
         }
-        if (!isDataExtractingForTheLink.value && screenType == ScreenType.INTENT_ACTIVITY) {
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
-                    end = 20.dp,
-                    top = if (isDropDownMenuIconClicked.value) 20.dp else 5.dp,
-                    start = 20.dp
-                ).fillMaxWidth().pressScaleEffect(), onClick = {
-                    addTheFolderInRoot.value = true
-                    showNewFolderDialog.value = true
-                }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CreateNewFolder, null)
-                    Spacer(Modifier.width(5.dp))
-                    Text(
-                        text = Localization.rememberLocalizedString(Localization.Key.CreateANewFolder),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontSize = 16.sp
-                    )
-                }
-            }
-
-            if (AppPreferences.isAutoDetectTitleForLinksEnabled.value) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(20.dp),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(0.25f)
-                )
-            }
-
-        }
 
         if (!isDataExtractingForTheLink.value) {
             if (isDropDownMenuIconClicked.value) {
@@ -781,7 +754,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 onClick = {
                     isDataExtractingForTheLink.value = true
                     val linkType =
-                        when (if (currentFolder == null) selectedFolderForSavingTheLink.value.localId else currentFolder?.localId) {
+                        when (currentFolder?.localId ?: selectedFolderForSavingTheLink.value.localId) {
                             Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
                             Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
                             else -> LinkType.FOLDER_LINK
@@ -826,7 +799,15 @@ private fun BottomPartOfAddANewLinkDialogBox(
         ModalBottomSheet(
             sheetState = folderSearchBtmSheetState, onDismissRequest = hideSearchBtmSheet
         ) {
-            Scaffold(bottomBar = {
+            Scaffold(topBar = {
+                Text(
+                    text = Localization.Key.SearchForFolders.rememberLocalizedString(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 24.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth().padding(15.dp)
+                )
+            }, bottomBar = {
                 OutlinedTextField(
                     trailingIcon = {
                     SortingIconButton()
@@ -852,22 +833,14 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             style = MaterialTheme.typography.titleSmall,
                         )
                     },
-                    modifier = Modifier.fillMaxWidth().padding(15.dp)
+                    modifier = Modifier.background(BottomSheetDefaults.ContainerColor)
+                        .fillMaxWidth().padding(15.dp)
                 )
-            }) { paddingValues ->
+            }, containerColor = BottomSheetDefaults.ContainerColor) { paddingValues ->
                 LazyColumn(
-                    Modifier.padding(paddingValues).fillMaxWidth().wrapContentHeight()
+                    Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxWidth()
+                        .wrapContentHeight()
                 ) {
-                    stickyHeader {
-                        Text(
-                            text = Localization.Key.SearchForFolders.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 24.sp,
-                            modifier = Modifier.background(BottomSheetDefaults.ContainerColor)
-                                .padding(15.dp),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
                     if (foldersSearchQueryResult.isEmpty()) {
                         item {
                             DataEmptyScreen(text = Localization.Key.NoFoldersFound.rememberLocalizedString())
@@ -894,6 +867,23 @@ private fun BottomPartOfAddANewLinkDialogBox(
             }
         }
     }
+    val createTagBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val hideCreateATagBtmSheet: () -> Unit = {
+        coroutineScope.launch {
+            createTagBtmSheetState.hide()
+        }.invokeOnCompletion {
+            showBtmSheetForNewTagAddition = false
+        }
+    }
+
+    CreateATagBtmSheet(
+        sheetState = createTagBtmSheetState,
+        showBtmSheet = showBtmSheetForNewTagAddition,
+        onCancel = hideCreateATagBtmSheet,
+        onCreateClick = { tagName ->
+            collectionsScreenVM.createATag(tagName = tagName, onCompletion = hideCreateATagBtmSheet)
+        })
+
     if (showChildFoldersBtmSheet.value) {
         val childFolders = AddANewLinkDialogBox.childFolders.collectAsStateWithLifecycle()
         ModalBottomSheet(sheetState = childFoldersBtmSheetState, onDismissRequest = {
@@ -906,15 +896,13 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 stickyHeader {
                     Column(
                         modifier = Modifier.fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface)
                     ) {
-                        TopAppBar(title = {
-                            Text(
-                                text = AddANewLinkDialogBox.subFoldersList.last().name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 24.sp
-                            )
-                        })
+                        Text(
+                            text = AddANewLinkDialogBox.subFoldersList.last().name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 24.sp,
+                            modifier = Modifier.padding(start = 15.dp, bottom = 5.dp)
+                        )
                         LazyRow(
                             state = lazyRowState, modifier = Modifier.padding(
                                 start = 15.dp, end = 15.dp, bottom = 15.dp

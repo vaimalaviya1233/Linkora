@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,8 +28,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.domain.model.tag.Tag
-import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -38,17 +35,18 @@ fun TagSelectionComponent(
     paddingValues: PaddingValues = PaddingValues(start = 15.dp, end = 25.dp, top = 5.dp),
     allTags: List<Tag>,
     selectedTags: List<Tag>,
-    onClick: (tag: Tag) -> Unit
+    onTagClick: (tag: Tag) -> Unit,
+    onCreateTagClick: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
     FlowRow(
         modifier = Modifier.padding(
             paddingValues
         ).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-            coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
-        }) {
+        IconButton(
+            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+            onClick = onCreateTagClick
+        ) {
             Icon(imageVector = Icons.Default.AddCircle, contentDescription = null)
         }
         allTags.forEach {
@@ -63,7 +61,7 @@ fun TagSelectionComponent(
                         borderColor = if (isTagSelected) MaterialTheme.colorScheme.secondaryContainer else LocalContentColor.current
                     ),
                     onClick = {
-                        onClick(it)
+                        onTagClick(it)
                     },
                     label = {
                         Text(
@@ -79,7 +77,9 @@ fun TagSelectionComponent(
                             imageVector = Icons.Default.Tag,
                             contentDescription = null
                         )
-                    }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand))
+                    },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                )
             }
         }
     }
