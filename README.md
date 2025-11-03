@@ -44,7 +44,7 @@ height="80">](https://f-droid.org/packages/com.sakethh.linkora)
 |                    |                    |
 |--------------------|--------------------|
 | ![](assets/t1.png) | ![](assets/t2.png) |
-| ![](assets/t3.png) | ![](assets/t5.png) |
+| ![](assets/t3.png) | ![](assets/t4.png) |
 
 ## Built with
 
