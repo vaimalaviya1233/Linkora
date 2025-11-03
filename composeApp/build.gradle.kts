@@ -172,7 +172,7 @@ compose.desktop {
             }
 
             linux {
-                this.iconFile.set(project.file("src/desktopMain/resources/legacy_logo.png"))
+                this.iconFile.set(project.file("src/desktopMain/resources/logo.png"))
             }
             modules("jdk.unsupported")
             modules("jdk.unsupported.desktop")
