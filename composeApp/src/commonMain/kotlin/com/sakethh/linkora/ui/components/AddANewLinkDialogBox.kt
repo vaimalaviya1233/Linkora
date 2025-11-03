@@ -524,6 +524,9 @@ private fun BottomPartOfAddANewLinkDialogBox(
             )
         )
     }
+    val searchFocusRequester = remember {
+        FocusRequester()
+    }
     Column(
         modifier = Modifier.fillMaxSize().then(
             if (platform() is Platform.Android.Mobile) Modifier else Modifier.verticalScroll(
@@ -753,12 +756,12 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 ).fillMaxWidth().pressScaleEffect(),
                 onClick = {
                     isDataExtractingForTheLink.value = true
-                    val linkType =
-                        when (currentFolder?.localId ?: selectedFolderForSavingTheLink.value.localId) {
-                            Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
-                            Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
-                            else -> LinkType.FOLDER_LINK
-                        }
+                    val linkType = when (currentFolder?.localId
+                        ?: selectedFolderForSavingTheLink.value.localId) {
+                        Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
+                        Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
+                        else -> LinkType.FOLDER_LINK
+                    }
                     collectionsScreenVM.addANewLink(
                         link = Link(
                             linkType = linkType,
@@ -833,9 +836,12 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             style = MaterialTheme.typography.titleSmall,
                         )
                     },
-                    modifier = Modifier.background(BottomSheetDefaults.ContainerColor)
+                    modifier = Modifier.focusRequester(searchFocusRequester).background(BottomSheetDefaults.ContainerColor)
                         .fillMaxWidth().padding(15.dp)
                 )
+                LaunchedEffect(Unit) {
+                    searchFocusRequester.requestFocus()
+                }
             }, containerColor = BottomSheetDefaults.ContainerColor) { paddingValues ->
                 LazyColumn(
                     Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxWidth()
