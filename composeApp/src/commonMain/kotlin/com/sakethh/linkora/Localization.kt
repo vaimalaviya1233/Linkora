@@ -488,7 +488,7 @@ object Localization {
         ),
         AreYouSureDeleteSelectedItems(defaultValue = "Are you sure you want to delete all selected items?"),
         AreYouSureDeleteEverything(
-            defaultValue = "Are you sure you want to delete all folders, links, panels, and localized strings?"
+            defaultValue = "Are you sure you want to delete all folders, links, panels, tags, and localized strings?"
         ),
         SavedNote(defaultValue = "Saved Note"),
         NoNoteAdded(defaultValue = "You haven't added a note for this yet."),
