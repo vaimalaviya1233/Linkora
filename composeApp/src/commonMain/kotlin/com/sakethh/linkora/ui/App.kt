@@ -39,6 +39,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.di.APPVMAssistedFactory
 import com.sakethh.linkora.di.CollectionScreenVMAssistedFactory
@@ -195,7 +196,7 @@ fun App(
                 AnimatedVisibility(
                     enter = fadeIn(),
                     exit = fadeOut(),
-                    visible = currentFABContext.fabContext != FABContext.HIDE && !CollectionsScreenVM.isSelectionEnabled.value,
+                    visible = currentRoute?.hasRoute<Navigation.Root.SettingsScreen>() == false && !currentRoute.hasRoute<Navigation.Home.PanelsManagerScreen>() && currentFABContext.fabContext != FABContext.HIDE && !CollectionsScreenVM.isSelectionEnabled.value,
                 ) {
                     if (currentFABContext.fabContext == FABContext.ADD_LINK_IN_FOLDER) {
                         FloatingActionButton(

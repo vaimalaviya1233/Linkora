@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,8 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.Platform
@@ -57,6 +56,8 @@ import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.utils.pressScaleEffect
+import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -75,9 +76,10 @@ fun SpecificPanelManagerScreen(
         modifier = Modifier.padding(top = paddingValues.calculateTopPadding()).fillMaxSize(),
         topBar = {
             MediumTopAppBar(navigationIcon = {
-                IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                    navController.navigateUp()
-                }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                        navController.navigateUp()
+                    }) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "")
                 }
             }, scrollBehavior = topAppBarState, title = {
@@ -89,13 +91,20 @@ fun SpecificPanelManagerScreen(
             })
         },
         bottomBar = {
-            Column {
+            Column(
+                modifier = Modifier.fillMaxWidth().background(BottomSheetDefaults.ContainerColor)
+                    .padding(
+                        top = 12.dp
+                    )
+            ) {
                 OutlinedTextField(
                     trailingIcon = {
                         if (specificPanelManagerScreenVM.foldersSearchQuery.value.isNotBlank()) {
-                            IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                                specificPanelManagerScreenVM.updateFoldersSearchQuery("")
-                            }) {
+                            IconButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                                onClick = {
+                                    specificPanelManagerScreenVM.updateFoldersSearchQuery("")
+                                }) {
                                 Icon(imageVector = Icons.Default.Clear, contentDescription = null)
                             }
                         }
@@ -166,14 +175,15 @@ fun SpecificPanelManagerScreen(
                 items(foldersOfTheSelectedPanel.value) { folderItem ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect().clickable(onClick = {
-                            specificPanelManagerScreenVM.removeAFolderFromAPanel(
-                                panelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
-                                folderId = folderItem.folderId
-                            )
-                        }, indication = null, interactionSource = remember {
-                            MutableInteractionSource()
-                        }).padding(10.dp)
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                            .pressScaleEffect().clickable(onClick = {
+                                specificPanelManagerScreenVM.removeAFolderFromAPanel(
+                                    panelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
+                                    folderId = folderItem.folderId
+                                )
+                            }, indication = null, interactionSource = remember {
+                                MutableInteractionSource()
+                            }).padding(10.dp)
                     ) {
                         Icon(imageVector = Icons.Default.Remove, contentDescription = null)
                         Spacer(Modifier.width(5.dp))
@@ -199,18 +209,19 @@ fun SpecificPanelManagerScreen(
                 items(foldersToIncludeInPanel.value) { folderToIncludeInPanel ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect().clickable(onClick = {
-                            specificPanelManagerScreenVM.addANewFolderInAPanel(
-                                PanelFolder(
-                                    folderId = folderToIncludeInPanel.localId,
-                                    folderName = folderToIncludeInPanel.name,
-                                    connectedPanelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
-                                    panelPosition = 0
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                            .pressScaleEffect().clickable(onClick = {
+                                specificPanelManagerScreenVM.addANewFolderInAPanel(
+                                    PanelFolder(
+                                        folderId = folderToIncludeInPanel.localId,
+                                        folderName = folderToIncludeInPanel.name,
+                                        connectedPanelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
+                                        panelPosition = 0
+                                    )
                                 )
-                            )
-                        }, indication = null, interactionSource = remember {
-                            MutableInteractionSource()
-                        }).padding(10.dp)
+                            }, indication = null, interactionSource = remember {
+                                MutableInteractionSource()
+                            }).padding(10.dp)
                     ) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = null)
                         Spacer(Modifier.width(5.dp))
@@ -221,6 +232,9 @@ fun SpecificPanelManagerScreen(
                         )
                     }
                 }
+            }
+            item {
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
