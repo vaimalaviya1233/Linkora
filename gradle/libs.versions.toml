@@ -1,5 +1,4 @@
 [versions]
-accompanistSystemuicontroller = "0.26.3-beta"
 agp = "8.10.0"
 android-compileSdk = "36"
 android-minSdk = "24"
@@ -24,14 +23,13 @@ ktorVersion = "3.0.2"
 lifecycleViewmodelCompose = "2.8.2"
 navigationCompose = "2.9.0"
 ksp = "2.2.20-2.0.4"
-sqlite = "2.5.0-SNAPSHOT"
-androidx-room = "2.7.2"
+sqlite = "2.6.2"
+androidx-room = "2.8.4"
 workRuntime = "2.10.0"
 documentfile = "1.1.0"
 aboutLibraries = "13.1.0"
 
 [libraries]
-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferencesCore" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
@@ -73,4 +71,3 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "androidx-room" }
-aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
