@@ -1,6 +1,5 @@
 package com.sakethh.linkora
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -16,13 +15,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.rememberNavController
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.preferences.AppPreferences
@@ -33,16 +36,9 @@ import com.sakethh.linkora.ui.components.NotificationPermissionDialogBox
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
-import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.AndroidUIEvent.pushUIEvent
-import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.ifNot
-import com.sakethh.linkora.utils.ifTrue
 import com.sakethh.linkora.utils.isTablet
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -77,9 +73,11 @@ class MainActivity : ComponentActivity() {
                         )
                     )
                 })
-            val isNotificationPermissionDialogVisible = rememberSaveable {
+
+            var showNotificationPermissionDialog by rememberSaveable {
                 mutableStateOf(false)
             }
+
             val activityResultLauncherForFileImport =
                 rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                     coroutineScope.pushUIEvent(
@@ -108,57 +106,30 @@ class MainActivity : ComponentActivity() {
                         )
                     )
                 }
-            val localActivity = LocalContext.current as Activity
-            LaunchedEffect(Unit) {
-                launch {
-                    UIEvent.uiEvents.collectLatest {
-                        if (it is UIEvent.Type.MinimizeTheApp) {
-                            localActivity.moveTaskToBack(true)
-                        }
-                    }
-                }
-
-                launch {
-                    AndroidUIEvent.androidUIEventChannel.collectLatest {
+            viewModel<MainVM>(factory = viewModelFactory {
+                initializer {
+                    MainVM(launchAction = {
                         when (it) {
-                            is AndroidUIEvent.Type.ShowRuntimePermissionForStorage -> {
-                                pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
-                                storageRuntimePermission.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            }
-
-                            is AndroidUIEvent.Type.StoragePermissionGrantedForAndBelowQ -> {
-                                it.isGranted.ifNot {
-                                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.StoragePermissionIsRequired.getLocalizedString()))
-                                }.ifTrue {
-                                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.PermissionGranted.getLocalizedString()))
-                                }
-                            }
-
-                            is AndroidUIEvent.Type.ImportAFile -> {
-                                activityResultLauncherForFileImport.launch(it.fileType)
-                            }
-
-                            is AndroidUIEvent.Type.ShowRuntimePermissionForNotifications -> {
-                                if (Build.VERSION.SDK_INT > 32) {
-                                    isNotificationPermissionDialogVisible.value = true
-                                }
-                            }
-
-                            is AndroidUIEvent.Type.NotificationPermissionState -> {
-                                it.isGranted.ifNot {
-                                    pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.NotificationPermissionIsRequired.getLocalizedString()))
-                                }
-                            }
-
-                            is AndroidUIEvent.Type.PickADirectory -> {
+                            Action.LaunchDirectoryPicker -> {
                                 activityResultLauncherForPickingADirectory.launch(null)
                             }
 
-                            else -> {}
+                            is Action.LaunchFileImport -> {
+                                activityResultLauncherForFileImport.launch(it.fileType)
+                            }
+
+                            Action.LaunchWriteExternalStoragePermission -> {
+                                storageRuntimePermission.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            }
+
+                            Action.Minimize -> moveTaskToBack(true)
+                            Action.ShowNotificationPermissionDialog -> {
+                                showNotificationPermissionDialog = true
+                            }
                         }
-                    }
+                    })
                 }
-            }
+            })
             val localConfiguration = LocalConfiguration.current
             CompositionLocalProvider(
                 LocalNavController provides navController,
@@ -213,9 +184,13 @@ class MainActivity : ComponentActivity() {
                         App()
                     }
                     NotificationPermissionDialogBox(
-                        isVisible = isNotificationPermissionDialogVisible,
-                        notificationRuntimePermission = notificationRuntimePermission
-                    )
+                        isVisible = showNotificationPermissionDialog,
+                        hideDialog = {
+                            showNotificationPermissionDialog = false
+                        },
+                        launchRuntimePermission = {
+                            notificationRuntimePermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        })
                 }
             }
         }
