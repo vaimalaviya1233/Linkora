@@ -8,7 +8,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sakethh.linkora.R
-import com.sakethh.linkora.RefreshAllLinksNotificationService
+import com.sakethh.linkora.service.RefreshAllLinksNotificationService
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences

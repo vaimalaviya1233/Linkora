@@ -21,7 +21,7 @@
         android:theme="@style/Theme.Linkora"
         android:usesCleartextTraffic="true">
         <receiver
-            android:name=".CancelRefreshingActionReceiver"
+            android:name=".service.CancelRefreshingActionReceiver"
             android:exported="true" />
         <activity
             android:name=".MainActivity"
@@ -128,7 +128,7 @@
 
         </activity>
         <service
-            android:name=".AutoSaveLinkService"
+            android:name=".service.AutoSaveLinkService"
             android:foregroundServiceType="specialUse" />
     </application>
 

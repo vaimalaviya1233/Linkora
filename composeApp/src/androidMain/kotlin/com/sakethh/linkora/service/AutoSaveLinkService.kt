@@ -1,4 +1,4 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.service
 
 import android.app.Service
 import android.content.Intent
@@ -7,6 +7,9 @@ import android.os.IBinder
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import com.sakethh.linkora.IntentActivityVM
+import com.sakethh.linkora.MainActivity
+import com.sakethh.linkora.R
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
@@ -76,7 +79,7 @@ class AutoSaveLinkService : Service() {
                 }
             }
         }.invokeOnCompletion {
-            if (!MainActivity.wasLaunched && AppPreferences.areSnapshotsEnabled.value) {
+            if (!MainActivity.Companion.wasLaunched && AppPreferences.areSnapshotsEnabled.value) {
                 intentActivityVM.createADataSnapshot(onCompletion = {
                     toast("Snapshot created successfully")
                 })
