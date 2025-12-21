@@ -1,6 +1,8 @@
 package com.sakethh.linkora
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -44,17 +46,34 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ShareToSaveActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (AppPreferences.autoSaveOnShareIntent.value) {
+
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(
+                    applicationContext,
+                    "Notification permission is required for auto-save",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finishAndRemoveTask()
+            }
+
             linkoraLog("Redirecting the intent action to AutoSaveLinkService")
             val autoSaveServiceIntent = Intent(this, AutoSaveLinkService::class.java).putExtra(
                 Intent.EXTRA_TEXT, this@ShareToSaveActivity.intent?.getStringExtra(
                     Intent.EXTRA_TEXT
                 ).toString()
             )
-            startForegroundService(autoSaveServiceIntent)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(autoSaveServiceIntent)
+            } else {
+                startService(autoSaveServiceIntent)
+            }
+
             linkoraLog("Redirected the intent action to AutoSaveLinkService")
             finishAndRemoveTask()
         }

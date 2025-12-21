@@ -2,7 +2,9 @@ package com.sakethh.linkora
 
 import android.app.Service
 import android.content.Intent
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.sakethh.linkora.di.DependencyContainer
@@ -22,6 +24,14 @@ import kotlinx.coroutines.withContext
 class AutoSaveLinkService : Service() {
     override fun onBind(p0: Intent?): IBinder? {
         return null
+    }
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private fun toast(msg: String) = mainHandler.post {
+        Toast.makeText(
+            applicationContext, msg, Toast.LENGTH_SHORT
+        ).show()
     }
 
     private val intentActivityVM = IntentActivityVM(
@@ -59,24 +69,16 @@ class AutoSaveLinkService : Service() {
             ).collectLatest {
                 withContext(Dispatchers.Main) {
                     it.onSuccess {
-                        Toast.makeText(
-                            applicationContext,
-                            "Auto-saved the link successfully",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        toast("Auto-saved the link successfully")
                     }.onFailure {
-                        Toast.makeText(
-                            applicationContext, it, Toast.LENGTH_SHORT
-                        ).show()
+                        toast(it)
                     }
                 }
             }
         }.invokeOnCompletion {
             if (!MainActivity.wasLaunched && AppPreferences.areSnapshotsEnabled.value) {
                 intentActivityVM.createADataSnapshot(onCompletion = {
-                    Toast.makeText(
-                        applicationContext, "Snapshot created successfully", Toast.LENGTH_SHORT
-                    ).show()
+                    toast("Snapshot created successfully")
                 })
             }
             stopSelf()
@@ -86,7 +88,7 @@ class AutoSaveLinkService : Service() {
     }
 
     override fun onDestroy() {
-        linkoraLog("Destroying the AutoSaveLinkService")
+        linkoraLog("Nuking the AutoSaveLinkService")
         super.onDestroy()
     }
 }
