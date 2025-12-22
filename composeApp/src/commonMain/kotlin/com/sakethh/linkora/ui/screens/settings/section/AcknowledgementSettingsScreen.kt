@@ -52,7 +52,6 @@ fun AcknowledgementScreen() {
     val navController = LocalNavController.current
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.AcknowledgementScreen.toString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)

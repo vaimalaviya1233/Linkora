@@ -93,9 +93,11 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CollectionsScreen(
-    collectionsScreenVM: CollectionsScreenVM, currentFABContext: (CurrentFABContext) -> Unit
+    collectionScreenParams: CollectionScreenParams,
+    collectionDetailPaneParams: CollectionDetailPaneParams,
+    currentFABContext: (CurrentFABContext) -> Unit
 ) {
-    val anyCollectionSelected by collectionsScreenVM.isPaneSelected.collectAsStateWithLifecycle()
+    val anyCollectionSelected by collectionScreenParams.isPaneSelected.collectAsStateWithLifecycle()
     val platform = LocalPlatform.current
 
     LaunchedEffect(Unit) {
@@ -108,7 +110,7 @@ fun CollectionsScreen(
         }
     }
 
-    val rootFolders by collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
+    val rootFolders by collectionScreenParams.rootRegularFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val topAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -123,8 +125,8 @@ fun CollectionsScreen(
         AppPreferences.selectedCollectionSourceId = rootContentPagerState.currentPage
         rootContentPagerState.animateScrollToPage(AppPreferences.selectedCollectionSourceId)
     }
-    val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
-    val paneHistoryPeek by collectionsScreenVM.peekPaneHistory.collectAsStateWithLifecycle()
+    val allTags by collectionScreenParams.allTags.collectAsStateWithLifecycle()
+    val paneHistoryPeek by collectionScreenParams.peekPaneHistory.collectAsStateWithLifecycle()
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
@@ -166,11 +168,17 @@ fun CollectionsScreen(
                                     value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
-                                    Navigation.Collection.CollectionDetailPane
+                                    Navigation.Collection.MobileCollectionDetailScreen
                                 )
                             } else {
-                                collectionsScreenVM.pushToDetailPane(collectionDetailPaneInfo)
-                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.PushToDetailPane(
+                                        collectionDetailPaneInfo
+                                    )
+                                )
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.ClearDetailPaneHistoryUntilLast
+                                )
                             }
                         },
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.ALL_LINKS_ID
@@ -183,7 +191,7 @@ fun CollectionsScreen(
                     DefaultFolderComponent(
                         name = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
                         icon = Icons.Outlined.Link,
-                        onClick = { ->
+                        onClick = {
                             val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                 currentFolder = Folder(
                                     name = Localization.Key.SavedLinks.getLocalizedString(),
@@ -200,13 +208,17 @@ fun CollectionsScreen(
                                     value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
-                                    Navigation.Collection.CollectionDetailPane
+                                    Navigation.Collection.MobileCollectionDetailScreen
                                 )
                             } else {
-                                collectionsScreenVM.pushToDetailPane(
-                                    collectionDetailPaneInfo
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.PushToDetailPane(
+                                        collectionDetailPaneInfo
+                                    )
                                 )
-                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.ClearDetailPaneHistoryUntilLast
+                                )
                             }
                         },
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.SAVED_LINKS_ID
@@ -216,7 +228,7 @@ fun CollectionsScreen(
                     DefaultFolderComponent(
                         name = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
                         icon = Icons.Outlined.StarOutline,
-                        onClick = { ->
+                        onClick = {
                             val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                 currentFolder = Folder(
                                     name = Localization.Key.ImportantLinks.getLocalizedString(),
@@ -233,13 +245,17 @@ fun CollectionsScreen(
                                     value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
-                                    Navigation.Collection.CollectionDetailPane
+                                    Navigation.Collection.MobileCollectionDetailScreen
                                 )
                             } else {
-                                collectionsScreenVM.pushToDetailPane(
-                                    collectionDetailPaneInfo
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.PushToDetailPane(
+                                        collectionDetailPaneInfo
+                                    )
                                 )
-                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.ClearDetailPaneHistoryUntilLast
+                                )
                             }
                         },
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
@@ -249,7 +265,7 @@ fun CollectionsScreen(
                     DefaultFolderComponent(
                         name = Localization.rememberLocalizedString(Localization.Key.Archive),
                         icon = Icons.Outlined.Archive,
-                        onClick = { ->
+                        onClick = {
                             val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                 currentFolder = Folder(
                                     name = Localization.Key.Archive.getLocalizedString(),
@@ -266,13 +282,17 @@ fun CollectionsScreen(
                                     value = Json.encodeToString(collectionDetailPaneInfo)
                                 )
                                 navController.navigate(
-                                    Navigation.Collection.CollectionDetailPane
+                                    Navigation.Collection.MobileCollectionDetailScreen
                                 )
                             } else {
-                                collectionsScreenVM.pushToDetailPane(
-                                    collectionDetailPaneInfo
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.PushToDetailPane(
+                                        collectionDetailPaneInfo
+                                    )
                                 )
-                                collectionsScreenVM.clearDetailPaneHistoryUntilLast()
+                                collectionScreenParams.performAction(
+                                    CollectionsAction.ClearDetailPaneHistoryUntilLast
+                                )
                             }
                         },
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.ARCHIVE_ID
@@ -288,7 +308,8 @@ fun CollectionsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 15.dp)
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .padding(start = 15.dp)
                             .clickable(indication = null, interactionSource = remember {
                                 MutableInteractionSource()
                             }) {
@@ -298,19 +319,23 @@ fun CollectionsScreen(
                                 }
                             }, verticalAlignment = Alignment.CenterVertically
                         ) {
-                            FilledTonalIconButton(onClick = {
-                                isRootContentSwitcherBtmSheetVisible = true
-                                coroutineScope.launch {
-                                    rootContentSwitcherBtmSheetState.show()
-                                }
-                            }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).size(22.dp)) {
+                            FilledTonalIconButton(
+                                onClick = {
+                                    isRootContentSwitcherBtmSheetVisible = true
+                                    coroutineScope.launch {
+                                        rootContentSwitcherBtmSheetState.show()
+                                    }
+                                },
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                    .size(22.dp)
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.ArrowDownward,
                                     contentDescription = null
                                 )
                             }
                             Spacer(Modifier.width(10.dp))
-                            AnimatedContent(targetState = collectionsScreenVM.currentCollectionSource) { currentCollectionSource ->
+                            AnimatedContent(targetState = collectionScreenParams.currentCollectionSource) { currentCollectionSource ->
                                 Text(
                                     text = currentCollectionSource,
                                     color = MaterialTheme.colorScheme.primary,
@@ -354,7 +379,7 @@ fun CollectionsScreen(
                                                 FolderComponentParam(
                                                     name = folder.name,
                                                     note = folder.note,
-                                                    onClick = { ->
+                                                    onClick = {
                                                         if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(
                                                                 folder
                                                             )
@@ -375,16 +400,20 @@ fun CollectionsScreen(
                                                                 )
                                                             )
                                                             navController.navigate(
-                                                                Navigation.Collection.CollectionDetailPane
+                                                                Navigation.Collection.MobileCollectionDetailScreen
                                                             )
                                                         } else {
-                                                            collectionsScreenVM.pushToDetailPane(
-                                                                collectionDetailPaneInfo
+                                                            collectionScreenParams.performAction(
+                                                                CollectionsAction.PushToDetailPane(
+                                                                    collectionDetailPaneInfo
+                                                                )
                                                             )
-                                                            collectionsScreenVM.clearDetailPaneHistoryUntilLast()
+                                                            collectionScreenParams.performAction(
+                                                                CollectionsAction.ClearDetailPaneHistoryUntilLast
+                                                            )
                                                         }
                                                     },
-                                                    onLongClick = { ->
+                                                    onLongClick = {
                                                         if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
                                                             CollectionsScreenVM.isSelectionEnabled.value =
                                                                 true
@@ -393,7 +422,7 @@ fun CollectionsScreen(
                                                             )
                                                         }
                                                     },
-                                                    onMoreIconClick = { ->
+                                                    onMoreIconClick = {
                                                         coroutineScope.pushUIEvent(
                                                             UIEvent.Type.ShowMenuBtmSheet(
                                                                 menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
@@ -464,13 +493,17 @@ fun CollectionsScreen(
                                                                 )
                                                             )
                                                             navController.navigate(
-                                                                Navigation.Collection.CollectionDetailPane
+                                                                Navigation.Collection.MobileCollectionDetailScreen
                                                             )
                                                         } else {
-                                                            collectionsScreenVM.pushToDetailPane(
-                                                                collectionDetailPaneInfo
+                                                            collectionScreenParams.performAction(
+                                                                CollectionsAction.PushToDetailPane(
+                                                                    collectionDetailPaneInfo
+                                                                )
                                                             )
-                                                            collectionsScreenVM.clearDetailPaneHistoryUntilLast()
+                                                            collectionScreenParams.performAction(
+                                                                CollectionsAction.ClearDetailPaneHistoryUntilLast
+                                                            )
                                                         }
                                                     },
                                                     onLongClick = {},
@@ -519,7 +552,9 @@ fun CollectionsScreen(
                 }
             } else {
                 CollectionDetailPane(
-                    collectionsScreenVM = collectionsScreenVM, currentFABContext = currentFABContext
+                    platform = platform,
+                    currentFABContext = currentFABContext,
+                    collectionDetailPaneParams = collectionDetailPaneParams
                 )
             }
         }

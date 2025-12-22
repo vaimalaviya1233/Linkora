@@ -53,9 +53,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -104,10 +106,10 @@ fun DataSettingsScreen() {
     val navController = LocalNavController.current
     val serverManagementViewModel: ServerManagementViewModel = linkoraViewModel()
     val dataSettingsScreenVM: DataSettingsScreenVM = linkoraViewModel()
-    val isImportExportProgressUIVisible = rememberSaveable {
+    var isImportExportProgressUIVisible by rememberSaveable {
         mutableStateOf(false)
     }
-    val isForcePushAndPullProgressUIVisible = rememberSaveable {
+    var isForcePushAndPullProgressUIVisible by rememberSaveable {
         mutableStateOf(false)
     }
     val shouldDeleteEntireDialogBoxAppear = rememberSaveable { mutableStateOf(false) }
@@ -141,7 +143,6 @@ fun DataSettingsScreen() {
 
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.DataSettingsScreen.toString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.animateContentSize().fillMaxSize()
@@ -222,10 +223,10 @@ fun DataSettingsScreen() {
                             dataSettingsScreenVM.importDataFromAFile(
                                 importFileType = ImportFileType.JSON,
                                 onStart = {
-                                    isImportExportProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible = true
                                 },
                                 onCompletion = {
-                                    isImportExportProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible = false
                                 },
                                 importFileSelectionMethod = ImportFileSelectionMethod.FilePicker to ""
                             )
@@ -254,10 +255,10 @@ fun DataSettingsScreen() {
                             dataSettingsScreenVM.importDataFromAFile(
                                 importFileType = ImportFileType.HTML,
                                 onStart = {
-                                    isImportExportProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible = true
                                 },
                                 onCompletion = {
-                                    isImportExportProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible = false
                                 },
                                 importFileSelectionMethod = ImportFileSelectionMethod.FilePicker to ""
                             )
@@ -334,10 +335,10 @@ fun DataSettingsScreen() {
                                 platform = platform,
                                 exportFileType = ExportFileType.JSON,
                                 onStart = {
-                                    isImportExportProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible = true
                                 },
                                 onCompletion = {
-                                    isImportExportProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible = false
                                 })
                         },
                         icon = Icons.Default.DataObject,
@@ -360,10 +361,10 @@ fun DataSettingsScreen() {
                                 platform = platform,
                                 exportFileType = ExportFileType.HTML,
                                 onStart = {
-                                    isImportExportProgressUIVisible.value = true
+                                    isImportExportProgressUIVisible = true
                                 },
                                 onCompletion = {
-                                    isImportExportProgressUIVisible.value = false
+                                    isImportExportProgressUIVisible = false
                                 })
                         },
                         icon = Icons.Default.Html,
@@ -449,10 +450,10 @@ fun DataSettingsScreen() {
                                         AppPreferences.lastSyncedLocally(serverManagementViewModel.preferencesRepository)
                                     },
                                     onSyncStart = {
-                                        isForcePushAndPullProgressUIVisible.value = true
+                                        isForcePushAndPullProgressUIVisible = true
                                     },
                                     onCompletion = {
-                                        isForcePushAndPullProgressUIVisible.value = false
+                                        isForcePushAndPullProgressUIVisible = false
                                     })
                             },
                             icon = Icons.Default.Sync,
@@ -691,10 +692,10 @@ fun DataSettingsScreen() {
                     ),
                         onStart = {
                             showFileLocationPickerDialog.value = false
-                            isImportExportProgressUIVisible.value = true
+                            isImportExportProgressUIVisible = true
                         },
                         onCompletion = {
-                            isImportExportProgressUIVisible.value = false
+                            isImportExportProgressUIVisible = false
                             showFileLocationPickerDialog.value = false
                         },
                         importFileSelectionMethod = ImportFileSelectionMethod.FileLocationString to fileLocation.value
@@ -741,11 +742,11 @@ fun DataSettingsScreen() {
         })
     }
     ServerManagementBottomSheet(
-        serverManagementViewModel = serverManagementViewModel,
         sheetState = serverInfoBtmSheetState,
         isVisible = shouldServerInfoBtmSheetBeVisible,
-        navController = navController
-    )
+        removeTheConnection = { onDeletion ->
+            serverManagementViewModel.deleteTheConnection(onDeletion)
+        })
     LogsScreen(
         isVisible = isImportExportProgressUIVisible,
         onCancel = {
@@ -759,7 +760,7 @@ fun DataSettingsScreen() {
         isVisible = isForcePushAndPullProgressUIVisible,
         onCancel = {
             serverManagementViewModel.cancelServerConnectionAndSync(removeConnection = false)
-            isForcePushAndPullProgressUIVisible.value = false
+            isForcePushAndPullProgressUIVisible = false
         },
         logs = serverManagementViewModel.dataSyncLogs,
         operationTitle = Localization.Key.SyncingDataLabel.rememberLocalizedString(),
@@ -796,7 +797,7 @@ fun DataSettingsScreen() {
         })
     }
     PlatformSpecificBackHandler {
-        if (isImportExportProgressUIVisible.value || showDuplicateDeleteDialogBox.value || shouldDeleteEntireDialogBoxAppear.value) {
+        if (isImportExportProgressUIVisible || showDuplicateDeleteDialogBox.value || shouldDeleteEntireDialogBoxAppear.value) {
             return@PlatformSpecificBackHandler
         } else {
             navController.navigateUp()

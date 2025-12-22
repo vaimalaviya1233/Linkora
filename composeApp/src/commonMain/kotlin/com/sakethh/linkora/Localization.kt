@@ -150,7 +150,7 @@ object Localization {
             defaultValue = "Linkora Server Setup"
         ),
         ShowOnboardingSlides("Show Onboarding Slides"),
-        CollectionDetailPane(defaultValue = "Collection Detail Pane"),
+        MobileCollectionDetailScreen(defaultValue = "MobileCollectionDetailScreen"),
         CreateANewFolder(
             defaultValue = "Create A New Folder"
         ),
@@ -566,7 +566,7 @@ object Localization {
         Snapshots(defaultValue = "Snapshots"),
         RenameTagName(defaultValue = "Rename tag Name"),
         NewTagName(defaultValue = "New tag name"),
-        FoldersInThisPanel(defaultValue = "Folders in This Panel"),
+        FoldersInThisPanel(defaultValue = "Folders in this panel"),
         FoldersThatCanBeAddedToThisPanel(
             defaultValue = "Folders that can be added to this panel"
         ),

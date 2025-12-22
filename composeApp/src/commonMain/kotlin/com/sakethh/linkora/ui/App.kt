@@ -72,14 +72,16 @@ import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheet
 import com.sakethh.linkora.ui.components.sorting.SortingBottomSheetParam
 import com.sakethh.linkora.ui.domain.FABContext
-import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.SortingBtmSheetType
 import com.sakethh.linkora.ui.domain.TransferActionType
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
+import com.sakethh.linkora.ui.domain.model.AddNewLinkDialogParams
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.navigation.LinkoraNavHost
 import com.sakethh.linkora.ui.navigation.Navigation
+import com.sakethh.linkora.ui.screens.collections.CollectionDetailPaneParams
+import com.sakethh.linkora.ui.screens.collections.CollectionScreenParams
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.collections.components.RenameTagComponent
 import com.sakethh.linkora.ui.screens.collections.components.TagDeletionConfirmation
@@ -130,7 +132,7 @@ fun App(
     val isReducedTransparencyBoxVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    val showBtmSheetForNewLinkAddition = rememberSaveable {
+    rememberSaveable {
         mutableStateOf(false)
     }
     val coroutineScope = rememberCoroutineScope()
@@ -156,14 +158,20 @@ fun App(
         if (appVM.onBoardingCompleted.value && (platform() == Platform.Desktop || platform() == Platform.Android.Tablet)) {
             DesktopNavigationRail(
                 rootRouteList = rootRouteList,
-                appVM = appVM,
                 currentRoute = currentRoute,
                 isDataSyncingFromPullRefresh = isDataSyncingFromPullRefresh,
                 onNavigate = {
                     collectionsScreenVM.clearDetailPaneHistory()
-                })
+                },
+                isPerformingStartupSync = appVM.isPerformingStartupSync.value,
+                getLastSyncedTime = {
+                    appVM.getLastSyncedTime()
+                },
+                isAnySnapshotOngoing = appVM.isAnySnapshotOngoing.value,
+                performAction = appVM::performAppAction
+            )
         }
-        val showLoadingProgressBarOnTransferAction = rememberSaveable {
+        var showLoadingProgressBarOnTransferAction by rememberSaveable {
             mutableStateOf(false)
         }
         val selectedAndInRoot = rememberSaveable(inRootScreen, appVM.transferActionType.value) {
@@ -175,17 +183,27 @@ fun App(
                 Box(modifier = Modifier.animateContentSize()) {
                     if (CollectionsScreenVM.isSelectionEnabled.value) {
                         BottomNavOnSelection(
-                            showLoadingProgressBarOnTransferAction = showLoadingProgressBarOnTransferAction,
-                            appVM = appVM,
+                            showLoadingProgressBarOnTransferAction = {
+                                showLoadingProgressBarOnTransferAction = true
+                            },
+                            hideLoadingProgressBarOnTransferAction = {
+                                showLoadingProgressBarOnTransferAction = false
+                            },
                             selectedAndInRoot = selectedAndInRoot,
-                            currentRoute = currentRoute
+                            currentRoute = currentRoute,
+                            progressBarVisible = showLoadingProgressBarOnTransferAction,
+                            currentFABContext = currentFABContext,
+                            transferActionType = appVM.transferActionType.value,
+                            changeTransferActionType = {
+                                appVM.transferActionType.value = it
+                            },
+                            performAction = appVM::performAppAction
                         )
                     }
                 }
                 MobileBottomNavBar(
                     rootRouteList = rootRouteList,
                     isPerformingStartupSync = appVM.isPerformingStartupSync.value,
-                    platform = platform,
                     inRootScreen = inRootScreen,
                     currentRoute = currentRoute,
                     onDoubleTap = { navigationRoot ->
@@ -212,19 +230,30 @@ fun App(
                     }
                     AddItemFab(
                         AddItemFABParam(
-                            showDialogForNewLinkAddition = showBtmSheetForNewLinkAddition,
-                            isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible,
+                            isReducedTransparencyBoxVisible = isReducedTransparencyBoxVisible.value,
                             onShowDialogForNewFolder = {
                                 appVM.showNewFolderDialog = true
                             },
                             onShowAddLinkDialog = {
                                 appVM.showAddLinkDialog = true
                             },
-                            isMainFabRotated = AppVM.isMainFabRotated,
+                            isMainFabRotated = AppVM.isMainFabRotated.value,
                             rotationAnimatable = rotationAnimatable,
                             inASpecificScreen = false,
                             onCreateATagClick = {
                                 appVM.showBtmSheetForNewTagAddition = true
+                            },
+                            hideReducedTransparencyBox = {
+                                isReducedTransparencyBoxVisible.value = false
+                            },
+                            undoMainFabRotation = {
+                                AppVM.isMainFabRotated.value = false
+                            },
+                            showReducedTransparencyBox = {
+                                isReducedTransparencyBoxVisible.value = true
+                            },
+                            rotateMainFab = {
+                                AppVM.isMainFabRotated.value = true
                             })
                     )
                 }
@@ -264,14 +293,32 @@ fun App(
                 LinkoraNavHost(
                     startDestination = appVM.startDestination.value,
                     onOnboardingComplete = appVM::markOnboardingComplete,
-                    collectionsScreenVM = collectionsScreenVM,
                     currentFABContext = {
                         appVM.updateFABContext(it)
                     },
                     forceSearchActive = forceSearchActive,
                     cancelForceSearchActive = {
                         forceSearchActive = false
-                    })
+                    },
+                    collectionScreenParams = CollectionScreenParams(
+                        isPaneSelected = collectionsScreenVM.isPaneSelected,
+                        rootRegularFolders = collectionsScreenVM.rootRegularFolders,
+                        allTags = collectionsScreenVM.allTags,
+                        peekPaneHistory = collectionsScreenVM.peekPaneHistory,
+                        currentCollectionSource = collectionsScreenVM.currentCollectionSource,
+                        performAction = collectionsScreenVM::performAction
+                    ),
+                    collectionDetailPaneParams = CollectionDetailPaneParams(
+                        linkTagsPairs = collectionsScreenVM.linkTagsPairs,
+                        childFolders = collectionsScreenVM.childFolders,
+                        rootArchiveFolders = collectionsScreenVM.rootArchiveFolders,
+                        collectionDetailPaneInfo = collectionsScreenVM.collectionDetailPaneInfo,
+                        peekPaneHistory = collectionsScreenVM.peekPaneHistory,
+                        availableFiltersForAllLinks = collectionsScreenVM.availableFiltersForAllLinks,
+                        appliedFiltersForAllLinks = collectionsScreenVM.appliedFiltersForAllLinks,
+                        performAction = collectionsScreenVM::performAction
+                    )
+                )
                 Indicator(
                     state = pullToRefreshState,
                     isRefreshing = isDataSyncingFromPullRefresh.value,
@@ -289,12 +336,18 @@ fun App(
             }
             if (appVM.showAddLinkDialog) {
                 AddANewLinkDialogBox(
-                    onDismiss = {
-                        appVM.showAddLinkDialog = false
-                    },
-                    screenType = ScreenType.ROOT_SCREEN,
-                    currentFolder = if ((inRootScreen == true && platform is Platform.Android.Mobile) || currentFABContext.currentFolder?.localId == Constants.ALL_LINKS_ID) null else currentFABContext.currentFolder,
-                    collectionsScreenVM = collectionsScreenVM
+                    addNewLinkDialogParams = AddNewLinkDialogParams(
+                        onDismiss = {
+                            appVM.showAddLinkDialog = false
+                        },
+                        currentFolder = if ((inRootScreen == true && platform is Platform.Android.Mobile) || currentFABContext.currentFolder?.localId == Constants.ALL_LINKS_ID) null else currentFABContext.currentFolder,
+                        allTags = collectionsScreenVM.allTags,
+                        selectedTags = collectionsScreenVM.selectedTags,
+                        foldersSearchQuery = collectionsScreenVM.foldersSearchQuery,
+                        foldersSearchQueryResult = collectionsScreenVM.foldersSearchQueryResult,
+                        rootRegularFolders = collectionsScreenVM.rootRegularFolders,
+                        performAction = collectionsScreenVM::performAction,
+                    ),
                 )
             }
 
@@ -445,7 +498,7 @@ fun App(
                                 )
                             )
                             localNavController.navigate(
-                                Navigation.Collection.CollectionDetailPane
+                                Navigation.Collection.MobileCollectionDetailScreen
                             )
                             hideMenuSheet()
                         })
@@ -535,8 +588,8 @@ fun App(
                 SortingBottomSheet(
                     SortingBottomSheetParam(
                         onDismiss = {
-                        appVM.showSortingBtmSheet = false
-                    },
+                            appVM.showSortingBtmSheet = false
+                        },
                         onSelected = { sortingPreferences, _, _ -> },
                         bottomModalSheetState = appVM.sortingBtmSheetState,
                         sortingBtmSheetType = SortingBtmSheetType.COLLECTIONS_SCREEN,

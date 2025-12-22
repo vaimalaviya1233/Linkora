@@ -115,6 +115,7 @@ class LanguageSettingsScreenVM(
         }
     }
 
+    // REFACTOR: NESTED collectLatest
     fun downloadALanguageStringsPack(language: LocalizedLanguage) {
         viewModelScope.launch {
             localizationRepoRemote.getLanguagePackFromServer(language.languageCode).collectLatest {

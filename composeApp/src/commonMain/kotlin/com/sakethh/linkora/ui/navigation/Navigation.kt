@@ -122,9 +122,9 @@ sealed interface Navigation {
     @Serializable
     sealed interface Collection {
         @Serializable
-        data object CollectionDetailPane : Collection {
+        data object MobileCollectionDetailScreen : Collection {
             override fun toString(): String {
-                return Localization.getLocalizedString(Localization.Key.CollectionDetailPane)
+                return Localization.getLocalizedString(Localization.Key.MobileCollectionDetailScreen)
             }
         }
     }

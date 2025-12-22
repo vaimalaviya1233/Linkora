@@ -36,14 +36,14 @@ import com.sakethh.linkora.utils.rememberLocalizedString
 
 @Composable
 fun LogsScreen(
-    isVisible: MutableState<Boolean>,
+    isVisible: Boolean,
     operationTitle: String,
     operationDesc: String,
     logs: List<String>,
     onCancel: () -> Unit
 ) {
     val logsListState = rememberLazyListState()
-    if (isVisible.value) {
+    if (isVisible) {
         Scaffold(topBar = {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(15.dp)

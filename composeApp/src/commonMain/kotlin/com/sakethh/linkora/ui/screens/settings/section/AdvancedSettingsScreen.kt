@@ -31,7 +31,6 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.PreferenceText
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedSettingsScreen() {
-    val navController = LocalNavController.current
     val primaryJsoupStringAgent = rememberSaveable(AppPreferences.primaryJsoupUserAgent.value) {
         mutableStateOf(AppPreferences.primaryJsoupUserAgent.value)
     }
@@ -49,7 +48,6 @@ fun AdvancedSettingsScreen() {
     val settingsScreenVM: SettingsScreenViewModel = linkoraViewModel()
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.AdvancedSettingsScreen.toString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)

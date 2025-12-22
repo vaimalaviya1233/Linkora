@@ -40,6 +40,7 @@ import com.sakethh.linkora.platform.PermissionManager
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
+import com.sakethh.linkora.ui.domain.AppAction
 import com.sakethh.linkora.ui.domain.CurrentFABContext
 import com.sakethh.linkora.ui.domain.FABContext
 import com.sakethh.linkora.ui.domain.TransferActionType
@@ -107,6 +108,44 @@ class AppVM(
     val startDestination: MutableState<Navigation.Root> = mutableStateOf(Navigation.Root.HomeScreen)
     val onBoardingCompleted = mutableStateOf(false)
 
+
+    fun performAppAction(appAction: AppAction) {
+        when (appAction) {
+            is AppAction.ArchiveSelectedItems -> archiveSelectedItems(
+                onStart = appAction.onStart,
+                onCompletion = appAction.onCompletion
+            )
+
+            is AppAction.CopySelectedItems -> copySelectedItems(
+                folderId = appAction.folderId,
+                onStart = appAction.onStart,
+                onCompletion = appAction.onCompletion
+            )
+
+            is AppAction.MarkSelectedFoldersAsRoot -> markSelectedFoldersAsRoot(
+                onStart = appAction.onStart,
+                onCompletion = appAction.onCompletion
+            )
+
+            is AppAction.MarkSelectedItemsAsRegular -> markSelectedItemsAsRegular(
+                onStart = appAction.onStart,
+                onCompletion = appAction.onCompletion
+            )
+
+            is AppAction.MoveSelectedItems -> moveSelectedItems(
+                folderId = appAction.folderId,
+                onStart = appAction.onStart,
+                onCompletion = appAction.onCompletion
+            )
+
+            is AppAction.SaveServerConnectionAndSync -> saveServerConnectionAndSync(
+                serverConnection = appAction.serverConnection,
+                timeStampAfter = appAction.timeStampAfter,
+                onSyncStart = appAction.onSyncStart,
+                onCompletion = appAction.onCompletion
+            )
+        }
+    }
 
     suspend fun getLastSyncedTime(): Long {
         return preferencesRepository.readPreferenceValue(
@@ -186,6 +225,7 @@ class AppVM(
                     pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
                 }
                 isPerformingStartupSync.value = true
+                // REFACTOR: NESTED collectLatest
                 networkRepo.testServerConnection(
                     serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,
                     token = AppPreferences.serverSecurityToken.value
@@ -324,7 +364,7 @@ class AppVM(
         viewModelScope.launch {
             localMultiActionRepo.archiveMultipleItems(
                 linkIds = selectedLinkTagPairsViaLongClick.filter { it.link.linkType != LinkType.ARCHIVE_LINK }
-                .map { it.link.localId },
+                    .map { it.link.localId },
                 folderIds = selectedFoldersViaLongClick.filter { it.isArchived.not() }
                     .map { it.localId }).collectLatest {
                 it.onSuccess {
@@ -383,7 +423,7 @@ class AppVM(
         viewModelScope.launch {
             localMultiActionRepo.unArchiveMultipleItems(
                 folderIds = selectedFoldersViaLongClick.filter { it.isArchived }
-                .map { it.localId },
+                    .map { it.localId },
                 linkIds = selectedLinkTagPairsViaLongClick.filter { it.link.linkType == LinkType.ARCHIVE_LINK }
                     .map { it.link.localId }).collect()
         }.invokeOnCompletion {

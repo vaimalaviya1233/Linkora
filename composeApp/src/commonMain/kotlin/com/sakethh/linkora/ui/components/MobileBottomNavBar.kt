@@ -37,6 +37,7 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -52,11 +53,11 @@ import kotlinx.coroutines.withTimeoutOrNull
 fun MobileBottomNavBar(
     rootRouteList: List<Navigation.Root>,
     isPerformingStartupSync: Boolean,
-    platform: Platform,
     inRootScreen: Boolean?,
     currentRoute: NavDestination?,
     onDoubleTap: (Navigation.Root) -> Unit
 ) {
+    val platform = platform()
     val localNavController = LocalNavController.current
     val mobileBottomNavBarVM: MobileBottomNavBarVM = viewModel()
     val searchNavItemTapTimes by mobileBottomNavBarVM.searchNavItemTapTimes.collectAsStateWithLifecycle()

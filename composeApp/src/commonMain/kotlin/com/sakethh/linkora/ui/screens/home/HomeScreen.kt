@@ -232,7 +232,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                             key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
                             value = Json.encodeToString(collectionDetailPaneInfo)
                         )
-                        navController.navigate(Navigation.Collection.CollectionDetailPane)
+                        navController.navigate(Navigation.Collection.MobileCollectionDetailScreen)
                     },
                     linkMoreIconClick = {
                         coroutineScope.pushUIEvent(
@@ -276,7 +276,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                             )
                         )
                         navController.navigate(
-                            Navigation.Collection.CollectionDetailPane
+                            Navigation.Collection.MobileCollectionDetailScreen
                         )
                     },
                     tags = emptyList(),

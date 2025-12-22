@@ -101,7 +101,6 @@ fun GeneralSettingsScreen() {
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.GeneralSettingsScreen.toString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)

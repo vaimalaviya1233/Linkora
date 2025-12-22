@@ -12,7 +12,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -35,7 +34,8 @@ import com.sakethh.linkora.service.AutoSaveLinkService
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
 import com.sakethh.linkora.ui.components.AddANewLinkDialogBox
-import com.sakethh.linkora.ui.domain.ScreenType
+import com.sakethh.linkora.ui.domain.model.AddNewLinkDialogParams
+import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.theme.DarkColors
 import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
@@ -82,6 +82,7 @@ class ShareToSaveActivity : ComponentActivity() {
         setContent {
             val localConfiguration = LocalConfiguration.current
             val navController = rememberNavController()
+            val context = LocalContext.current
             val intentActivityVM = viewModel<IntentActivityVM>(factory = viewModelFactory {
                 initializer {
                     IntentActivityVM(
@@ -89,28 +90,20 @@ class ShareToSaveActivity : ComponentActivity() {
                         localFoldersRepo = DependencyContainer.localFoldersRepo,
                         localPanelsRepo = DependencyContainer.localPanelsRepo,
                         localTagsRepo = DependencyContainer.localTagsRepo,
-                        snapshotRepo = DependencyContainer.snapshotRepo
-                    )
+                        snapshotRepo = DependencyContainer.snapshotRepo,
+                        showToast = { message ->
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        })
                 }
             })
             CompositionLocalProvider(
                 LocalNavController provides navController,
                 LocalPlatform provides if (isTablet(localConfiguration)) Platform.Android.Tablet else Platform.Android.Mobile
             ) {
-                val context = LocalContext.current
                 val darkColors = DarkColors.copy(
                     background = if (AppPreferences.useAmoledTheme.value) Color(0xFF000000) else DarkColors.background,
                     surface = if (AppPreferences.useAmoledTheme.value) Color(0xFF000000) else DarkColors.surface
                 )
-                LaunchedEffect(Unit) {
-                    UIEvent.uiEvents.collectLatest {
-                        if (it is UIEvent.Type.ShowSnackbar) {
-                            // Toast isn't supposed to show, but as soon as `shouldUIBeVisible` isn't true, the snackbar won't show either
-                            // toast stays on the UI for a while, no matter what happens with the clearance
-                            Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
                 val colors = when {
                     AppPreferences.useDynamicTheming.value && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
                         if (AppPreferences.useSystemTheme.value) {
@@ -148,29 +141,37 @@ class ShareToSaveActivity : ComponentActivity() {
                         if (AppPreferences.useDarkTheme.value) darkColors else LightColors
                     }
                 }
+                val collectionsScreenVM: CollectionsScreenVM =
+                    viewModel(factory = CollectionScreenVMAssistedFactory.createForIntentActivity())
                 LinkoraTheme(
                     colorScheme = colors
                 ) {
                     AddANewLinkDialogBox(
-                        onDismiss = {
-                            if (MainActivity.wasLaunched) {
-                                this@ShareToSaveActivity.finishAndRemoveTask()
-                                return@AddANewLinkDialogBox
-                            }
-                            if (AppPreferences.areSnapshotsEnabled.value) {
-                                intentActivityVM.createADataSnapshot(onCompletion = {
+                        addNewLinkDialogParams = AddNewLinkDialogParams(
+                            onDismiss = {
+                                if (MainActivity.wasLaunched) {
                                     this@ShareToSaveActivity.finishAndRemoveTask()
-                                })
-                            } else {
-                                this@ShareToSaveActivity.finishAndRemoveTask()
-                            }
-                        },
-                        screenType = ScreenType.INTENT_ACTIVITY,
-                        currentFolder = null,
-                        collectionsScreenVM = viewModel(factory = CollectionScreenVMAssistedFactory.createForIntentActivity()),
-                        url = this@ShareToSaveActivity.intent?.getStringExtra(
-                            Intent.EXTRA_TEXT
-                        ).toString()
+                                    return@AddNewLinkDialogParams
+                                }
+                                if (AppPreferences.areSnapshotsEnabled.value) {
+                                    intentActivityVM.createADataSnapshot(onCompletion = {
+                                        this@ShareToSaveActivity.finishAndRemoveTask()
+                                    })
+                                } else {
+                                    this@ShareToSaveActivity.finishAndRemoveTask()
+                                }
+                            },
+                            currentFolder = null,
+                            allTags = collectionsScreenVM.allTags,
+                            selectedTags = collectionsScreenVM.selectedTags,
+                            foldersSearchQuery = collectionsScreenVM.foldersSearchQuery,
+                            foldersSearchQueryResult = collectionsScreenVM.foldersSearchQueryResult,
+                            rootRegularFolders = collectionsScreenVM.rootRegularFolders,
+                            performAction = collectionsScreenVM::performAction,
+                            url = this@ShareToSaveActivity.intent?.getStringExtra(
+                                Intent.EXTRA_TEXT
+                            ).toString()
+                        ),
                     )
                 }
             }
@@ -183,7 +184,8 @@ class IntentActivityVM(
     private val localFoldersRepo: LocalFoldersRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val localTagsRepo: LocalTagsRepo,
-    private val snapshotRepo: SnapshotRepo
+    private val snapshotRepo: SnapshotRepo,
+    showToast: (message: String) -> Unit
 ) : ViewModel() {
     fun createADataSnapshot(onCompletion: () -> Unit) {
         viewModelScope.launch {
@@ -205,4 +207,15 @@ class IntentActivityVM(
             )
         }
     }
+
+    init {
+        viewModelScope.launch {
+            UIEvent.uiEvents.collectLatest {
+                if (it is UIEvent.Type.ShowSnackbar) {
+                    showToast(it.message)
+                }
+            }
+        }
+    }
+
 }

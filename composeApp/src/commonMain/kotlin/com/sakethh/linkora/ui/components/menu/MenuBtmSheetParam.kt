@@ -3,12 +3,14 @@ package com.sakethh.linkora.ui.components.menu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 
+@Stable
 data class MenuBtmSheetParam @OptIn(ExperimentalMaterial3Api::class) constructor(
     val onDismiss:()-> Unit,
     val linkTagsPair: LinkTagsPair?,

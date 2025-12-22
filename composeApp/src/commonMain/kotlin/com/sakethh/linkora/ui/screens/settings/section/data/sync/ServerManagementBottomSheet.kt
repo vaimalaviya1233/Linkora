@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.utils.bottomNavPaddingAcrossPlatforms
 import com.sakethh.linkora.utils.fillMaxWidthWithPadding
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -40,11 +41,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerManagementBottomSheet(
-    serverManagementViewModel: ServerManagementViewModel,
+    removeTheConnection: (onDeletion: () -> Unit) -> Unit,
     sheetState: SheetState,
     isVisible: MutableState<Boolean>,
-    navController: NavController
 ) {
+    val navController = LocalNavController.current
     val coroutineScope = rememberCoroutineScope()
     if (isVisible.value) {
         ModalBottomSheet(sheetState = sheetState, onDismissRequest = {
@@ -62,9 +63,7 @@ fun ServerManagementBottomSheet(
                         text = Localization.rememberLocalizedString(Localization.Key.ManageConnectedServer),
                         style = MaterialTheme.typography.titleMedium,
                         fontSize = 18.sp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 25.dp, start = 15.dp)
+                        modifier = Modifier.fillMaxWidth().padding(end = 25.dp, start = 15.dp)
                     )
                 }
                 item {
@@ -118,8 +117,8 @@ fun ServerManagementBottomSheet(
                 item {
                     Spacer(Modifier.height(30.dp))
                     FilledTonalButton(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding(),
-                        onClick = {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .fillMaxWidthWithPadding(), onClick = {
                             navController.navigate(Navigation.Settings.Data.ServerSetupScreen)
                         }) {
                         Text(
@@ -130,18 +129,18 @@ fun ServerManagementBottomSheet(
                 }
                 item {
                     Button(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding(),
-                        colors = ButtonDefaults.buttonColors(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .fillMaxWidthWithPadding(), colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer
                         ), onClick = {
-                            serverManagementViewModel.deleteTheConnection(onDeleted = {
+                            removeTheConnection {
                                 coroutineScope.launch {
                                     sheetState.hide()
                                 }.invokeOnCompletion {
                                     isVisible.value = false
                                 }
-                            })
+                            }
                         }) {
                         Text(
                             text = Localization.rememberLocalizedString(Localization.Key.DeleteTheServerConnection),

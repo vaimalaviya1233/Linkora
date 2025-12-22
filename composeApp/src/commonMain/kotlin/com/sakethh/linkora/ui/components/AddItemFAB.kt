@@ -19,13 +19,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Tag
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,37 +37,33 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.pressScaleEffect
-import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-data class AddItemFABParam @OptIn(ExperimentalMaterial3Api::class) constructor(
-    val showDialogForNewLinkAddition: MutableState<Boolean>,
+@Stable
+data class AddItemFABParam(
     val onCreateATagClick: () -> Unit,
-    val isReducedTransparencyBoxVisible: MutableState<Boolean>,
+    val isReducedTransparencyBoxVisible: Boolean,
     val onShowDialogForNewFolder: () -> Unit,
     val onShowAddLinkDialog: () -> Unit,
-    val isMainFabRotated: MutableState<Boolean>,
+    val isMainFabRotated: Boolean,
     val rotationAnimatable: Animatable<Float, AnimationVector1D>,
-    val inASpecificScreen: Boolean
+    val inASpecificScreen: Boolean,
+    val hideReducedTransparencyBox: () -> Unit,
+    val showReducedTransparencyBox: () -> Unit,
+    val undoMainFabRotation: () -> Unit,
+    val rotateMainFab: () -> Unit,
 )
-
-
-// There are a couple of things in this file I'd do differently if I was writing it now.
-// I mostly copy-pasted this during the KMP migration from Android-only, so it’s been some time since I wrote it.
-
 
 @Composable
 fun AddItemFab(
     addItemFABParam: AddItemFABParam
 ) {
-    val currentIconForMainFAB = remember(addItemFABParam.isMainFabRotated.value) {
+    val currentIconForMainFAB by remember(addItemFABParam.isMainFabRotated) {
         mutableStateOf(
-            if (addItemFABParam.isMainFabRotated.value) {
+            if (addItemFABParam.isMainFabRotated) {
                 Icons.Default.AddLink
             } else {
                 Icons.Default.Add
@@ -75,48 +71,35 @@ fun AddItemFab(
         )
     }
     val coroutineScope = rememberCoroutineScope()
-    LocalNavController.current
-    rememberDeserializableObject {
-        listOf(
-            Navigation.Root.HomeScreen,
-            Navigation.Root.SearchScreen,
-            Navigation.Root.CollectionsScreen,
-            Navigation.Root.SettingsScreen,
-        )
-    }
-
     Column {
-
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.align(Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (addItemFABParam.isMainFabRotated.value) {
-                AnimatedVisibility(
-                    visible = addItemFABParam.isMainFabRotated.value, enter = fadeIn(
-                        tween(
-                            200
-                        )
-                    ), exit = fadeOut(
-                        tween(
-                            200
-                        )
+            AnimatedVisibility(
+                visible = addItemFABParam.isMainFabRotated, enter = fadeIn(
+                    tween(
+                        200
                     )
-                ) {
-                    Text(
-                        text = Localization.Key.CreateANewTag.rememberLocalizedString(),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(
-                            end = 15.dp
-                        )
+                ), exit = fadeOut(
+                    tween(
+                        200
                     )
-                }
+                )
+            ) {
+                Text(
+                    text = Localization.Key.CreateANewTag.rememberLocalizedString(),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(
+                        end = 15.dp
+                    )
+                )
             }
             AnimatedVisibility(
-                visible = addItemFABParam.isMainFabRotated.value,
+                visible = addItemFABParam.isMainFabRotated,
                 enter = androidx.compose.animation.scaleIn(
                     animationSpec = tween(
                         300
@@ -129,9 +112,9 @@ fun AddItemFab(
                 FloatingActionButton(
                     modifier = Modifier.pressScaleEffect()
                         .pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                        addItemFABParam.isReducedTransparencyBoxVisible.value = false
+                        addItemFABParam.hideReducedTransparencyBox()
                         addItemFABParam.onCreateATagClick()
-                        addItemFABParam.isMainFabRotated.value = false
+                        addItemFABParam.undoMainFabRotation()
                         coroutineScope.launch {
                             addItemFABParam.rotationAnimatable.snapTo(-180f)
                         }
@@ -154,31 +137,29 @@ fun AddItemFab(
             modifier = Modifier.align(Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (addItemFABParam.isMainFabRotated.value) {
-                AnimatedVisibility(
-                    visible = addItemFABParam.isMainFabRotated.value, enter = fadeIn(
-                        tween(
-                            200
-                        )
-                    ), exit = fadeOut(
-                        tween(
-                            200
-                        )
+            AnimatedVisibility(
+                visible = addItemFABParam.isMainFabRotated, enter = fadeIn(
+                    tween(
+                        200
                     )
-                ) {
-                    Text(
-                        text = Localization.rememberLocalizedString(Localization.Key.CreateANewFolder),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(
-                            end = 15.dp
-                        )
+                ), exit = fadeOut(
+                    tween(
+                        200
                     )
-                }
+                )
+            ) {
+                Text(
+                    text = Localization.rememberLocalizedString(Localization.Key.CreateANewFolder),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(
+                        end = 15.dp
+                    )
+                )
             }
             AnimatedVisibility(
-                visible = addItemFABParam.isMainFabRotated.value,
+                visible = addItemFABParam.isMainFabRotated,
                 enter = androidx.compose.animation.scaleIn(
                     animationSpec = tween(
                         300
@@ -191,9 +172,9 @@ fun AddItemFab(
                 FloatingActionButton(
                     modifier = Modifier.pressScaleEffect()
                         .pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                        addItemFABParam.isReducedTransparencyBoxVisible.value = false
+                        addItemFABParam.hideReducedTransparencyBox()
                         addItemFABParam.onShowDialogForNewFolder()
-                        addItemFABParam.isMainFabRotated.value = false
+                        addItemFABParam.undoMainFabRotation()
                         coroutineScope.launch {
                             addItemFABParam.rotationAnimatable.snapTo(-180f)
                         }
@@ -215,37 +196,35 @@ fun AddItemFab(
             modifier = Modifier.align(Alignment.End),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (addItemFABParam.isMainFabRotated.value) {
-                AnimatedVisibility(
-                    visible = addItemFABParam.isMainFabRotated.value, enter = fadeIn(
-                        tween(
-                            300
-                        )
-                    ), exit = fadeOut(
-                        tween(
-                            300
-                        )
+            AnimatedVisibility(
+                visible = addItemFABParam.isMainFabRotated, enter = fadeIn(
+                    tween(
+                        300
                     )
-                ) {
-                    Text(
-                        text = Localization.rememberLocalizedString(Localization.Key.AddANewLink),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(
-                            end = 15.dp
-                        )
+                ), exit = fadeOut(
+                    tween(
+                        300
                     )
-                }
+                )
+            ) {
+                Text(
+                    text = Localization.rememberLocalizedString(Localization.Key.AddANewLink),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(
+                        end = 15.dp
+                    )
+                )
             }
             FloatingActionButton(
                 modifier = Modifier.rotate(
                     addItemFABParam.rotationAnimatable.value
                 ).pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                    if (addItemFABParam.isMainFabRotated.value) {
-                        addItemFABParam.isReducedTransparencyBoxVisible.value = false
+                    if (addItemFABParam.isMainFabRotated) {
+                        addItemFABParam.hideReducedTransparencyBox()
                         addItemFABParam.onShowAddLinkDialog()
-                        addItemFABParam.isMainFabRotated.value = false
+                        addItemFABParam.undoMainFabRotation()
                         coroutineScope.launch {
                             addItemFABParam.rotationAnimatable.snapTo(-180f)
                         }
@@ -256,14 +235,14 @@ fun AddItemFab(
                                     180f, animationSpec = tween(500)
                                 )
                             }, async {
-                                addItemFABParam.isReducedTransparencyBoxVisible.value = true
+                                addItemFABParam.showReducedTransparencyBox()
                                 kotlinx.coroutines.delay(10L)
-                                addItemFABParam.isMainFabRotated.value = true
+                                addItemFABParam.rotateMainFab()
                             })
                         }
                     }
                 }) {
-                AnimatedContent(targetState = currentIconForMainFAB.value, transitionSpec = {
+                AnimatedContent(targetState = currentIconForMainFAB, transitionSpec = {
                     fadeIn(tween(500)) togetherWith fadeOut(tween(250))
                 }) {
                     Icon(

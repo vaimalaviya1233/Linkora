@@ -22,7 +22,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
-import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -134,7 +132,14 @@ suspend fun main() {
                         topBar = {
                             if (AppPreferences.useLinkoraTopDecoratorOnDesktop.value) {
                                 WindowDraggableArea {
-                                    TopDecorator(windowState)
+                                    TopDecorator(
+                                        minimize = {
+                                            windowState.isMinimized = true
+                                        },
+                                        currentPlacement = windowState.placement,
+                                        changePlacement = {
+                                            windowState.placement = it
+                                        })
                                 }
                             }
                         }, modifier = Modifier.border(
@@ -150,8 +155,11 @@ suspend fun main() {
 }
 
 @Composable
-private fun ApplicationScope.TopDecorator(windowState: WindowState) {
-    rememberCoroutineScope()
+private fun ApplicationScope.TopDecorator(
+    minimize: () -> Unit,
+    currentPlacement: WindowPlacement,
+    changePlacement: (WindowPlacement) -> Unit
+) {
     Column {
         Box(Modifier.fillMaxWidth().padding(2.dp), contentAlignment = Alignment.CenterEnd) {
             Row(
@@ -191,21 +199,21 @@ private fun ApplicationScope.TopDecorator(windowState: WindowState) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                        windowState.isMinimized = true
-                    }) {
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                    onClick = minimize
+                ) {
                     Icon(imageVector = Icons.Default.Minimize, contentDescription = null)
                 }
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                        if (windowState.placement == WindowPlacement.Fullscreen) {
-                            windowState.placement = WindowPlacement.Floating
+                        if (currentPlacement == WindowPlacement.Fullscreen) {
+                            changePlacement(WindowPlacement.Floating)
                         } else {
-                            windowState.placement = WindowPlacement.Fullscreen
+                            changePlacement(WindowPlacement.Fullscreen)
                         }
                     }) {
                     Icon(
-                        imageVector = if (windowState.placement != WindowPlacement.Fullscreen) Icons.Default.Maximize else Icons.Outlined.Window,
+                        imageVector = if (currentPlacement != WindowPlacement.Fullscreen) Icons.Default.Maximize else Icons.Outlined.Window,
                         contentDescription = null
                     )
                 }

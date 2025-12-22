@@ -34,8 +34,8 @@ import com.sakethh.linkora.ui.components.link.GridViewLinkComponent
 import com.sakethh.linkora.ui.components.link.ListViewLinkComponent
 import com.sakethh.linkora.ui.domain.Layout
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
-import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.domain.model.LinkComponentParam
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -57,44 +57,43 @@ fun CollectionLayoutManager(
     emptyDataText: String = "",
     nestedScrollConnection: NestedScrollConnection?
 ) {
-    val linkComponentParam: (linkTagsPair: LinkTagsPair) -> LinkComponentParam =
-        { linkTagsPair ->
-            LinkComponentParam(
-                link = linkTagsPair.link,
-                isSelectionModeEnabled = CollectionsScreenVM.isSelectionEnabled,
-                onMoreIconClick = {
-                    linkMoreIconClick(linkTagsPair)
-                },
-                onLinkClick = {
-                    if (!CollectionsScreenVM.isSelectionEnabled.value) {
-                        onLinkClick(linkTagsPair)
+    val linkComponentParam: (linkTagsPair: LinkTagsPair) -> LinkComponentParam = { linkTagsPair ->
+        LinkComponentParam(
+            link = linkTagsPair.link,
+            isSelectionModeEnabled = CollectionsScreenVM.isSelectionEnabled,
+            onMoreIconClick = {
+                linkMoreIconClick(linkTagsPair)
+            },
+            onLinkClick = {
+                if (!CollectionsScreenVM.isSelectionEnabled.value) {
+                    onLinkClick(linkTagsPair)
+                } else {
+                    if (CollectionsScreenVM.selectedLinkTagPairsViaLongClick.contains(linkTagsPair)) {
+                        CollectionsScreenVM.selectedLinkTagPairsViaLongClick.remove(linkTagsPair)
                     } else {
-                        if (CollectionsScreenVM.selectedLinkTagPairsViaLongClick.contains(linkTagsPair)) {
-                            CollectionsScreenVM.selectedLinkTagPairsViaLongClick.remove(linkTagsPair)
-                        } else {
-                            CollectionsScreenVM.selectedLinkTagPairsViaLongClick.add(linkTagsPair)
-                        }
-                    }
-                },
-                onForceOpenInExternalBrowserClicked = {
-
-                },
-                isItemSelected = mutableStateOf(
-                    CollectionsScreenVM.selectedLinkTagPairsViaLongClick.contains(
-                        linkTagsPair
-                    )
-                ),
-                onLongClick = {
-                    if (!CollectionsScreenVM.isSelectionEnabled.value) {
-                        CollectionsScreenVM.isSelectionEnabled.value = true
                         CollectionsScreenVM.selectedLinkTagPairsViaLongClick.add(linkTagsPair)
                     }
-                },
-                tags = linkTagsPair.tags,
-                onTagClick = {
-                    onAttachedTagClick(it)
-                })
-        }
+                }
+            },
+            onForceOpenInExternalBrowserClicked = {
+
+            },
+            isItemSelected = mutableStateOf(
+                CollectionsScreenVM.selectedLinkTagPairsViaLongClick.contains(
+                    linkTagsPair
+                )
+            ),
+            onLongClick = {
+                if (!CollectionsScreenVM.isSelectionEnabled.value) {
+                    CollectionsScreenVM.isSelectionEnabled.value = true
+                    CollectionsScreenVM.selectedLinkTagPairsViaLongClick.add(linkTagsPair)
+                }
+            },
+            tags = linkTagsPair.tags,
+            onTagClick = {
+                onAttachedTagClick(it)
+            })
+    }
     val bottomSpacing = remember {
         mutableStateOf(250.dp)
     }
@@ -142,7 +141,7 @@ fun CollectionLayoutManager(
             onClick = { ->
                 onTagClick(it)
             },
-            onLongClick = { -> },
+            onLongClick = { },
             onMoreIconClick = { ->
                 tagMoreIconClick(it)
             },

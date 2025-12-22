@@ -5,14 +5,20 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.sakethh.linkora.di.SpecificPanelManagerVMFactory
+import com.sakethh.linkora.di.linkoraViewModel
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.domain.CurrentFABContext
-import com.sakethh.linkora.ui.screens.collections.CollectionDetailPane
+import com.sakethh.linkora.ui.screens.collections.CollectionDetailPaneParams
+import com.sakethh.linkora.ui.screens.collections.CollectionScreenParams
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreen
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
+import com.sakethh.linkora.ui.screens.collections.MobileCollectionDetailScreen
 import com.sakethh.linkora.ui.screens.home.HomeScreen
 import com.sakethh.linkora.ui.screens.home.panels.PanelsManagerScreen
 import com.sakethh.linkora.ui.screens.home.panels.SpecificPanelManagerScreen
+import com.sakethh.linkora.ui.screens.home.panels.SpecificPanelManagerScreenParam
+import com.sakethh.linkora.ui.screens.home.panels.SpecificPanelManagerScreenVM
 import com.sakethh.linkora.ui.screens.onboarding.OnboardingSlidesScreen
 import com.sakethh.linkora.ui.screens.search.SearchScreen
 import com.sakethh.linkora.ui.screens.settings.SettingsScreen
@@ -33,11 +39,20 @@ fun LinkoraNavHost(
     startDestination: Navigation.Root,
     onOnboardingComplete: () -> Unit,
     currentFABContext: (CurrentFABContext) -> Unit,
-    collectionsScreenVM: CollectionsScreenVM,
+    collectionScreenParams: CollectionScreenParams,
+    collectionDetailPaneParams: CollectionDetailPaneParams,
     forceSearchActive: Boolean,
     cancelForceSearchActive: () -> Unit
 ) {
     val localNavController = LocalNavController.current
+
+    val specificPanelManagerScreenVM: SpecificPanelManagerScreenVM = linkoraViewModel(
+        factory = SpecificPanelManagerVMFactory.create(
+            platform = platform(),
+            currentBackStackEntryFlow = localNavController.currentBackStackEntryFlow
+        )
+    )
+
     NavHost(
         navController = localNavController, startDestination = startDestination,
         enterTransition = { fadeIn() },
@@ -57,7 +72,9 @@ fun LinkoraNavHost(
         }
         composable<Navigation.Root.CollectionsScreen> {
             CollectionsScreen(
-                collectionsScreenVM = collectionsScreenVM, currentFABContext = currentFABContext
+                collectionScreenParams = collectionScreenParams,
+                collectionDetailPaneParams = collectionDetailPaneParams,
+                currentFABContext = currentFABContext
             )
         }
         composable<Navigation.Root.SettingsScreen> {
@@ -81,14 +98,30 @@ fun LinkoraNavHost(
         composable<Navigation.Settings.LanguageSettingsScreen> {
             LanguageSettingsScreen()
         }
-        composable<Navigation.Collection.CollectionDetailPane> {
-            CollectionDetailPane(currentFABContext)
+        composable<Navigation.Collection.MobileCollectionDetailScreen> {
+            MobileCollectionDetailScreen(currentFABContext)
         }
         composable<Navigation.Home.PanelsManagerScreen> {
-            PanelsManagerScreen(currentFABContext)
+            PanelsManagerScreen(
+                currentFABContext,
+                specificPanelManagerScreenParam = SpecificPanelManagerScreenParam(
+                    foldersOfTheSelectedPanel = specificPanelManagerScreenVM.foldersOfTheSelectedPanel,
+                    foldersToIncludeInPanel = specificPanelManagerScreenVM.foldersToIncludeInPanel,
+                    foldersSearchQuery = specificPanelManagerScreenVM.foldersSearchQuery.value,
+                    performAction = specificPanelManagerScreenVM::performAction
+                ),
+                performAction = specificPanelManagerScreenVM::performAction
+            )
         }
         composable<Navigation.Home.SpecificPanelManagerScreen> {
-            SpecificPanelManagerScreen()
+            SpecificPanelManagerScreen(
+                specificPanelManagerScreenParam = SpecificPanelManagerScreenParam(
+                    foldersOfTheSelectedPanel = specificPanelManagerScreenVM.foldersOfTheSelectedPanel,
+                    foldersToIncludeInPanel = specificPanelManagerScreenVM.foldersToIncludeInPanel,
+                    foldersSearchQuery = specificPanelManagerScreenVM.foldersSearchQuery.value,
+                    performAction = specificPanelManagerScreenVM::performAction
+                )
+            )
         }
         composable<Navigation.Settings.AboutScreen> {
             AboutScreen()

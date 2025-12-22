@@ -27,9 +27,11 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -75,7 +77,7 @@ fun ServerSetupScreen(
     val selectedSyncType = rememberMutableEnum(SyncType::class.java) {
         mutableStateOf(AppPreferences.serverSyncType.value)
     }
-    val showImportLogsFromServer = rememberSaveable {
+    var showImportLogsFromServer by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -89,7 +91,6 @@ fun ServerSetupScreen(
 
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.Data.ServerSetupScreen.toString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)
@@ -328,9 +329,9 @@ fun ServerSetupScreen(
                             authToken = securityToken.value,
                             syncType = selectedSyncType.value,
                         ), onSyncStart = {
-                            showImportLogsFromServer.value = true
+                            showImportLogsFromServer = true
                         }, onCompletion = {
-                            showImportLogsFromServer.value = false
+                            showImportLogsFromServer = false
                             navController.navigateUp()
                         })
                     }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding().pressScaleEffect()

@@ -39,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,31 +50,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
-import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.rememberLocalizedString
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SpecificPanelManagerScreen(
-    paddingValues: PaddingValues = PaddingValues(),
-    specificPanelManagerScreenVM: SpecificPanelManagerScreenVM = linkoraViewModel(factory = SpecificPanelManagerScreenVMAssistedFactory.createForSpecificPanelManagerScreen())
+ specificPanelManagerScreenParam: SpecificPanelManagerScreenParam
 ) {
-    val navController = LocalNavController.current
-    val foldersOfTheSelectedPanel =
-        specificPanelManagerScreenVM.foldersOfTheSelectedPanel.collectAsStateWithLifecycle()
+    val foldersOfTheSelectedPanel by specificPanelManagerScreenParam.foldersOfTheSelectedPanel.collectAsStateWithLifecycle()
+    val foldersToIncludeInPanel by specificPanelManagerScreenParam.foldersToIncludeInPanel.collectAsStateWithLifecycle()
 
-    val foldersToIncludeInPanel =
-        specificPanelManagerScreenVM.foldersToIncludeInPanel.collectAsStateWithLifecycle()
+    val navController = LocalNavController.current
     val topAppBarState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = Modifier.padding(top = paddingValues.calculateTopPadding()).fillMaxSize(),
+        modifier = Modifier.padding(top = specificPanelManagerScreenParam.paddingValues.calculateTopPadding()).fillMaxSize(),
         topBar = {
             MediumTopAppBar(navigationIcon = {
                 IconButton(
@@ -99,11 +97,11 @@ fun SpecificPanelManagerScreen(
             ) {
                 OutlinedTextField(
                     trailingIcon = {
-                        if (specificPanelManagerScreenVM.foldersSearchQuery.value.isNotBlank()) {
+                        if (specificPanelManagerScreenParam.foldersSearchQuery.isNotBlank()) {
                             IconButton(
                                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                                 onClick = {
-                                    specificPanelManagerScreenVM.updateFoldersSearchQuery("")
+                                    specificPanelManagerScreenParam.  performAction(PanelsAction.UpdateFoldersSearchQuery(query = ""))
                                 }) {
                                 Icon(imageVector = Icons.Default.Clear, contentDescription = null)
                             }
@@ -111,9 +109,9 @@ fun SpecificPanelManagerScreen(
                     },
                     textStyle = MaterialTheme.typography.titleSmall,
                     shape = RoundedCornerShape(15.dp),
-                    value = specificPanelManagerScreenVM.foldersSearchQuery.value,
+                    value = specificPanelManagerScreenParam.foldersSearchQuery,
                     onValueChange = {
-                        specificPanelManagerScreenVM.updateFoldersSearchQuery(it)
+                        specificPanelManagerScreenParam.  performAction(PanelsAction.UpdateFoldersSearchQuery(query = it))
                     },
                     modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 15.dp)
                         .navigationBarsPadding(),
@@ -160,7 +158,7 @@ fun SpecificPanelManagerScreen(
                 }
                 HorizontalDivider(color = LocalContentColor.current.copy(0.25f))
             }
-            if (foldersOfTheSelectedPanel.value.isNotEmpty()) {
+            if (foldersOfTheSelectedPanel.isNotEmpty()) {
 
                 item {
                     Spacer(modifier = Modifier.height(15.dp))
@@ -172,14 +170,16 @@ fun SpecificPanelManagerScreen(
                         modifier = Modifier.padding(start = 10.dp, end = 15.dp)
                     )
                 }
-                items(foldersOfTheSelectedPanel.value) { folderItem ->
+                items(foldersOfTheSelectedPanel) { folderItem ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
                             .pressScaleEffect().clickable(onClick = {
-                                specificPanelManagerScreenVM.removeAFolderFromAPanel(
-                                    panelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
-                                    folderId = folderItem.folderId
+                                specificPanelManagerScreenParam. performAction(
+                                    PanelsAction.RemoveAFolderFromPanel(
+                                        folderId = folderItem.folderId,
+                                        panelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId
+                                    )
                                 )
                             }, indication = null, interactionSource = remember {
                                 MutableInteractionSource()
@@ -195,7 +195,7 @@ fun SpecificPanelManagerScreen(
                     }
                 }
             }
-            if (foldersToIncludeInPanel.value.isNotEmpty()) {
+            if (foldersToIncludeInPanel.isNotEmpty()) {
                 item {
                     Spacer(modifier = Modifier.height(15.dp))
                     Text(
@@ -206,17 +206,19 @@ fun SpecificPanelManagerScreen(
                         modifier = Modifier.padding(start = 10.dp, end = 15.dp)
                     )
                 }
-                items(foldersToIncludeInPanel.value) { folderToIncludeInPanel ->
+                items(foldersToIncludeInPanel) { folderToIncludeInPanel ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
                             .pressScaleEffect().clickable(onClick = {
-                                specificPanelManagerScreenVM.addANewFolderInAPanel(
-                                    PanelFolder(
-                                        folderId = folderToIncludeInPanel.localId,
-                                        folderName = folderToIncludeInPanel.name,
-                                        connectedPanelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
-                                        panelPosition = 0
+                                specificPanelManagerScreenParam.  performAction(
+                                    PanelsAction.AddANewFolderInAPanel(
+                                        panelFolder = PanelFolder(
+                                            folderId = folderToIncludeInPanel.localId,
+                                            folderName = folderToIncludeInPanel.name,
+                                            connectedPanelId = SpecificPanelManagerScreenVM.selectedPanel.value.localId,
+                                            panelPosition = 0
+                                        )
                                     )
                                 )
                             }, indication = null, interactionSource = remember {

@@ -34,23 +34,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
+import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.preferences.AppPreferences.serverBaseUrl
-import com.sakethh.linkora.utils.currentSavedServerConfig
-import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.domain.AppAction
 import com.sakethh.linkora.ui.navigation.Navigation
-import com.sakethh.linkora.platform.platform
-import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.currentSavedServerConfig
 
 @Composable
 fun DesktopNavigationRail(
     rootRouteList: List<Navigation.Root>,
-    appVM: AppVM,
     currentRoute: NavDestination?,
     isDataSyncingFromPullRefresh: MutableState<Boolean>,
-    onNavigate:()-> Unit
+    onNavigate: () -> Unit,
+    isPerformingStartupSync: Boolean,
+    getLastSyncedTime: suspend () -> Long,
+    isAnySnapshotOngoing: Boolean,
+    performAction: (AppAction) -> Unit
 ) {
     val localNavController = LocalNavController.current
     Row {
@@ -65,40 +67,40 @@ fun DesktopNavigationRail(
                     val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
                     NavigationRailItem(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
-                        start = 15.dp, end = 15.dp, top = 15.dp
-                    ), selected = isSelected, onClick = {
-                        if (currentRoute?.hasRoute(navRouteItem::class) == false) {
-                            localNavController.navigate(navRouteItem)
-                            onNavigate()
-                        }
-                    }, icon = {
-                        Icon(
-                            imageVector = if (isSelected) {
-                                when (navRouteItem) {
-                                    Navigation.Root.HomeScreen -> Icons.Filled.Home
-                                    Navigation.Root.SearchScreen -> Icons.Filled.Search
-                                    Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
-                                    Navigation.Root.SettingsScreen -> Icons.Filled.Settings
-                                    else -> return@NavigationRailItem
-                                }
-                            } else {
-                                when (navRouteItem) {
-                                    Navigation.Root.HomeScreen -> Icons.Outlined.Home
-                                    Navigation.Root.SearchScreen -> Icons.Outlined.Search
-                                    Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
-                                    Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
-                                    else -> return@NavigationRailItem
-                                }
-                            }, contentDescription = null
-                        )
-                    }, label = {
-                        Text(
-                            text = navRouteItem.toString(),
-                            style = MaterialTheme.typography.titleSmall,
-                            maxLines = 1,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                        )
-                    })
+                            start = 15.dp, end = 15.dp, top = 15.dp
+                        ), selected = isSelected, onClick = {
+                            if (currentRoute?.hasRoute(navRouteItem::class) == false) {
+                                localNavController.navigate(navRouteItem)
+                                onNavigate()
+                            }
+                        }, icon = {
+                            Icon(
+                                imageVector = if (isSelected) {
+                                    when (navRouteItem) {
+                                        Navigation.Root.HomeScreen -> Icons.Filled.Home
+                                        Navigation.Root.SearchScreen -> Icons.Filled.Search
+                                        Navigation.Root.CollectionsScreen -> Icons.Filled.Folder
+                                        Navigation.Root.SettingsScreen -> Icons.Filled.Settings
+                                        else -> return@NavigationRailItem
+                                    }
+                                } else {
+                                    when (navRouteItem) {
+                                        Navigation.Root.HomeScreen -> Icons.Outlined.Home
+                                        Navigation.Root.SearchScreen -> Icons.Outlined.Search
+                                        Navigation.Root.CollectionsScreen -> Icons.Outlined.Folder
+                                        Navigation.Root.SettingsScreen -> Icons.Outlined.Settings
+                                        else -> return@NavigationRailItem
+                                    }
+                                }, contentDescription = null
+                            )
+                        }, label = {
+                            Text(
+                                text = navRouteItem.toString(),
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        })
                 }
             }
             Box(
@@ -110,25 +112,25 @@ fun DesktopNavigationRail(
                         modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp)
                     ) {
                         IconButton(onClick = {
-                            if (!appVM.isPerformingStartupSync.value && !isDataSyncingFromPullRefresh.value) {
-                                appVM.saveServerConnectionAndSync(
-                                    serverConnection = currentSavedServerConfig(),
-                                    timeStampAfter = {
-                                        appVM.getLastSyncedTime()
-                                    },
-                                    onSyncStart = {
-                                        isDataSyncingFromPullRefresh.value = true
-                                    },
-                                    onCompletion = {
-                                        isDataSyncingFromPullRefresh.value = false
-                                    })
+                            if (!isPerformingStartupSync && !isDataSyncingFromPullRefresh.value) {
+                                performAction(
+                                    AppAction.SaveServerConnectionAndSync(
+                                        serverConnection = currentSavedServerConfig(),
+                                        timeStampAfter = getLastSyncedTime,
+                                        onSyncStart = {
+                                            isDataSyncingFromPullRefresh.value = true
+                                        },
+                                        onCompletion = {
+                                            isDataSyncingFromPullRefresh.value = false
+                                        })
+                                )
                             }
                         }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)) {
                             Icon(
                                 imageVector = Icons.Default.CloudSync, contentDescription = null
                             )
                         }
-                        if (appVM.isPerformingStartupSync.value || isDataSyncingFromPullRefresh.value) {
+                        if (isPerformingStartupSync || isDataSyncingFromPullRefresh.value) {
                             CircularProgressIndicator()
                         }
                     }
@@ -138,13 +140,13 @@ fun DesktopNavigationRail(
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
-                            .alpha(if (platform() !is Platform.Android.Mobile && appVM.isAnySnapshotOngoing.value) 1f else 0.25f)
+                            .alpha(if (platform() !is Platform.Android.Mobile && isAnySnapshotOngoing) 1f else 0.25f)
                     ) {
                         Icon(
                             imageVector = Icons.Default.BackupTable, contentDescription = null
                         )
 
-                        if (appVM.isAnySnapshotOngoing.value) CircularProgressIndicator()
+                        if (isAnySnapshotOngoing) CircularProgressIndicator()
                     }
                 }
             }

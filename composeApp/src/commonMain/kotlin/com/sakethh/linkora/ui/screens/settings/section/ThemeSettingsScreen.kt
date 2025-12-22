@@ -33,13 +33,11 @@ import com.sakethh.linkora.platform.showFollowSystemThemeOption
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeSettingsScreen() {
-    val navController = LocalNavController.current
     val settingsScreenViewModel: SettingsScreenViewModel = linkoraViewModel()
     val platform = platform()
     val isSystemInDarkTheme = isSystemInDarkTheme()
     SettingsSectionScaffold(
         topAppBarText = Localization.Key.Theme.rememberLocalizedString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)

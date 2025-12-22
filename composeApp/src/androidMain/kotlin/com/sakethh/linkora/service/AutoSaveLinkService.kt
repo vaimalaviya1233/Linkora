@@ -42,7 +42,8 @@ class AutoSaveLinkService : Service() {
         localFoldersRepo = DependencyContainer.localFoldersRepo,
         localPanelsRepo = DependencyContainer.localPanelsRepo,
         localTagsRepo = DependencyContainer.localTagsRepo,
-        snapshotRepo = DependencyContainer.snapshotRepo
+        snapshotRepo = DependencyContainer.snapshotRepo,
+        showToast = ::toast
     )
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

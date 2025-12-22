@@ -92,7 +92,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ComposableContent
@@ -101,14 +100,15 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
-import com.sakethh.linkora.ui.domain.ScreenType
+import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
+import com.sakethh.linkora.ui.domain.model.AddNewLinkDialogParams
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
@@ -125,6 +125,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
@@ -133,10 +134,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddANewLinkDialogBox(
-    onDismiss: () -> Unit,
-    screenType: ScreenType, currentFolder: Folder?,
-    collectionsScreenVM: CollectionsScreenVM,
-    url: String = "",
+   addNewLinkDialogParams: AddNewLinkDialogParams
 ) {
     val isDataExtractingForTheLink = rememberSaveable {
         mutableStateOf(false)
@@ -164,7 +162,7 @@ fun AddANewLinkDialogBox(
         }
     }
     val linkTextFieldValue = rememberSaveable {
-        mutableStateOf(url)
+        mutableStateOf(addNewLinkDialogParams.url)
     }
     LaunchedEffect(Unit) {
         isDataExtractingForTheLink.value = false
@@ -193,12 +191,11 @@ fun AddANewLinkDialogBox(
                         noteTextFieldValue = noteTextFieldValue,
                         isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
                         isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
-                        currentFolder
+                        addNewLinkDialogParams.   currentFolder
                     )
                     BottomPartOfAddANewLinkDialogBox(
-                        onDismiss = onDismiss,
+                        onDismiss =addNewLinkDialogParams. onDismiss,
                         isDataExtractingForTheLink = isDataExtractingForTheLink,
-                        screenType = screenType,
                         linkTextFieldValue = linkTextFieldValue,
                         titleTextFieldValue = titleTextFieldValue,
                         noteTextFieldValue = noteTextFieldValue,
@@ -209,8 +206,13 @@ fun AddANewLinkDialogBox(
                         childFoldersBtmSheetState = btmSheetState,
                         lazyRowState = lazyRowState,
                         addTheFolderInRoot = addTheFolderInRoot,
-                        collectionsScreenVM = collectionsScreenVM,
-                        currentFolder = currentFolder,
+                        currentFolder =addNewLinkDialogParams. currentFolder,
+                        allTags = addNewLinkDialogParams.allTags,
+                        selectedTags = addNewLinkDialogParams.selectedTags,
+                        foldersSearchQuery =addNewLinkDialogParams. foldersSearchQuery,
+                        foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
+                        performAction =addNewLinkDialogParams. performAction,
+                        rootRegularFolders = addNewLinkDialogParams.rootRegularFolders,
                     )
                     Spacer(Modifier.height(50.dp))
                 }
@@ -227,7 +229,7 @@ fun AddANewLinkDialogBox(
                             noteTextFieldValue = noteTextFieldValue,
                             isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
                             isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
-                            currentFolder
+                            addNewLinkDialogParams.  currentFolder
                         )
                         VerticalDivider(
                             modifier = Modifier.padding(
@@ -235,9 +237,8 @@ fun AddANewLinkDialogBox(
                             ), color = LocalContentColor.current.copy(0.01f), thickness = 1.dp
                         )
                         BottomPartOfAddANewLinkDialogBox(
-                            onDismiss = onDismiss,
+                            onDismiss = addNewLinkDialogParams.onDismiss,
                             isDataExtractingForTheLink = isDataExtractingForTheLink,
-                            screenType = screenType,
                             linkTextFieldValue = linkTextFieldValue,
                             titleTextFieldValue = titleTextFieldValue,
                             noteTextFieldValue = noteTextFieldValue,
@@ -248,14 +249,19 @@ fun AddANewLinkDialogBox(
                             childFoldersBtmSheetState = btmSheetState,
                             lazyRowState = lazyRowState,
                             addTheFolderInRoot = addTheFolderInRoot,
-                            collectionsScreenVM = collectionsScreenVM,
-                            currentFolder
+                            currentFolder = addNewLinkDialogParams.currentFolder,
+                            allTags =addNewLinkDialogParams. allTags,
+                            selectedTags =addNewLinkDialogParams. selectedTags,
+                            foldersSearchQuery = addNewLinkDialogParams.foldersSearchQuery,
+                            foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
+                            performAction =addNewLinkDialogParams. performAction,
+                            rootRegularFolders = addNewLinkDialogParams.rootRegularFolders
                         )
                     }
                     if (!isDataExtractingForTheLink.value) {
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                                .align(Alignment.TopEnd).padding(15.dp), onClick = onDismiss
+                                .align(Alignment.TopEnd).padding(15.dp), onClick = addNewLinkDialogParams.onDismiss
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close, contentDescription = null
@@ -275,7 +281,7 @@ fun AddANewLinkDialogBox(
         BasicAlertDialog(
             onDismissRequest = {
                 if (!isDataExtractingForTheLink.value) {
-                    onDismiss()
+                    addNewLinkDialogParams.   onDismiss()
                 }
             },
             modifier = Modifier.fillMaxSize(0.9f).background(AlertDialogDefaults.containerColor),
@@ -289,7 +295,7 @@ fun AddANewLinkDialogBox(
                 coroutineScope.launch {
                     addANewLinkBtmSheetState.hide()
                 }.invokeOnCompletion {
-                    onDismiss()
+                    addNewLinkDialogParams.         onDismiss()
                 }
             }
         }) {
@@ -484,7 +490,6 @@ private fun TopPartOfAddANewLinkDialogBox(
 private fun BottomPartOfAddANewLinkDialogBox(
     onDismiss: () -> Unit,
     isDataExtractingForTheLink: MutableState<Boolean>,
-    screenType: ScreenType,
     linkTextFieldValue: MutableState<String>,
     titleTextFieldValue: MutableState<String>,
     noteTextFieldValue: MutableState<String>,
@@ -495,14 +500,19 @@ private fun BottomPartOfAddANewLinkDialogBox(
     childFoldersBtmSheetState: SheetState,
     lazyRowState: LazyListState,
     addTheFolderInRoot: MutableState<Boolean>,
-    collectionsScreenVM: CollectionsScreenVM,
     currentFolder: Folder?,
+    rootRegularFolders: StateFlow<List<Folder>>,
+    allTags: StateFlow<List<Tag>>,
+    selectedTags: List<Tag>,
+    foldersSearchQuery: String,
+    foldersSearchQueryResult: StateFlow<List<Folder>>,
+    performAction: (AddANewLinkDialogBoxAction) -> Unit,
 ) {
     var showBtmSheetForNewTagAddition by rememberSaveable {
         mutableStateOf(false)
     }
     val coroutineScope = rememberCoroutineScope()
-    val rootFolders = collectionsScreenVM.rootRegularFolders.collectAsStateWithLifecycle()
+    val rootFolders = rootRegularFolders.collectAsStateWithLifecycle()
     val showNewFolderDialog = rememberSaveable {
         mutableStateOf(false)
     }
@@ -510,8 +520,8 @@ private fun BottomPartOfAddANewLinkDialogBox(
         mutableStateOf(false)
     }
     val folderSearchBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
-    val foldersSearchQueryResult by collectionsScreenVM.foldersSearchQueryResult.collectAsStateWithLifecycle()
+    val allTags by allTags.collectAsStateWithLifecycle()
+    val foldersSearchQueryResult by foldersSearchQueryResult.collectAsStateWithLifecycle()
     val selectedFolderForSavingTheLink = rememberDeserializableMutableObject {
         mutableStateOf(
             Folder(
@@ -567,12 +577,12 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 TagSelectionComponent(
                     paddingValues = PaddingValues(start = 15.dp, end = 25.dp),
                     allTags = allTags,
-                    selectedTags = collectionsScreenVM.selectedTags,
+                    selectedTags = selectedTags,
                     onTagClick = {
-                        if (collectionsScreenVM.selectedTags.contains(it)) {
-                            collectionsScreenVM.unSelectATag(it)
+                        if (selectedTags.contains(it)) {
+                            performAction(AddANewLinkDialogBoxAction.UnSelectATag(it))
                         } else {
-                            collectionsScreenVM.selectATag(it)
+                            performAction(AddANewLinkDialogBoxAction.SelectATag(it))
                         }
                     },
                     onCreateTagClick = {
@@ -669,16 +679,16 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     key(it) {
                         FolderSelectorComponent(
                             onItemClick = {
-                            isDropDownMenuIconClicked.value = false
-                            selectedFolderForSavingTheLink.value = it
-                        },
+                                isDropDownMenuIconClicked.value = false
+                                selectedFolderForSavingTheLink.value = it
+                            },
                             isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
                                 mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
                             },
                             folderName = it.name,
                             onSubDirectoryIconClick = {
                                 AddANewLinkDialogBox.changeParentFolderId(
-                                    it.localId, collectionsScreenVM.viewModelScope
+                                    it.localId, coroutineScope
                                 )
                                 AddANewLinkDialogBox.subFoldersList.add(it)
                                 showChildFoldersBtmSheet.value = true
@@ -739,7 +749,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
                     end = 20.dp, start = 20.dp
                 ).fillMaxWidth().pressScaleEffect(), onClick = {
-                    collectionsScreenVM.clearSelectedTags()
+                    performAction(AddANewLinkDialogBoxAction.ClearSelectedTags)
                     onDismiss()
                     isForceSaveWithoutFetchingMetaDataEnabled.value = false
                 }) {
@@ -762,20 +772,23 @@ private fun BottomPartOfAddANewLinkDialogBox(
                         Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
                         else -> LinkType.FOLDER_LINK
                     }
-                    collectionsScreenVM.addANewLink(
-                        link = Link(
-                            linkType = linkType,
-                            title = titleTextFieldValue.value,
-                            url = linkTextFieldValue.value,
-                            imgURL = "",
-                            note = noteTextFieldValue.value,
-                            idOfLinkedFolder = currentFolder?.localId
-                                ?: selectedFolderForSavingTheLink.value.localId,
-                            userAgent = AppPreferences.primaryJsoupUserAgent.value
-                        ), linkSaveConfig = LinkSaveConfig(
-                            forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
-                            forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
-                        ), onCompletion = onDismiss, selectedTags = collectionsScreenVM.selectedTags
+                    performAction(
+                        AddANewLinkDialogBoxAction.AddANewLink(
+                            link = Link(
+                                linkType = linkType,
+                                title = titleTextFieldValue.value,
+                                url = linkTextFieldValue.value,
+                                imgURL = "",
+                                note = noteTextFieldValue.value,
+                                idOfLinkedFolder = currentFolder?.localId
+                                    ?: selectedFolderForSavingTheLink.value.localId,
+                                userAgent = AppPreferences.primaryJsoupUserAgent.value
+                            ), linkSaveConfig = LinkSaveConfig(
+                                forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
+                                forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
+                            ), onCompletion = onDismiss, selectedTags = selectedTags,
+                            pushSnackbarOnSuccess = true
+                        )
                     )
                 }) {
                 Text(
@@ -813,15 +826,15 @@ private fun BottomPartOfAddANewLinkDialogBox(
             }, bottomBar = {
                 OutlinedTextField(
                     trailingIcon = {
-                    SortingIconButton()
-                },
+                        SortingIconButton()
+                    },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Search, contentDescription = null)
                     },
                     textStyle = MaterialTheme.typography.titleSmall,
-                    value = collectionsScreenVM.foldersSearchQuery,
+                    value = foldersSearchQuery,
                     onValueChange = {
-                        collectionsScreenVM.foldersSearchQuery = it
+                        performAction(AddANewLinkDialogBoxAction.UpdateFoldersSearchQuery(it))
                     },
                     shape = RoundedCornerShape(25.dp),
                     label = {
@@ -836,7 +849,8 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             style = MaterialTheme.typography.titleSmall,
                         )
                     },
-                    modifier = Modifier.focusRequester(searchFocusRequester).background(BottomSheetDefaults.ContainerColor)
+                    modifier = Modifier.focusRequester(searchFocusRequester)
+                        .background(BottomSheetDefaults.ContainerColor)
                         .fillMaxWidth().padding(15.dp)
                 )
                 LaunchedEffect(Unit) {
@@ -857,9 +871,9 @@ private fun BottomPartOfAddANewLinkDialogBox(
                         }) {
                             FolderSelectorComponent(
                                 onItemClick = {
-                                hideSearchBtmSheet()
-                                selectedFolderForSavingTheLink.value = it
-                            },
+                                    hideSearchBtmSheet()
+                                    selectedFolderForSavingTheLink.value = it
+                                },
                                 isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
                                     mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
                                 },
@@ -887,7 +901,12 @@ private fun BottomPartOfAddANewLinkDialogBox(
         showBtmSheet = showBtmSheetForNewTagAddition,
         onCancel = hideCreateATagBtmSheet,
         onCreateClick = { tagName ->
-            collectionsScreenVM.createATag(tagName = tagName, onCompletion = hideCreateATagBtmSheet)
+            performAction(
+                AddANewLinkDialogBoxAction.CreateATag(
+                    tagName = tagName,
+                    onCompletion = hideCreateATagBtmSheet
+                )
+            )
         })
 
     if (showChildFoldersBtmSheet.value) {
@@ -934,7 +953,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                                         .clickable {
                                             AddANewLinkDialogBox.changeParentFolderId(
                                                 subFolder.localId,
-                                                collectionsScreenVM.viewModelScope
+                                                coroutineScope
                                             )
                                             selectedFolderForSavingTheLink.value = subFolder
                                             if (AddANewLinkDialogBox.subFoldersList.indexOf(
@@ -965,14 +984,14 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     items(childFolders.value) {
                         FolderSelectorComponent(
                             onItemClick = {
-                            selectedFolderForSavingTheLink.value = it
-                            isDropDownMenuIconClicked.value = false
-                            AddANewLinkDialogBox.subFoldersList.clear()
-                            coroutineScope.launch {
-                                childFoldersBtmSheetState.hide()
-                            }
-                            showChildFoldersBtmSheet.value = false
-                        },
+                                selectedFolderForSavingTheLink.value = it
+                                isDropDownMenuIconClicked.value = false
+                                AddANewLinkDialogBox.subFoldersList.clear()
+                                coroutineScope.launch {
+                                    childFoldersBtmSheetState.hide()
+                                }
+                                showChildFoldersBtmSheet.value = false
+                            },
                             isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
                                 mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
                             },
@@ -982,7 +1001,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                                 AddANewLinkDialogBox.subFoldersList.add(it)
                                 AddANewLinkDialogBox.changeParentFolderId(
                                     selectedFolderForSavingTheLink.value.localId,
-                                    collectionsScreenVM.viewModelScope
+                                    coroutineScope
                                 )
                                 coroutineScope.launch {
                                     try {
@@ -1072,16 +1091,20 @@ private fun BottomPartOfAddANewLinkDialogBox(
         AddANewFolderDialogBox(
             AddNewFolderDialogBoxParam(
                 onDismiss = {
-                showNewFolderDialog.value = false
-            },
+                    showNewFolderDialog.value = false
+                },
                 inCollectionDetailPane = !addTheFolderInRoot.value,
                 onFolderCreateClick = { folderName, folderNote, onCompletion ->
-                    collectionsScreenVM.insertANewFolder(
-                        folder = Folder(
-                            name = folderName,
-                            note = folderNote,
-                            parentFolderId = if (addTheFolderInRoot.value || selectedFolderForSavingTheLink.value.localId in defaultFolderIds()) null else selectedFolderForSavingTheLink.value.localId,
-                        ), onCompletion = onCompletion, ignoreFolderAlreadyExistsThrowable = true
+                    performAction(
+                        AddANewLinkDialogBoxAction.InsertANewFolder(
+                            folder = Folder(
+                                name = folderName,
+                                note = folderNote,
+                                parentFolderId = if (addTheFolderInRoot.value || selectedFolderForSavingTheLink.value.localId in defaultFolderIds()) null else selectedFolderForSavingTheLink.value.localId,
+                            ),
+                            onCompletion = onCompletion,
+                            ignoreFolderAlreadyExistsThrowable = true
+                        )
                     )
                 },
                 currentFolder = if (selectedFolderForSavingTheLink.value.localId in defaultFolderIds()) null else selectedFolderForSavingTheLink.value

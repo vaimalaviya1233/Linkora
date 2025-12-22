@@ -75,7 +75,6 @@ import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSettingsScreen() {
-    val navController = LocalNavController.current
     val languageSettingsScreenVM: LanguageSettingsScreenVM = linkoraViewModel()
     val availableLanguages =
         languageSettingsScreenVM.availableLanguages.collectAsStateWithLifecycle()
@@ -105,7 +104,6 @@ fun LanguageSettingsScreen() {
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.LanguageSettingsScreen.toString(),
-        navController = navController,
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 15.dp, end = 15.dp), onClick = {

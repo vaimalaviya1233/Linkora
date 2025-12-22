@@ -43,9 +43,10 @@ import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
-import com.sakethh.linkora.ui.AppVM
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.LocalPlatform
+import com.sakethh.linkora.ui.domain.AppAction
+import com.sakethh.linkora.ui.domain.CurrentFABContext
 import com.sakethh.linkora.ui.domain.TransferActionType
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
@@ -59,10 +60,15 @@ import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 
 @Composable
 fun BottomNavOnSelection(
-    showLoadingProgressBarOnTransferAction: MutableState<Boolean>,
-    appVM: AppVM,
+    progressBarVisible: Boolean,
+    showLoadingProgressBarOnTransferAction: () -> Unit,
+    hideLoadingProgressBarOnTransferAction: () -> Unit,
+    currentFABContext: CurrentFABContext,
+    transferActionType: TransferActionType,
+    changeTransferActionType: (TransferActionType) -> Unit,
     selectedAndInRoot: MutableState<Boolean>,
-    currentRoute: NavDestination?
+    currentRoute: NavDestination?,
+    performAction: (AppAction) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val localNavController = LocalNavController.current
@@ -73,9 +79,9 @@ fun BottomNavOnSelection(
     ) {
         HorizontalDivider()
         Spacer(modifier = Modifier.height(5.dp))
-        if (showLoadingProgressBarOnTransferAction.value) {
+        if (progressBarVisible) {
             Text(
-                text = if (appVM.transferActionType.value == TransferActionType.COPY) {
+                text = if (transferActionType == TransferActionType.COPY) {
                     Localization.Key.Copying.rememberLocalizedString()
                 } else {
                     Localization.Key.Moving.rememberLocalizedString()
@@ -113,9 +119,9 @@ fun BottomNavOnSelection(
                 )
             }
         }
-        val currentFolder = appVM.currentContextOfFAB.value.currentFolder
+        val currentFolder = currentFABContext.currentFolder
         val showPasteButton =
-            (if (platform is Platform.Android.Mobile) currentFolder != null else true) && (appVM.transferActionType.value != TransferActionType.NONE && (if (platform is Platform.Android.Mobile) !selectedAndInRoot.value else currentFolder != null)) && currentFolder?.localId != Constants.ALL_LINKS_ID
+            (if (platform is Platform.Android.Mobile) currentFolder != null else true) && (transferActionType != TransferActionType.NONE && (if (platform is Platform.Android.Mobile) !selectedAndInRoot.value else currentFolder != null)) && currentFolder?.localId != Constants.ALL_LINKS_ID
 
         if (!(CollectionsScreenVM.selectedFoldersViaLongClick.isNotEmpty() && currentFolder?.localId in defaultFolderIds().dropWhile {
                 it == Constants.ARCHIVE_ID
@@ -125,7 +131,7 @@ fun BottomNavOnSelection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if ((appVM.transferActionType.value == TransferActionType.NONE && !showPasteButton) || (appVM.transferActionType.value != TransferActionType.NONE && showPasteButton)) {
+                if (transferActionType == TransferActionType.NONE || showPasteButton) {
                     Text(
                         text = Localization.Key.MultiActionsLabel.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
@@ -143,24 +149,22 @@ fun BottomNavOnSelection(
                             onClick = {
                                 require(currentFolder != null)
 
-                                if (appVM.transferActionType.value == TransferActionType.COPY) {
-                                    appVM.copySelectedItems(
-                                        folderId = currentFolder.localId,
-                                        onStart = {
-                                            showLoadingProgressBarOnTransferAction.value = true
-                                        },
-                                        onCompletion = {
-                                            showLoadingProgressBarOnTransferAction.value = false
-                                        })
+                                if (transferActionType == TransferActionType.COPY) {
+                                    performAction(
+                                        AppAction.CopySelectedItems(
+                                            folderId = currentFolder.localId,
+                                            onStart = showLoadingProgressBarOnTransferAction,
+                                            onCompletion = hideLoadingProgressBarOnTransferAction
+                                        )
+                                    )
                                 } else {
-                                    appVM.moveSelectedItems(
-                                        folderId = currentFolder.localId,
-                                        onStart = {
-                                            showLoadingProgressBarOnTransferAction.value = true
-                                        },
-                                        onCompletion = {
-                                            showLoadingProgressBarOnTransferAction.value = false
-                                        })
+                                    performAction(
+                                        AppAction.MoveSelectedItems(
+                                            folderId = currentFolder.localId,
+                                            onStart = showLoadingProgressBarOnTransferAction,
+                                            onCompletion = hideLoadingProgressBarOnTransferAction
+                                        )
+                                    )
                                 }
                             },
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
@@ -172,7 +176,7 @@ fun BottomNavOnSelection(
                         }
                         return@Row
                     }
-                    if (appVM.transferActionType.value != TransferActionType.NONE) {
+                    if (transferActionType != TransferActionType.NONE) {
                         return@Row
                     }
                     IconButton(
@@ -191,11 +195,12 @@ fun BottomNavOnSelection(
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             onClick = {
-                                appVM.archiveSelectedItems(onStart = {
-                                    showLoadingProgressBarOnTransferAction.value = true
-                                }, onCompletion = {
-                                    showLoadingProgressBarOnTransferAction.value = false
-                                })
+                                performAction(
+                                    AppAction.ArchiveSelectedItems(
+                                        onStart = showLoadingProgressBarOnTransferAction,
+                                        onCompletion = hideLoadingProgressBarOnTransferAction
+                                    )
+                                )
                             }) {
                             Icon(
                                 imageVector = Icons.Default.Archive, contentDescription = null
@@ -210,11 +215,12 @@ fun BottomNavOnSelection(
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             onClick = {
-                                appVM.markSelectedItemsAsRegular(onStart = {
-                                    showLoadingProgressBarOnTransferAction.value = true
-                                }, onCompletion = {
-                                    showLoadingProgressBarOnTransferAction.value = false
-                                })
+                                performAction(
+                                    AppAction.MarkSelectedItemsAsRegular(
+                                        onStart = showLoadingProgressBarOnTransferAction,
+                                        onCompletion = hideLoadingProgressBarOnTransferAction
+                                    )
+                                )
                             }) {
                             Icon(
                                 imageVector = Icons.Default.Unarchive, contentDescription = null
@@ -223,7 +229,7 @@ fun BottomNavOnSelection(
                     }
                     IconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                            appVM.transferActionType.value = TransferActionType.COPY
+                            changeTransferActionType(TransferActionType.COPY)
                         }) {
                         Icon(
                             imageVector = Icons.Default.CopyAll, contentDescription = null
@@ -231,7 +237,7 @@ fun BottomNavOnSelection(
                     }
                     IconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                            appVM.transferActionType.value = TransferActionType.MOVE
+                            changeTransferActionType(TransferActionType.MOVE)
                         }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
@@ -260,9 +266,9 @@ fun BottomNavOnSelection(
                 }
             }
         }
-        if (appVM.transferActionType.value != TransferActionType.NONE) {
+        if (transferActionType != TransferActionType.NONE) {
             Text(
-                text = if (appVM.transferActionType.value == TransferActionType.COPY) Localization.Key.NavigateAndCopyDesc.rememberLocalizedString() else Localization.Key.NavigateAndMoveDesc.rememberLocalizedString(),
+                text = if (transferActionType == TransferActionType.COPY) Localization.Key.NavigateAndCopyDesc.rememberLocalizedString() else Localization.Key.NavigateAndMoveDesc.rememberLocalizedString(),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(start = 15.dp, end = 15.dp)
             )
@@ -274,11 +280,12 @@ fun BottomNavOnSelection(
             }) {
             Button(
                 onClick = {
-                    appVM.markSelectedFoldersAsRoot(onStart = {
-                        showLoadingProgressBarOnTransferAction.value = true
-                    }, onCompletion = {
-                        showLoadingProgressBarOnTransferAction.value = false
-                    })
+                    performAction(
+                        AppAction.MarkSelectedFoldersAsRoot(
+                            onStart = showLoadingProgressBarOnTransferAction,
+                            onCompletion = hideLoadingProgressBarOnTransferAction
+                        )
+                    )
                 },
                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
                     .padding(

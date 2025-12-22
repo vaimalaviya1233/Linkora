@@ -40,7 +40,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
-import com.sakethh.linkora.di.SpecificPanelManagerScreenVMAssistedFactory
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.platform.platform
@@ -62,7 +61,11 @@ import com.sakethh.linkora.utils.rememberLocalizedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
+fun PanelsManagerScreen(
+    currentFABContext: (CurrentFABContext) -> Unit,
+    specificPanelManagerScreenParam: SpecificPanelManagerScreenParam,
+    performAction: (PanelsAction) -> Unit
+) {
     LaunchedEffect(Unit) {
         currentFABContext(CurrentFABContext(FABContext.HIDE))
     }
@@ -86,16 +89,14 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
     val isRenameAPanelDialogBoxVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    val specificPanelManagerScreenVM: SpecificPanelManagerScreenVM =
-        viewModel(factory = SpecificPanelManagerScreenVMAssistedFactory.createForPanelsManagerScreen())
     val platform = platform()
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
         BottomAppBar(
             modifier = Modifier.fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.5f)
         ) {
             Button(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(15.dp).navigationBarsPadding().fillMaxWidth()
-                    .pressScaleEffect(0.9f), onClick = {
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(15.dp)
+                    .navigationBarsPadding().fillMaxWidth().pressScaleEffect(0.9f), onClick = {
                     isAddANewPanelDialogBoxVisible.value = true
                 }) {
                 Text(
@@ -108,9 +109,10 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
     }, topBar = {
         Column {
             MediumTopAppBar(navigationIcon = {
-                IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                    navController.navigateUp()
-                }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
+                        navController.navigateUp()
+                    }) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "")
                 }
             }, scrollBehavior = topAppBarState, title = {
@@ -136,9 +138,8 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                 }
                 items(panels.value.drop(1)) { panel ->
                     IndividualMenuComponent(
-                        onClick = { ->
+                        onClick = {
                             SpecificPanelManagerScreenVM.updateSelectedPanel(panel)
-                            specificPanelManagerScreenVM.updateSpecificPanelManagerScreenData()
                             selectedPanelForDetailView.value = panel
                             if (platform is Platform.Android.Mobile) {
                                 navController.navigate(Navigation.Home.SpecificPanelManagerScreen)
@@ -170,7 +171,7 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
                 }
             } else {
                 SpecificPanelManagerScreen(
-                    paddingValues = it, specificPanelManagerScreenVM = specificPanelManagerScreenVM
+                    specificPanelManagerScreenParam = specificPanelManagerScreenParam
                 )
             }
         }
@@ -179,22 +180,27 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
         addANewPanelParam = AddANewPanelParam(
             isDialogBoxVisible = isAddANewPanelDialogBoxVisible,
             onCreateClick = { panelName, onCompletion ->
-                specificPanelManagerScreenVM.addANewAPanel(Panel(panelName = panelName), {
-                    onCompletion()
-                    isAddANewPanelDialogBoxVisible.value = false
-                })
+                performAction(
+                    PanelsAction.AddANewAPanel(
+                        panel = Panel(panelName = panelName), onCompletion = {
+                            onCompletion()
+                            isAddANewPanelDialogBoxVisible.value = false
+                        })
+                )
             })
     )
 
     DeleteAPanelDialogBox(
         deleteAPanelDialogBoxParam = DeleteAPanelDialogBoxParam(
             isDialogBoxVisible = isDeleteAPanelDialogBoxVisible, onDeleteClick = { onCompletion ->
-                specificPanelManagerScreenVM.deleteAPanel(
-                    selectedPanelForDialogBoxes.value.localId, onCompletion = {
-                        onCompletion()
-                        selectedPanelForDetailView.value = Panel(localId = -45, panelName = "")
-                        isDeleteAPanelDialogBoxVisible.value = false
-                    })
+                performAction(
+                    PanelsAction.DeleteAPanel(
+                        panelId = selectedPanelForDialogBoxes.value.localId, onCompletion = {
+                            onCompletion()
+                            selectedPanelForDetailView.value = Panel(localId = -45, panelName = "")
+                            isDeleteAPanelDialogBoxVisible.value = false
+                        })
+                )
             }, panelName = selectedPanelForDialogBoxes.value.panelName
         )
     )
@@ -202,16 +208,19 @@ fun PanelsManagerScreen(currentFABContext: (CurrentFABContext)-> Unit) {
     RenameAShelfPanelDialogBox(
         isDialogBoxVisible = isRenameAPanelDialogBoxVisible,
         onRenameClick = { newPanelName, onCompletion ->
-            specificPanelManagerScreenVM.renameAPanel(
-                selectedPanelForDialogBoxes.value.localId, newPanelName, onCompletion = {
-                    onCompletion()
-                    SpecificPanelManagerScreenVM.updateSelectedPanel(
-                        Panel(
-                            selectedPanelForDialogBoxes.value.localId, newPanelName
+            performAction(
+                PanelsAction.RenameAPanel(
+                    panelId = selectedPanelForDialogBoxes.value.localId,
+                    newName = newPanelName, onCompletion = {
+                        onCompletion()
+                        SpecificPanelManagerScreenVM.updateSelectedPanel(
+                            Panel(
+                                selectedPanelForDialogBoxes.value.localId, newPanelName
+                            )
                         )
-                    )
-                    isRenameAPanelDialogBoxVisible.value = false
-                })
+                        isRenameAPanelDialogBoxVisible.value = false
+                    })
+            )
         },
         panelName = selectedPanelForDialogBoxes.value.panelName
     )

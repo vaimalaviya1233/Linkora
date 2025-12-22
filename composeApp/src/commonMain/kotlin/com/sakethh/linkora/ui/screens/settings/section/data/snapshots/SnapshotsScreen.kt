@@ -79,12 +79,10 @@ fun SnapshotsScreen() {
             mutableStateOf(AppPreferences.backupAutoDeletionEnabled.value)
         }
     val platform = platform()
-    val navController = LocalNavController.current
     val coroutineScope = rememberCoroutineScope()
     val dataSettingsScreenVM: DataSettingsScreenVM = linkoraViewModel()
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.Data.SnapshotsScreen.toString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.animateContentSize().fillMaxSize()

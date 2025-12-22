@@ -60,7 +60,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen() {
-    val navController = LocalNavController.current
     val coroutineScope = rememberCoroutineScope()
     val btmModalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val shouldVersionCheckerDialogAppear = rememberSaveable {
@@ -84,7 +83,7 @@ fun AboutScreen() {
         )
     }
     SettingsSectionScaffold(
-        topAppBarText = Navigation.Settings.AboutScreen.toString(), navController = navController
+        topAppBarText = Navigation.Settings.AboutScreen.toString()
     ) { paddingValues, topAppBarScrollBehaviour ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().addEdgeToEdgeScaffoldPadding(paddingValues)

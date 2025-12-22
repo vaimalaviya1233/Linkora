@@ -25,6 +25,7 @@ import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
@@ -161,6 +162,49 @@ open class CollectionsScreenVM(
                 updateCollectableChildFolders(collectionDetailPaneInfo.currentFolder?.localId!!)
             }
         }
+    }
+
+    fun performAction(addANewLinkDialogBoxAction: AddANewLinkDialogBoxAction) =
+        when (addANewLinkDialogBoxAction) {
+            is AddANewLinkDialogBoxAction.AddANewLink -> addANewLink(
+                link = addANewLinkDialogBoxAction.link,
+                selectedTags = addANewLinkDialogBoxAction.selectedTags,
+                linkSaveConfig = addANewLinkDialogBoxAction.linkSaveConfig,
+                onCompletion = addANewLinkDialogBoxAction.onCompletion,
+                pushSnackbarOnSuccess = addANewLinkDialogBoxAction.pushSnackbarOnSuccess
+            )
+
+            AddANewLinkDialogBoxAction.ClearSelectedTags -> clearSelectedTags()
+            is AddANewLinkDialogBoxAction.CreateATag -> createATag(
+                tagName = addANewLinkDialogBoxAction.tagName,
+                onCompletion = addANewLinkDialogBoxAction.onCompletion
+            )
+
+            is AddANewLinkDialogBoxAction.InsertANewFolder -> insertANewFolder(
+                folder = addANewLinkDialogBoxAction.folder,
+                ignoreFolderAlreadyExistsThrowable = addANewLinkDialogBoxAction.ignoreFolderAlreadyExistsThrowable,
+                onCompletion = addANewLinkDialogBoxAction.onCompletion
+            )
+
+            is AddANewLinkDialogBoxAction.SelectATag -> selectATag(addANewLinkDialogBoxAction.tag)
+            is AddANewLinkDialogBoxAction.UnSelectATag -> unSelectATag(addANewLinkDialogBoxAction.tag)
+            is AddANewLinkDialogBoxAction.UpdateFoldersSearchQuery -> foldersSearchQuery =
+                addANewLinkDialogBoxAction.string
+        }
+
+    fun performAction(collectionsAction: CollectionsAction) = when (collectionsAction) {
+        is CollectionsAction.AddANewLink -> addANewLink(
+            link = collectionsAction.link,
+            selectedTags = collectionsAction.selectedTags,
+            linkSaveConfig = collectionsAction.linkSaveConfig,
+            onCompletion = collectionsAction.onCompletion,
+            pushSnackbarOnSuccess = collectionsAction.pushSnackbarOnSuccess
+        )
+
+        CollectionsAction.PopFromDetailPane -> popFromDetailPane()
+        is CollectionsAction.PushToDetailPane -> pushToDetailPane(collectionsAction.collectionDetailPaneInfo)
+        is CollectionsAction.ToggleAllLinksFilter -> toggleAllLinksFilter(collectionsAction.filter)
+        CollectionsAction.ClearDetailPaneHistoryUntilLast -> clearDetailPaneHistoryUntilLast()
     }
 
     private val _availableFiltersForAllLinks = MutableStateFlow(emptySet<LinkType>())

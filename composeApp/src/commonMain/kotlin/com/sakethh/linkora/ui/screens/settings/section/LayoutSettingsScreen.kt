@@ -57,7 +57,6 @@ import com.sakethh.linkora.utils.rememberLocalizedString
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LayoutSettingsScreen() {
-    val navController = LocalNavController.current
     val settingsScreenViewModel: SettingsScreenViewModel = linkoraViewModel()
     val localUriHandler = LocalUriHandler.current
     val sampleList = remember {
@@ -65,7 +64,6 @@ fun LayoutSettingsScreen() {
     }
     SettingsSectionScaffold(
         topAppBarText = Localization.Key.LinkLayoutSettings.rememberLocalizedString(),
-        navController = navController
     ) { paddingValues, topAppBarScrollBehaviour ->
         when (AppPreferences.selectedLinkLayout.value) {
             Layout.REGULAR_LIST_VIEW.name, Layout.TITLE_ONLY_LIST_VIEW.name -> {
@@ -84,7 +82,14 @@ fun LayoutSettingsScreen() {
 
                     items(Layout.entries) {
                         LinkViewRadioButtonComponent(
-                            it, settingsScreenViewModel, PaddingValues(start = 10.dp)
+                            linkLayout = it,
+                            changePreferenceValue = { preferenceKey: String, newValue: String ->
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    preferenceKey = stringPreferencesKey(preferenceKey),
+                                    newValue = newValue
+                                )
+                            },
+                            paddingValues = PaddingValues(start = 10.dp)
                         )
                     }
 
@@ -160,7 +165,8 @@ fun LayoutSettingsScreen() {
             Layout.GRID_VIEW.name -> {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(150.dp),
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp).addEdgeToEdgeScaffoldPadding(paddingValues)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                        .addEdgeToEdgeScaffoldPadding(paddingValues)
                         .nestedScroll(topAppBarScrollBehaviour.nestedScrollConnection)
                         .navigationBarsPadding()
                 ) {
@@ -178,8 +184,13 @@ fun LayoutSettingsScreen() {
                         GridItemSpan(maxLineSpan)
                     }) {
                         LinkViewRadioButtonComponent(
-                            it, settingsScreenViewModel
-                        )
+                            linkLayout = it,
+                            changePreferenceValue = { preferenceKey: String, newValue: String ->
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    preferenceKey = stringPreferencesKey(preferenceKey),
+                                    newValue = newValue
+                                )
+                            })
                     }
 
                     items(settingsScreenViewModel.gridViewPref, span = {
@@ -246,8 +257,13 @@ fun LayoutSettingsScreen() {
                             StaggeredGridItemSpan.FullLine
                         }) {
                         LinkViewRadioButtonComponent(
-                            it, settingsScreenViewModel
-                        )
+                            linkLayout = it,
+                            changePreferenceValue = { preferenceKey: String, newValue: String ->
+                                settingsScreenViewModel.changeSettingPreferenceValue(
+                                    preferenceKey = stringPreferencesKey(preferenceKey),
+                                    newValue = newValue
+                                )
+                            })
                     }
 
                     items(
@@ -322,26 +338,24 @@ private fun LinkViewPreferenceSwitch(
 @Composable
 private fun LinkViewRadioButtonComponent(
     linkLayout: Layout,
-    settingsScreenViewModel: SettingsScreenViewModel,
-    paddingValues: PaddingValues = PaddingValues(0.dp)
+    paddingValues: PaddingValues = PaddingValues(0.dp),
+    changePreferenceValue: (preferenceKey: String, newValue: String) -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
             .clickable(interactionSource = null, indication = null) {
                 AppPreferences.selectedLinkLayout.value = linkLayout.name
-                settingsScreenViewModel.changeSettingPreferenceValue(
-                    preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
-                    newValue = linkLayout.name
+                changePreferenceValue(
+                    AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name, linkLayout.name
                 )
             }.padding(paddingValues)
     ) {
         RadioButton(
             selected = AppPreferences.selectedLinkLayout.value == linkLayout.name, onClick = {
                 AppPreferences.selectedLinkLayout.value = linkLayout.name
-                settingsScreenViewModel.changeSettingPreferenceValue(
-                    preferenceKey = stringPreferencesKey(AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name),
-                    newValue = linkLayout.name
+                changePreferenceValue(
+                    AppPreferenceType.CURRENTLY_SELECTED_LINK_VIEW.name, linkLayout.name
                 )
             })
         Text(

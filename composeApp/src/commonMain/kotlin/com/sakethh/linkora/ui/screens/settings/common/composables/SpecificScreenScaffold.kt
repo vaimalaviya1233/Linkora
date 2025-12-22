@@ -20,25 +20,24 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.sakethh.linkora.domain.ComposableContent
+import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsSectionScaffold(
     topAppBarText: String,
-    navController: NavController,
     floatingActionButton: ComposableContent = {},
     actions: ComposableContent = {},
     bottomBar: ComposableContent = {},
     content: @Composable (paddingValues: PaddingValues, topAppBarScrollBehaviour: TopAppBarScrollBehavior) -> Unit
 ) {
+    val navController = LocalNavController.current
     val topAppBarScrollBehaviour = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(bottomBar = bottomBar, floatingActionButton = {
         floatingActionButton()
@@ -49,12 +48,13 @@ fun SettingsSectionScaffold(
                     actions()
                 }
             }, navigationIcon = {
-                IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
-                    navController.navigateUp()
-                }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                        .pressScaleEffect(), onClick = {
+                        navController.navigateUp()
+                    }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null
                     )
                 }
             }, scrollBehavior = topAppBarScrollBehaviour, title = {
@@ -62,9 +62,7 @@ fun SettingsSectionScaffold(
                     text = topAppBarText,
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 18.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 25.dp)
+                    modifier = Modifier.fillMaxWidth().padding(end = 25.dp)
                 )
             })
         }

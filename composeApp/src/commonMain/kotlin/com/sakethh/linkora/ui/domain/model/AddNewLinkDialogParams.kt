@@ -1,0 +1,20 @@
+package com.sakethh.linkora.ui.domain.model
+
+import androidx.compose.runtime.Stable
+import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.tag.Tag
+import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
+import kotlinx.coroutines.flow.StateFlow
+
+@Stable
+data class AddNewLinkDialogParams(
+   val onDismiss: () -> Unit,
+   val currentFolder: Folder?,
+   val allTags: StateFlow<List<Tag>>,
+   val selectedTags: List<Tag>,
+   val foldersSearchQuery: String,
+   val foldersSearchQueryResult: StateFlow<List<Folder>>,
+   val rootRegularFolders: StateFlow<List<Folder>>,
+   val performAction: (AddANewLinkDialogBoxAction) -> Unit,
+   val url: String = "",
+)

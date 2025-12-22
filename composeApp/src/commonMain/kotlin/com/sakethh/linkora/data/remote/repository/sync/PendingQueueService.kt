@@ -204,6 +204,7 @@ class PendingQueueService(
                         }
                     }
 
+                    // REFACTOR: NESTED collectLatest
                     RemoteRoute.Folder.CREATE_FOLDER.name -> {
                         send(Result.Loading(message = "[FOLDER] Creating folder from queue item (ID: ${queueItem.id})"))
                         val addFolderDTO =

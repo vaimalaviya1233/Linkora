@@ -30,6 +30,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +60,7 @@ import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 
+@Immutable
 data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class) constructor(
     val showDialogBox: Boolean,
     val sheetState: SheetState,

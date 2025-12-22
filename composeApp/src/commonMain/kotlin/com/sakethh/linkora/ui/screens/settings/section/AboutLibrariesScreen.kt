@@ -25,7 +25,6 @@ fun AboutLibrariesScreen() {
     }
     SettingsSectionScaffold(
         topAppBarText = Localization.Key.Libraries.rememberLocalizedString(),
-        navController = LocalNavController.current
     ) { paddingValues, topAppBarScrollBehaviour ->
         LibrariesContainer(
             libraries,
