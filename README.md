@@ -8,6 +8,8 @@ A browser extension is available for saving web links directly to Linkora via sy
 
 [sync server](https://github.com/LinkoraApp/sync-server) | [Extension repo](https://github.com/LinkoraApp/browser-extension)
 
+**Contributing?** See the [Contributing Guide](CONTRIBUTING.md) | [Code of Conduct](https://github.com/LinkoraApp/.github/blob/main/CODE_OF_CONDUCT.md)
+
 ## Download
 
 [<img src="https://github.com/user-attachments/assets/a50513b3-dbf8-48c1-bff8-1f4215fefbb9"
@@ -76,7 +78,5 @@ README to learn more about how localization is handled and how you can contribut
 [![Discord](https://discord.com/api/guilds/1214971383352664104/widget.png?style=banner2)](https://discord.gg/ZDBXNtv8MD)
 
 ---
-
-**Contributing?** See the [contributing guide](CONTRIBUTING.md)
 
 **License:** MIT
