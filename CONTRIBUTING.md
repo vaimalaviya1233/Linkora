@@ -1,25 +1,30 @@
-Well, primarily, Thank you for your interest in contributing to Linkora!
+# Contributing to Linkora
 
-## How to Contribute
+Thanks for helping improve Linkora. To keep the project manageable, please follow these guidelines.
 
-1. **Check the Issues**
-   - Only work on issues labelled **"Open For Contribution"**.
-   - If you want to contribute a new feature that doesn't exist in the issues, please create an issue first and add a comment in that issue stating that you're developing the feature and will create a PR.
-   - I want to work on all other issues that are not part of this "Open For Contribution" label, so please do not submit PRs for them.
-   
-2. **Fork & Clone**
-   - Fork the repository and clone it to your local machine.
-   
-3. **Development Guidelines**
-   - Follow the project's coding style (it will just make things simpler as the project moves ahead), doesn't necessarily have to follow "best practices" and all that, but I really appreciate it if that's the case.
+## The Golden Rule: Check the Label
 
-4. **Submitting a Pull Request (PR)**
-   - Make sure the thing actually works as expected before making a PR, so it would be easier to test on my machine and merge it as soon as possible.
-   - Reference the issue in your PR.
-   - Provide a clear description of your changes; screenshots and screen recordings of your PR would help a lot, so make sure you attach them.
-   - Work only one issue at a time. i.e., one PR should focus on only one issue.
+* **"Open For Contribution"**: These are safe to pick up. They don't conflict with my current work.
+* **No Label**: These are usually tasks I want to handle. If you really want to work on one, ask about it in the issue first, but be aware that it might already be in development.
 
-## Questions or Discussions
+## How to Start
 
-- If you have questions, use the **Discussions** section or comment on the issue.
-- Contributions that are not part of **"Open For Contribution"** labelled issues will not be accepted.
+1. **Find a Task:** Look for the "Open For Contribution" label.
+2. **Claim It:** Comment on the issue so work isn't duplicated.
+3. **New Features:** If it's not in Issues, **open an issue first**. Don't write code until I confirm I want it in the app.
+
+## Development Guidelines
+
+**Coding Style:** Match the existing code style. Consistency prevents unnecessary refactors. If the code looks like it belongs here, it's good.
+
+## Submitting a Pull Request (PR)
+
+* **One Issue = One PR.** Keep them separate for easier merging.
+* **Clear Titles.** Describe exactly what the PR does.
+* **Verify it works.** Linkora is KMP. You **must** test on both **Android and Desktop** before submitting.
+* **Tests.** Adding test cases with your submission is highly appreciated.
+* **Description & Media.** Reference the issue. If you changed the UI, attach screenshots or a screen recording.
+
+## Questions?
+
+Ask in **Discussions**, comment on the issue, or email **sakethh@proton.me**.
