@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.room)
     id("com.mikepenz.aboutlibraries.plugin")
     id("com.mikepenz.aboutlibraries.plugin.android")
+    alias(libs.plugins.stability.analyzer)
 }
 
 kotlin {
