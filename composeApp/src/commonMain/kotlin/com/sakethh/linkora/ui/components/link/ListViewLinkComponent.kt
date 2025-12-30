@@ -45,7 +45,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,7 +69,6 @@ fun ListViewLinkComponent(
     onShare: (url: String) -> Unit
 ) {
     val localClipBoardManager = LocalClipboardManager.current
-    LocalUriHandler.current
     val platform = LocalPlatform.current
     Column(
         modifier = Modifier.background(
@@ -155,6 +153,20 @@ fun ListViewLinkComponent(
                 color = MaterialTheme.colorScheme.onSurface.copy(0.75f)
             )
         }
+        if (linkComponentParam.link.date != null) {
+            Text(
+                modifier = Modifier.padding(
+                    end = 15.dp, top = 10.dp
+                ),
+                text = linkComponentParam.link.date,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                textAlign = TextAlign.Start,
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 12.45.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.65f)
+            )
+        }
         if (linkComponentParam.tags != null) {
             TagsRow(tags = linkComponentParam.tags, onTagClick = {
                 linkComponentParam.onTagClick(it)
@@ -191,25 +203,31 @@ fun ListViewLinkComponent(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(modifier=Modifier.pointerHoverIcon(icon = PointerIcon.Hand),onClick = {
-                            localClipBoardManager.setText(
-                                AnnotatedString(linkComponentParam.link.url)
-                            )
-                        }) {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            onClick = {
+                                localClipBoardManager.setText(
+                                    AnnotatedString(linkComponentParam.link.url)
+                                )
+                            }) {
                             Icon(
                                 imageVector = Icons.Outlined.ContentCopy, contentDescription = null
                             )
                         }
                         if (platform is Platform.Android) {
-                            IconButton(modifier=Modifier.pointerHoverIcon(icon = PointerIcon.Hand),onClick = {
-                                onShare(linkComponentParam.link.url)
-                            }) {
+                            IconButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                                onClick = {
+                                    onShare(linkComponentParam.link.url)
+                                }) {
                                 Icon(imageVector = Icons.Outlined.Share, contentDescription = null)
                             }
                         }
-                        IconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand), onClick = {
-                            linkComponentParam.onMoreIconClick()
-                        }) {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            onClick = {
+                                linkComponentParam.onMoreIconClick()
+                            }) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert, contentDescription = null
                             )
@@ -245,25 +263,28 @@ fun TagsRow(
         items(tags) { tag ->
             AssistChip(
                 colors = AssistChipDefaults.assistChipColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(chipColorOpacity)
-            ), border = AssistChipDefaults.assistChipBorder(
-                enabled = true,
-                borderColor = MaterialTheme.colorScheme.secondaryContainer.copy(chipColorOpacity)
-            ), onClick = {
-                onTagClick(tag)
-            }, label = {
-                Text(
-                    text = tag.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }, leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Tag,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand))
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                        chipColorOpacity
+                    )
+                ), border = AssistChipDefaults.assistChipBorder(
+                    enabled = true,
+                    borderColor = MaterialTheme.colorScheme.secondaryContainer.copy(chipColorOpacity)
+                ), onClick = {
+                    onTagClick(tag)
+                }, label = {
+                    Text(
+                        text = tag.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }, leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Tag,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+            )
         }
     }
 }

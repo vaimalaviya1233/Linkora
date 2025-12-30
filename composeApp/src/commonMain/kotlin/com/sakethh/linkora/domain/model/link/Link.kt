@@ -5,13 +5,13 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.host
-import com.sakethh.linkora.utils.isATwitterUrl
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.utils.epochToReadableDateTime
 import com.sakethh.linkora.utils.getSystemEpochSeconds
+import com.sakethh.linkora.utils.host
+import com.sakethh.linkora.utils.isATwitterUrl
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -32,11 +32,14 @@ data class Link(
     val idOfLinkedFolder: Long?,
     val userAgent: String? = AppPreferences.primaryJsoupUserAgent.value,
     val mediaType: MediaType = MediaType.IMAGE,
-    val lastModified: Long = getSystemEpochSeconds(),
+    val lastModified: Long = getSystemEpochSeconds()
+) {
+
+
     @Ignore
     @Transient
     val date: String? = epochToReadableDateTime(lastModified)
-) {
+
     class Invalid(message: String = Localization.getLocalizedString(Localization.Key.InvalidLink)) :
         Throwable(message)
 }

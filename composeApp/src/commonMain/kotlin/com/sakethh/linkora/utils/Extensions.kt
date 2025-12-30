@@ -16,18 +16,18 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferenceType
-import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
-import com.sakethh.linkora.platform.platform
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
@@ -43,6 +43,24 @@ fun String?.ifNullOrBlank(string: () -> String): String {
         string()
     } else {
         this
+    }
+}
+
+fun String.addZeroAtPrefixOnInt() =
+    try {
+        if (toInt() > 9) this else "0$this"
+    } catch (e: Exception) {
+        e.printStackTrace()
+        this
+    }
+
+fun String.initialCaps(): String {
+    return when {
+        length > 1 -> {
+            get(0).uppercase() + substring(1).lowercase()
+        }
+
+        else -> this.uppercase()
     }
 }
 

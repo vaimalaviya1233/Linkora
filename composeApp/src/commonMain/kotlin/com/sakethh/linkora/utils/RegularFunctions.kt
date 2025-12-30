@@ -20,11 +20,11 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 fun <T> wrappedResultFlow(init: suspend (SendChannel<Result<T>>) -> T): Flow<Result<T>> {
     return channelFlow {
@@ -152,6 +152,23 @@ fun currentSavedServerConfig(): ServerConnection {
 fun getSystemEpochSeconds() = Clock.System.now().epochSeconds
 
 @OptIn(ExperimentalTime::class)
-fun epochToReadableDateTime(epochSeconds: Long): String? {
-    return SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Date(epochSeconds))
+fun epochToReadableDateTime(
+    epochSeconds: Long,
+    timeZone: TimeZone = TimeZone.currentSystemDefault()
+): String? {
+    return try {
+        Instant.fromEpochSeconds(epochSeconds).toLocalDateTime(timeZone)
+            .run {
+                "${"${this.date.day}".addZeroAtPrefixOnInt()} ${
+                    month.name.initialCaps()
+                } ${this.year}, ${
+                    "${
+                        (if (this.time.hour > 12) time.hour - 12 else time.hour)
+                    }".addZeroAtPrefixOnInt()
+                }:${"${this.time.minute}".addZeroAtPrefixOnInt()}:${"${this.time.second}".addZeroAtPrefixOnInt()} ${if (this.time.hour > 11) "PM" else "AM"}"
+            }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
