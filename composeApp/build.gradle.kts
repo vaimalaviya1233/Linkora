@@ -67,6 +67,7 @@ kotlin {
             implementation(libs.aboutlibraries.core)
             implementation(libs.aboutlibraries.compose.m3)
             implementation(libs.ktor.client.logging)
+            implementation(libs.kotlinx.datetime)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
