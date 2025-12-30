@@ -286,7 +286,7 @@ fun Slide2() {
                 linkComponentParam = LinkComponentParam(
                     link = Link(
                 title = "Red Dead Redemption 2 - Rockstar Games",
-                baseURL = "rockstargames.com",
+                host = "rockstargames.com",
                 imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/downloads/buddyiconsconavatars/rdr2_officialart1_256x256.jpg",
                 url = "https://www.rockstargames.com/reddeadredemption2",
                 userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -317,7 +317,7 @@ fun Slide2() {
                 linkComponentParam = LinkComponentParam(
                 link = Link(
                 title = "Nas | Spotify",
-                baseURL = "open.spotify.com",
+                host = "open.spotify.com",
                 imgURL = "https://ucarecdn.com/9b4d5145-a417-4ff9-a7e5-93a452a443c8/-/crop/974x818/26,197/-/preview/",
                 url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
                 userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -449,7 +449,7 @@ fun Slide3() {
                             linkComponentParam = LinkComponentParam(
                                 link = Link(
                             title = "Synchronization in Linkora • Saketh Pathike",
-                            baseURL = "sakethpathike.github.io",
+                            host = "sakethpathike.github.io",
                             imgURL = "https://sakethpathike.github.io/images/ogImage-synchronization-in-linkora.png",
                             url = "https://sakethpathike.github.io/blog/synchronization-in-linkora",
                             userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -498,7 +498,7 @@ fun Slide3() {
                             linkComponentParam = LinkComponentParam(
                                 link = Link(
                                 title = "LinkoraApp/sync-server: self-hostable sync-server for Linkora with browser extension support.",
-                                baseURL = "github.com",
+                                host = "github.com",
                                 imgURL = "https://opengraph.githubassets.com/45fc9e2969396c9f27f7af994014d3a75ff93899d98ef2f6c5504fef71edd9cf/LinkoraApp/sync-server",
                                 url = "https://github.com/LinkoraApp/sync-server",
                                 userAgent = AppPreferences.primaryJsoupUserAgent.value,

@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.components.InfoCard
@@ -75,7 +74,7 @@ fun NonMobileMenu(
                 }
                 Spacer(Modifier.height(5.dp))
                 Text(
-                    text = currentLinkTagsPair.link.baseURL,
+                    text = currentLinkTagsPair.link.host,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clip(RoundedCornerShape(5.dp))

@@ -450,7 +450,7 @@ class AppVM(
                 localId = 0L,
                 title = "",
                 url = "",
-                baseURL = "",
+                host = "",
                 imgURL = "",
                 note = "",
                 idOfLinkedFolder = null,

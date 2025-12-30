@@ -199,35 +199,35 @@ class LocalLinksRepoImpl(
         return linksDao.addMultipleLinks(links)
     }
 
-    override suspend fun getSortedLinks(
+    override suspend fun getLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>> {
         return linksDao.getSortedLinks(linkType, parentFolderId, sortOption).mapToResultFlow()
     }
 
-    override suspend fun getSortedLinks(tagId: Long, sortOption: String): Flow<Result<List<Link>>> {
+    override suspend fun getLinks(tagId: Long, sortOption: String): Flow<Result<List<Link>>> {
         return linksDao.getSortedLinks(tagId = tagId, sortOption = sortOption).mapToResultFlow()
     }
 
-    override fun sortLinksAsNonResultFlow(
+    override fun getLinksAsNonResultFlow(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>> {
         return linksDao.getSortedLinks(linkType, parentFolderId, sortOption)
     }
 
-    override suspend fun getSortedLinks(
+    override suspend fun getLinks(
         linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>> {
         return linksDao.getSortedLinks(linkType, sortOption).mapToResultFlow()
     }
 
-    override fun sortLinksAsNonResultFlow(
+    override fun getLinksAsNonResultFlow(
         linkType: LinkType, sortOption: String
     ): Flow<List<Link>> {
         return linksDao.getSortedLinks(linkType, sortOption)
     }
 
-    override suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>> {
+    override suspend fun getAllLinks(sortOption: String): Flow<Result<List<Link>>> {
         return linksDao.getAllLinks(sortOption).mapToResultFlow()
     }
 

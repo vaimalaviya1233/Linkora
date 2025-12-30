@@ -237,7 +237,7 @@ open class CollectionsScreenVM(
             ) { appliedFilters, sortingType, forceShuffleLinks ->
                 Triple(appliedFilters, sortingType, forceShuffleLinks)
             }.collectLatest { (appliedFilters, sortingType, forceShuffleLinks) ->
-                localLinksRepo.sortAllLinks(sortingType).collectLatest {
+                localLinksRepo.getAllLinks(sortingType).collectLatest {
                     it.onSuccess { result ->
                         _availableFiltersForAllLinks.emit(result.data.map { it.linkType }.toSet())
                         val filteredResults = result.data.filter {
@@ -701,9 +701,9 @@ open class CollectionsScreenVM(
                 AppPreferences.selectedSortingTypeType.value
             }.collectLatest { sortingType ->
                 if (folderId.isNull()) {
-                    localLinksRepo.getSortedLinks(linkType, sortingType)
+                    localLinksRepo.getLinks(linkType, sortingType)
                 } else {
-                    localLinksRepo.getSortedLinks(linkType, folderId!!, sortingType)
+                    localLinksRepo.getLinks(linkType, folderId!!, sortingType)
                 }.collectAndEmitLinks(_linkTagsPairs)
             }
         }
@@ -716,7 +716,7 @@ open class CollectionsScreenVM(
             snapshotFlow {
                 AppPreferences.selectedSortingTypeType.value
             }.collectLatest { sortingType ->
-                localLinksRepo.getSortedLinks(tagId = tagId, sortOption = sortingType)
+                localLinksRepo.getLinks(tagId = tagId, sortOption = sortingType)
                     .collectAndEmitLinks(emitter = _linkTagsPairs)
             }
         }

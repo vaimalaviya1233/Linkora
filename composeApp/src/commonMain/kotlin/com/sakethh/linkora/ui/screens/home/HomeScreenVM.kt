@@ -143,9 +143,9 @@ class HomeScreenVM(
             appPreferencesCombined.flatMapLatest { (shuffleLinks, sortingType) ->
                 val processedFoldersFlow = if (panelId == Constants.DEFAULT_PANELS_ID) {
                     combine(
-                        localLinksRepo.sortLinksAsNonResultFlow(
+                        localLinksRepo.getLinksAsNonResultFlow(
                             linkType = LinkType.SAVED_LINK, sortOption = sortingType
-                        ), localLinksRepo.sortLinksAsNonResultFlow(
+                        ), localLinksRepo.getLinksAsNonResultFlow(
                             linkType = LinkType.IMPORTANT_LINK, sortOption = sortingType
                         )
                     ) { savedLinks, impLinks ->
@@ -171,7 +171,7 @@ class HomeScreenVM(
                             }
 
                             val links = combine(panelFolders.map {
-                                localLinksRepo.sortLinksAsNonResultFlow(
+                                localLinksRepo.getLinksAsNonResultFlow(
                                     linkType = LinkType.FOLDER_LINK,
                                     parentFolderId = it.folderId,
                                     sortOption = sortingType

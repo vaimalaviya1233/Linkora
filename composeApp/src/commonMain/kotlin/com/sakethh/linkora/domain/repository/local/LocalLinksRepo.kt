@@ -4,7 +4,6 @@ import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.link.Link
-import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import kotlinx.coroutines.flow.Flow
 
@@ -18,27 +17,27 @@ interface LocalLinksRepo {
 
     suspend fun addMultipleLinks(links: List<Link>): List<Long>
 
-    suspend fun getSortedLinks(
+    suspend fun getLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Link>>>
 
-    suspend fun getSortedLinks(
+    suspend fun getLinks(
         tagId: Long, sortOption: String
     ): Flow<Result<List<Link>>>
 
-    fun sortLinksAsNonResultFlow(
+    fun getLinksAsNonResultFlow(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>>
 
-    suspend fun getSortedLinks(
+    suspend fun getLinks(
         linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>>
 
-    fun sortLinksAsNonResultFlow(
+    fun getLinksAsNonResultFlow(
         linkType: LinkType, sortOption: String
     ): Flow<List<Link>>
 
-    suspend fun sortAllLinks(sortOption: String): Flow<Result<List<Link>>>
+    suspend fun getAllLinks(sortOption: String): Flow<Result<List<Link>>>
 
     suspend fun deleteLinksOfFolder(folderId: Long): Flow<Result<Unit>>
 

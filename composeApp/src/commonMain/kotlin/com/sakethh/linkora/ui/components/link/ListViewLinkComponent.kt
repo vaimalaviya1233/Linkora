@@ -171,7 +171,7 @@ fun ListViewLinkComponent(
                     color = MaterialTheme.colorScheme.primary.copy(0.1f),
                     shape = RoundedCornerShape(5.dp)
                 ).padding(5.dp),
-                text = linkComponentParam.link.baseURL.replace("www.", "").replace("http://", "")
+                text = linkComponentParam.link.host.replace("www.", "").replace("http://", "")
                     .replace("https://", ""),
                 style = MaterialTheme.typography.titleLarge,
                 maxLines = 1,

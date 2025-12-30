@@ -238,7 +238,7 @@ class SearchScreenVM(
             ) { selectedSortingType, forceShuffleLinks ->
                 forceShuffleLinks to selectedSortingType
             }.flatMapLatest { (forceShuffleLinks, selectedSortingType) ->
-                localLinksRepo.getSortedLinks(linkType = LinkType.HISTORY_LINK, selectedSortingType)
+                localLinksRepo.getLinks(linkType = LinkType.HISTORY_LINK, selectedSortingType)
                     .flatMapLatest {
                         when (it) {
                             is Result.Failure<List<Link>> -> flowOf()

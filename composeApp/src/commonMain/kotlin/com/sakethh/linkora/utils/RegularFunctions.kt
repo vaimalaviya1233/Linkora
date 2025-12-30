@@ -20,6 +20,9 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -147,3 +150,8 @@ fun currentSavedServerConfig(): ServerConnection {
 
 @OptIn(ExperimentalTime::class)
 fun getSystemEpochSeconds() = Clock.System.now().epochSeconds
+
+@OptIn(ExperimentalTime::class)
+fun epochToReadableDateTime(epochSeconds: Long): String? {
+    return SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Date(epochSeconds))
+}

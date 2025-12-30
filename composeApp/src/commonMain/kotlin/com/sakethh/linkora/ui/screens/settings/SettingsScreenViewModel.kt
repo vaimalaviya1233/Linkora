@@ -240,7 +240,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                 title = "This Could Be A Dream - YouTube Music",
-                baseURL = "music.youtube.com",
+                host = "music.youtube.com",
                 imgURL = "https://lh3.googleusercontent.com/KMdNxgppeQ_CEAv3mcwYde9s6ehw-r9MWnE4wC2T0Yhax1aOwYvfRLfHCbLBbW-UVQQEdYniiXThgso",
                 url = "https://music.youtube.com/watch?v=DbiB1AtCA9k",
                 userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -262,7 +262,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                 title = "Red Dead Redemption 2 - Rockstar Games",
-                baseURL = "rockstargames.com",
+                host = "rockstargames.com",
                 imgURL = "https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/games/fob/640/reddeadredemption2.jpg",
                 url = "https://www.rockstargames.com/reddeadredemption2",
                 userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -284,7 +284,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                 title = "A Plague Tale: Requiem | Download and Buy Today - Epic Games Store",
-                baseURL = "store.epicgames.com",
+                host = "store.epicgames.com",
                 imgURL = listOf(
                     "https://pbs.twimg.com/media/FUPM2TrWYAAQsXm?format=jpg",
                     "https://pbs.twimg.com/media/FLJx9epWYAADM0O?format=jpg",
@@ -338,7 +338,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                     title = "Nas | Spotify",
-                    baseURL = "open.spotify.com",
+                    host = "open.spotify.com",
                     imgURL = "https://cdn.prod.website-files.com/673de86e5b9b97bfffe3e0e4/67563ebf6f96ce8ad4d79ae4_Nas-Website.png",
                     url = "https://open.spotify.com/artist/20qISvAhX20dpIbOOzGK3q",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -360,7 +360,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                     title = "Listen Gentle - YouTube Music",
-                    baseURL = "music.youtube.com",
+                    host = "music.youtube.com",
                     imgURL = "https://lh3.googleusercontent.com/hloaKrX1jN1EfSLOUA11tgHZ3faSc5QFHNbMuB9bO-QTAdQRl-1oMZEXNQxOlk-p_sWBlf9Dd-4cal14",
                     url = "https://music.youtube.com/watch?v=Q5jl_fmMd8M",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -382,7 +382,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                     title = "Hacker (small type)",
-                    baseURL = "twitter.com",
+                    host = "twitter.com",
                     imgURL = "https://pbs.twimg.com/media/GT7RIrWWwAAjZzg.jpg",
                     url = "https://twitter.com/CatWorkers/status/1819121250226127061",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -404,7 +404,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                     title = "Nas - You're da Man (from Made You Look: God's Son Live)",
-                    baseURL = "youtube.com",
+                    host = "youtube.com",
                     imgURL = "https://i.ytimg.com/vi/3vlqI5TPVjQ/maxresdefault.jpg",
                     url = "https://www.youtube.com/watch?v=3vlqI5TPVjQ",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -427,7 +427,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                     title = "Clipse, Nas, Pusha T, Malice - Let God Sort Em Out/Chandeliers - YouTube Music",
-                    baseURL = "music.youtube.com",
+                    host = "music.youtube.com",
                     imgURL = "https://i.ytimg.com/vi/qQH24C1Jrx0/maxresdefault.jpg",
                     url = "https://music.youtube.com/watch?v=78YNulckDng",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,
@@ -450,7 +450,7 @@ open class SettingsScreenViewModel(
             LinkComponentParam(
                 link = Link(
                     title = "Nas - Rare (Official Video)",
-                    baseURL = "youtube.com",
+                    host = "youtube.com",
                     imgURL = "https://i.ytimg.com/vi/66OFYWBrg3o/maxresdefault.jpg",
                     url = "https://www.youtube.com/watch?v=66OFYWBrg3o",
                     userAgent = AppPreferences.primaryJsoupUserAgent.value,

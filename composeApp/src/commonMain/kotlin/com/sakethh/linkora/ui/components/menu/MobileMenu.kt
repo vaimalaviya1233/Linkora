@@ -85,7 +85,7 @@ fun MobileMenu(
                     color = MaterialTheme.colorScheme.secondaryContainer.copy(if (!showTags) 1f else 0.5f),
                     shape = RoundedCornerShape(10.dp)
                 ).padding(5.dp),
-            text = menuBtmSheetParam.linkTagsPair!!.link.baseURL.replace("www.", "")
+            text = menuBtmSheetParam.linkTagsPair!!.link.host.replace("www.", "")
                 .replace("http://", "").replace("https://", ""),
             style = if (!showTags) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
             maxLines = 1,
