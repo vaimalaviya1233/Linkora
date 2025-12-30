@@ -77,6 +77,7 @@ kotlin {
         commonTest.dependencies {
             implementation("io.mockk:mockk:1.14.5")
             implementation(libs.kotlin.test)
+            implementation(libs.assertk)
         }
     }
 }
