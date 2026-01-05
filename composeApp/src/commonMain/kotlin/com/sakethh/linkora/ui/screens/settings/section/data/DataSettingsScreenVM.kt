@@ -19,6 +19,7 @@ import com.sakethh.linkora.domain.repository.ExportDataRepo
 import com.sakethh.linkora.domain.repository.ImportDataRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.domain.repository.local.RefreshLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.platform.FileManager
 import com.sakethh.linkora.platform.NativeUtils
@@ -50,7 +51,8 @@ class DataSettingsScreenVM(
     private val remoteSyncRepo: RemoteSyncRepo,
     private val nativeUtils: NativeUtils,
     private val fileManager: FileManager,
-    private val permissionManager: PermissionManager
+    private val permissionManager: PermissionManager,
+    private val refreshLinksRepo: RefreshLinksRepo
 ) : SettingsScreenViewModel(preferencesRepository, nativeUtils, permissionManager) {
     val importExportProgressLogs = mutableStateListOf<String>()
 
@@ -78,7 +80,7 @@ class DataSettingsScreenVM(
             val file =
                 if (importFileSelectionMethod.first == ImportFileSelectionMethod.FileLocationString) {
                     File(importFileSelectionMethod.second).let {
-                        if (it.exists() && it.extension.lowercase() == importFileType.name.lowercase()) {
+                        if (it.exists() && it.extension.equals(importFileType.name, ignoreCase = true)) {
                             onStart()
                             it
                         } else if (it.exists() && it.extension.lowercase() != importFileType.name.lowercase()) {
@@ -230,7 +232,7 @@ class DataSettingsScreenVM(
             }
             launch {
                 nativeUtils.onRefreshAllLinks(
-                    localLinksRepo = linksRepo, preferencesRepository = preferencesRepository
+                    localLinksRepo = linksRepo, preferencesRepository = preferencesRepository, refreshLinksRepo = refreshLinksRepo
                 )
             }
         }.invokeOnCompletion {
@@ -239,7 +241,9 @@ class DataSettingsScreenVM(
     }
 
     fun cancelRefreshingAllLinks() {
-        nativeUtils.cancelRefreshingLinks()
+        viewModelScope.launch {
+            nativeUtils.cancelRefreshingLinks()
+        }
     }
 
     fun deleteDuplicates(onStart: () -> Unit, onCompletion: () -> Unit) {

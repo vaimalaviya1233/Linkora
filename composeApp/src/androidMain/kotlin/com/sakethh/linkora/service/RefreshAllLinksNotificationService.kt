@@ -8,9 +8,9 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.R
-import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.ui.screens.settings.section.data.DataSettingsScreenVM
+import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.worker.RefreshAllLinksWorker
 
 class RefreshAllLinksNotificationService(private val context: Context) {
@@ -64,7 +64,7 @@ class RefreshAllLinksNotificationService(private val context: Context) {
 
 class CancelRefreshingActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (context!=null){
+        if (context != null) {
             RefreshAllLinksWorker.cancelLinksRefreshing(context)
         }
     }

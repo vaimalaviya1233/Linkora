@@ -12,6 +12,7 @@ import com.sakethh.linkora.data.local.repository.LocalPanelsRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalTagsRepoImpl
 import com.sakethh.linkora.data.local.repository.PendingSyncQueueRepoImpl
 import com.sakethh.linkora.data.local.repository.PreferencesImpl
+import com.sakethh.linkora.data.local.repository.RefreshLinksRepoImpl
 import com.sakethh.linkora.data.local.repository.SnapshotRepoImpl
 import com.sakethh.linkora.data.remote.repository.GitHubReleasesRepoImpl
 import com.sakethh.linkora.data.remote.repository.RemoteFoldersRepoImpl
@@ -56,6 +57,12 @@ object DependencyContainer {
 
     val localDatabaseUtilsImpl by lazy {
         DatabaseUtilsImpl(LinkoraSDK.getInstance().localDatabase)
+    }
+
+    val refreshLinksRepo by lazy {
+        RefreshLinksRepoImpl(
+            refreshLinkDao = LinkoraSDK.getInstance().localDatabase.refreshDao
+        )
     }
 
     val remoteSyncRepo by lazy {

@@ -11,29 +11,30 @@ import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.LocalizationDao
 import com.sakethh.linkora.data.local.dao.PanelsDao
 import com.sakethh.linkora.data.local.dao.PendingSyncQueueDao
+import com.sakethh.linkora.data.local.dao.RefreshLinkDao
 import com.sakethh.linkora.data.local.dao.SnapshotDao
 import com.sakethh.linkora.data.local.dao.TagsDao
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.PendingSyncQueue
+import com.sakethh.linkora.domain.model.RefreshLink
 import com.sakethh.linkora.domain.model.Snapshot
-import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.localization.LocalizedLanguage
 import com.sakethh.linkora.domain.model.localization.LocalizedString
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
+import com.sakethh.linkora.domain.model.tag.LinkTag
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.getSystemEpochSeconds
-import java.time.Instant
 
 @Database(
-    version = 12,
+    version = 13,
     exportSchema = true,
     entities = [Link::class, Folder::class,
         LocalizedString::class, LocalizedLanguage::class,
         Panel::class, PanelFolder::class, PendingSyncQueue::class,
-        Snapshot::class, Tag::class, LinkTag::class]
+        Snapshot::class, Tag::class, LinkTag::class, RefreshLink::class]
 )
 @TypeConverters(TypeConverter::class)
 abstract class LocalDatabase : RoomDatabase() {
@@ -408,12 +409,19 @@ abstract class LocalDatabase : RoomDatabase() {
                 linkoraLog("Applied MIGRATION_10_11")
             }
         }
-        val MIGRATION_11_12 = object : Migration(11,12){
+        val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(connection: SQLiteConnection) {
                 connection.execSQL("CREATE TABLE IF NOT EXISTS `tags` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` INTEGER, `lastModified` INTEGER NOT NULL, `name` TEXT NOT NULL)")
                 connection.execSQL("CREATE TABLE IF NOT EXISTS `link_tags` (`remoteId` INTEGER, `linkId` INTEGER NOT NULL, `tagId` INTEGER NOT NULL, `lastModified` INTEGER NOT NULL, PRIMARY KEY(`linkId`, `tagId`), FOREIGN KEY(`linkId`) REFERENCES `links`(`localId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`tagId`) REFERENCES `tags`(`localId`) ON UPDATE NO ACTION ON DELETE CASCADE )")
             }
         }
+
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("CREATE TABLE IF NOT EXISTS `RefreshLink` (`refreshedLinkId` INTEGER NOT NULL, PRIMARY KEY(`refreshedLinkId`))")
+            }
+        }
+
     }
 
     abstract val linksDao: LinksDao
@@ -423,4 +431,5 @@ abstract class LocalDatabase : RoomDatabase() {
     abstract val pendingSyncQueueDao: PendingSyncQueueDao
     abstract val snapshotDao: SnapshotDao
     abstract val tagsDao: TagsDao
+    abstract val refreshDao: RefreshLinkDao
 }

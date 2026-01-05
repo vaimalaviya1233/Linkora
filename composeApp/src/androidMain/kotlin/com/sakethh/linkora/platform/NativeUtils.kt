@@ -17,8 +17,10 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.R
+import com.sakethh.linkora.data.local.dao.RefreshLinkDao
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.domain.repository.local.RefreshLinksRepo
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.utils.getLocalizedString
@@ -41,7 +43,7 @@ actual class NativeUtils(private val context: Context) {
     }
 
     actual suspend fun onRefreshAllLinks(
-        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
+        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository, refreshLinksRepo: RefreshLinksRepo
     ) {
         val workManager = WorkManager.getInstance(context)
         val request = OneTimeWorkRequestBuilder<RefreshAllLinksWorker>().setConstraints(
@@ -55,9 +57,10 @@ actual class NativeUtils(private val context: Context) {
             ), newValue = AppPreferences.refreshLinksWorkerTag.value
         )
         preferencesRepository.changePreferenceValue(
-            preferenceKey = longPreferencesKey(AppPreferenceType.LAST_REFRESHED_LINK_INDEX.name),
-            newValue = -1
+            preferenceKey = longPreferencesKey(AppPreferenceType.REFRESHED_LINKS_COUNT.name),
+            newValue = 0
         )
+        refreshLinksRepo.deleteAllIds()
         workManager.enqueueUniqueWork(
             AppPreferences.refreshLinksWorkerTag.value, ExistingWorkPolicy.KEEP, request
         )

@@ -2,6 +2,7 @@ package com.sakethh.linkora.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
+import com.sakethh.linkora.data.local.dao.RefreshLinkDao
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
 import com.sakethh.linkora.domain.PermissionStatus
@@ -9,6 +10,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RawExportString
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.domain.repository.local.RefreshLinksRepo
 import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import kotlinx.coroutines.flow.Flow
 import java.io.File
@@ -70,7 +72,7 @@ expect class NativeUtils {
     fun onShare(url: String)
 
     suspend fun onRefreshAllLinks(
-        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
+        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository, refreshLinksRepo: RefreshLinksRepo
     )
 
     suspend fun isAnyRefreshingScheduled(): Flow<Boolean?>

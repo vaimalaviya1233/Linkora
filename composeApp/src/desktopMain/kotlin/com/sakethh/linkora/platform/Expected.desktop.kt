@@ -2,10 +2,12 @@ package com.sakethh.linkora.platform
 
 import androidx.compose.runtime.Composable
 import com.sakethh.linkora.RefreshAllLinksService
+import com.sakethh.linkora.data.local.dao.RefreshLinkDao
 import com.sakethh.linkora.domain.PermissionStatus
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
+import com.sakethh.linkora.domain.repository.local.RefreshLinksRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -37,7 +39,7 @@ actual class NativeUtils {
     actual fun onShare(url: String) = Unit
 
     actual suspend fun onRefreshAllLinks(
-        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository
+        localLinksRepo: LocalLinksRepo, preferencesRepository: PreferencesRepository, refreshLinksRepo: RefreshLinksRepo
     ) {
         RefreshAllLinksService.invoke(localLinksRepo)
     }

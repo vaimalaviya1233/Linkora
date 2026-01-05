@@ -43,7 +43,8 @@ class LinkoraApp : Application() {
                     LocalDatabase.MIGRATION_8_9,
                     LocalDatabase.MIGRATION_9_10,
                     LocalDatabase.MIGRATION_10_11,
-                    LocalDatabase.MIGRATION_11_12
+                    LocalDatabase.MIGRATION_11_12,
+                    LocalDatabase.MIGRATION_12_13
                 ).build()
             },
             dataStore = PreferenceDataStoreFactory.createWithPath(
