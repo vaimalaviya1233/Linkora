@@ -33,6 +33,11 @@ interface LocalLinksRepo {
         linkType: LinkType, sortOption: String
     ): Flow<Result<List<Link>>>
 
+    suspend fun getLinks(
+        linkType: LinkType, sortOption: String,
+        pageSize: Int, startIndex: Int
+    ): Flow<Result<List<Link>>>
+
     fun getLinksAsNonResultFlow(
         linkType: LinkType, sortOption: String
     ): Flow<List<Link>>

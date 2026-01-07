@@ -13,7 +13,7 @@ class CollectionsScreenVMAssistedFactoryTest {
 
     @Test
     fun `createForApp should initialize collectionDetailPaneInfo as null`() {
-        val collectionsScreenVM = CollectionScreenVMAssistedFactory.createForApp()
+        val collectionsScreenVM = CollectionScreenVMAssistedFactory.createForApp(Platform.Desktop)
             .create(CollectionsScreenVM::class, CreationExtras.Empty)
 
         assertTrue(collectionsScreenVM.collectionDetailPaneInfo == null)

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +53,7 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -94,7 +96,15 @@ fun SearchScreen(
     LaunchedEffect(!searchScreenVM.isSearchActive.value) {
         cancelForceSearchActive()
     }
-    val historyLinkTagsPairs = searchScreenVM.linkTagsPairs.collectAsStateWithLifecycle()
+    val historyLinkTagsPairsState by searchScreenVM.historyLinkTagsPairsState.collectAsStateWithLifecycle(
+        initialValue = PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = emptyList()
+        )
+    )
     val searchQueryLinkResults = searchScreenVM.linkQueryResults.collectAsStateWithLifecycle()
     val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
     val searchQueryTagResults = searchScreenVM.tagQueryResults.collectAsStateWithLifecycle()
@@ -294,9 +304,10 @@ fun SearchScreen(
             }
         }
         CollectionLayoutManager(
+
             emptyDataText = Localization.Key.NoHistoryFound.rememberLocalizedString(),
             folders = emptyList(),
-            linksTagsPairs = historyLinkTagsPairs.value,
+            linksTagsPairs = historyLinkTagsPairsState.data,
             paddingValues = PaddingValues(0.dp),
             folderMoreIconClick = {},
             onFolderClick = {},
@@ -337,7 +348,14 @@ fun SearchScreen(
             },
             tags = emptyList(),
             tagMoreIconClick = {},
-            onTagClick = {})
+            onTagClick = {},
+            isLoading = historyLinkTagsPairsState.isRetrieving,
+            pagesFinished = historyLinkTagsPairsState.pagesCompleted,
+            onRetrieveNextPage = {
+                searchScreenVM.retrieveNextBatchOfHistoryLinks()
+            },
+            firstVisibleItemIndex = searchScreenVM::updateFirstVisibleItemIndex
+        )
     }
 }
 
@@ -347,7 +365,7 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier.animateContentSize()
     ) {
         Spacer(modifier = Modifier.width(10.dp))
-        androidx.compose.material3.FilterChip(
+        FilterChip(
             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
             selected = isSelected,
             onClick = onClick,

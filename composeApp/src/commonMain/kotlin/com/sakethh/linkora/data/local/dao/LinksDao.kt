@@ -80,6 +80,24 @@ interface LinksDao {
 
     @Query(
         """
+    SELECT * FROM links
+    WHERE
+        linkType = :linkType
+    ORDER BY
+        CASE WHEN :sortOption = 'A_TO_Z' THEN title COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = 'Z_TO_A' THEN title COLLATE NOCASE END DESC,
+        CASE WHEN :sortOption = 'NEW_TO_OLD' THEN localId END DESC,
+        CASE WHEN :sortOption = 'OLD_TO_NEW' THEN localId END ASC
+    LIMIT :pageSize
+    OFFSET :startIndex
+"""
+    )
+    fun getSortedLinks(
+        linkType: com.sakethh.linkora.domain.LinkType, sortOption: String, pageSize: Int, startIndex: Int
+    ): Flow<List<Link>>
+
+    @Query(
+        """
     SELECT * FROM links 
     ORDER BY 
         CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,

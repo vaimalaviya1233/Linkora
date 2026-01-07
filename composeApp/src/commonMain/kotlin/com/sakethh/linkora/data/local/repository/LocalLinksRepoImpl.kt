@@ -221,6 +221,19 @@ class LocalLinksRepoImpl(
         return linksDao.getSortedLinks(linkType, sortOption).mapToResultFlow()
     }
 
+    override suspend fun getLinks(
+        linkType: LinkType,
+        sortOption: String,
+        pageSize: Int, startIndex: Int
+    ): Flow<Result<List<Link>>> {
+        return linksDao.getSortedLinks(
+            linkType = linkType,
+            sortOption = sortOption,
+            pageSize = pageSize,
+            startIndex = startIndex
+        ).mapToResultFlow()
+    }
+
     override fun getLinksAsNonResultFlow(
         linkType: LinkType, sortOption: String
     ): Flow<List<Link>> {
@@ -360,7 +373,7 @@ class LocalLinksRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                if (remoteId != null){
+                if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
                             operation = RemoteRoute.Link.DELETE_A_LINK.name,
@@ -608,9 +621,9 @@ class LocalLinksRepoImpl(
                         operation = RemoteRoute.Link.UPDATE_LINK.name,
                         payload = Json.encodeToString(
                             linksDao.getLink(link.localId).asLinkDTO(
-                                    id = link.localId,
-                                    remoteLinkTags = remoteLinkTagDTOs ?: emptyList()
-                                ).copy(eventTimestamp = eventTimestamp)
+                                id = link.localId,
+                                remoteLinkTags = remoteLinkTagDTOs ?: emptyList()
+                            ).copy(eventTimestamp = eventTimestamp)
                         )
                     )
                 )

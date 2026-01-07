@@ -18,13 +18,20 @@ import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.Paginator
+import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.utils.pushSnackbarOnFailure
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -33,7 +40,10 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.TreeMap
 
 class SearchScreenVM(
     private val localFoldersRepo: LocalFoldersRepo,
@@ -133,35 +143,35 @@ class SearchScreenVM(
                     allInputs.query,
                     AppPreferences.selectedSortingTypeType.value
                 ).flatMapLatest {
-                        when (it) {
-                            is Result.Failure<*> -> flowOf()
-                            is Result.Loading<*> -> flowOf()
-                            is Result.Success<List<Link>> -> {
-                                val linkSearchResults = it.data
-                                val linkIds = linkSearchResults.map { it.localId }
-                                localTagsRepo.getTagsForLinks(linkIds).map { tagsMap ->
-                                    linkSearchResults.filter {
-                                        !allInputs.isTagFilterApplied && (allInputs.appliedLinkFilters.isEmpty() || it.linkType in allInputs.appliedLinkFilters)
-                                    }.map {
-                                        LinkTagsPair(
-                                            link = it, tags = tagsMap[it.localId] ?: emptyList()
-                                        )
-                                    }
+                    when (it) {
+                        is Result.Failure<*> -> flowOf()
+                        is Result.Loading<*> -> flowOf()
+                        is Result.Success<List<Link>> -> {
+                            val linkSearchResults = it.data
+                            val linkIds = linkSearchResults.map { it.localId }
+                            localTagsRepo.getTagsForLinks(linkIds).map { tagsMap ->
+                                linkSearchResults.filter {
+                                    !allInputs.isTagFilterApplied && (allInputs.appliedLinkFilters.isEmpty() || it.linkType in allInputs.appliedLinkFilters)
+                                }.map {
+                                    LinkTagsPair(
+                                        link = it, tags = tagsMap[it.localId] ?: emptyList()
+                                    )
                                 }
                             }
                         }
                     }
+                }
 
                 val foldersFlow = localFoldersRepo.search(
                     allInputs.query,
                     AppPreferences.selectedSortingTypeType.value
                 ).map {
-                        when (it) {
-                            is Result.Failure -> emptyList()
-                            is Result.Loading -> emptyList()
-                            is Result.Success<List<Folder>> -> it.data
-                        }
+                    when (it) {
+                        is Result.Failure -> emptyList()
+                        is Result.Loading -> emptyList()
+                        is Result.Success<List<Folder>> -> it.data
                     }
+                }
                 val tagsFlow = localTagsRepo.search(
                     query = allInputs.query,
                     sortOption = AppPreferences.selectedSortingTypeType.value
@@ -223,12 +233,32 @@ class SearchScreenVM(
         }
     }
 
-    private val _linkTagsPairs = MutableStateFlow(emptyList<LinkTagsPair>())
-    val linkTagsPairs = _linkTagsPairs.asStateFlow()
+    private val _historyLinkTagsPairsState = MutableStateFlow(
+        PaginationState<TreeMap<PageKey, List<LinkTagsPair>>>(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = TreeMap()
+        )
+    )
+    val historyLinkTagsPairsState = _historyLinkTagsPairsState.asStateFlow().transform {
+        emit(
+            PaginationState(
+                data = it.data.map { it.value }
+                    .flatten(), // TODO: directly pass map instead of flattening and show it directly on the UI
+                isRetrieving = it.isRetrieving,
+                errorOccurred = it.errorOccurred,
+                errorMessage = it.errorMessage,
+                pagesCompleted = it.pagesCompleted,
+            )
+        )
+    }
 
-    init {
-        viewModelScope.launch {
-            combine(
+    private val historyLinksPaginatorScope = CoroutineScope(Dispatchers.Default)
+    private val historyLinksPaginator = Paginator(
+        onRetrieve = { nextPageStartIndex ->
+            nextPageStartIndex to combine(
                 snapshotFlow {
                     AppPreferences.selectedSortingTypeType.value
                 },
@@ -238,12 +268,17 @@ class SearchScreenVM(
             ) { selectedSortingType, forceShuffleLinks ->
                 forceShuffleLinks to selectedSortingType
             }.flatMapLatest { (forceShuffleLinks, selectedSortingType) ->
-                localLinksRepo.getLinks(linkType = LinkType.HISTORY_LINK, selectedSortingType)
+                localLinksRepo.getLinks(
+                    linkType = LinkType.HISTORY_LINK,
+                    selectedSortingType,
+                    pageSize = Constants.PAGE_SIZE,
+                    startIndex = nextPageStartIndex
+                )
                     .flatMapLatest {
                         when (it) {
-                            is Result.Failure<List<Link>> -> flowOf()
-                            is Result.Loading<List<Link>> -> flowOf()
-                            is Result.Success<List<Link>> -> {
+                            is Result.Failure -> flowOf(Result.Failure(it.message))
+                            is Result.Loading -> flowOf(Result.Loading())
+                            is Result.Success -> {
                                 val allLinks =
                                     if (forceShuffleLinks) it.data.shuffled() else it.data
                                 val linkIds = allLinks.map { it.localId }
@@ -254,13 +289,84 @@ class SearchScreenVM(
                                             tags = tagsForLinks[it.localId] ?: emptyList()
                                         )
                                     }
+                                }.map {
+                                    Result.Success(it)
                                 }
                             }
                         }
                     }
-            }.collectLatest {
-                _linkTagsPairs.emit(it)
             }
+        },
+        onRetrieved = { _, pageKey, retrievedData ->
+            _historyLinkTagsPairsState.update { currentState ->
+                //  currentState.data[pageKey] = retrievedData.map { it.second } will update
+                //  but doesn't reflect on UI, since its the same reference and stateflow wont emit new emission
+
+                val updatedData = TreeMap(currentState.data)
+                updatedData[pageKey] = retrievedData.map { it.second }
+
+                currentState.copy(
+                    data = updatedData,
+                    isRetrieving = false,
+                    errorOccurred = false,
+                    errorMessage = null,
+                    pagesCompleted = false,
+                )
+            }
+        },
+        onError = { errorMsg ->
+            _historyLinkTagsPairsState.update {
+                it.copy(
+                    isRetrieving = false,
+                    errorOccurred = true,
+                    errorMessage = errorMsg,
+                    pagesCompleted = false
+                )
+            }
+        },
+        onRetrieving = {
+            _historyLinkTagsPairsState.update {
+                it.copy(
+                    isRetrieving = true,
+                    errorOccurred = false,
+                    errorMessage = null,
+                    pagesCompleted = false
+                )
+            }
+        },
+        onPagesFinished = {
+            _historyLinkTagsPairsState.update {
+                it.copy(
+                    isRetrieving = false,
+                    errorOccurred = false,
+                    errorMessage = null,
+                    pagesCompleted = true
+                )
+            }
+        },
+        coroutineScope = historyLinksPaginatorScope
+    )
+
+    fun retrieveNextBatchOfHistoryLinks() {
+        viewModelScope.launch {
+            historyLinksPaginator.retrieveNextBatch()
         }
+    }
+
+    fun updateFirstVisibleItemIndex(newIndex: Int) {
+        viewModelScope.launch {
+            historyLinksPaginator.updateFirstVisibleItemIndex(newIndex)
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            historyLinksPaginator.retrieveNextBatch()
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        historyLinksPaginatorScope.cancel()
     }
 }

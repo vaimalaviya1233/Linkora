@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.viewModelScope
@@ -437,7 +438,19 @@ class AppVM(
     var showRenameDialogBox by mutableStateOf(false)
     var showDeleteDialogBox by mutableStateOf(false)
 
-    val menuBtmSheetState = SheetState(skipPartiallyExpanded = true, density = density)
+    val menuBtmSheetState = SheetState(
+        skipPartiallyExpanded = true,
+        positionalThreshold = {
+            with(density) {
+                56.dp.toPx()
+            }
+        },
+        velocityThreshold = {
+            with(density) {
+                125.dp.toPx()
+            }
+        },
+    )
     var selectedFolderForMenuBtmSheet by mutableStateOf(
         Folder(
             name = "", note = "", parentFolderId = null, localId = 0L, isArchived = false
@@ -462,7 +475,19 @@ class AppVM(
     var showAddLinkDialog by mutableStateOf(false)
     var showNewFolderDialog by mutableStateOf(false)
     var showSortingBtmSheet by mutableStateOf(false)
-    val sortingBtmSheetState = SheetState(skipPartiallyExpanded = true, density = density)
+    val sortingBtmSheetState = SheetState(
+        skipPartiallyExpanded = true,
+        positionalThreshold = {
+            with(density) {
+                56.dp.toPx()
+            }
+        },
+        velocityThreshold = {
+            with(density) {
+                125.dp.toPx()
+            }
+        },
+    )
 
     var menuBtmSheetFor: MenuBtmSheetType by mutableStateOf(MenuBtmSheetType.Folder.RegularFolder)
 

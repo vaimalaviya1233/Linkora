@@ -18,6 +18,9 @@ object Constants {
     const val DATA_STORE_NAME = "linkoraDataStore.preferences_pb"
 
     const val COLLECTION_INFO_SAVED_STATE_HANDLE_KEY = "parentFolderDetail"
+
+    const val PAGE_SIZE = 20
+    const val ACTIVE_PAGE_COLLECTION_SIZE = 2
 }
 
 object LinkType {

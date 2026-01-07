@@ -1,8 +1,10 @@
 package com.sakethh.linkora.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,15 +13,22 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -38,10 +47,17 @@ import com.sakethh.linkora.ui.domain.model.LinkComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
-import com.sakethh.linkora.utils.rememberLocalizedString
+import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.getLocalizedString
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CollectionLayoutManager(
+    isLoading: Boolean = false,
+    pagesFinished: Boolean = false,
     folders: List<Folder>,
     linksTagsPairs: List<LinkTagsPair>,
     tags: List<Tag>,
@@ -55,8 +71,39 @@ fun CollectionLayoutManager(
     onAttachedTagClick: (tag: Tag) -> Unit,
     isCurrentlyInDetailsView: (folder: Folder) -> Boolean,
     emptyDataText: String = "",
-    nestedScrollConnection: NestedScrollConnection?
+    nestedScrollConnection: NestedScrollConnection?,
+    onRetrieveNextPage: () -> Unit = {},
+    firstVisibleItemIndex:(Int)-> Unit = {},
 ) {
+    val emptyDataText = rememberSaveable(folders, linksTagsPairs, emptyDataText) {
+        emptyDataText.ifBlank {
+            when {
+                folders.isEmpty() && linksTagsPairs.isEmpty() -> Localization.Key.NoFoldersOrLinksFound.getLocalizedString()
+                else -> Localization.Key.FoldersExistsButNotLinks.getLocalizedString()
+            }
+        }
+    }
+    val isDataEmpty =
+        (folders.isEmpty() && linksTagsPairs.isEmpty()) || (folders.isNotEmpty() && linksTagsPairs.isEmpty())
+
+    val listLayoutState = rememberLazyListState()
+
+    LaunchedEffect(Unit){
+        snapshotFlow {
+            listLayoutState.firstVisibleItemIndex
+        }.debounce(500).distinctUntilChanged().collectLatest {
+            firstVisibleItemIndex(it)
+            linkoraLog("firstVisibleItemIndex = $it")
+        }
+    }
+
+    LaunchedEffect(listLayoutState.canScrollForward) {
+        if (!listLayoutState.canScrollForward && !pagesFinished && !isLoading) {
+            linkoraLog("onRetrieveNextPage")
+            onRetrieveNextPage()
+        }
+    }
+
     val linkComponentParam: (linkTagsPair: LinkTagsPair) -> LinkComponentParam = { linkTagsPair ->
         LinkComponentParam(
             link = linkTagsPair.link,
@@ -162,7 +209,8 @@ fun CollectionLayoutManager(
                     if (nestedScrollConnection != null) Modifier.nestedScroll(
                         nestedScrollConnection
                     ) else Modifier
-                ).padding(paddingValues).fillMaxSize()
+                ).padding(paddingValues).fillMaxSize(),
+                state = listLayoutState
             ) {
                 items(folders) {
                     FolderComponent(folderComponentParam = folderComponentParam(it))
@@ -180,19 +228,28 @@ fun CollectionLayoutManager(
                             LinkoraSDK.getInstance().nativeUtils.onShare(it)
                         })
                 }
-                if ((folders.isEmpty() && linksTagsPairs.isEmpty()) || (folders.isNotEmpty() && linksTagsPairs.isEmpty())) {
-                    item {
-                        val text = emptyDataText.ifBlank {
-                            when {
-                                folders.isEmpty() && linksTagsPairs.isEmpty() -> Localization.Key.NoFoldersOrLinksFound.rememberLocalizedString()
-                                else -> Localization.Key.FoldersExistsButNotLinks.rememberLocalizedString()
-                            }
-                        }
-                        DataEmptyScreen(text = text)
+                item {
+                    if (!isLoading && isDataEmpty) {
+                        DataEmptyScreen(text = emptyDataText)
                     }
                 }
                 item {
-                    Spacer(Modifier.height(bottomSpacing.value))
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier.then(
+                                if (!isDataEmpty) Modifier.fillMaxWidth()
+                                    .padding(15.dp) else Modifier.fillParentMaxSize()
+                            ).padding(15.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ContainedLoadingIndicator()
+                        }
+                    }
+                }
+                item {
+                    if (!isLoading) {
+                        Spacer(Modifier.height(bottomSpacing.value))
+                    }
                 }
             }
 
