@@ -41,6 +41,8 @@ fun LinkoraNavHost(
     currentFABContext: (CurrentFABContext) -> Unit,
     collectionScreenParams: CollectionScreenParams,
     collectionDetailPaneParams: CollectionDetailPaneParams,
+
+    // An event can be pushed to the UIEvent flow instead of hoisting like this, but fine
     forceSearchActive: Boolean,
     cancelForceSearchActive: () -> Unit
 ) {

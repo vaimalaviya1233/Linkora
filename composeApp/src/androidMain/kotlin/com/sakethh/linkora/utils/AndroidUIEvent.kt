@@ -2,22 +2,22 @@ package com.sakethh.linkora.utils
 
 import android.net.Uri
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 object AndroidUIEvent {
-    private val _androidUIEventChannel = Channel<Type>()
-    val androidUIEventChannel = _androidUIEventChannel.receiveAsFlow()
+    private val _androidUIEventChannel = MutableSharedFlow<Type>()
+    val androidUIEventChannel = _androidUIEventChannel.asSharedFlow()
 
     fun CoroutineScope.pushUIEvent(type: Type) {
         this.launch {
-            _androidUIEventChannel.send(type)
+            _androidUIEventChannel.emit(type)
         }
     }
 
     suspend fun pushUIEvent(type: Type) {
-        _androidUIEventChannel.send(type)
+        _androidUIEventChannel.emit(type)
     }
 
     sealed interface Type {

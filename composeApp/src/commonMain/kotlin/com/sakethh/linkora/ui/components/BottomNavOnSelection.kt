@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.LinkoraSDK
 import com.sakethh.linkora.domain.LinkType
@@ -304,7 +305,22 @@ fun BottomNavOnSelection(
         if (showNavigateToCollectionScreen) {
             Button(
                 onClick = {
-                    localNavController.navigate(Navigation.Root.CollectionsScreen)
+                    localNavController.navigate(Navigation.Root.CollectionsScreen) {
+                        /*
+                        we need to pop all the stuff, otherwise, the collections screen would
+                        appear on top of the search screen. This happens because saving and
+                        restoring is taking place in the
+                        [com.sakethh.linkora.ui.components.MobileBottomNavBarKt] navigation
+                        component, leading us back to the collections screen instead of
+                        navigating to the search screen when we press the search item in the
+                        bottom nav bar
+                        */
+                        popUpTo(localNavController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 },
                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
                     .padding(

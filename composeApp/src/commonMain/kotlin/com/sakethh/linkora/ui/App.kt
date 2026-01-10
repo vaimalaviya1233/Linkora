@@ -132,9 +132,6 @@ fun App(
     val isReducedTransparencyBoxVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    rememberSaveable {
-        mutableStateOf(false)
-    }
     val coroutineScope = rememberCoroutineScope()
     val platform = LocalPlatform.current
 
@@ -163,11 +160,11 @@ fun App(
                 onNavigate = {
                     collectionsScreenVM.clearDetailPaneHistory()
                 },
-                isPerformingStartupSync = appVM.isPerformingStartupSync.value,
+                isPerformingStartupSync = appVM.isPerformingStartupSync,
                 getLastSyncedTime = {
                     appVM.getLastSyncedTime()
                 },
-                isAnySnapshotOngoing = appVM.isAnySnapshotOngoing.value,
+                isAnySnapshotOngoing = appVM.isAnySnapshotOngoing,
                 performAction = appVM::performAppAction
             )
         }
@@ -203,9 +200,9 @@ fun App(
                 }
                 MobileBottomNavBar(
                     rootRouteList = rootRouteList,
-                    isPerformingStartupSync = appVM.isPerformingStartupSync.value,
+                    isPerformingStartupSync = appVM.isPerformingStartupSync,
                     inRootScreen = inRootScreen,
-                    currentRoute = currentRoute,
+                    navDestination = currentRoute,
                     onDoubleTap = { navigationRoot ->
                         forceSearchActive = navigationRoot is Navigation.Root.SearchScreen
                     })
@@ -538,9 +535,8 @@ fun App(
                 )
             }
             val renameDialogSheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = true, confirmValueChange = {
-                    !appVM.showRenameDialogBox
-                })
+                skipPartiallyExpanded = true
+            )
             val slideDownAndHideRenameSheet: () -> Unit = {
                 coroutineScope.launch {
                     renameDialogSheetState.hide()
@@ -548,7 +544,6 @@ fun App(
                     appVM.showRenameDialogBox = false
                 }
             }
-            val allTags by collectionsScreenVM.allTags.collectAsStateWithLifecycle()
             RenameFolderOrLinkDialog(
                 renameFolderOrLinkDialogParam = RenameFolderOrLinkDialogParam(
                     selectedTags = appVM.selectedLinkTagsForMenuBtmSheet.tags,

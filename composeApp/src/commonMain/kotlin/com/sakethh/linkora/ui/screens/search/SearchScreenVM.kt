@@ -33,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -242,7 +244,7 @@ class SearchScreenVM(
             data = TreeMap()
         )
     )
-    val historyLinkTagsPairsState = _historyLinkTagsPairsState.asStateFlow().transform {
+    val historyLinkTagsPairsState = _historyLinkTagsPairsState.transform {
         emit(
             PaginationState(
                 data = it.data.map { it.value }
@@ -253,7 +255,17 @@ class SearchScreenVM(
                 pagesCompleted = it.pagesCompleted,
             )
         )
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = emptyList()
+        )
+    )
 
     private val historyLinksPaginatorScope = CoroutineScope(Dispatchers.Default)
     private val historyLinksPaginator = Paginator(
@@ -353,7 +365,7 @@ class SearchScreenVM(
         }
     }
 
-    fun updateFirstVisibleItemIndex(newIndex: Int) {
+    fun updateStartingIndexForHistoryPaginator(newIndex: Int) {
         viewModelScope.launch {
             historyLinksPaginator.updateFirstVisibleItemIndex(newIndex)
         }
@@ -363,6 +375,18 @@ class SearchScreenVM(
         viewModelScope.launch {
             historyLinksPaginator.retrieveNextBatch()
         }
+        /*viewModelScope.launch {
+            localLinksRepo.addMultipleLinks(List(500) {
+                Link(
+                    linkType = LinkType.HISTORY_LINK,
+                    title = "$it",
+                    url = "",
+                    imgURL = "",
+                    note = "",
+                    idOfLinkedFolder = null
+                )
+            })
+        }*/
     }
 
     override fun onCleared() {

@@ -23,15 +23,11 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -42,41 +38,23 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
-import com.sakethh.linkora.utils.ifNot
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
+import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.Constants
 
 @Composable
 fun MobileBottomNavBar(
     rootRouteList: List<Navigation.Root>,
     isPerformingStartupSync: Boolean,
     inRootScreen: Boolean?,
-    currentRoute: NavDestination?,
+    navDestination: NavDestination?,
     onDoubleTap: (Navigation.Root) -> Unit
 ) {
     val platform = platform()
     val localNavController = LocalNavController.current
-    val mobileBottomNavBarVM: MobileBottomNavBarVM = viewModel()
-    val searchNavItemTapTimes by mobileBottomNavBarVM.searchNavItemTapTimes.collectAsStateWithLifecycle()
 
-    var _currentRoute: Navigation.Root? = remember {
-        null
-    }
-    LaunchedEffect(searchNavItemTapTimes == 1) {
-        val forceActivateSearch = withTimeoutOrNull(500L) {
-            mobileBottomNavBarVM.searchNavItemTapTimes.first { it == 2 }
-        }
-        if (forceActivateSearch != null) {
-            _currentRoute?.let {
-                onDoubleTap(it)
-            }
-        }
-        mobileBottomNavBarVM.updateSearchItemTapTimes(0)
-    }
-
+    val mobileBottomNavBarVM: MobileBottomNavBarVM = viewModel(initializer = {
+        MobileBottomNavBarVM()
+    })
     AnimatedVisibility(
         visible = platform == Platform.Android.Mobile && inRootScreen == true && !CollectionsScreenVM.isSelectionEnabled.value,
         exit = slideOutVertically(targetOffsetY = { it }),
@@ -92,16 +70,19 @@ fun MobileBottomNavBar(
                 rootRouteList.forEach { navRouteItem ->
                     if (!AppPreferences.isHomeScreenEnabled.value && navRouteItem.toString() == Navigation.Root.HomeScreen.toString()) return@forEach
 
-                    val isSelected = currentRoute?.hasRoute(navRouteItem::class) == true
+                    val isSelected = navDestination?.hasRoute(navRouteItem::class) == true
                     NavigationBarItem(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                         selected = isSelected,
                         onClick = {
-                            mobileBottomNavBarVM.updateSearchItemTapTimes(searchNavItemTapTimes + 1)
-                            _currentRoute = navRouteItem
-                            isSelected.ifNot {
+                            mobileBottomNavBarVM.incrementTapCount(
+                                navRouteItem,
+                                onDoubleTapSucceeded = {
+                                    onDoubleTap(navRouteItem)
+                                })
+                            if (!isSelected) {
                                 localNavController.navigate(navRouteItem) {
-                                    // pop up to home screen on every navigation via bottom nav bar
+                                    // pop up to the initial route on every navigation via bottom nav bar
                                     popUpTo(localNavController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
@@ -147,13 +128,74 @@ fun MobileBottomNavBar(
     }
 }
 
-class MobileBottomNavBarVM : ViewModel() {
-    private val _searchItemTapTimes = MutableStateFlow(0)
-    val searchNavItemTapTimes = _searchItemTapTimes.asStateFlow()
+class MobileBottomNavBarVM() : ViewModel() {
 
-    fun updateSearchItemTapTimes(value: Int) {
-        viewModelScope.launch {
-            _searchItemTapTimes.emit(value)
+    private var lastTapTime: Long = 0
+    private var lastTappedRoute: Navigation.Root? = null
+
+    fun incrementTapCount(currentRoute: Navigation.Root, onDoubleTapSucceeded: () -> Unit) {
+        val currentMilli = System.currentTimeMillis()
+        if (currentMilli - lastTapTime <= Constants.DOUBLE_TAP_DELAY && lastTappedRoute == currentRoute) {
+            onDoubleTapSucceeded()
+            lastTapTime = 0
+            lastTappedRoute = null
+        } else {
+            lastTapTime = currentMilli
+            lastTappedRoute = currentRoute
         }
     }
+
+    /* the "HARD" way (the "Rube Goldberg" way); idk why i do this
+    private val searchItemTapTimes = MutableStateFlow(0)
+
+    var tappedNavRoute: Navigation.Root = Navigation.Root.HomeScreen
+
+    fun incrementTapCount(currentRoute: Navigation.Root) {
+        if (searchItemTapTimes.value >= 2) return
+
+        tappedNavRoute = currentRoute
+        ++searchItemTapTimes.value
+    }
+
+    init {
+        viewModelScope.launch {
+            startWatchingForDoubleTap()
+        }
+    }
+
+    private var doubleTapJob: Job? = null
+
+    private fun CoroutineScope.startWatchingForDoubleTap() {
+        doubleTapJob?.cancel()
+
+        doubleTapJob = launch {
+            searchItemTapTimes.filter {
+                it == 1
+            }.collect {
+                handleSecondTapIfConfirmed()
+                doubleTapJob?.cancel()
+            }
+        }
+    }
+
+    private var secondTapJob: Job? = null
+    fun handleSecondTapIfConfirmed() {
+        secondTapJob?.cancel()
+
+        secondTapJob = viewModelScope.launch {
+            withTimeoutOrNull(500L) {
+                searchItemTapTimes.first { it == 2 }
+            }.run {
+                if (this != null) {
+                    onDoubleTapSucceeded(tappedNavRoute)
+                }
+            }
+            searchItemTapTimes.value = 0
+        }.also {
+            it.invokeOnCompletion {
+                viewModelScope.startWatchingForDoubleTap()
+            }
+        }
+    }
+*/
 }

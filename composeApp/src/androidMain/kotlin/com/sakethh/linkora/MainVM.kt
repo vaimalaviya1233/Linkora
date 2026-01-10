@@ -9,6 +9,7 @@ import com.sakethh.linkora.utils.AndroidUIEvent
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.utils.ifTrue
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -20,7 +21,7 @@ class MainVM(
         viewModelScope.launch {
 
             launch {
-                UIEvent.uiEvents.collectLatest {
+                UIEvent.uiEvents.collect {
                     if (it is UIEvent.Type.MinimizeTheApp) {
                         launchAction(Action.Minimize)
                     }
@@ -28,7 +29,7 @@ class MainVM(
             }
 
             launch {
-                AndroidUIEvent.androidUIEventChannel.collectLatest {
+                AndroidUIEvent.androidUIEventChannel.collect {
                     when (it) {
                         is AndroidUIEvent.Type.ShowRuntimePermissionForStorage -> {
                             pushUIEvent(UIEvent.Type.ShowSnackbar(Localization.Key.StoragePermissionIsRequired.getLocalizedString()))

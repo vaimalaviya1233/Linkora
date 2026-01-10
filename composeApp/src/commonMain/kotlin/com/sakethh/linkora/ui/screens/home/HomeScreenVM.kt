@@ -3,14 +3,16 @@ package com.sakethh.linkora.ui.screens.home
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
+import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
@@ -19,7 +21,6 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
-import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.ui.screens.home.state.ProcessedPanelFolders
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
@@ -29,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -38,22 +40,14 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class HomeScreenVM(
-    localFoldersRepo: LocalFoldersRepo,
-    localLinksRepo: LocalLinksRepo,
-    localTagsRepo: LocalTagsRepo,
+    private val localFoldersRepo: LocalFoldersRepo,
+    private val localLinksRepo: LocalLinksRepo,
+    private val localTagsRepo: LocalTagsRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
     triggerCollectionOfPanels: Boolean = true,
     private val triggerCollectionOfPanelFolders: Boolean = true,
-    platform: Platform
-) : CollectionsScreenVM(
-    localFoldersRepo = localFoldersRepo,
-    localLinksRepo = localLinksRepo,
-    loadNonArchivedRootFoldersOnInit = false,
-    loadArchivedRootFoldersOnInit = false,
-    localTagsRepo = localTagsRepo,
-    platform = platform
-) {
+) : ViewModel() {
     val currentPhaseOfTheDay = mutableStateOf("")
 
     private val _createdPanels = MutableStateFlow(emptyList<Panel>())
@@ -117,14 +111,14 @@ class HomeScreenVM(
         val allLinkIds = allLinks.map { it.localId }
 
         return localTagsRepo.getTagsForLinks(allLinkIds).map { tagsMap ->
-                nestedLinks.map { sublist ->
-                    sublist.map { link ->
-                        LinkTagsPair(
-                            link = link, tags = tagsMap[link.localId] ?: emptyList()
-                        )
-                    }
+            nestedLinks.map { sublist ->
+                sublist.map { link ->
+                    LinkTagsPair(
+                        link = link, tags = tagsMap[link.localId] ?: emptyList()
+                    )
                 }
             }
+        }
     }
 
     fun updatePanelFolders(panelId: Long) {
@@ -204,19 +198,19 @@ class HomeScreenVM(
                     } else {
                         val linkIds = allLinks.map { it.localId }
                         localTagsRepo.getTagsForLinks(linkIds).map { tagsMap ->
-                                val linksWithTags = nestedLinks.map { sublist ->
-                                    sublist.map { link ->
-                                        LinkTagsPair(
-                                            link = link, tags = tagsMap[link.localId] ?: emptyList()
-                                        )
-                                    }
+                            val linksWithTags = nestedLinks.map { sublist ->
+                                sublist.map { link ->
+                                    LinkTagsPair(
+                                        link = link, tags = tagsMap[link.localId] ?: emptyList()
+                                    )
                                 }
-                                Triple(
-                                    processedData.panelFolders,
-                                    processedData.folders,
-                                    linksWithTags
-                                )
                             }
+                            Triple(
+                                processedData.panelFolders,
+                                processedData.folders,
+                                linksWithTags
+                            )
+                        }
                     }
                 }
             }.collectLatest { (panelFolders, folders, linksWithTags) ->
@@ -238,6 +232,23 @@ class HomeScreenVM(
             }
         }
         refreshPanelsData()
+    }
+
+    fun addLinkToHistory(
+        link: Link,
+        selectedTags: List<Tag>?,
+    ) {
+        viewModelScope.launch {
+            localLinksRepo.addANewLink(
+                link = link.copy(
+                    linkType = LinkType.HISTORY_LINK, localId = 0
+                ), selectedTagIds = selectedTags?.map {
+                    it.localId
+                }, linkSaveConfig = LinkSaveConfig(
+                    forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
+                )
+            ).collect()
+        }
     }
 
     private fun refreshPanelsData() {

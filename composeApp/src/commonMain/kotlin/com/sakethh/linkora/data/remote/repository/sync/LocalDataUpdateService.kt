@@ -60,7 +60,7 @@ class LocalDataUpdateService(
     private val remoteSyncRepo: RemoteSyncRepo
 ) {
     suspend fun <T> Flow<Result<T>>.collectAndUpdateTimestamp(eventTimestamp: Long) {
-        this.collectLatest {
+        this.collect {
             it.onSuccess {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(eventTimestamp)
             }

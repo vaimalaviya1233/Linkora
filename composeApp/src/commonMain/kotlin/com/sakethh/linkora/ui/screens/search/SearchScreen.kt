@@ -31,8 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -53,7 +53,6 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
-import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -73,7 +72,7 @@ fun SearchScreen(
     cancelForceSearchActive: () -> Unit,
 ) {
     val searchScreenVM: SearchScreenVM = linkoraViewModel()
-    val searchBarFocusRequester = remember {
+    val searchBarFocusRequester = retain {
         FocusRequester()
     }
     LaunchedEffect(Unit) {
@@ -96,15 +95,7 @@ fun SearchScreen(
     LaunchedEffect(!searchScreenVM.isSearchActive.value) {
         cancelForceSearchActive()
     }
-    val historyLinkTagsPairsState by searchScreenVM.historyLinkTagsPairsState.collectAsStateWithLifecycle(
-        initialValue = PaginationState(
-            isRetrieving = true,
-            errorOccurred = false,
-            errorMessage = null,
-            pagesCompleted = false,
-            data = emptyList()
-        )
-    )
+    val historyLinkTagsPairsState by searchScreenVM.historyLinkTagsPairsState.collectAsStateWithLifecycle()
     val searchQueryLinkResults = searchScreenVM.linkQueryResults.collectAsStateWithLifecycle()
     val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
     val searchQueryTagResults = searchScreenVM.tagQueryResults.collectAsStateWithLifecycle()
@@ -115,6 +106,7 @@ fun SearchScreen(
         animateDpAsState(if (!searchScreenVM.isSearchActive.value) 15.dp else 0.dp)
     val availableFolderFilters by searchScreenVM.availableFolderFilters.collectAsStateWithLifecycle()
     val availableLinkFilters by searchScreenVM.availableLinkFilters.collectAsStateWithLifecycle()
+
     Column(modifier = Modifier.fillMaxSize()) {
         ProvideTextStyle(MaterialTheme.typography.titleSmall) {
             SearchBar(
@@ -281,7 +273,14 @@ fun SearchScreen(
                                         selectedTag = it
                                     )
                                 )
-                            })
+                            }/*,
+                            isLoading = ,
+                            pagesFinished = ,
+                            onRetrieveNextPage = {
+
+                            },
+                            onFirstVisibleItemIndexChange = searchScreenVM::*/
+                        )
                     }
                 }
             }
@@ -354,7 +353,7 @@ fun SearchScreen(
             onRetrieveNextPage = {
                 searchScreenVM.retrieveNextBatchOfHistoryLinks()
             },
-            firstVisibleItemIndex = searchScreenVM::updateFirstVisibleItemIndex
+            onFirstVisibleItemIndexChange = searchScreenVM::updateStartingIndexForHistoryPaginator,
         )
     }
 }

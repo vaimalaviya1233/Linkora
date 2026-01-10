@@ -15,8 +15,3 @@ enum class CollectionType {
     FOLDER,
     TAG
 }
-
-@Serializable
-data class SearchNavigated(
-    val navigatedFromSearchScreen: Boolean, val navigatedWithFolderId: Long
-)

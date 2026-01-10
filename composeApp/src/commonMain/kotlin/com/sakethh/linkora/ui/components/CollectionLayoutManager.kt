@@ -12,12 +12,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.ContainedLoadingIndicator
@@ -47,7 +49,6 @@ import com.sakethh.linkora.ui.domain.model.LinkComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.getLocalizedString
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
@@ -73,7 +74,7 @@ fun CollectionLayoutManager(
     emptyDataText: String = "",
     nestedScrollConnection: NestedScrollConnection?,
     onRetrieveNextPage: () -> Unit = {},
-    firstVisibleItemIndex:(Int)-> Unit = {},
+    onFirstVisibleItemIndexChange: (Int) -> Unit = {},
 ) {
     val emptyDataText = rememberSaveable(folders, linksTagsPairs, emptyDataText) {
         emptyDataText.ifBlank {
@@ -86,23 +87,11 @@ fun CollectionLayoutManager(
     val isDataEmpty =
         (folders.isEmpty() && linksTagsPairs.isEmpty()) || (folders.isNotEmpty() && linksTagsPairs.isEmpty())
 
-    val listLayoutState = rememberLazyListState()
+    val listLayoutState =
+        rememberLazyListState()
 
-    LaunchedEffect(Unit){
-        snapshotFlow {
-            listLayoutState.firstVisibleItemIndex
-        }.debounce(500).distinctUntilChanged().collectLatest {
-            firstVisibleItemIndex(it)
-            linkoraLog("firstVisibleItemIndex = $it")
-        }
-    }
-
-    LaunchedEffect(listLayoutState.canScrollForward) {
-        if (!listLayoutState.canScrollForward && !pagesFinished && !isLoading) {
-            linkoraLog("onRetrieveNextPage")
-            onRetrieveNextPage()
-        }
-    }
+    val gridLayoutState = rememberLazyGridState()
+    val staggeredGridLayoutState = rememberLazyStaggeredGridState()
 
     val linkComponentParam: (linkTagsPair: LinkTagsPair) -> LinkComponentParam = { linkTagsPair ->
         LinkComponentParam(
@@ -220,7 +209,9 @@ fun CollectionLayoutManager(
                     FolderComponent(folderComponentParam = tagComponentParam(it))
                 }
 
-                items(items = linksTagsPairs) {
+                items(items = linksTagsPairs, key = {
+                    "linksTagsPairs" + it.link.localId
+                }) {
                     ListViewLinkComponent(
                         linkComponentParam = linkComponentParam(it),
                         titleOnlyView = AppPreferences.selectedLinkLayout.value == Layout.TITLE_ONLY_LIST_VIEW.name,
@@ -253,6 +244,19 @@ fun CollectionLayoutManager(
                 }
             }
 
+            LaunchedEffect(Unit) {
+                snapshotFlow {
+                    listLayoutState.firstVisibleItemIndex
+                }.debounce(500).distinctUntilChanged().collectLatest {
+                    onFirstVisibleItemIndexChange(it)
+                }
+            }
+
+            LaunchedEffect(listLayoutState.canScrollForward) {
+                if (!listLayoutState.canScrollForward && !pagesFinished && !isLoading) {
+                    onRetrieveNextPage()
+                }
+            }
         }
 
         Layout.GRID_VIEW.name -> {
@@ -262,7 +266,8 @@ fun CollectionLayoutManager(
                     if (nestedScrollConnection != null) Modifier.nestedScroll(
                         nestedScrollConnection
                     ) else Modifier
-                )
+                ),
+                state = gridLayoutState
             ) {
                 items(items = folders, span = {
                     GridItemSpan(this.maxLineSpan)
@@ -295,6 +300,20 @@ fun CollectionLayoutManager(
                     Spacer(Modifier.height(bottomSpacing.value))
                 }
             }
+            LaunchedEffect(Unit) {
+                snapshotFlow {
+                    gridLayoutState.firstVisibleItemIndex
+                }.debounce(500).distinctUntilChanged().collectLatest {
+                    onFirstVisibleItemIndexChange(it)
+                }
+            }
+
+            LaunchedEffect(gridLayoutState.canScrollForward) {
+                if (!gridLayoutState.canScrollForward && !pagesFinished && !isLoading) {
+                    onRetrieveNextPage()
+                }
+            }
+
         }
 
         Layout.STAGGERED_VIEW.name -> {
@@ -302,7 +321,8 @@ fun CollectionLayoutManager(
                 columns = StaggeredGridCells.Adaptive(150.dp),
                 modifier = Modifier.padding(paddingValues).fillMaxSize().then(
                     if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier
-                )
+                ),
+                state = staggeredGridLayoutState
             ) {
                 items(items = folders, span = { StaggeredGridItemSpan.FullLine }) {
                     FolderComponent(folderComponentParam = folderComponentParam(it))
@@ -331,6 +351,20 @@ fun CollectionLayoutManager(
 
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Spacer(Modifier.height(bottomSpacing.value))
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                snapshotFlow {
+                    staggeredGridLayoutState.firstVisibleItemIndex
+                }.debounce(500).distinctUntilChanged().collectLatest {
+                    onFirstVisibleItemIndexChange(it)
+                }
+            }
+
+            LaunchedEffect(staggeredGridLayoutState.canScrollForward) {
+                if (!staggeredGridLayoutState.canScrollForward && !pagesFinished && !isLoading) {
+                    onRetrieveNextPage()
                 }
             }
         }

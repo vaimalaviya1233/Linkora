@@ -30,7 +30,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,7 +59,7 @@ import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 
-@Immutable
+@Stable
 data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class) constructor(
     val showDialogBox: Boolean,
     val sheetState: SheetState,
@@ -109,7 +108,10 @@ fun RenameFolderOrLinkDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = if (menuBtmSheetFolderEntries().contains(renameFolderOrLinkDialogParam.dialogBoxFor) && renameFolderOrLinkDialogParam.existingFolderName?.isNotBlank() == true) Localization.Key.RenameFolder.rememberLocalizedString()
+                            text = if (menuBtmSheetFolderEntries().contains(
+                                    renameFolderOrLinkDialogParam.dialogBoxFor
+                                ) && renameFolderOrLinkDialogParam.existingFolderName?.isNotBlank() == true
+                            ) Localization.Key.RenameFolder.rememberLocalizedString()
                                 .replaceFirstPlaceHolderWith(renameFolderOrLinkDialogParam.existingFolderName) else Localization.Key.ChangeLinkData.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 22.sp,
@@ -134,7 +136,10 @@ fun RenameFolderOrLinkDialog(
                     OutlinedTextField(
                         label = {
                             Text(
-                                text = if (menuBtmSheetFolderEntries().contains(renameFolderOrLinkDialogParam.dialogBoxFor)) Localization.Key.NewName.rememberLocalizedString()
+                                text = if (menuBtmSheetFolderEntries().contains(
+                                        renameFolderOrLinkDialogParam.dialogBoxFor
+                                    )
+                                ) Localization.Key.NewName.rememberLocalizedString()
                                 else Localization.Key.NewTitle.rememberLocalizedString(),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp
@@ -205,7 +210,8 @@ fun RenameFolderOrLinkDialog(
                 }
                 item {
                     Button(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(), onClick = {
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                            .pressScaleEffect(), onClick = {
                             showProgressBar = true
                             renameFolderOrLinkDialogParam.onSave(
                                 newFolderOrTitleName, newNote, selectedTags, {
@@ -220,7 +226,8 @@ fun RenameFolderOrLinkDialog(
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     OutlinedButton(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().pressScaleEffect(),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                            .pressScaleEffect(),
                         onClick = renameFolderOrLinkDialogParam.onHide
                     ) {
                         Text(

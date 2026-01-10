@@ -21,6 +21,8 @@ object Constants {
 
     const val PAGE_SIZE = 20
     const val ACTIVE_PAGE_COLLECTION_SIZE = 2
+
+    const val DOUBLE_TAP_DELAY = 500L
 }
 
 object LinkType {

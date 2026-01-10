@@ -84,14 +84,6 @@ fun LanguageSettingsScreen() {
     val doesRemoteLanguagePackExistsLocallyForTheSelectedLanguage = rememberSaveable {
         mutableStateOf(false)
     }
-    rememberSaveable {
-        mutableStateOf(false)
-    }
-    rememberCoroutineScope()
-    rememberSaveable {
-        mutableStateOf(false)
-    }
-    LocalUriHandler.current
     val selectedLanguage = rememberDeserializableMutableObject<LocalizedLanguage> {
         mutableStateOf(
             LocalizedLanguage(

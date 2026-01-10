@@ -69,10 +69,10 @@ actual class FileManager {
         )
         fileDialog.isVisible = true
         val sourceFile = File(fileDialog.directory, fileDialog.file).duplicate()
-        return if (sourceFile!= null && sourceFile!!.extension == importFileType.name.lowercase()) {
+        return if (sourceFile!= null && sourceFile.extension == importFileType.name.lowercase()) {
             onStart()
             sourceFile
-        } else if (sourceFile!= null && sourceFile!!.extension != importFileType.name.lowercase()) {
+        } else if (sourceFile!= null && sourceFile.extension != importFileType.name.lowercase()) {
             UIEvent.pushUIEvent(
                 UIEvent.Type.ShowSnackbar(
                     Localization.Key.FileTypeNotSupportedOnDesktopImport.getLocalizedString()

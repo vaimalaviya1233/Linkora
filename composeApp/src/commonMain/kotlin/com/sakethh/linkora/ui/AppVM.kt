@@ -96,7 +96,7 @@ class AppVM(
     fileManager = fileManager,
 ) {
 
-    val isPerformingStartupSync = mutableStateOf(false)
+    var isPerformingStartupSync by mutableStateOf(false)
 
     var currentContextOfFAB = mutableStateOf(CurrentFABContext(fabContext = FABContext.HIDE))
         private set
@@ -154,7 +154,7 @@ class AppVM(
         ) ?: 0
     }
 
-    val isAnySnapshotOngoing = mutableStateOf(false)
+    var isAnySnapshotOngoing by mutableStateOf(false)
 
     init {
 
@@ -199,7 +199,7 @@ class AppVM(
                 } else {
                     linkoraLog("No snapshot in progress")
                 }
-                isAnySnapshotOngoing.value = it
+                isAnySnapshotOngoing = it
             }
         }
 
@@ -225,7 +225,7 @@ class AppVM(
                 } catch (e: Exception) {
                     pushUIEvent(UIEvent.Type.ShowSnackbar(e.message.toString()))
                 }
-                isPerformingStartupSync.value = true
+                isPerformingStartupSync = true
                 // REFACTOR: NESTED collectLatest
                 networkRepo.testServerConnection(
                     serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,
@@ -273,7 +273,7 @@ class AppVM(
                 }
             }
         }.invokeOnCompletion {
-            isPerformingStartupSync.value = false
+            isPerformingStartupSync = false
             dataSyncingNotificationService.clearNotification()
         }
     }
@@ -499,7 +499,7 @@ class AppVM(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            UIEvent.uiEvents.collectLatest { eventType ->
+            UIEvent.uiEvents.collect { eventType ->
                 when (eventType) {
                     is UIEvent.Type.ShowSnackbar -> {
                         snackbarHostState.showSnackbar(message = eventType.message)

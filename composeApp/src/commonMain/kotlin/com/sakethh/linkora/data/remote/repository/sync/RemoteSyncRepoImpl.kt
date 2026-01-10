@@ -61,7 +61,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -136,7 +135,7 @@ class RemoteSyncRepoImpl(
                     key = "correlation", value = Json.Default.encodeToString(currentCorrelation)
                 )
             }) {
-                this.incoming.consumeAsFlow().collectLatest {
+                this.incoming.consumeAsFlow().collect {
                     if (it is Frame.Text) {
                         val deserializedWebSocketEvent =
                             json.decodeFromString<WebSocketEvent>((it.data).decodeToString())
@@ -151,7 +150,7 @@ class RemoteSyncRepoImpl(
     }
 
     suspend fun <T> Flow<Result<T>>.collectAndUpdateTimestamp(eventTimestamp: Long) {
-        this.collectLatest {
+        this.collect {
             it.onSuccess {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(eventTimestamp)
             }

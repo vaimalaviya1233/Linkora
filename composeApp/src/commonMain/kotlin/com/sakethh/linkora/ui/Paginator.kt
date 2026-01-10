@@ -27,11 +27,16 @@ class Paginator<T>(
     private val onPagesFinished: suspend () -> Unit
 ) {
 
-    private var isRetrieving = false
-    private var isPagesFinished = false
-    private var errorOccurred = false
+    var isRetrieving = false
+        private set
 
-    private var startIndex = 0
+    var isPagesFinished = false
+        private set
+
+    var errorOccurred = false
+        private set
+
+    private var indexToRetrieveFrom = 0
 
     private val seenPageKeys = mutableSetOf<PageKey>()
 
@@ -65,7 +70,7 @@ class Paginator<T>(
                 linkoraLog("After cancellation::\n")
                 logCoroutineScopeChildrenCount()
 
-                // restart collecting the collections that were cancelled
+                // restart collecting the collections that were canceled
                 collectionJobs.forEach { (pageKey, job) ->
                     if (job.isCancelled && pageKey in qualifiedForRestarting) {
                         linkoraLog("restarting the $pageKey job")
@@ -108,8 +113,7 @@ class Paginator<T>(
         linkoraLog(
             "active children count:${
                 try {
-                    coroutineScope.coroutineContext.job.children.filter { it.isActive }
-                        .count() - 1 // -1 because the collection of visible index in init block of this class
+                    coroutineScope.coroutineContext.job.children.count { it.isActive } - 1 // -1 because the collection of visible index in init block of this class
                     // is one of those children which we don't care about and is irrelevant
                 } catch (_: Exception) {
                     null
@@ -119,7 +123,7 @@ class Paginator<T>(
         linkoraLog(
             "cancelled children count:${
                 try {
-                    coroutineScope.coroutineContext.job.children.filter { it.isCancelled }.count()
+                    coroutineScope.coroutineContext.job.children.count { it.isCancelled }
                 } catch (_: Exception) {
                     null
                 }
@@ -135,7 +139,7 @@ class Paginator<T>(
 
         isRetrieving = true
 
-        val (pageKey, dataFlow) = onRetrieve(startIndex)
+        val (pageKey, dataFlow) = onRetrieve(indexToRetrieveFrom)
         seenPageKeys.add(pageKey)
 
         var didLaunch = false
@@ -149,7 +153,7 @@ class Paginator<T>(
                     isRetrieving = false
                 }
             }.also {
-                startIndex += Constants.PAGE_SIZE
+                indexToRetrieveFrom += Constants.PAGE_SIZE
                 linkoraLog("Seen pages:${seenPageKeys.count()}")
             }
         }

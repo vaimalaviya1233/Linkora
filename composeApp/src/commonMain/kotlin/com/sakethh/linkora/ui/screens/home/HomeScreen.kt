@@ -59,7 +59,6 @@ import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.platform.PlatformSpecificBackHandler
-import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
@@ -244,15 +243,8 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         )
                     },
                     onLinkClick = {
-                        homeScreenVM.addANewLink(
-                            link = it.link.copy(
-                                linkType = LinkType.HISTORY_LINK, localId = 0
-                            ),
-                            linkSaveConfig = LinkSaveConfig(
-                                forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
-                            ),
-                            onCompletion = {},
-                            pushSnackbarOnSuccess = false,
+                        homeScreenVM.addLinkToHistory(
+                            link = it.link,
                             selectedTags = it.tags
                         )
                         localUriHandler.openUri(it.link.url)

@@ -69,6 +69,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -134,7 +135,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddANewLinkDialogBox(
-   addNewLinkDialogParams: AddNewLinkDialogParams
+    addNewLinkDialogParams: AddNewLinkDialogParams
 ) {
     val isDataExtractingForTheLink = rememberSaveable {
         mutableStateOf(false)
@@ -191,10 +192,10 @@ fun AddANewLinkDialogBox(
                         noteTextFieldValue = noteTextFieldValue,
                         isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
                         isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
-                        addNewLinkDialogParams.   currentFolder
+                        addNewLinkDialogParams.currentFolder
                     )
                     BottomPartOfAddANewLinkDialogBox(
-                        onDismiss =addNewLinkDialogParams. onDismiss,
+                        onDismiss = addNewLinkDialogParams.onDismiss,
                         isDataExtractingForTheLink = isDataExtractingForTheLink,
                         linkTextFieldValue = linkTextFieldValue,
                         titleTextFieldValue = titleTextFieldValue,
@@ -206,12 +207,12 @@ fun AddANewLinkDialogBox(
                         childFoldersBtmSheetState = btmSheetState,
                         lazyRowState = lazyRowState,
                         addTheFolderInRoot = addTheFolderInRoot,
-                        currentFolder =addNewLinkDialogParams. currentFolder,
+                        currentFolder = addNewLinkDialogParams.currentFolder,
                         allTags = addNewLinkDialogParams.allTags,
                         selectedTags = addNewLinkDialogParams.selectedTags,
-                        foldersSearchQuery =addNewLinkDialogParams. foldersSearchQuery,
+                        foldersSearchQuery = addNewLinkDialogParams.foldersSearchQuery,
                         foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
-                        performAction =addNewLinkDialogParams. performAction,
+                        performAction = addNewLinkDialogParams.performAction,
                         rootRegularFolders = addNewLinkDialogParams.rootRegularFolders,
                     )
                     Spacer(Modifier.height(50.dp))
@@ -229,7 +230,7 @@ fun AddANewLinkDialogBox(
                             noteTextFieldValue = noteTextFieldValue,
                             isAutoDetectTitleEnabled = isAutoDetectTitleEnabled,
                             isForceSaveWithoutFetchingMetaDataEnabled = isForceSaveWithoutFetchingMetaDataEnabled,
-                            addNewLinkDialogParams.  currentFolder
+                            addNewLinkDialogParams.currentFolder
                         )
                         VerticalDivider(
                             modifier = Modifier.padding(
@@ -250,18 +251,19 @@ fun AddANewLinkDialogBox(
                             lazyRowState = lazyRowState,
                             addTheFolderInRoot = addTheFolderInRoot,
                             currentFolder = addNewLinkDialogParams.currentFolder,
-                            allTags =addNewLinkDialogParams. allTags,
-                            selectedTags =addNewLinkDialogParams. selectedTags,
+                            allTags = addNewLinkDialogParams.allTags,
+                            selectedTags = addNewLinkDialogParams.selectedTags,
                             foldersSearchQuery = addNewLinkDialogParams.foldersSearchQuery,
                             foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
-                            performAction =addNewLinkDialogParams. performAction,
+                            performAction = addNewLinkDialogParams.performAction,
                             rootRegularFolders = addNewLinkDialogParams.rootRegularFolders
                         )
                     }
                     if (!isDataExtractingForTheLink.value) {
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                                .align(Alignment.TopEnd).padding(15.dp), onClick = addNewLinkDialogParams.onDismiss
+                                .align(Alignment.TopEnd).padding(15.dp),
+                            onClick = addNewLinkDialogParams.onDismiss
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close, contentDescription = null
@@ -281,7 +283,7 @@ fun AddANewLinkDialogBox(
         BasicAlertDialog(
             onDismissRequest = {
                 if (!isDataExtractingForTheLink.value) {
-                    addNewLinkDialogParams.   onDismiss()
+                    addNewLinkDialogParams.onDismiss()
                 }
             },
             modifier = Modifier.fillMaxSize(0.9f).background(AlertDialogDefaults.containerColor),
@@ -295,11 +297,17 @@ fun AddANewLinkDialogBox(
                 coroutineScope.launch {
                     addANewLinkBtmSheetState.hide()
                 }.invokeOnCompletion {
-                    addNewLinkDialogParams.         onDismiss()
+                    addNewLinkDialogParams.onDismiss()
                 }
             }
         }) {
             content()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            AddANewLinkDialogBox.cancelCollectionOfChildFolders()
         }
     }
 }
@@ -1192,6 +1200,8 @@ object AddANewLinkDialogBox {
     val childFolders = _childFolders.asStateFlow()
 
     private var changeParentFolderIdJob: Job? = null
+
+    fun cancelCollectionOfChildFolders() = changeParentFolderIdJob?.cancel()
 
     fun changeParentFolderId(parentFolderId: Long, coroutineScope: CoroutineScope) {
         changeParentFolderIdJob?.cancel()

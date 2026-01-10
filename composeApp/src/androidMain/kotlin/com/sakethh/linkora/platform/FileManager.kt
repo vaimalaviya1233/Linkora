@@ -7,7 +7,6 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.sakethh.linkora.utils.pushSnackbar
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.ExportFileType
 import com.sakethh.linkora.domain.ImportFileType
@@ -17,6 +16,7 @@ import com.sakethh.linkora.ui.screens.settings.section.data.ExportLocationType
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.AndroidUIEvent
+import com.sakethh.linkora.utils.pushSnackbar
 import com.sakethh.linkora.worker.SnapshotWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -83,9 +83,9 @@ actual class FileManager(private val context: Context) {
         return suspendCancellableCoroutine { continuation ->
             val listenerJob = CoroutineScope(continuation.context).launch {
                 try {
-                    val uriEvent =
+                    val (uri) =
                         AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.UriOfTheFileForImporting
-                    if (uriEvent.uri == null) {
+                    if (uri == null) {
                         // if picking the file didn't go as expected, then just return null
                         // we can throw and catch and then resume with null but this is aight
                         continuation.resume(null)
@@ -93,7 +93,7 @@ actual class FileManager(private val context: Context) {
                     }
                     onStart()
                     val fileName = context.contentResolver.query(
-                        uriEvent.uri, null, null, null, null
+                        uri, null, null, null, null
                     )?.use {
                         val nameColumnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                         it.moveToFirst()
@@ -103,7 +103,7 @@ actual class FileManager(private val context: Context) {
                         prefix = fileName.substringBeforeLast("."),
                         suffix = fileName.substringAfterLast(".")
                     )
-                    context.contentResolver.openInputStream(uriEvent.uri).use { input ->
+                    context.contentResolver.openInputStream(uri).use { input ->
                         file.outputStream().use { output ->
                             input?.copyTo(output)
                         }
@@ -146,8 +146,9 @@ actual class FileManager(private val context: Context) {
         val rawExportStringID: Long =
             DependencyContainer.snapshotRepo.addASnapshot(Snapshot(content = rawExportString))
 
-        val parameters = Data.Builder().putLong(key = "rawExportStringID", value = rawExportStringID)
-            .putString(key = "fileType", value = fileType.name).build()
+        val parameters =
+            Data.Builder().putLong(key = "rawExportStringID", value = rawExportStringID)
+                .putString(key = "fileType", value = fileType.name).build()
         snapshotWorker.setInputData(parameters)
         WorkManager.getInstance(context).enqueue(snapshotWorker.build())
     }
@@ -156,10 +157,10 @@ actual class FileManager(private val context: Context) {
         AndroidUIEvent.pushUIEvent(AndroidUIEvent.Type.PickADirectory)
         return suspendCancellableCoroutine { continuation ->
             val listenerJob = CoroutineScope(continuation.context).launch {
-                val eventDirectoryPick =
+                val (uri) =
                     AndroidUIEvent.androidUIEventChannel.first() as AndroidUIEvent.Type.PickedDirectory
                 try {
-                    continuation.resume(eventDirectoryPick.uri?.toString())
+                    continuation.resume(uri?.toString())
                 } catch (e: Exception) {
                     e.printStackTrace()
                     continuation.cancel()
