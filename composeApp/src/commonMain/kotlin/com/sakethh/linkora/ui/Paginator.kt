@@ -21,7 +21,7 @@ typealias PageKey = Int
 class Paginator<T>(
     private val coroutineScope: CoroutineScope,
     private val onRetrieve: suspend (nextPageStartIndex: Int) -> Pair<PageKey, Flow<Result<List<T>>>>,
-    private val onRetrieved: suspend (seenPageKeys: Set<PageKey>, currentPageKey: PageKey, data: List<Pair<PageKey, T>>) -> Unit,
+    private val onRetrieved: suspend (currentPageKey: PageKey, data: List<Pair<PageKey, T>>) -> Unit,
     private val onError: suspend (String) -> Unit,
     private val onRetrieving: suspend () -> Unit,
     private val onPagesFinished: suspend () -> Unit
@@ -167,7 +167,7 @@ class Paginator<T>(
     private suspend fun Flow<Result<List<T>>>.collectData(pageKey: PageKey) {
         cancellable().distinctUntilChanged().collect { result ->
             result.onSuccess {
-                onRetrieved(seenPageKeys, pageKey, it.data.map {
+                onRetrieved(pageKey, it.data.map {
                     pageKey to it
                 })
 

@@ -303,7 +303,13 @@ fun App(
                         allTags = collectionsScreenVM.allTags,
                         peekPaneHistory = collectionsScreenVM.peekPaneHistory,
                         currentCollectionSource = collectionsScreenVM.currentCollectionSource,
-                        performAction = collectionsScreenVM::performAction
+                        performAction = collectionsScreenVM::performAction,
+                        onRetrieveNextRegularRootFolderPage = collectionsScreenVM::retrieveNextBatchOfRegularRootFolders,
+                        onArchivedRootFolderFirstVisibleItemIndexChange = collectionsScreenVM::updateStartingIndexForArchivedRootFoldersPaginator,
+                        onRegularRootFolderFirstVisibleItemIndexChange = collectionsScreenVM::updateStartingIndexForRegularRootFoldersPaginator,
+                        onRetrieveNextArchivedRootFolderPage = collectionsScreenVM::retrieveNextBatchOfArchivedRootFolders,
+                        onRetrieveNextTagsPage = collectionsScreenVM::retrieveNextBatchOfTags,
+                        onTagsFirstVisibleItemIndexChange = collectionsScreenVM::updateStartingIndexForTagsPaginator,
                     ),
                     collectionDetailPaneParams = CollectionDetailPaneParams(
                         linkTagsPairs = collectionsScreenVM.linkTagsPairs,
@@ -547,7 +553,7 @@ fun App(
             RenameFolderOrLinkDialog(
                 renameFolderOrLinkDialogParam = RenameFolderOrLinkDialogParam(
                     selectedTags = appVM.selectedLinkTagsForMenuBtmSheet.tags,
-                    allTags = allTags,
+                    allTags = emptyList()/*TODO: allTags*/,
                     onSave = { newTitle: String, newNote: String, selectedTags: List<Tag>, onCompletion: () -> Unit ->
                         if (appVM.menuBtmSheetFor is MenuBtmSheetType.Link) {
                             collectionsScreenVM.updateLink(updatedLinkTagsPair = appVM.selectedLinkTagsForMenuBtmSheet.run {

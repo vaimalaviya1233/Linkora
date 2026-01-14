@@ -6,6 +6,8 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.tag.CreateTagDTO
 import com.sakethh.linkora.domain.dto.server.tag.RenameTagDTO
+import com.sakethh.linkora.domain.mapToResultFlow
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.tag.Tag
@@ -122,6 +124,10 @@ class LocalTagsRepoImpl(
 
     override fun getAllTags(sortOption: String): Flow<List<Tag>> {
         return tagsDao.getAllTags(sortOption)
+    }
+
+    override fun getTags(sortOption: String, pageSize: Int, startIndex: Int): Flow<Result<List<Tag>>>{
+        return tagsDao.getTags(sortOption,pageSize,startIndex).mapToResultFlow()
     }
 
     override suspend fun renameATag(

@@ -27,6 +27,10 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.utils.ifNot
+import com.sakethh.linkora.utils.onError
+import com.sakethh.linkora.utils.onPagesFinished
+import com.sakethh.linkora.utils.onRetrieving
+import com.sakethh.linkora.utils.onRetrieved
 import com.sakethh.linkora.utils.pushSnackbarOnFailure
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,8 +47,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.internal.toImmutableMap
 import java.util.TreeMap
 
 class SearchScreenVM(
@@ -236,12 +240,12 @@ class SearchScreenVM(
     }
 
     private val _historyLinkTagsPairsState = MutableStateFlow(
-        PaginationState<TreeMap<PageKey, List<LinkTagsPair>>>(
+        PaginationState(
             isRetrieving = true,
             errorOccurred = false,
             errorMessage = null,
             pagesCompleted = false,
-            data = TreeMap()
+            data = TreeMap<PageKey, List<LinkTagsPair>>().toImmutableMap()
         )
     )
     val historyLinkTagsPairsState = _historyLinkTagsPairsState.transform {
@@ -267,7 +271,6 @@ class SearchScreenVM(
         )
     )
 
-    private val historyLinksPaginatorScope = CoroutineScope(Dispatchers.Default)
     private val historyLinksPaginator = Paginator(
         onRetrieve = { nextPageStartIndex ->
             nextPageStartIndex to combine(
@@ -309,54 +312,11 @@ class SearchScreenVM(
                     }
             }
         },
-        onRetrieved = { _, pageKey, retrievedData ->
-            _historyLinkTagsPairsState.update { currentState ->
-                //  currentState.data[pageKey] = retrievedData.map { it.second } will update
-                //  but doesn't reflect on UI, since its the same reference and stateflow wont emit new emission
-
-                val updatedData = TreeMap(currentState.data)
-                updatedData[pageKey] = retrievedData.map { it.second }
-
-                currentState.copy(
-                    data = updatedData,
-                    isRetrieving = false,
-                    errorOccurred = false,
-                    errorMessage = null,
-                    pagesCompleted = false,
-                )
-            }
-        },
-        onError = { errorMsg ->
-            _historyLinkTagsPairsState.update {
-                it.copy(
-                    isRetrieving = false,
-                    errorOccurred = true,
-                    errorMessage = errorMsg,
-                    pagesCompleted = false
-                )
-            }
-        },
-        onRetrieving = {
-            _historyLinkTagsPairsState.update {
-                it.copy(
-                    isRetrieving = true,
-                    errorOccurred = false,
-                    errorMessage = null,
-                    pagesCompleted = false
-                )
-            }
-        },
-        onPagesFinished = {
-            _historyLinkTagsPairsState.update {
-                it.copy(
-                    isRetrieving = false,
-                    errorOccurred = false,
-                    errorMessage = null,
-                    pagesCompleted = true
-                )
-            }
-        },
-        coroutineScope = historyLinksPaginatorScope
+        onRetrieved = _historyLinkTagsPairsState::onRetrieved,
+        onError = _historyLinkTagsPairsState::onError,
+        onRetrieving = _historyLinkTagsPairsState::onRetrieving,
+        onPagesFinished = _historyLinkTagsPairsState::onPagesFinished,
+        coroutineScope = viewModelScope
     )
 
     fun retrieveNextBatchOfHistoryLinks() {
@@ -387,10 +347,5 @@ class SearchScreenVM(
                 )
             })
         }*/
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        historyLinksPaginatorScope.cancel()
     }
 }

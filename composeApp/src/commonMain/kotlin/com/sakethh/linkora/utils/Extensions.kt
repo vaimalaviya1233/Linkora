@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -24,6 +26,8 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
@@ -34,9 +38,15 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.TreeMap
 
 fun String?.ifNullOrBlank(string: () -> String): String {
     return if (this.isNullOrBlank()) {
@@ -260,4 +270,72 @@ suspend fun File.duplicate(): File? = withContext(Dispatchers.IO) {
         e.printStackTrace()
         null
     }
+}
+
+
+fun <ItemType> MutableStateFlow<PaginationState<Map<PageKey, List<ItemType>>>>.onRetrieved(
+    pageKey: PageKey,
+    retrievedData: List<Pair<PageKey, ItemType>>
+) {
+    if (retrievedData.isEmpty()) return
+
+    update { currentState ->
+        val updatedData = TreeMap(currentState.data)
+        updatedData[pageKey] = retrievedData.map {
+            it.second
+        }
+
+        currentState.copy(
+            data = updatedData,
+            isRetrieving = false,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+        )
+    }
+}
+
+fun <T> MutableStateFlow<PaginationState<T>>.onError(errorMsg: String) {
+    update { currentState ->
+        currentState.copy(
+            isRetrieving = false,
+            errorOccurred = true,
+            errorMessage = errorMsg,
+            pagesCompleted = false,
+        )
+    }
+}
+
+fun <T> MutableStateFlow<PaginationState<T>>.onRetrieving() {
+    update { currentState ->
+        currentState.copy(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+        )
+    }
+}
+
+fun <T> MutableStateFlow<PaginationState<T>>.onPagesFinished() {
+    update { currentState ->
+        currentState.copy(
+            isRetrieving = false,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = true,
+        )
+    }
+}
+
+context(viewModel: ViewModel)
+fun <T> Flow<T>.asStateInWhileSubscribed(
+    initialValue: T,
+    stopTimeoutMillis: Long = 5000
+): StateFlow<T> {
+    return stateIn(
+        scope = viewModel.viewModelScope,
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = stopTimeoutMillis),
+        initialValue = initialValue
+    )
 }

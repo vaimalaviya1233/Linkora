@@ -32,6 +32,11 @@ interface LocalFoldersRepo {
 
     suspend fun getRootFolders(sortOption: String): Flow<Result<List<Folder>>>
 
+    suspend fun getRootFolders(
+        sortOption: String,
+        pageSize: Int, startIndex: Int
+    ): Flow<Result<List<Folder>>>
+
     suspend fun getChildFolders(
         parentFolderId: Long, sortOption: String
     ): Flow<Result<List<Folder>>>

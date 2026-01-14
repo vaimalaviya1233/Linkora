@@ -18,6 +18,7 @@ interface TagsDao {
 
     @Update
     suspend fun updateATag(tag: Tag)
+
     @Query("UPDATE tags SET remoteId = :newRemoteId WHERE localId = :localId")
     suspend fun updateRemoteId(localId: Long, newRemoteId: Long)
 
@@ -55,6 +56,22 @@ interface TagsDao {
     )
     fun getAllTags(sortOption: String): Flow<List<Tag>>
 
+    @Query(
+        """SELECT * FROM tags 
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
+        LIMIT :pageSize
+        OFFSET :startIndex
+        """
+    )
+    fun getTags(
+        sortOption: String,
+        pageSize: Int, startIndex: Int
+    ): Flow<List<Tag>>
+
     @Query("SELECT * FROM tags")
     suspend fun getAllTagsAsList(): List<Tag>
 
@@ -68,7 +85,7 @@ interface TagsDao {
     fun getTagsBasedOnTheLinkId(linkId: Long): Flow<List<Tag>>
 
     @Query("SELECT tags.* FROM tags INNER JOIN link_tags ON tags.localId = link_tags.tagId WHERE link_tags.linkId = :linkId")
-   suspend fun getTags(linkId: Long): List<Tag>
+    suspend fun getTags(linkId: Long): List<Tag>
 
     @Query(
         """

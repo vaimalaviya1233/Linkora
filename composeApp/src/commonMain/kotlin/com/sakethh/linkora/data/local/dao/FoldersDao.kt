@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.sakethh.linkora.utils.Sorting
 import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.utils.Sorting
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -129,6 +129,21 @@ interface FoldersDao {
     """
     )
     fun getRootFolders(sortOption: String): Flow<List<Folder>>
+
+    @Query(
+        """
+    SELECT * FROM folders 
+    WHERE parentFolderID IS NULL
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
+    LIMIT :pageSize
+    OFFSET :startIndex
+    """
+    )
+    fun getRootFolders(sortOption: String, pageSize: Int, startIndex: Int): Flow<List<Folder>>
 
     @Query(
         "SELECT * FROM folders \n" +

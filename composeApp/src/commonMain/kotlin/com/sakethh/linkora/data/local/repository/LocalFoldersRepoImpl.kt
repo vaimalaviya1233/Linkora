@@ -22,12 +22,10 @@ import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.utils.wrappedResultFlow
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class LocalFoldersRepoImpl(
@@ -162,6 +160,14 @@ class LocalFoldersRepoImpl(
 
     override suspend fun getRootFolders(sortOption: String): Flow<Result<List<Folder>>> {
         return foldersDao.getRootFolders(sortOption).mapToResultFlow()
+    }
+
+    override suspend fun getRootFolders(
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Int
+    ): Flow<Result<List<Folder>>> {
+        return foldersDao.getRootFolders(sortOption, pageSize, startIndex).mapToResultFlow()
     }
 
     override suspend fun getChildFolders(

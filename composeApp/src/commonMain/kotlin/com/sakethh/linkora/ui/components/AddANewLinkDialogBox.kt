@@ -107,6 +107,7 @@ import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
+import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.AddNewLinkDialogParams
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
@@ -208,7 +209,7 @@ fun AddANewLinkDialogBox(
                         lazyRowState = lazyRowState,
                         addTheFolderInRoot = addTheFolderInRoot,
                         currentFolder = addNewLinkDialogParams.currentFolder,
-                        allTags = addNewLinkDialogParams.allTags,
+                        allTags = TODO(),
                         selectedTags = addNewLinkDialogParams.selectedTags,
                         foldersSearchQuery = addNewLinkDialogParams.foldersSearchQuery,
                         foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
@@ -251,7 +252,7 @@ fun AddANewLinkDialogBox(
                             lazyRowState = lazyRowState,
                             addTheFolderInRoot = addTheFolderInRoot,
                             currentFolder = addNewLinkDialogParams.currentFolder,
-                            allTags = addNewLinkDialogParams.allTags,
+                            allTags = TODO(),
                             selectedTags = addNewLinkDialogParams.selectedTags,
                             foldersSearchQuery = addNewLinkDialogParams.foldersSearchQuery,
                             foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
@@ -509,7 +510,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
     lazyRowState: LazyListState,
     addTheFolderInRoot: MutableState<Boolean>,
     currentFolder: Folder?,
-    rootRegularFolders: StateFlow<List<Folder>>,
+    rootRegularFolders: StateFlow<PaginationState<Map<Int, List<Folder>>>>,
     allTags: StateFlow<List<Tag>>,
     selectedTags: List<Tag>,
     foldersSearchQuery: String,
@@ -683,7 +684,9 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.IMPORTANT_LINKS_ID
                 )
 
-                rootFolders.value.forEach {
+                /*
+                TODO: Fix this entire thing
+              rootFolders.value.forEach {
                     key(it) {
                         FolderSelectorComponent(
                             onItemClick = {
@@ -713,7 +716,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             })
                     }
 
-                }
+                }*/
                 if (!isDropDownMenuIconClicked.value) {
                     Spacer(modifier = Modifier.height(20.dp))
                 }

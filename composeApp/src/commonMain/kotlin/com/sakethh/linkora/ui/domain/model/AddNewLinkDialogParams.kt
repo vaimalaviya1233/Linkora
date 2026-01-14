@@ -4,17 +4,18 @@ import androidx.compose.runtime.Stable
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
+import com.sakethh.linkora.ui.domain.PaginationState
 import kotlinx.coroutines.flow.StateFlow
 
 @Stable
 data class AddNewLinkDialogParams(
    val onDismiss: () -> Unit,
    val currentFolder: Folder?,
-   val allTags: StateFlow<List<Tag>>,
+   val allTags: StateFlow<PaginationState<Map<Int, List<Tag>>>>,
    val selectedTags: List<Tag>,
    val foldersSearchQuery: String,
    val foldersSearchQueryResult: StateFlow<List<Folder>>,
-   val rootRegularFolders: StateFlow<List<Folder>>,
+   val rootRegularFolders: StateFlow<PaginationState<Map<Int, List<Folder>>>>,
    val performAction: (AddANewLinkDialogBoxAction) -> Unit,
    val url: String = "",
 )

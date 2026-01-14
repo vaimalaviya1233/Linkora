@@ -9,11 +9,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,8 +22,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Tag
@@ -47,15 +51,18 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -83,10 +90,14 @@ import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.screens.collections.components.RootCollectionSwitcher
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -99,17 +110,14 @@ fun CollectionsScreen(
 ) {
     val anyCollectionSelected by collectionScreenParams.isPaneSelected.collectAsStateWithLifecycle()
     val platform = LocalPlatform.current
-
     LaunchedEffect(Unit) {
         currentFABContext(CurrentFABContext.ROOT)
     }
-
     LaunchedEffect(anyCollectionSelected) {
         if (!anyCollectionSelected && platform !is Platform.Android.Mobile) {
             currentFABContext(CurrentFABContext.ROOT)
         }
     }
-
     val rootFolders by collectionScreenParams.rootRegularFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val navController = LocalNavController.current
@@ -127,6 +135,63 @@ fun CollectionsScreen(
     }
     val allTags by collectionScreenParams.allTags.collectAsStateWithLifecycle()
     val paneHistoryPeek by collectionScreenParams.peekPaneHistory.collectAsStateWithLifecycle()
+    val rootFoldersListState = rememberLazyListState()
+    val tagsListState = rememberLazyListState()
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            rootFoldersListState.firstVisibleItemIndex
+        }.debounce(500).distinctUntilChanged().collectLatest {
+            collectionScreenParams.onRegularRootFolderFirstVisibleItemIndexChange(it)
+        }
+    }
+
+    LaunchedEffect(rootFoldersListState.canScrollForward) {
+        if (!rootFoldersListState.canScrollForward) {
+            collectionScreenParams.onRetrieveNextRegularRootFolderPage()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            tagsListState.firstVisibleItemIndex
+        }.debounce(500).distinctUntilChanged().collectLatest {
+            collectionScreenParams.onTagsFirstVisibleItemIndexChange(it)
+        }
+    }
+
+    LaunchedEffect(tagsListState.canScrollForward) {
+        if (!tagsListState.canScrollForward) {
+            collectionScreenParams.onRetrieveNextTagsPage()
+        }
+    }
+    val parentScrollState = rememberScrollState()
+
+    // yoinked from SO: https://stackoverflow.com/a/72329873
+    val defaultFoldersScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < 0) {
+                    val consumed = parentScrollState.dispatchRawDelta(-available.y)
+                    return Offset(0f, -consumed)
+                }
+                return Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (available.y > 0) {
+                    val consumed = parentScrollState.dispatchRawDelta(-available.y)
+                    return Offset(0f, -consumed)
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
@@ -141,13 +206,15 @@ fun CollectionsScreen(
                     )
                 })
         }) { padding ->
-        Row(modifier = Modifier.padding(padding).fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier.fillMaxHeight()
-                    .fillMaxWidth(if (platform() is Platform.Android.Mobile) 1f else 0.4f)
-                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
-            ) {
-                item {
+        Row(
+            modifier = Modifier.padding(padding).fillMaxSize()
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+        ) {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val screenHeight = maxHeight
+                Column(
+                    modifier = Modifier.fillMaxWidth().verticalScroll(parentScrollState)
+                ) {
                     DefaultFolderComponent(
                         name = Localization.rememberLocalizedString(Localization.Key.AllLinks),
                         icon = Icons.Outlined.DatasetLinked,
@@ -183,11 +250,7 @@ fun CollectionsScreen(
                         },
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.ALL_LINKS_ID
                     )
-                }
-                item {
                     ItemDivider()
-                }
-                item {
                     DefaultFolderComponent(
                         name = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
                         icon = Icons.Outlined.Link,
@@ -223,8 +286,6 @@ fun CollectionsScreen(
                         },
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.SAVED_LINKS_ID
                     )
-                }
-                item {
                     DefaultFolderComponent(
                         name = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
                         icon = Icons.Outlined.StarOutline,
@@ -260,8 +321,6 @@ fun CollectionsScreen(
                         },
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.IMPORTANT_LINKS_ID
                     )
-                }
-                item {
                     DefaultFolderComponent(
                         name = Localization.rememberLocalizedString(Localization.Key.Archive),
                         icon = Icons.Outlined.Archive,
@@ -298,9 +357,7 @@ fun CollectionsScreen(
                         isSelected = paneHistoryPeek?.currentFolder?.localId == Constants.ARCHIVE_ID
                     )
                     Spacer(modifier = Modifier.height(15.dp))
-                }
 
-                stickyHeader {
                     Row(
                         modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                             .fillMaxWidth(),
@@ -309,15 +366,15 @@ fun CollectionsScreen(
                     ) {
                         Row(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                            .padding(start = 15.dp)
-                            .clickable(indication = null, interactionSource = remember {
-                                MutableInteractionSource()
-                            }) {
-                                isRootContentSwitcherBtmSheetVisible = true
-                                coroutineScope.launch {
-                                    rootContentSwitcherBtmSheetState.show()
-                                }
-                            }, verticalAlignment = Alignment.CenterVertically
+                                .padding(start = 15.dp)
+                                .clickable(indication = null, interactionSource = remember {
+                                    MutableInteractionSource()
+                                }) {
+                                    isRootContentSwitcherBtmSheetVisible = true
+                                    coroutineScope.launch {
+                                        rootContentSwitcherBtmSheetState.show()
+                                    }
+                                }, verticalAlignment = Alignment.CenterVertically
                         ) {
                             FilledTonalIconButton(
                                 onClick = {
@@ -351,30 +408,34 @@ fun CollectionsScreen(
                             }
                         }
                     }
-                }
-                item {
+
                     HorizontalPager(
                         state = rootContentPagerState,
-                        modifier = Modifier.animateContentSize().fillMaxSize(),
-                        verticalAlignment = Alignment.Top
+                        modifier = Modifier.height(screenHeight).animateContentSize()
+                            .fillMaxWidth().nestedScroll(defaultFoldersScrollConnection),
+                        verticalAlignment = Alignment.Top,
                     ) { currentPage ->
-                        Column(
-                            modifier = Modifier.fillMaxSize()
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            state = if (currentPage == 0) rootFoldersListState else tagsListState,
                         ) {
                             when (currentPage) {
                                 0 -> {
-                                    if (rootFolders.isEmpty()) {
-                                        DataEmptyScreen(
-                                            text = Localization.Key.NoFoldersFound.rememberLocalizedString(),
-                                            paddingValues = PaddingValues(
-                                                top = 50.dp, start = 15.dp
+                                    if (rootFolders.data.isEmpty()) {
+                                        item {
+                                            DataEmptyScreen(
+                                                text = Localization.Key.NoFoldersFound.rememberLocalizedString(),
+                                                paddingValues = PaddingValues(
+                                                    top = 50.dp, start = 15.dp
+                                                )
                                             )
-                                        )
-                                        return@HorizontalPager
+                                        }
+                                        return@LazyColumn
                                     }
-
-                                    rootFolders.forEach { folder ->
-                                        key(folder) {
+                                    rootFolders.data.forEach { (_, folders) ->
+                                        items(folders, key = {
+                                            "rootFolders" + it.localId
+                                        }) { folder ->
                                             FolderComponent(
                                                 FolderComponentParam(
                                                     name = folder.name,
@@ -467,12 +528,16 @@ fun CollectionsScreen(
                                 }
 
                                 1 -> {
-                                    if (allTags.isEmpty()) {
-                                        DataEmptyScreen(text = Localization.Key.NoTagsFound.rememberLocalizedString())
-                                        return@HorizontalPager
+                                    if (allTags.data.isEmpty()) {
+                                        item {
+                                            DataEmptyScreen(text = Localization.Key.NoTagsFound.rememberLocalizedString())
+                                        }
+                                        return@LazyColumn
                                     }
-                                    allTags.forEach { currentTag ->
-                                        key(currentTag) {
+                                    allTags.data.forEach { (_, tags) ->
+                                        items(tags, key = {
+                                            "allTags" + it.localId
+                                        }) { currentTag ->
                                             FolderComponent(
                                                 FolderComponentParam(
                                                     name = currentTag.name,
@@ -532,11 +597,11 @@ fun CollectionsScreen(
                                     }
                                 }
                             }
+                            item {
+                                Spacer(Modifier.height(250.dp))
+                            }
                         }
                     }
-                }
-                item {
-                    Spacer(Modifier.height(250.dp))
                 }
             }
             if (platform() is Platform.Android.Mobile) return@Row

@@ -25,7 +25,10 @@ import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.Paginator
 import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
+import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
@@ -33,9 +36,14 @@ import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushLocalizedSnackbar
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.asStateInWhileSubscribed
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.utils.isNull
+import com.sakethh.linkora.utils.onError
+import com.sakethh.linkora.utils.onPagesFinished
+import com.sakethh.linkora.utils.onRetrieved
+import com.sakethh.linkora.utils.onRetrieving
 import com.sakethh.linkora.utils.pushSnackbarOnFailure
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +63,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import okhttp3.internal.toImmutableMap
+import java.util.TreeMap
 
 open class CollectionsScreenVM(
     val localFoldersRepo: LocalFoldersRepo,
@@ -269,14 +278,177 @@ open class CollectionsScreenVM(
         }
     }
 
-    private val _rootRegularFolders = MutableStateFlow(emptyList<Folder>())
-    val rootRegularFolders = _rootRegularFolders.asStateFlow()
+    private val _rootRegularFolders = MutableStateFlow(
+        PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = TreeMap<PageKey, List<Folder>>().toImmutableMap()
+        )
+    )
+    val rootRegularFolders = _rootRegularFolders.asStateInWhileSubscribed(
+        initialValue = PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = emptyMap()
+        )
+    )
 
-    private val _rootArchiveFolders = MutableStateFlow(emptyList<Folder>())
-    val rootArchiveFolders = _rootArchiveFolders.asStateFlow()
+    private val _rootArchiveFolders = MutableStateFlow(
+        PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = TreeMap<PageKey, List<Folder>>().toImmutableMap()
+        )
+    )
+    val rootArchiveFolders = _rootArchiveFolders.asStateInWhileSubscribed(
+        initialValue = PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = emptyMap()
+        )
+    )
 
-    private val _allTags = MutableStateFlow<List<Tag>>(value = emptyList())
-    val allTags = _allTags.asStateFlow()
+    private val _allTags = MutableStateFlow(
+        value = PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = TreeMap<PageKey, List<Tag>>().toImmutableMap()
+        )
+    )
+
+    val allTags = _allTags.asStateInWhileSubscribed(
+        initialValue = PaginationState(
+            isRetrieving = true,
+            errorOccurred = false,
+            errorMessage = null,
+            pagesCompleted = false,
+            data = emptyMap()
+        )
+    )
+
+    private val regularRootFoldersPaginator = Paginator(
+        coroutineScope = viewModelScope,
+        onRetrieve = { nextPageStartIndex ->
+            nextPageStartIndex to snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }.flatMapLatest { sortingType ->
+                localFoldersRepo.getRootFolders(
+                    sortingType,
+                    pageSize = Constants.PAGE_SIZE,
+                    startIndex = nextPageStartIndex
+                ).flatMapLatest {
+                    when (it) {
+                        is Result.Failure -> flowOf(Result.Failure(it.message))
+                        is Result.Loading -> flowOf(Result.Loading())
+                        is Result.Success -> {
+                            flowOf(Result.Success(it.data.filterNot {
+                                it.isArchived
+                            }))
+                        }
+                    }
+                }
+            }
+        },
+        onRetrieved = _rootRegularFolders::onRetrieved,
+        onError = _rootRegularFolders::onError,
+        onRetrieving = _rootRegularFolders::onRetrieving,
+        onPagesFinished = _rootRegularFolders::onPagesFinished
+    )
+
+    private val archiveRootFoldersPaginator = Paginator(
+        coroutineScope = viewModelScope,
+        onRetrieve = { nextPageStartIndex ->
+            nextPageStartIndex to snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }.flatMapLatest { sortingType ->
+                localFoldersRepo.getRootFolders(
+                    sortingType,
+                    pageSize = Constants.PAGE_SIZE,
+                    startIndex = nextPageStartIndex
+                ).flatMapLatest {
+                    when (it) {
+                        is Result.Failure -> flowOf(Result.Failure(it.message))
+                        is Result.Loading -> flowOf(Result.Loading())
+                        is Result.Success -> {
+                            flowOf(Result.Success(it.data.filter {
+                                it.isArchived
+                            }))
+                        }
+                    }
+                }
+            }
+        },
+        onRetrieved = _rootArchiveFolders::onRetrieved,
+        onError = _rootArchiveFolders::onError,
+        onRetrieving = _rootArchiveFolders::onRetrieving,
+        onPagesFinished = _rootArchiveFolders::onPagesFinished
+    )
+
+    private val tagsPaginator = Paginator(
+        coroutineScope = viewModelScope,
+        onRetrieve = { nextPageStartIndex ->
+            nextPageStartIndex to snapshotFlow {
+                AppPreferences.selectedSortingTypeType.value
+            }.flatMapLatest { sortingType ->
+                localTagsRepo.getTags(
+                    sortingType,
+                    pageSize = Constants.PAGE_SIZE,
+                    startIndex = nextPageStartIndex
+                )
+            }
+        },
+        onRetrieved = _allTags::onRetrieved,
+        onError = _allTags::onError,
+        onRetrieving = _allTags::onRetrieving,
+        onPagesFinished = _allTags::onPagesFinished
+    )
+
+
+    fun retrieveNextBatchOfRegularRootFolders() {
+        viewModelScope.launch {
+            regularRootFoldersPaginator.retrieveNextBatch()
+        }
+    }
+
+    fun retrieveNextBatchOfTags() {
+        viewModelScope.launch {
+            tagsPaginator.retrieveNextBatch()
+        }
+    }
+
+    fun updateStartingIndexForRegularRootFoldersPaginator(newIndex: Int) {
+        viewModelScope.launch {
+            regularRootFoldersPaginator.updateFirstVisibleItemIndex(newIndex)
+        }
+    }
+
+    fun updateStartingIndexForTagsPaginator(newIndex: Int) {
+        viewModelScope.launch {
+            tagsPaginator.updateFirstVisibleItemIndex(newIndex)
+        }
+    }
+
+    fun retrieveNextBatchOfArchivedRootFolders() {
+        viewModelScope.launch {
+            archiveRootFoldersPaginator.retrieveNextBatch()
+        }
+    }
+
+    fun updateStartingIndexForArchivedRootFoldersPaginator(newIndex: Int) {
+        viewModelScope.launch {
+            archiveRootFoldersPaginator.updateFirstVisibleItemIndex(newIndex)
+        }
+    }
 
     private val _selectedTags = mutableStateListOf<Tag>()
     val selectedTags: List<Tag> = _selectedTags
@@ -350,34 +522,22 @@ open class CollectionsScreenVM(
             }
         }
         viewModelScope.launch {
-            snapshotFlow {
-                AppPreferences.selectedSortingTypeType.value
-            }.flatMapLatest {
-                localTagsRepo.getAllTags(it)
-            }.collectLatest {
-                _allTags.emit(it)
-            }
+            tagsPaginator.retrieveNextBatch()
         }
 
         viewModelScope.launch {
 
             if (loadNonArchivedRootFoldersOnInit && loadArchivedRootFoldersOnInit) {
-                loadFolders { folders ->
-                    _rootArchiveFolders.emit(folders.filter { it.isArchived })
-                    _rootRegularFolders.emit(folders.filterNot { it.isArchived })
-                }
+                regularRootFoldersPaginator.retrieveNextBatch()
+                archiveRootFoldersPaginator.retrieveNextBatch()
             }
 
             if (loadArchivedRootFoldersOnInit && !loadNonArchivedRootFoldersOnInit) {
-                loadFolders { folders ->
-                    _rootArchiveFolders.emit(folders.filter { it.isArchived })
-                }
+                archiveRootFoldersPaginator.retrieveNextBatch()
             }
 
             if (loadArchivedRootFoldersOnInit.not() && loadNonArchivedRootFoldersOnInit) {
-                loadFolders { folders ->
-                    _rootRegularFolders.emit(folders.filterNot { it.isArchived })
-                }
+                regularRootFoldersPaginator.retrieveNextBatch()
             }
         }
         if (collectionDetailPaneInfo != null) {
@@ -393,17 +553,6 @@ open class CollectionsScreenVM(
         }
     }
 
-    private suspend fun loadFolders(init: suspend (folders: List<Folder>) -> Unit) {
-        snapshotFlow {
-            AppPreferences.selectedSortingTypeType.value
-        }.flatMapLatest { sortingType ->
-            localFoldersRepo.getRootFolders(sortingType)
-        }.collectLatest { result ->
-            result.onSuccess { folders ->
-                init(folders.data)
-            }.pushSnackbarOnFailure()
-        }
-    }
 
     private val _childFolders = MutableStateFlow(emptyList<Folder>())
     val childFolders = _childFolders.asStateFlow()
@@ -433,18 +582,6 @@ open class CollectionsScreenVM(
                 localFoldersRepo.getChildFolders(parentFolderId, sortingType)
             }.collectAndEmitChildFolders()
         }
-    }
-
-    fun getFolder(id: Long): Folder {
-        lateinit var folder: Folder
-        runBlocking {
-            localFoldersRepo.getThisFolderData(id).collectLatest {
-                it.onSuccess {
-                    folder = it.data
-                }.pushSnackbarOnFailure()
-            }
-        }
-        return folder
     }
 
     fun insertANewFolder(

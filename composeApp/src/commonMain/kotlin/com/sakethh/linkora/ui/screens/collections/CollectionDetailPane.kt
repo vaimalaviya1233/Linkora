@@ -294,97 +294,101 @@ fun CollectionDetailPane(
 
                         1 -> {
                             LazyColumn(Modifier.fillMaxSize()) {
-                                if (rootArchiveFolders.value.isEmpty()) {
+                                if (rootArchiveFolders.value.data.isEmpty()) {
                                     item {
                                         DataEmptyScreen(text = Localization.Key.NoFoldersFoundInArchive.getLocalizedString())
                                     }
                                     return@LazyColumn
                                 }
-                                items(rootArchiveFolders.value) { rootArchiveFolder ->
-                                    FolderComponent(
-                                        FolderComponentParam(
-                                            name = rootArchiveFolder.name,
-                                            note = rootArchiveFolder.note,
-                                            onClick = {
-                                                if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                rootArchiveFolders.value.data.forEach { (_, rootArchiveFolders) ->
+                                    items(rootArchiveFolders, key = {
+                                        "rootArchiveFolders" + it.localId
+                                    }) { rootArchiveFolder ->
+                                        FolderComponent(
+                                            FolderComponentParam(
+                                                name = rootArchiveFolder.name,
+                                                note = rootArchiveFolder.note,
+                                                onClick = {
+                                                    if (CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                                            rootArchiveFolder
+                                                        )
+                                                    ) {
+                                                        return@FolderComponentParam
+                                                    }
+                                                    val collectionDetailPaneInfo =
+                                                        CollectionDetailPaneInfo(
+                                                            currentFolder = rootArchiveFolder,
+                                                            collectionType = CollectionType.FOLDER,
+                                                            currentTag = null
+                                                        )
+                                                    if (platform is Platform.Android.Mobile) {
+                                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                            key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
+                                                            value = Json.encodeToString(
+                                                                collectionDetailPaneInfo
+                                                            )
+                                                        )
+                                                        navController.navigate(Navigation.Collection.MobileCollectionDetailScreen)
+                                                    } else {
+                                                        collectionDetailPaneParams.performAction(
+                                                            CollectionsAction.PushToDetailPane(
+                                                                collectionDetailPaneInfo
+                                                            )
+                                                        )
+                                                    }
+                                                },
+                                                onLongClick = {
+                                                    if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
+                                                        CollectionsScreenVM.isSelectionEnabled.value =
+                                                            true
+                                                        CollectionsScreenVM.selectedFoldersViaLongClick.add(
+                                                            rootArchiveFolder
+                                                        )
+                                                    }
+                                                },
+                                                onMoreIconClick = {
+                                                    coroutineScope.pushUIEvent(
+                                                        UIEvent.Type.ShowMenuBtmSheet(
+                                                            menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
+                                                            selectedLinkForMenuBtmSheet = null,
+                                                            selectedFolderForMenuBtmSheet = rootArchiveFolder
+                                                        )
+                                                    )
+                                                },
+                                                isCurrentlyInDetailsView = remember(
+                                                    peekCollectionPaneHistory?.currentFolder?.localId
+                                                ) {
+                                                    mutableStateOf(peekCollectionPaneHistory?.currentFolder?.localId == rootArchiveFolder.localId)
+                                                },
+                                                showMoreIcon = rememberSaveable {
+                                                    mutableStateOf(true)
+                                                },
+                                                isSelectedForSelection = rememberSaveable(
+                                                    CollectionsScreenVM.isSelectionEnabled.value,
+                                                    CollectionsScreenVM.selectedFoldersViaLongClick.contains(
                                                         rootArchiveFolder
                                                     )
                                                 ) {
-                                                    return@FolderComponentParam
-                                                }
-                                                val collectionDetailPaneInfo =
-                                                    CollectionDetailPaneInfo(
-                                                        currentFolder = rootArchiveFolder,
-                                                        collectionType = CollectionType.FOLDER,
-                                                        currentTag = null
-                                                    )
-                                                if (platform is Platform.Android.Mobile) {
-                                                    navController.currentBackStackEntry?.savedStateHandle?.set(
-                                                        key = Constants.COLLECTION_INFO_SAVED_STATE_HANDLE_KEY,
-                                                        value = Json.encodeToString(
-                                                            collectionDetailPaneInfo
+                                                    mutableStateOf(
+                                                        CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
+                                                            rootArchiveFolder
                                                         )
                                                     )
-                                                    navController.navigate(Navigation.Collection.MobileCollectionDetailScreen)
-                                                } else {
-                                                    collectionDetailPaneParams.performAction(
-                                                        CollectionsAction.PushToDetailPane(
-                                                            collectionDetailPaneInfo
+                                                },
+                                                showCheckBox = CollectionsScreenVM.isSelectionEnabled,
+                                                onCheckBoxChanged = { bool ->
+                                                    if (bool) {
+                                                        CollectionsScreenVM.selectedFoldersViaLongClick.add(
+                                                            rootArchiveFolder
                                                         )
-                                                    )
-                                                }
-                                            },
-                                            onLongClick = {
-                                                if (CollectionsScreenVM.isSelectionEnabled.value.not()) {
-                                                    CollectionsScreenVM.isSelectionEnabled.value =
-                                                        true
-                                                    CollectionsScreenVM.selectedFoldersViaLongClick.add(
-                                                        rootArchiveFolder
-                                                    )
-                                                }
-                                            },
-                                            onMoreIconClick = {
-                                                coroutineScope.pushUIEvent(
-                                                    UIEvent.Type.ShowMenuBtmSheet(
-                                                        menuBtmSheetFor = MenuBtmSheetType.Folder.RegularFolder,
-                                                        selectedLinkForMenuBtmSheet = null,
-                                                        selectedFolderForMenuBtmSheet = rootArchiveFolder
-                                                    )
-                                                )
-                                            },
-                                            isCurrentlyInDetailsView = remember(
-                                                peekCollectionPaneHistory?.currentFolder?.localId
-                                            ) {
-                                                mutableStateOf(peekCollectionPaneHistory?.currentFolder?.localId == rootArchiveFolder.localId)
-                                            },
-                                            showMoreIcon = rememberSaveable {
-                                                mutableStateOf(true)
-                                            },
-                                            isSelectedForSelection = rememberSaveable(
-                                                CollectionsScreenVM.isSelectionEnabled.value,
-                                                CollectionsScreenVM.selectedFoldersViaLongClick.contains(
-                                                    rootArchiveFolder
-                                                )
-                                            ) {
-                                                mutableStateOf(
-                                                    CollectionsScreenVM.isSelectionEnabled.value && CollectionsScreenVM.selectedFoldersViaLongClick.contains(
-                                                        rootArchiveFolder
-                                                    )
-                                                )
-                                            },
-                                            showCheckBox = CollectionsScreenVM.isSelectionEnabled,
-                                            onCheckBoxChanged = { bool ->
-                                                if (bool) {
-                                                    CollectionsScreenVM.selectedFoldersViaLongClick.add(
-                                                        rootArchiveFolder
-                                                    )
-                                                } else {
-                                                    CollectionsScreenVM.selectedFoldersViaLongClick.remove(
-                                                        rootArchiveFolder
-                                                    )
-                                                }
-                                            })
-                                    )
+                                                    } else {
+                                                        CollectionsScreenVM.selectedFoldersViaLongClick.remove(
+                                                            rootArchiveFolder
+                                                        )
+                                                    }
+                                                })
+                                        )
+                                    }
                                 }
                             }
                         }
