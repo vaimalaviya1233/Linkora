@@ -90,7 +90,6 @@ import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.screens.collections.components.RootCollectionSwitcher
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
@@ -534,9 +533,9 @@ fun CollectionsScreen(
                                         }
                                         return@LazyColumn
                                     }
-                                    allTags.data.forEach { (_, tags) ->
+                                    allTags.data.forEach { (pageKey, tags) ->
                                         items(tags, key = {
-                                            "allTags" + it.localId
+                                            "Collection-Screen-Tags-Page:$pageKey+" + "ID:" + it.localId
                                         }) { currentTag ->
                                             FolderComponent(
                                                 FolderComponentParam(

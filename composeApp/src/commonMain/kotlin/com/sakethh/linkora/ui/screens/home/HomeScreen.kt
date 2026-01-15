@@ -85,7 +85,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
     }
     val navController = LocalNavController.current
     val homeScreenVM: HomeScreenVM =
-        linkoraViewModel(factory = HomeScreenVMAssistedFactory.createForHomeScreen(platform = platform()))
+        linkoraViewModel(factory = HomeScreenVMAssistedFactory.createForHomeScreen())
     val shouldPanelsBtmSheetBeVisible = rememberSaveable {
         mutableStateOf(false)
     }

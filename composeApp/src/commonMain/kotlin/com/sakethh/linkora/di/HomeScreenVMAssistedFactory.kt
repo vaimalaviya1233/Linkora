@@ -6,7 +6,7 @@ import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
 
 object HomeScreenVMAssistedFactory {
-    fun createForPanelsManagerScreen(platform: Platform) = viewModelFactory {
+    fun createForPanelsManagerScreen() = viewModelFactory {
         initializer {
             HomeScreenVM(
                 localLinksRepo = DependencyContainer.localLinksRepo,
@@ -16,12 +16,11 @@ object HomeScreenVMAssistedFactory {
                 triggerCollectionOfPanelFolders = false,
                 preferencesRepository = DependencyContainer.preferencesRepo,
                 localTagsRepo = DependencyContainer.localTagsRepo,
-                platform = platform
             )
         }
     }
 
-    fun createForHomeScreen(platform: Platform) = viewModelFactory {
+    fun createForHomeScreen() = viewModelFactory {
         initializer {
             HomeScreenVM(
                 localPanelsRepo = DependencyContainer.localPanelsRepo,
@@ -29,7 +28,6 @@ object HomeScreenVMAssistedFactory {
                 localFoldersRepo = DependencyContainer.localFoldersRepo,
                 preferencesRepository = DependencyContainer.preferencesRepo,
                 localTagsRepo = DependencyContainer.localTagsRepo,
-                platform = platform
             )
         }
     }

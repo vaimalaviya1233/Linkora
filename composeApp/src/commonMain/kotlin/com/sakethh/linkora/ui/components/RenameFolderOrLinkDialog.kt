@@ -1,7 +1,10 @@
 package com.sakethh.linkora.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,14 +13,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +36,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,8 +56,10 @@ import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.platform.platform
+import com.sakethh.linkora.ui.PageKey
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
+import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pressScaleEffect
@@ -69,8 +77,10 @@ data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class)
     val existingFolderName: String?,
     val existingTitle: String,
     val existingNote: String,
-    val allTags: List<Tag>,
+    val allTags: State<PaginationState<Map<PageKey, List<Tag>>>>,
     val selectedTags: List<Tag>,
+    val onRetrieveNextTagsPage: () -> Unit,
+    val onFirstVisibleIndexChange: (Int) -> Unit
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,98 +103,137 @@ fun RenameFolderOrLinkDialog(
             mutableStateOf(false)
         }
         val content: ComposableContent = {
-            LazyColumn(
-                Modifier.wrapContentSize().padding(
-                    start = 15.dp,
-                    end = 15.dp,
+            Column(
+                Modifier.wrapContentSize().animateContentSize().padding(
                     bottom = 15.dp,
                     top = if (platform() == Platform.Android.Mobile) 0.dp else 15.dp
-                ), verticalArrangement = Arrangement.spacedBy(15.dp)
+                )
             ) {
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = if (menuBtmSheetFolderEntries().contains(
-                                    renameFolderOrLinkDialogParam.dialogBoxFor
-                                ) && renameFolderOrLinkDialogParam.existingFolderName?.isNotBlank() == true
-                            ) Localization.Key.RenameFolder.rememberLocalizedString()
-                                .replaceFirstPlaceHolderWith(renameFolderOrLinkDialogParam.existingFolderName) else Localization.Key.ChangeLinkData.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 22.sp,
-                            lineHeight = 27.sp,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier.fillMaxWidth(if (platform() != Platform.Android.Mobile) 0.85f else 1f)
-                        )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth().padding(
+                        start = 15.dp,
+                        end = 15.dp
+                    )
+                ) {
+                    Text(
+                        text = if (menuBtmSheetFolderEntries().contains(
+                                renameFolderOrLinkDialogParam.dialogBoxFor
+                            ) && renameFolderOrLinkDialogParam.existingFolderName?.isNotBlank() == true
+                        ) Localization.Key.RenameFolder.rememberLocalizedString()
+                            .replaceFirstPlaceHolderWith(renameFolderOrLinkDialogParam.existingFolderName) else Localization.Key.ChangeLinkData.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 22.sp,
+                        lineHeight = 27.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.fillMaxWidth(if (platform() != Platform.Android.Mobile) 0.85f else 1f)
+                    )
 
-                        if (platform() != Platform.Android.Mobile && !showProgressBar) {
-                            IconButton(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                                onClick = renameFolderOrLinkDialogParam.onHide
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close, contentDescription = null
-                                )
-                            }
+                    if (platform() != Platform.Android.Mobile && !showProgressBar) {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            onClick = renameFolderOrLinkDialogParam.onHide
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close, contentDescription = null
+                            )
                         }
                     }
                 }
-                item {
-                    OutlinedTextField(
-                        label = {
-                            Text(
-                                text = if (menuBtmSheetFolderEntries().contains(
-                                        renameFolderOrLinkDialogParam.dialogBoxFor
-                                    )
-                                ) Localization.Key.NewName.rememberLocalizedString()
-                                else Localization.Key.NewTitle.rememberLocalizedString(),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontSize = 12.sp
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.titleSmall,
-                        value = newFolderOrTitleName,
-                        onValueChange = {
-                            newFolderOrTitleName = it
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = showProgressBar
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        label = {
-                            Text(
-                                text = Localization.Key.NewNote.rememberLocalizedString(),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontSize = 12.sp
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.titleSmall,
-                        value = newNote,
-                        onValueChange = {
-                            newNote = it
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = showProgressBar
-                    )
-                }
-
-                if (renameFolderOrLinkDialogParam.dialogBoxFor is MenuBtmSheetType.Link) {
-                    item {
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    label = {
                         Text(
-                            text = Localization.Key.AttachTags.rememberLocalizedString(),
-                            color = MaterialTheme.colorScheme.secondary,
+                            text = if (menuBtmSheetFolderEntries().contains(
+                                    renameFolderOrLinkDialogParam.dialogBoxFor
+                                )
+                            ) Localization.Key.NewName.rememberLocalizedString()
+                            else Localization.Key.NewTitle.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleSmall,
-                            fontSize = 18.sp
+                            fontSize = 12.sp
                         )
+                    },
+                    textStyle = MaterialTheme.typography.titleSmall,
+                    value = newFolderOrTitleName,
+                    onValueChange = {
+                        newFolderOrTitleName = it
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(
+                        start = 15.dp,
+                        end = 15.dp
+                    ),
+                    readOnly = showProgressBar
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                OutlinedTextField(
+                    label = {
+                        Text(
+                            text = Localization.Key.NewNote.rememberLocalizedString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontSize = 12.sp
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.titleSmall,
+                    value = newNote,
+                    onValueChange = {
+                        newNote = it
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(
+                        start = 15.dp,
+                        end = 15.dp
+                    ),
+                    readOnly = showProgressBar
+                )
 
+
+                if (renameFolderOrLinkDialogParam.dialogBoxFor is MenuBtmSheetType.Link && !showProgressBar) {
+                    Text(
+                        text = Localization.Key.AttachTags.rememberLocalizedString(),
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(start = 15.dp, top = 15.dp, bottom = 10.dp)
+                    )
+                    Box(
+                        modifier = Modifier.animateContentSize()
+                            .height(345.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+                            OutlinedButton(
+                                shape = RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp),
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                    .padding(
+                                        end = 15.dp,
+                                        start = 15.dp,
+                                    ).height(ButtonDefaults.MinHeight + 30.dp).fillMaxWidth(),
+                                onClick = {
+                                    coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
+                                }
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize().padding(bottom = 5.dp),
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Tag,
+                                            contentDescription = null
+                                        )
+                                        Spacer(Modifier.width(5.dp))
+                                        Text(
+                                            text = Localization.Key.CreateANewTag.rememberLocalizedString(),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
                         TagSelectionComponent(
-                            paddingValues = PaddingValues(),
-                            allTags = renameFolderOrLinkDialogParam.allTags,
+                            paddingValues = PaddingValues(start = 15.dp, end = 15.dp),
+                            allTags = renameFolderOrLinkDialogParam.allTags.value,
                             selectedTags = selectedTags,
                             onTagClick = { currTag ->
                                 if (selectedTags.contains(currTag)) {
@@ -194,48 +243,61 @@ fun RenameFolderOrLinkDialog(
                                 } else {
                                     selectedTags += currTag
                                 }
-                            }, onCreateTagClick = {
-                                coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
+                            },
+                            onRetrieveNextTagsPage = renameFolderOrLinkDialogParam.onRetrieveNextTagsPage,
+                            onFirstVisibleIndexChange = {
+                                renameFolderOrLinkDialogParam.onFirstVisibleIndexChange(it)
                             })
                     }
                 }
 
                 if (showProgressBar) {
-                    item {
-                        Spacer(modifier = Modifier.height(10.dp))
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                        Spacer(modifier = Modifier.height(10.dp))
-                    }
-                    return@LazyColumn
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().padding(
+                            start = 15.dp,
+                            end = 15.dp
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    return@Column
                 }
-                item {
-                    Button(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
-                            .pressScaleEffect(), onClick = {
-                            showProgressBar = true
-                            renameFolderOrLinkDialogParam.onSave(
-                                newFolderOrTitleName, newNote, selectedTags, {
-                                    showProgressBar = true
-                                })
-                        }) {
-                        Text(
-                            text = Localization.rememberLocalizedString(Localization.Key.Save),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 16.sp
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    OutlinedButton(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
-                            .pressScaleEffect(),
-                        onClick = renameFolderOrLinkDialogParam.onHide
-                    ) {
-                        Text(
-                            text = Localization.Key.Cancel.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 16.sp
-                        )
-                    }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Button(
+                    modifier = Modifier.padding(
+                        start = 15.dp,
+                        end = 15.dp
+                    ).pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                        .pressScaleEffect(), onClick = {
+                        showProgressBar = true
+                        renameFolderOrLinkDialogParam.onSave(
+                            newFolderOrTitleName, newNote, selectedTags, {
+                                showProgressBar = true
+                            })
+                    }) {
+                    Text(
+                        text = Localization.rememberLocalizedString(Localization.Key.Save),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                OutlinedButton(
+                    modifier = Modifier.padding(
+                        start = 15.dp,
+                        end = 15.dp
+                    ).pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                        .pressScaleEffect(),
+                    onClick = renameFolderOrLinkDialogParam.onHide
+                ) {
+                    Text(
+                        text = Localization.Key.Cancel.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp
+                    )
                 }
             }
         }

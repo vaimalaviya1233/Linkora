@@ -479,6 +479,30 @@ open class CollectionsScreenVM(
     val foldersSearchQueryResult = _foldersSearchQueryResult.asStateFlow()
 
     init {
+
+        /* viewModelScope.launch {
+             (0..20).map {
+                 Link(
+                     linkType = LinkType.SAVED_LINK,
+                     title = "$it",
+                     url = "",
+                     imgURL = "",
+                     note = "",
+                     idOfLinkedFolder = null
+                 )
+             }.run {
+                 localLinksRepo.addMultipleLinks(this)
+             }
+         }*/
+
+        /*viewModelScope.launch {
+            (0..200).map {
+                Tag(name = "$it")
+            }.forEach {
+                localTagsRepo.createATag(it).collect()
+            }
+        }*/
+
         viewModelScope.launch {
             combine(snapshotFlow {
                 foldersSearchQuery

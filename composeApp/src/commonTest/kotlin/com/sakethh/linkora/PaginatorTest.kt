@@ -49,7 +49,7 @@ class PaginatorTest {
         val paginator = Paginator(
             coroutineScope = this.backgroundScope,
             onRetrieve = ::onRetrieve,
-            onRetrieved = { _, _, _ -> },
+            onRetrieved = { _, _ -> },
             onError = {},
             onRetrieving = {},
             onPagesFinished = {}

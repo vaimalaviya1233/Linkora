@@ -550,10 +550,11 @@ fun App(
                     appVM.showRenameDialogBox = false
                 }
             }
+            val allTags = collectionsScreenVM.allTags.collectAsStateWithLifecycle()
             RenameFolderOrLinkDialog(
                 renameFolderOrLinkDialogParam = RenameFolderOrLinkDialogParam(
                     selectedTags = appVM.selectedLinkTagsForMenuBtmSheet.tags,
-                    allTags = emptyList()/*TODO: allTags*/,
+                    allTags = allTags,
                     onSave = { newTitle: String, newNote: String, selectedTags: List<Tag>, onCompletion: () -> Unit ->
                         if (appVM.menuBtmSheetFor is MenuBtmSheetType.Link) {
                             collectionsScreenVM.updateLink(updatedLinkTagsPair = appVM.selectedLinkTagsForMenuBtmSheet.run {
@@ -581,7 +582,9 @@ fun App(
                     existingNote = if (menuBtmSheetFolderEntries().contains(appVM.menuBtmSheetFor)) appVM.selectedFolderForMenuBtmSheet.note else appVM.selectedLinkTagsForMenuBtmSheet.link.note,
                     onHide = slideDownAndHideRenameSheet,
                     sheetState = renameDialogSheetState,
-                    dialogBoxFor = appVM.menuBtmSheetFor
+                    dialogBoxFor = appVM.menuBtmSheetFor,
+                    onRetrieveNextTagsPage = collectionsScreenVM::retrieveNextBatchOfTags,
+                    onFirstVisibleIndexChange = collectionsScreenVM::updateStartingIndexForTagsPaginator,
                 )
             )
 
