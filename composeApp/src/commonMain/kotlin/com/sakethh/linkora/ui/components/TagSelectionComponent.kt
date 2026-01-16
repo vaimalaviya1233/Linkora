@@ -76,8 +76,7 @@ fun TagSelectionComponent(
         }
     }
     LazyColumn(
-        state = lazyColumnState,
-        modifier = Modifier.padding(
+        state = lazyColumnState, modifier = Modifier.padding(
             paddingValues
         ).heightIn(max = 300.dp).fillMaxWidth().clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.surface).border(
@@ -122,21 +121,18 @@ fun TagSelectionComponent(
                         Icon(
                             tint = if (isTagSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.secondary.copy(
                                 0.85f
-                            ),
-                            imageVector = Icons.Default.Tag,
-                            contentDescription = null
+                            ), imageVector = Icons.Default.Tag, contentDescription = null
                         )
                     },
                     modifier = Modifier.padding(top = 7.5.dp, bottom = 7.5.dp).fillMaxWidth()
-                        .height(50.dp)
-                        .pointerHoverIcon(icon = PointerIcon.Hand)
+                        .height(50.dp).pointerHoverIcon(icon = PointerIcon.Hand)
                 )
             }
         }
         if (!allTags.pagesCompleted) {
             item {
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     ContainedLoadingIndicator()

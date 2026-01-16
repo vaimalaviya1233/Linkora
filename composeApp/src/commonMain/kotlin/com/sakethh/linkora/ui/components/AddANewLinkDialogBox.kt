@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,10 +13,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +43,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.StarOutline
@@ -48,8 +53,10 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -72,24 +79,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -106,12 +115,15 @@ import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
+import com.sakethh.linkora.ui.PageKey
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
 import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.AddNewLinkDialogParams
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
+import com.sakethh.linkora.ui.utils.UIEvent
+import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
@@ -132,6 +144,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,6 +191,8 @@ fun AddANewLinkDialogBox(
         mutableStateOf("")
     }
 
+    val allTags = addNewLinkDialogParams.allTags.collectAsStateWithLifecycle().value
+
     val lazyRowState = rememberLazyListState()
     val content: ComposableContent = {
         Surface(
@@ -210,7 +226,7 @@ fun AddANewLinkDialogBox(
                         lazyRowState = lazyRowState,
                         addTheFolderInRoot = addTheFolderInRoot,
                         currentFolder = addNewLinkDialogParams.currentFolder,
-                        allTags = TODO(),
+                        allTags = allTags,
                         selectedTags = addNewLinkDialogParams.selectedTags,
                         foldersSearchQuery = addNewLinkDialogParams.foldersSearchQuery,
                         foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
@@ -253,7 +269,7 @@ fun AddANewLinkDialogBox(
                             lazyRowState = lazyRowState,
                             addTheFolderInRoot = addTheFolderInRoot,
                             currentFolder = addNewLinkDialogParams.currentFolder,
-                            allTags = TODO(),
+                            allTags = allTags,
                             selectedTags = addNewLinkDialogParams.selectedTags,
                             foldersSearchQuery = addNewLinkDialogParams.foldersSearchQuery,
                             foldersSearchQueryResult = addNewLinkDialogParams.foldersSearchQueryResult,
@@ -494,7 +510,8 @@ private fun TopPartOfAddANewLinkDialogBox(
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
 private fun BottomPartOfAddANewLinkDialogBox(
@@ -512,17 +529,38 @@ private fun BottomPartOfAddANewLinkDialogBox(
     addTheFolderInRoot: MutableState<Boolean>,
     currentFolder: Folder?,
     rootRegularFolders: StateFlow<PaginationState<Map<Int, List<Folder>>>>,
-    allTags: StateFlow<List<Tag>>,
+    allTags: PaginationState<Map<PageKey, List<Tag>>>,
     selectedTags: List<Tag>,
     foldersSearchQuery: String,
     foldersSearchQueryResult: StateFlow<List<Folder>>,
     performAction: (AddANewLinkDialogBoxAction) -> Unit,
 ) {
+    val lazyColumnState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        launch {
+            snapshotFlow {
+                lazyColumnState.canScrollForward
+            }.debounce(500).distinctUntilChanged().collect {
+                if (!it && !allTags.isRetrieving && !allTags.pagesCompleted) {
+                    performAction(AddANewLinkDialogBoxAction.OnRetrieveNextRegularRootPage)
+                }
+            }
+        }
+
+        launch {
+            snapshotFlow {
+                lazyColumnState.firstVisibleItemIndex
+            }.debounce(500).distinctUntilChanged().collect {
+                performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfRootFolders(it))
+            }
+        }
+    }
     var showBtmSheetForNewTagAddition by rememberSaveable {
         mutableStateOf(false)
     }
     val coroutineScope = rememberCoroutineScope()
-    val rootFolders = rootRegularFolders.collectAsStateWithLifecycle()
+    val rootFolders by rootRegularFolders.collectAsStateWithLifecycle()
     val showNewFolderDialog = rememberSaveable {
         mutableStateOf(false)
     }
@@ -530,7 +568,6 @@ private fun BottomPartOfAddANewLinkDialogBox(
         mutableStateOf(false)
     }
     val folderSearchBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val allTags by allTags.collectAsStateWithLifecycle()
     val foldersSearchQueryResult by foldersSearchQueryResult.collectAsStateWithLifecycle()
     val selectedFolderForSavingTheLink = rememberDeserializableMutableObject {
         mutableStateOf(
@@ -582,11 +619,44 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 fontSize = 18.sp
             )
         }
-        Box(modifier = Modifier.fillMaxWidth().animateContentSize()) {
+        Box(
+            modifier = Modifier.animateContentSize()
+                .then(if (AppPreferences.showTagsInAddNewLinkDialogBox) Modifier.height(345.dp) else Modifier)
+                .fillMaxWidth()
+        ) {
             if (AppPreferences.showTagsInAddNewLinkDialogBox) {
+                Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    OutlinedButton(
+                        shape = RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
+                            end = 25.dp,
+                            start = 15.25.dp,
+                        ).height(ButtonDefaults.MinHeight + 30.dp).fillMaxWidth(), onClick = {
+                            coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
+                        }
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().padding(bottom = 5.dp),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Tag,
+                                    contentDescription = null
+                                )
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    text = Localization.Key.CreateANewTag.rememberLocalizedString(),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
+                    }
+                }
                 TagSelectionComponent(
                     paddingValues = PaddingValues(start = 15.dp, end = 25.dp),
-                    allTags = TODO()/*allTags*/,
+                    allTags = allTags,
                     selectedTags = selectedTags,
                     onTagClick = {
                         if (selectedTags.contains(it)) {
@@ -595,8 +665,11 @@ private fun BottomPartOfAddANewLinkDialogBox(
                             performAction(AddANewLinkDialogBoxAction.SelectATag(it))
                         }
                     },
-                    onRetrieveNextTagsPage = {},
+                    onRetrieveNextTagsPage = {
+                        performAction(AddANewLinkDialogBoxAction.OnRetrieveNextTagsPage)
+                    },
                     onFirstVisibleIndexChange = {
+                        performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfTags(it))
                     }
                 )
             }
@@ -665,60 +738,83 @@ private fun BottomPartOfAddANewLinkDialogBox(
 
         Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
             if (isDropDownMenuIconClicked.value) {
-
-                SelectableFolderUIComponent(
-                    onClick = {
-                        isDropDownMenuIconClicked.value = false
-                        selectedFolderForSavingTheLink.value = defaultSavedLinksFolder()
-                    },
-                    folderName = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
-                    imageVector = Icons.Outlined.Link,
-                    isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.SAVED_LINKS_ID
-                )
-
-                SelectableFolderUIComponent(
-                    onClick = {
-                        isDropDownMenuIconClicked.value = false
-                        selectedFolderForSavingTheLink.value = defaultImpLinksFolder()
-                    },
-                    folderName = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
-                    imageVector = Icons.Outlined.StarOutline,
-                    isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.IMPORTANT_LINKS_ID
-                )
-
-                /*
-                TODO: Fix this entire thing
-              rootFolders.value.forEach {
-                    key(it) {
-                        FolderSelectorComponent(
-                            onItemClick = {
+                LazyColumn(
+                    state = lazyColumnState,
+                    modifier = Modifier.padding(top = 15.dp, start = 15.dp, end = 15.dp)
+                        .heightIn(max = 350.dp).fillMaxWidth()
+                        .clip(RoundedCornerShape(25.dp))
+                        .background(MaterialTheme.colorScheme.surface).border(
+                            width = 1.5.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(0.15f),
+                            shape = RoundedCornerShape(25.dp)
+                        ).padding(start = 15.dp, end = 15.dp)
+                ) {
+                    item {
+                        SelectableFolderUIComponent(
+                            onClick = {
                                 isDropDownMenuIconClicked.value = false
-                                selectedFolderForSavingTheLink.value = it
+                                selectedFolderForSavingTheLink.value = defaultSavedLinksFolder()
                             },
-                            isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
-                                mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
-                            },
-                            folderName = it.name,
-                            onSubDirectoryIconClick = {
-                                AddANewLinkDialogBox.changeParentFolderId(
-                                    it.localId, coroutineScope
-                                )
-                                AddANewLinkDialogBox.subFoldersList.add(it)
-                                showChildFoldersBtmSheet.value = true
-                                coroutineScope.launch {
-                                    childFoldersBtmSheetState.expand()
-                                    try {
-                                        if (lazyRowState.layoutInfo.totalItemsCount - 1 < 0) return@launch
-                                        lazyRowState.animateScrollToItem(lazyRowState.layoutInfo.totalItemsCount - 1)
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                    }
-                                }
-                                selectedFolderForSavingTheLink.value = it
-                            })
+                            folderName = Localization.rememberLocalizedString(Localization.Key.SavedLinks),
+                            imageVector = Icons.Outlined.Link,
+                            isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.SAVED_LINKS_ID
+                        )
                     }
-
-                }*/
+                    item {
+                        SelectableFolderUIComponent(
+                            onClick = {
+                                isDropDownMenuIconClicked.value = false
+                                selectedFolderForSavingTheLink.value = defaultImpLinksFolder()
+                            },
+                            folderName = Localization.rememberLocalizedString(Localization.Key.ImportantLinks),
+                            imageVector = Icons.Outlined.StarOutline,
+                            isComponentSelected = selectedFolderForSavingTheLink.value.localId == Constants.IMPORTANT_LINKS_ID
+                        )
+                    }
+                    rootFolders.data.forEach { (_, folders) ->
+                        items(folders) {
+                            FolderSelectorComponent(
+                                endSpacing = 0.dp,
+                                paddingValues = PaddingValues(),
+                                onItemClick = {
+                                    isDropDownMenuIconClicked.value = false
+                                    selectedFolderForSavingTheLink.value = it
+                                },
+                                isCurrentFolderSelected = rememberSaveable(it.localId == selectedFolderForSavingTheLink.value.localId) {
+                                    mutableStateOf(it.localId == selectedFolderForSavingTheLink.value.localId)
+                                },
+                                folderName = it.name,
+                                onSubDirectoryIconClick = {
+                                    AddANewLinkDialogBox.changeParentFolderId(
+                                        it.localId, coroutineScope
+                                    )
+                                    AddANewLinkDialogBox.subFoldersList.add(it)
+                                    showChildFoldersBtmSheet.value = true
+                                    coroutineScope.launch {
+                                        childFoldersBtmSheetState.expand()
+                                        try {
+                                            if (lazyRowState.layoutInfo.totalItemsCount - 1 < 0) return@launch
+                                            lazyRowState.animateScrollToItem(lazyRowState.layoutInfo.totalItemsCount - 1)
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                        }
+                                    }
+                                    selectedFolderForSavingTheLink.value = it
+                                })
+                        }
+                    }
+                    if (!rootFolders.pagesCompleted) {
+                        item {
+                            Box(
+                                modifier = Modifier.padding(top = 15.dp, bottom = 15.dp)
+                                    .fillMaxWidth().height(50.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ContainedLoadingIndicator()
+                            }
+                        }
+                    }
+                }
                 if (!isDropDownMenuIconClicked.value) {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
@@ -936,7 +1032,12 @@ private fun BottomPartOfAddANewLinkDialogBox(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = AddANewLinkDialogBox.subFoldersList.last().name,
+                            text = try {
+                                AddANewLinkDialogBox.subFoldersList.last().name
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                ""
+                            },
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 24.sp,
                             modifier = Modifier.padding(start = 15.dp, bottom = 5.dp)
@@ -1132,12 +1233,15 @@ private fun FolderSelectorComponent(
     onItemClick: () -> Unit,
     isCurrentFolderSelected: MutableState<Boolean>,
     folderName: String,
-    onSubDirectoryIconClick: (() -> Unit)?
+    onSubDirectoryIconClick: (() -> Unit)?,
+    paddingValues: PaddingValues = PaddingValues(start = 20.dp, end = 20.dp),
+    endSpacing: Dp = 20.dp
 ) {
     Column(
-        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().clickable {
-            onItemClick()
-        }) {
+        modifier = Modifier.pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand)
+            .fillMaxWidth()
+            .clickable(indication = null, interactionSource = null, onClick = onItemClick)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
             verticalAlignment = Alignment.CenterVertically
@@ -1146,9 +1250,7 @@ private fun FolderSelectorComponent(
                 tint = if (isCurrentFolderSelected.value) MaterialTheme.colorScheme.primary else LocalContentColor.current,
                 imageVector = Icons.Outlined.Folder,
                 contentDescription = null,
-                modifier = Modifier.padding(
-                    start = 20.dp, end = 20.dp, top = 0.dp
-                ).size(28.dp)
+                modifier = Modifier.padding(paddingValues).size(28.dp)
             )
             Box(
                 modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd
@@ -1174,7 +1276,7 @@ private fun FolderSelectorComponent(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.width(20.dp))
+                    Spacer(modifier = Modifier.width(endSpacing))
                 }
             }
         }
@@ -1186,7 +1288,10 @@ private fun FolderSelectorComponent(
             lineHeight = 20.sp,
             maxLines = 1,
             modifier = Modifier.padding(
-                start = 20.dp, end = 20.dp
+                start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
+                end = paddingValues.calculateEndPadding(
+                    LocalLayoutDirection.current
+                )
             ),
             overflow = TextOverflow.Ellipsis
         )

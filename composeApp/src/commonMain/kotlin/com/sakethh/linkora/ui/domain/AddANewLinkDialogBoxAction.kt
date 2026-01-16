@@ -26,4 +26,10 @@ sealed interface AddANewLinkDialogBoxAction {
         val ignoreFolderAlreadyExistsThrowable: Boolean,
         val onCompletion: () -> Unit
     ) : AddANewLinkDialogBoxAction
+
+    data object OnRetrieveNextTagsPage: AddANewLinkDialogBoxAction
+    data class OnFirstVisibleIndexChangeOfTags(val index: Int): AddANewLinkDialogBoxAction
+
+    data object OnRetrieveNextRegularRootPage: AddANewLinkDialogBoxAction
+    data class OnFirstVisibleIndexChangeOfRootFolders(val index: Int): AddANewLinkDialogBoxAction
 }
