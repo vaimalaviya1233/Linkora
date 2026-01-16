@@ -3,7 +3,6 @@ package com.sakethh.linkora.ui.components
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,16 +12,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,8 +58,6 @@ import com.sakethh.linkora.ui.PageKey
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.domain.PaginationState
-import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -88,7 +84,7 @@ data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class)
 fun RenameFolderOrLinkDialog(
     renameFolderOrLinkDialogParam: RenameFolderOrLinkDialogParam
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    rememberCoroutineScope()
     if (renameFolderOrLinkDialogParam.showDialogBox) {
         var selectedTags by rememberDeserializableMutableObject {
             mutableStateOf(renameFolderOrLinkDialogParam.selectedTags)
@@ -108,6 +104,7 @@ fun RenameFolderOrLinkDialog(
                     bottom = 15.dp,
                     top = if (platform() == Platform.Android.Mobile) 0.dp else 15.dp
                 )
+                    .fillMaxWidth().verticalScroll(rememberScrollState())
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -195,60 +192,23 @@ fun RenameFolderOrLinkDialog(
                         fontSize = 18.sp,
                         modifier = Modifier.padding(start = 15.dp, top = 15.dp, bottom = 10.dp)
                     )
-                    Box(
-                        modifier = Modifier.animateContentSize()
-                            .height(345.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-                            OutlinedButton(
-                                shape = RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp),
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                                    .padding(
-                                        end = 15.dp,
-                                        start = 15.dp,
-                                    ).height(ButtonDefaults.MinHeight + 30.dp).fillMaxWidth(),
-                                onClick = {
-                                    coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
+                    TagSelectionComponent(
+                        paddingValues = PaddingValues(start = 15.dp, end = 15.dp),
+                        allTags = renameFolderOrLinkDialogParam.allTags.value,
+                        selectedTags = selectedTags,
+                        onTagClick = { currTag ->
+                            if (selectedTags.contains(currTag)) {
+                                selectedTags = selectedTags.filterNot {
+                                    currTag == it
                                 }
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize().padding(bottom = 5.dp),
-                                    contentAlignment = Alignment.BottomCenter
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = Icons.Default.Tag,
-                                            contentDescription = null
-                                        )
-                                        Spacer(Modifier.width(5.dp))
-                                        Text(
-                                            text = Localization.Key.CreateANewTag.rememberLocalizedString(),
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontSize = 16.sp
-                                        )
-                                    }
-                                }
+                            } else {
+                                selectedTags += currTag
                             }
-                        }
-                        TagSelectionComponent(
-                            paddingValues = PaddingValues(start = 15.dp, end = 15.dp),
-                            allTags = renameFolderOrLinkDialogParam.allTags.value,
-                            selectedTags = selectedTags,
-                            onTagClick = { currTag ->
-                                if (selectedTags.contains(currTag)) {
-                                    selectedTags = selectedTags.filterNot {
-                                        currTag == it
-                                    }
-                                } else {
-                                    selectedTags += currTag
-                                }
-                            },
-                            onRetrieveNextTagsPage = renameFolderOrLinkDialogParam.onRetrieveNextTagsPage,
-                            onFirstVisibleIndexChange = {
-                                renameFolderOrLinkDialogParam.onFirstVisibleIndexChange(it)
-                            })
-                    }
+                        },
+                        onRetrieveNextTagsPage = renameFolderOrLinkDialogParam.onRetrieveNextTagsPage,
+                        onFirstVisibleIndexChange = {
+                            renameFolderOrLinkDialogParam.onFirstVisibleIndexChange(it)
+                        })
                 }
 
                 if (showProgressBar) {
@@ -264,7 +224,6 @@ fun RenameFolderOrLinkDialog(
 
                     return@Column
                 }
-
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     modifier = Modifier.padding(

@@ -1,5 +1,6 @@
 package com.sakethh.linkora.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -43,7 +44,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
-import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.StarOutline
@@ -122,8 +122,6 @@ import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.AddNewLinkDialogParams
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
-import com.sakethh.linkora.ui.utils.UIEvent
-import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
@@ -619,60 +617,26 @@ private fun BottomPartOfAddANewLinkDialogBox(
                 fontSize = 18.sp
             )
         }
-        Box(
-            modifier = Modifier.animateContentSize()
-                .then(if (AppPreferences.showTagsInAddNewLinkDialogBox) Modifier.height(345.dp) else Modifier)
-                .fillMaxWidth()
-        ) {
-            if (AppPreferences.showTagsInAddNewLinkDialogBox) {
-                Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-                    OutlinedButton(
-                        shape = RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp),
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
-                            end = 25.dp,
-                            start = 15.25.dp,
-                        ).height(ButtonDefaults.MinHeight + 30.dp).fillMaxWidth(), onClick = {
-                            coroutineScope.pushUIEvent(UIEvent.Type.ShowCreateTagBtmSheet)
-                        }
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(bottom = 5.dp),
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Tag,
-                                    contentDescription = null
-                                )
-                                Spacer(Modifier.width(5.dp))
-                                Text(
-                                    text = Localization.Key.CreateANewTag.rememberLocalizedString(),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
+
+        AnimatedVisibility(AppPreferences.showTagsInAddNewLinkDialogBox) {
+            TagSelectionComponent(
+                paddingValues = PaddingValues(start = 15.dp, end = 25.dp),
+                allTags = allTags,
+                selectedTags = selectedTags,
+                onTagClick = {
+                    if (selectedTags.contains(it)) {
+                        performAction(AddANewLinkDialogBoxAction.UnSelectATag(it))
+                    } else {
+                        performAction(AddANewLinkDialogBoxAction.SelectATag(it))
                     }
+                },
+                onRetrieveNextTagsPage = {
+                    performAction(AddANewLinkDialogBoxAction.OnRetrieveNextTagsPage)
+                },
+                onFirstVisibleIndexChange = {
+                    performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfTags(it))
                 }
-                TagSelectionComponent(
-                    paddingValues = PaddingValues(start = 15.dp, end = 25.dp),
-                    allTags = allTags,
-                    selectedTags = selectedTags,
-                    onTagClick = {
-                        if (selectedTags.contains(it)) {
-                            performAction(AddANewLinkDialogBoxAction.UnSelectATag(it))
-                        } else {
-                            performAction(AddANewLinkDialogBoxAction.SelectATag(it))
-                        }
-                    },
-                    onRetrieveNextTagsPage = {
-                        performAction(AddANewLinkDialogBoxAction.OnRetrieveNextTagsPage)
-                    },
-                    onFirstVisibleIndexChange = {
-                        performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfTags(it))
-                    }
-                )
-            }
+            )
         }
 
         if (currentFolder == null) {
