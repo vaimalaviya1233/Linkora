@@ -277,8 +277,6 @@ fun <ItemType> MutableStateFlow<PaginationState<Map<PageKey, List<ItemType>>>>.o
     pageKey: PageKey,
     retrievedData: List<Pair<PageKey, ItemType>>
 ) {
-    if (retrievedData.isEmpty()) return
-
     update { currentState ->
         val updatedData = TreeMap(currentState.data)
         updatedData[pageKey] = retrievedData.map {

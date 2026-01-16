@@ -499,7 +499,7 @@ class AppVM(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            UIEvent.uiEvents.collect { eventType ->
+            UIEvent.uiEvents.collectLatest { eventType ->
                 when (eventType) {
                     is UIEvent.Type.ShowSnackbar -> {
                         snackbarHostState.showSnackbar(message = eventType.message)

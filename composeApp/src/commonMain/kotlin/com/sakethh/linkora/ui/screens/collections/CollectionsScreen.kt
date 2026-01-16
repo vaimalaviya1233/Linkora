@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.collections
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -86,6 +87,7 @@ import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
+import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.screens.collections.components.RootCollectionSwitcher
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -190,6 +192,13 @@ fun CollectionsScreen(
         }
     }
 
+
+    val isRootFoldersEmpty = rootFolders.data.isEmpty() || rootFolders.data.values.first()
+        .isEmpty()
+
+
+    val isTagsEmpty = allTags.data.isEmpty() || allTags.data.values.first()
+        .isEmpty()
 
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
@@ -420,8 +429,9 @@ fun CollectionsScreen(
                         ) {
                             when (currentPage) {
                                 0 -> {
-                                    if (rootFolders.data.isEmpty()) {
-                                        item {
+
+                                    item {
+                                        AnimatedVisibility(!rootFolders.isRetrieving && isRootFoldersEmpty) {
                                             DataEmptyScreen(
                                                 text = Localization.Key.NoFoldersFound.rememberLocalizedString(),
                                                 paddingValues = PaddingValues(
@@ -429,8 +439,27 @@ fun CollectionsScreen(
                                                 )
                                             )
                                         }
+                                    }
+
+                                    if (!rootFolders.isRetrieving && isRootFoldersEmpty) {
                                         return@LazyColumn
                                     }
+
+                                    item {
+                                        AnimatedVisibility(rootFolders.isRetrieving && isRootFoldersEmpty) {
+                                            LoadingScreen(
+                                                paddingValues = PaddingValues(
+                                                    start = 15.dp,
+                                                    top = 75.dp
+                                                )
+                                            )
+                                        }
+                                    }
+
+                                    if (rootFolders.isRetrieving && isRootFoldersEmpty) {
+                                        return@LazyColumn
+                                    }
+
                                     rootFolders.data.forEach { (_, folders) ->
                                         items(folders, key = {
                                             "rootFolders" + it.localId
@@ -527,12 +556,31 @@ fun CollectionsScreen(
                                 }
 
                                 1 -> {
-                                    if (allTags.data.isEmpty()) {
-                                        item {
+                                    item {
+                                        AnimatedVisibility(!allTags.isRetrieving && isTagsEmpty) {
                                             DataEmptyScreen(text = Localization.Key.NoTagsFound.rememberLocalizedString())
                                         }
+                                    }
+
+                                    if (!allTags.isRetrieving && isTagsEmpty) {
                                         return@LazyColumn
                                     }
+
+                                    item {
+                                        AnimatedVisibility(allTags.isRetrieving && isTagsEmpty) {
+                                            LoadingScreen(
+                                                paddingValues = PaddingValues(
+                                                    start = 15.dp,
+                                                    top = 75.dp
+                                                )
+                                            )
+                                        }
+                                    }
+
+                                    if (allTags.isRetrieving && isTagsEmpty) {
+                                        return@LazyColumn
+                                    }
+
                                     allTags.data.forEach { (pageKey, tags) ->
                                         items(tags, key = {
                                             "Collection-Screen-Tags-Page:$pageKey+" + "ID:" + it.localId
