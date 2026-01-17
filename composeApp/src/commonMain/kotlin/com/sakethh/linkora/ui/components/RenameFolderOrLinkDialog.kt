@@ -76,7 +76,7 @@ data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class)
     val allTags: State<PaginationState<Map<PageKey, List<Tag>>>>,
     val selectedTags: List<Tag>,
     val onRetrieveNextTagsPage: () -> Unit,
-    val onFirstVisibleIndexChange: (Int) -> Unit
+    val onFirstVisibleIndexChange: (Long) -> Unit
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -207,7 +207,7 @@ fun RenameFolderOrLinkDialog(
                         },
                         onRetrieveNextTagsPage = renameFolderOrLinkDialogParam.onRetrieveNextTagsPage,
                         onFirstVisibleIndexChange = {
-                            renameFolderOrLinkDialogParam.onFirstVisibleIndexChange(it)
+                            renameFolderOrLinkDialogParam.onFirstVisibleIndexChange(it.toLong())
                         })
                 }
 

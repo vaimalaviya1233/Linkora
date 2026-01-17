@@ -4,7 +4,12 @@ import androidx.room.Transactor
 import androidx.room.execSQL
 import androidx.room.useWriterConnection
 import com.sakethh.linkora.data.local.LocalDatabase
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.mapToResultFlow
+import com.sakethh.linkora.domain.model.FlatChildFolderData
 import com.sakethh.linkora.domain.repository.local.DatabaseUtils
+import kotlinx.coroutines.flow.Flow
 
 class DatabaseUtilsImpl(private val localDatabase: LocalDatabase) : DatabaseUtils {
 
@@ -45,5 +50,24 @@ class DatabaseUtilsImpl(private val localDatabase: LocalDatabase) : DatabaseUtil
         localDatabase.useWriterConnection { transactor ->
             transactor.clearAllTablesAndResetCounters()
         }
+    }
+
+    override suspend fun getFoldersRowCount(): Long {
+        return localDatabase.dbUtilsDao.getFoldersRowCount()
+    }
+
+    override fun getChildFolderData(
+        parentFolderId: Long,
+        linkType: LinkType,
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Long
+    ): Flow<Result<List<FlatChildFolderData>>> {
+        return localDatabase.dbUtilsDao.getFlatChildFolderData(
+            parentFolderId, linkType,
+            sortOption,
+            pageSize,
+            startIndex
+        ).mapToResultFlow()
     }
 }

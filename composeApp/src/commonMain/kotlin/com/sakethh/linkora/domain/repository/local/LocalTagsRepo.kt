@@ -29,7 +29,7 @@ interface LocalTagsRepo {
 
     fun getTags(
         sortOption: String,
-        pageSize: Int, startIndex: Int
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Tag>>>
 
     suspend fun getAllTagsAsList(): List<Tag>

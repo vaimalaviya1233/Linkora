@@ -28,8 +28,8 @@ sealed interface AddANewLinkDialogBoxAction {
     ) : AddANewLinkDialogBoxAction
 
     data object OnRetrieveNextTagsPage: AddANewLinkDialogBoxAction
-    data class OnFirstVisibleIndexChangeOfTags(val index: Int): AddANewLinkDialogBoxAction
+    data class OnFirstVisibleIndexChangeOfTags(val index: Long): AddANewLinkDialogBoxAction
 
     data object OnRetrieveNextRegularRootPage: AddANewLinkDialogBoxAction
-    data class OnFirstVisibleIndexChangeOfRootFolders(val index: Int): AddANewLinkDialogBoxAction
+    data class OnFirstVisibleIndexChangeOfRootFolders(val index: Long): AddANewLinkDialogBoxAction
 }

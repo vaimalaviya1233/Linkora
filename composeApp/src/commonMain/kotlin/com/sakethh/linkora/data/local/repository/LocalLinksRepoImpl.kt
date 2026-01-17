@@ -200,13 +200,26 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun getLinks(
-        linkType: LinkType, parentFolderId: Long, sortOption: String
+        linkType: LinkType,
+        parentFolderId: Long,
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Long
     ): Flow<Result<List<Link>>> {
-        return linksDao.getSortedLinks(linkType, parentFolderId, sortOption).mapToResultFlow()
+        return linksDao.getSortedLinks(linkType, parentFolderId, sortOption, pageSize, startIndex)
+            .mapToResultFlow()
     }
 
-    override suspend fun getLinks(tagId: Long, sortOption: String): Flow<Result<List<Link>>> {
-        return linksDao.getSortedLinks(tagId = tagId, sortOption = sortOption).mapToResultFlow()
+    override suspend fun getLinks(
+        tagId: Long, sortOption: String,
+        pageSize: Int, startIndex: Long
+    ): Flow<Result<List<Link>>> {
+        return linksDao.getSortedLinks(
+            tagId = tagId,
+            sortOption = sortOption,
+            pageSize = pageSize,
+            startIndex = startIndex
+        ).mapToResultFlow()
     }
 
     override fun getLinksAsNonResultFlow(
@@ -216,15 +229,9 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun getLinks(
-        linkType: LinkType, sortOption: String
-    ): Flow<Result<List<Link>>> {
-        return linksDao.getSortedLinks(linkType, sortOption).mapToResultFlow()
-    }
-
-    override suspend fun getLinks(
         linkType: LinkType,
         sortOption: String,
-        pageSize: Int, startIndex: Int
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Link>>> {
         return linksDao.getSortedLinks(
             linkType = linkType,
@@ -775,5 +782,21 @@ class LocalLinksRepoImpl(
         return wrappedResultFlow {
             linksDao.deleteLinks(linksIds)
         }
+    }
+
+    override fun getAllLinks(
+        applyLinkFilters: Boolean,
+        activeLinkFilters: List<String>,
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Long
+    ): Flow<Result<List<Link>>> {
+        return linksDao.getAllLinks(
+            applyLinkFilters,
+            activeLinkFilters,
+            sortOption,
+            pageSize,
+            startIndex
+        ).mapToResultFlow()
     }
 }

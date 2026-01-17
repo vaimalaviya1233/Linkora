@@ -16,11 +16,11 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
-typealias PageKey = Int
+typealias PageKey = Long
 
 class Paginator<T>(
     private val coroutineScope: CoroutineScope,
-    private val onRetrieve: suspend (nextPageStartIndex: Int) -> Pair<PageKey, Flow<Result<List<T>>>>,
+    private val onRetrieve: suspend (nextPageStartIndex: PageKey) -> Pair<PageKey, Flow<Result<List<T>>>>,
     private val onRetrieved: suspend (currentPageKey: PageKey, data: List<Pair<PageKey, T>>) -> Unit,
     private val onError: suspend (String) -> Unit,
     private val onRetrieving: suspend () -> Unit,
@@ -36,13 +36,13 @@ class Paginator<T>(
     var errorOccurred = false
         private set
 
-    private var indexToRetrieveFrom = 0
+    private var indexToRetrieveFrom: Long = 0
 
     private val seenPageKeys = mutableSetOf<PageKey>()
 
-    private val firstVisibleItemIndex = MutableStateFlow(0)
+    private val firstVisibleItemIndex: MutableStateFlow<Long> = MutableStateFlow(0)
 
-    suspend fun updateFirstVisibleItemIndex(newIndex: Int) = firstVisibleItemIndex.emit(newIndex)
+    suspend fun updateFirstVisibleItemIndex(newIndex: Long) = firstVisibleItemIndex.emit(newIndex)
 
     private val collectionJobs = ConcurrentHashMap<PageKey, Job>()
 
@@ -85,13 +85,13 @@ class Paginator<T>(
         }
     }
 
-    private fun IntRange.filterValidKeys(): List<Int> {
+    private fun LongRange.filterValidKeys(): List<Long> {
         return filter {
             seenPageKeys.contains(it)
         }
     }
 
-    private fun IntProgression.filterValidKeys(): List<Int> {
+    private fun LongProgression.filterValidKeys(): List<Long> {
         return filter {
             seenPageKeys.contains(it)
         }

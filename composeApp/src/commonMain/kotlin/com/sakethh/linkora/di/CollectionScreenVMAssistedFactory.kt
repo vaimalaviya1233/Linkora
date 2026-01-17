@@ -20,7 +20,8 @@ object CollectionScreenVMAssistedFactory {
                 localLinksRepo = DependencyContainer.localLinksRepo,
                 localTagsRepo = DependencyContainer.localTagsRepo,
                 preferencesRepo = DependencyContainer.preferencesRepo,
-                platform = platform
+                platform = platform,
+                databaseUtils = DependencyContainer.localDatabaseUtilsImpl
             )
         }
     }
@@ -45,7 +46,8 @@ object CollectionScreenVMAssistedFactory {
                         }
                     } else null,
                     localTagsRepo = DependencyContainer.localTagsRepo,
-                    platform = platform)
+                    platform = platform,
+                    databaseUtils = DependencyContainer.localDatabaseUtilsImpl)
             }
         }
 
@@ -57,6 +59,7 @@ object CollectionScreenVMAssistedFactory {
             CollectionsScreenVM(
                 localFoldersRepo = DependencyContainer.localFoldersRepo,
                 localLinksRepo = DependencyContainer.localLinksRepo,
+                databaseUtils = DependencyContainer.localDatabaseUtilsImpl,
                 loadNonArchivedRootFoldersOnInit = true,
                 loadArchivedRootFoldersOnInit = false,
                 collectionDetailPaneInfo = null,

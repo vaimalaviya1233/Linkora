@@ -49,12 +49,16 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
+import com.sakethh.linkora.ui.PageKey
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.PaginationState
+import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
+import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -62,6 +66,9 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,8 +102,8 @@ fun SearchScreen(
     LaunchedEffect(!searchScreenVM.isSearchActive.value) {
         cancelForceSearchActive()
     }
-    val historyLinkTagsPairsState by searchScreenVM.historyLinkTagsPairsState.collectAsStateWithLifecycle()
-    val searchQueryLinkResults = searchScreenVM.linkQueryResults.collectAsStateWithLifecycle()
+    val historyLinkTagsPairsState = searchScreenVM.historyLinkTagsPairsState
+    searchScreenVM.linkQueryResults
     val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
     val searchQueryTagResults = searchScreenVM.tagQueryResults.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
@@ -189,9 +196,16 @@ fun SearchScreen(
                             Spacer(modifier = Modifier.width(10.dp))
                         }
                         CollectionLayoutManager(
+                            screenType = ScreenType.TAGS_FOLDERS_LINKS,
                             emptyDataText = Localization.Key.NoSearchResults.rememberLocalizedString(),
-                            folders = searchQueryFolderResults.value,
-                            linksTagsPairs = searchQueryLinkResults.value,
+                            flatChildFolderDataState = TODO() /*searchQueryFolderResults.value*/,
+                            linksTagsPairsState = retain {
+                                flowOf<PaginationState<Map<PageKey, List<LinkTagsPair>>>>().stateIn(
+                                    scope = coroutineScope,
+                                    SharingStarted.WhileSubscribed(5000),
+                                    initialValue = PaginationState.retrieving()
+                                )
+                            }/*TODO: searchQueryLinkResults*/,
                             paddingValues = PaddingValues(0.dp),
                             folderMoreIconClick = {
                                 coroutineScope.pushUIEvent(
@@ -273,13 +287,9 @@ fun SearchScreen(
                                         selectedTag = it
                                     )
                                 )
-                            }/*,
-                            isLoading = ,
-                            pagesFinished = ,
-                            onRetrieveNextPage = {
-
                             },
-                            onFirstVisibleItemIndexChange = searchScreenVM::*/
+                            onRetrieveNextPage = {},
+                            onFirstVisibleItemIndexChange = {}
                         )
                     }
                 }
@@ -303,10 +313,10 @@ fun SearchScreen(
             }
         }
         CollectionLayoutManager(
-
+            screenType = ScreenType.LINKS_ONLY,
             emptyDataText = Localization.Key.NoHistoryFound.rememberLocalizedString(),
-            folders = emptyList(),
-            linksTagsPairs = historyLinkTagsPairsState.data,
+            flatChildFolderDataState = PaginationState.emptyData(),
+            linksTagsPairsState = historyLinkTagsPairsState,
             paddingValues = PaddingValues(0.dp),
             folderMoreIconClick = {},
             onFolderClick = {},
@@ -348,8 +358,6 @@ fun SearchScreen(
             tags = emptyList(),
             tagMoreIconClick = {},
             onTagClick = {},
-            isLoading = historyLinkTagsPairsState.isRetrieving,
-            pagesFinished = historyLinkTagsPairsState.pagesCompleted,
             onRetrieveNextPage = {
                 searchScreenVM.retrieveNextBatchOfHistoryLinks()
             },

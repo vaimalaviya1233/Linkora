@@ -55,8 +55,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.HomeScreenVMAssistedFactory
 import com.sakethh.linkora.di.linkoraViewModel
-import com.sakethh.linkora.domain.LinkSaveConfig
-import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.platform.PlatformSpecificBackHandler
 import com.sakethh.linkora.ui.LocalNavController
@@ -64,6 +62,7 @@ import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
+import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.navigation.Navigation
@@ -203,14 +202,15 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
             HorizontalDivider()
             HorizontalPager(state = pagerState) { pageIndex ->
                 CollectionLayoutManager(
-                    folders = activePanelAssociatedFolders[pageIndex],
-                    linksTagsPairs = if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
+                    screenType = ScreenType.FOLDERS_AND_LINKS,
+                    flatChildFolderDataState =  TODO() /*activePanelAssociatedFolders[pageIndex]*/,
+                    linksTagsPairsState = TODO()/*TODO: if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
                         when (pageIndex) {
                             0 -> activePanelAssociatedFolderLinks.getOrNull(0) ?: emptyList()
 
                             else -> activePanelAssociatedFolderLinks.getOrNull(1) ?: emptyList()
                         }
-                    } else activePanelAssociatedFolderLinks.getOrNull(pageIndex) ?: emptyList(),
+                    } else activePanelAssociatedFolderLinks.getOrNull(pageIndex) ?: emptyList()*/,
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
                         coroutineScope.pushUIEvent(
@@ -273,7 +273,10 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     },
                     tags = emptyList(),
                     onTagClick = {},
-                    tagMoreIconClick = {})
+                    tagMoreIconClick = {},
+                    onRetrieveNextPage = TODO(),
+                    onFirstVisibleItemIndexChange = TODO(),
+                )
             }
         }
     }

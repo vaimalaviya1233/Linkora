@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.execSQL
+import com.sakethh.linkora.data.local.dao.DBUtilsDao
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.LocalizationDao
@@ -432,4 +433,5 @@ abstract class LocalDatabase : RoomDatabase() {
     abstract val snapshotDao: SnapshotDao
     abstract val tagsDao: TagsDao
     abstract val refreshDao: RefreshLinkDao
+    abstract val dbUtilsDao: DBUtilsDao
 }

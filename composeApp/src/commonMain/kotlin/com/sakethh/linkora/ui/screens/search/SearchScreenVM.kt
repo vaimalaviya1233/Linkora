@@ -25,6 +25,7 @@ import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.asStateInWhileSubscribed
 import com.sakethh.linkora.utils.getRemoteOnlyFailureMsg
 import com.sakethh.linkora.utils.ifNot
 import com.sakethh.linkora.utils.onError
@@ -240,35 +241,11 @@ class SearchScreenVM(
     }
 
     private val _historyLinkTagsPairsState = MutableStateFlow(
-        PaginationState(
-            isRetrieving = true,
-            errorOccurred = false,
-            errorMessage = null,
-            pagesCompleted = false,
-            data = TreeMap<PageKey, List<LinkTagsPair>>().toImmutableMap()
-        )
+        PaginationState.retrieving<List<LinkTagsPair>>()
     )
-    val historyLinkTagsPairsState = _historyLinkTagsPairsState.transform {
-        emit(
-            PaginationState(
-                data = it.data.map { it.value }
-                    .flatten(), // TODO: directly pass map instead of flattening and show it directly on the UI
-                isRetrieving = it.isRetrieving,
-                errorOccurred = it.errorOccurred,
-                errorMessage = it.errorMessage,
-                pagesCompleted = it.pagesCompleted,
-            )
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = PaginationState(
-            isRetrieving = true,
-            errorOccurred = false,
-            errorMessage = null,
-            pagesCompleted = false,
-            data = emptyList()
-        )
+
+    val historyLinkTagsPairsState = _historyLinkTagsPairsState.asStateInWhileSubscribed(
+        initialValue = PaginationState.retrieving()
     )
 
     private val historyLinksPaginator = Paginator(
@@ -325,7 +302,7 @@ class SearchScreenVM(
         }
     }
 
-    fun updateStartingIndexForHistoryPaginator(newIndex: Int) {
+    fun updateStartingIndexForHistoryPaginator(newIndex: Long) {
         viewModelScope.launch {
             historyLinksPaginator.updateFirstVisibleItemIndex(newIndex)
         }

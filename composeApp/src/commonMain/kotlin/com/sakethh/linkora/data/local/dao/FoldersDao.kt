@@ -91,14 +91,24 @@ interface FoldersDao {
     @Query("DELETE from folders WHERE localId = :folderID")
     suspend fun deleteAFolder(folderID: Long)
 
-    @Query("DELETE from folders WHERE localId IN (:folderIDs)")
-    suspend fun deleteMultipleFolders(folderIDs: List<Long>)
-
-    @Query("DELETE from folders WHERE parentFolderID = :parentFolderId")
-    suspend fun deleteChildFoldersOfThisParentID(parentFolderId: Long)
-
-    @Query("SELECT (SELECT COUNT(*) FROM folders) == 0")
-    suspend fun isFoldersTableEmpty(): Boolean
+    @Query(
+        """
+    SELECT * FROM folders 
+    WHERE parentFolderID = :parentFolderId
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
+    LIMIT :pageSize
+    OFFSET :startIndex
+    """
+    )
+    fun getChildFolders(
+        parentFolderId: Long,
+        sortOption: String,
+        pageSize: Int, startIndex: Long
+    ): Flow<List<Folder>>
 
     @Query(
         """
@@ -113,27 +123,14 @@ interface FoldersDao {
     )
     fun getChildFolders(
         parentFolderId: Long,
-        sortOption: String
+        sortOption: String,
     ): Flow<List<Folder>>
 
 
     @Query(
         """
     SELECT * FROM folders 
-    WHERE parentFolderID IS NULL
-    ORDER BY 
-        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
-        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
-        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
-        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
-    """
-    )
-    fun getRootFolders(sortOption: String): Flow<List<Folder>>
-
-    @Query(
-        """
-    SELECT * FROM folders 
-    WHERE parentFolderID IS NULL
+    WHERE parentFolderID IS NULL AND isArchived = :isArchived
     ORDER BY 
         CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
         CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
@@ -143,7 +140,7 @@ interface FoldersDao {
     OFFSET :startIndex
     """
     )
-    fun getRootFolders(sortOption: String, pageSize: Int, startIndex: Int): Flow<List<Folder>>
+    fun getRootFolders(sortOption: String, isArchived: Boolean, pageSize: Int, startIndex: Long): Flow<List<Folder>>
 
     @Query(
         "SELECT * FROM folders \n" +

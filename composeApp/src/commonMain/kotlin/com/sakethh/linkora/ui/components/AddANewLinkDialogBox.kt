@@ -526,7 +526,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
     lazyRowState: LazyListState,
     addTheFolderInRoot: MutableState<Boolean>,
     currentFolder: Folder?,
-    rootRegularFolders: StateFlow<PaginationState<Map<Int, List<Folder>>>>,
+    rootRegularFolders: StateFlow<PaginationState<Map<PageKey, List<Folder>>>>,
     allTags: PaginationState<Map<PageKey, List<Tag>>>,
     selectedTags: List<Tag>,
     foldersSearchQuery: String,
@@ -550,7 +550,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
             snapshotFlow {
                 lazyColumnState.firstVisibleItemIndex
             }.debounce(500).distinctUntilChanged().collect {
-                performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfRootFolders(it))
+                performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfRootFolders(it.toLong()))
             }
         }
     }
@@ -634,7 +634,7 @@ private fun BottomPartOfAddANewLinkDialogBox(
                     performAction(AddANewLinkDialogBoxAction.OnRetrieveNextTagsPage)
                 },
                 onFirstVisibleIndexChange = {
-                    performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfTags(it))
+                    performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfTags(it.toLong()))
                 }
             )
         }

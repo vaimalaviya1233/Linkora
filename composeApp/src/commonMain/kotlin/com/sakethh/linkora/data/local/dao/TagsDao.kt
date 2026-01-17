@@ -69,7 +69,7 @@ interface TagsDao {
     )
     fun getTags(
         sortOption: String,
-        pageSize: Int, startIndex: Int
+        pageSize: Int, startIndex: Long
     ): Flow<List<Tag>>
 
     @Query("SELECT * FROM tags")

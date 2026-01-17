@@ -313,11 +313,10 @@ fun App(
                     ),
                     collectionDetailPaneParams = CollectionDetailPaneParams(
                         linkTagsPairs = collectionsScreenVM.linkTagsPairs,
-                        childFolders = collectionsScreenVM.childFolders,
+                        childFoldersFlat = collectionsScreenVM.childFoldersFlat,
                         rootArchiveFolders = collectionsScreenVM.rootArchiveFolders,
                         collectionDetailPaneInfo = collectionsScreenVM.collectionDetailPaneInfo,
                         peekPaneHistory = collectionsScreenVM.peekPaneHistory,
-                        availableFiltersForAllLinks = collectionsScreenVM.availableFiltersForAllLinks,
                         appliedFiltersForAllLinks = collectionsScreenVM.appliedFiltersForAllLinks,
                         performAction = collectionsScreenVM::performAction
                     )

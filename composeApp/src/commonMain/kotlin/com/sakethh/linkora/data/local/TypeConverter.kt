@@ -3,6 +3,8 @@ package com.sakethh.linkora.data.local
 import androidx.room.TypeConverter
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
+import com.sakethh.linkora.domain.model.tag.LinkTag
+import kotlinx.serialization.json.Json
 
 class TypeConverter {
     @TypeConverter
@@ -16,4 +18,10 @@ class TypeConverter {
 
     @TypeConverter
     fun mediaTypeToString(mediaType: MediaType): String = mediaType.name
+
+    @TypeConverter
+    fun fromTagList(value: List<LinkTag>): String = Json.encodeToString(value)
+
+    @TypeConverter
+    fun toTagList(value: String): List<LinkTag> = Json.decodeFromString(value)
 }

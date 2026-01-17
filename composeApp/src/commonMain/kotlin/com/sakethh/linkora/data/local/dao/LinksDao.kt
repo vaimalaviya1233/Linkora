@@ -93,7 +93,10 @@ interface LinksDao {
 """
     )
     fun getSortedLinks(
-        linkType: com.sakethh.linkora.domain.LinkType, sortOption: String, pageSize: Int, startIndex: Int
+        linkType: com.sakethh.linkora.domain.LinkType,
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Long
     ): Flow<List<Link>>
 
     @Query(
@@ -120,10 +123,28 @@ interface LinksDao {
         CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
         CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
         CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
+    LIMIT :pageSize
+    OFFSET :startIndex
     """
     )
     fun getSortedLinks(
-        linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String
+        linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String,
+        pageSize: Int, startIndex: Long
+    ): Flow<List<Link>>
+
+    @Query(
+        """
+    SELECT * FROM links 
+    WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId 
+    ORDER BY 
+        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
+        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
+        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
+        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
+    """
+    )
+    fun getSortedLinks(
+        linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String,
     ): Flow<List<Link>>
 
     @Query(
@@ -137,11 +158,14 @@ interface LinksDao {
             CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN link.title COLLATE NOCASE END DESC,
             CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN link.localId END DESC,
             CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN link.localId END ASC
+    LIMIT :pageSize
+    OFFSET :startIndex
     """
     )
     fun getSortedLinks(
         tagId: Long,
         sortOption: String,
+        pageSize: Int, startIndex: Long
     ): Flow<List<Link>>
 
     @Query("SELECT * FROM links")
@@ -220,4 +244,27 @@ interface LinksDao {
 
     @Query("SELECT remoteId FROM tags WHERE localId IN (:localIds)")
     suspend fun getRemoteIds(localIds: List<Long>): List<Long>?
+
+
+    @Query(
+        """
+        SELECT * FROM links
+            WHERE (CASE WHEN :applyLinkFilters = 1 THEN links.linkType IN 
+                (:activeLinkFilters) ELSE 1 END)
+        ORDER BY 
+            CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN links.title COLLATE NOCASE END ASC,
+            CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN links.title COLLATE NOCASE END DESC,
+            CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN links.localId END DESC,
+            CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN links.localId END ASC
+        LIMIT :pageSize 
+        OFFSET :startIndex
+    """
+    )
+    fun getAllLinks(
+        applyLinkFilters: Boolean,
+        activeLinkFilters: List<String>, // we can (?) directly use LinkType and i guess we might also need TypeConverter for that
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Long
+    ): Flow<List<Link>>
 }

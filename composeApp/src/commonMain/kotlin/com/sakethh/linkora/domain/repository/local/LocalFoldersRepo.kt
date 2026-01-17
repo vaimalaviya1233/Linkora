@@ -30,15 +30,16 @@ interface LocalFoldersRepo {
 
     suspend fun doesThisRootFolderExists(folderName: String): Flow<Result<Boolean>>
 
-    suspend fun getRootFolders(sortOption: String): Flow<Result<List<Folder>>>
 
     suspend fun getRootFolders(
         sortOption: String,
-        pageSize: Int, startIndex: Int
+        isArchived: Boolean,
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Folder>>>
 
     suspend fun getChildFolders(
-        parentFolderId: Long, sortOption: String
+        parentFolderId: Long, sortOption: String,
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Folder>>>
 
     fun sortFoldersAsNonResultFlow(

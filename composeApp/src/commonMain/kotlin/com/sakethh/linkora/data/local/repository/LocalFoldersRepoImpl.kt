@@ -157,23 +157,22 @@ class LocalFoldersRepoImpl(
         }
     }
 
-
-    override suspend fun getRootFolders(sortOption: String): Flow<Result<List<Folder>>> {
-        return foldersDao.getRootFolders(sortOption).mapToResultFlow()
-    }
-
     override suspend fun getRootFolders(
         sortOption: String,
+        isArchived: Boolean,
         pageSize: Int,
-        startIndex: Int
+        startIndex: Long
     ): Flow<Result<List<Folder>>> {
-        return foldersDao.getRootFolders(sortOption, pageSize, startIndex).mapToResultFlow()
+        return foldersDao.getRootFolders(sortOption, isArchived, pageSize, startIndex)
+            .mapToResultFlow()
     }
 
     override suspend fun getChildFolders(
-        parentFolderId: Long, sortOption: String
+        parentFolderId: Long, sortOption: String,
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Folder>>> {
-        return foldersDao.getChildFolders(parentFolderId, sortOption).mapToResultFlow()
+        return foldersDao.getChildFolders(parentFolderId, sortOption, pageSize, startIndex)
+            .mapToResultFlow()
     }
 
     override fun sortFoldersAsNonResultFlow(

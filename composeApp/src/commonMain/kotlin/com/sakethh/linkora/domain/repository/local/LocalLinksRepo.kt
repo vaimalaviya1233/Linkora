@@ -18,24 +18,23 @@ interface LocalLinksRepo {
     suspend fun addMultipleLinks(links: List<Link>): List<Long>
 
     suspend fun getLinks(
-        linkType: LinkType, parentFolderId: Long, sortOption: String
+        linkType: LinkType, parentFolderId: Long, sortOption: String,
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Link>>>
 
     suspend fun getLinks(
-        tagId: Long, sortOption: String
+        tagId: Long, sortOption: String,
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Link>>>
 
     fun getLinksAsNonResultFlow(
         linkType: LinkType, parentFolderId: Long, sortOption: String
     ): Flow<List<Link>>
 
-    suspend fun getLinks(
-        linkType: LinkType, sortOption: String
-    ): Flow<Result<List<Link>>>
 
     suspend fun getLinks(
         linkType: LinkType, sortOption: String,
-        pageSize: Int, startIndex: Int
+        pageSize: Int, startIndex: Long
     ): Flow<Result<List<Link>>>
 
     fun getLinksAsNonResultFlow(
@@ -71,7 +70,11 @@ interface LocalLinksRepo {
     suspend fun getAllLinks(): List<Link>
     fun getAllLinksAsFlow(): Flow<List<Link>>
 
-    suspend fun updateALink(link: Link, updatedLinkTagsPair: LinkTagsPair?,viaSocket: Boolean = false): Flow<Result<Unit>>
+    suspend fun updateALink(
+        link: Link,
+        updatedLinkTagsPair: LinkTagsPair?,
+        viaSocket: Boolean = false
+    ): Flow<Result<Unit>>
 
     suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>>
 
@@ -86,4 +89,13 @@ interface LocalLinksRepo {
     suspend fun doesLinkExist(linkType: LinkType, url: String): Boolean
     suspend fun deleteDuplicateLinks(viaSocket: Boolean = false): Flow<Result<Unit>>
     suspend fun deleteLinksLocally(linksIds: List<Long>): Flow<Result<Unit>>
+
+    fun getAllLinks(
+        applyLinkFilters: Boolean,
+        activeLinkFilters: List<String>,
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Long
+    ): Flow<Result<List<Link>>>
+
 }

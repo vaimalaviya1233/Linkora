@@ -21,4 +21,10 @@ sealed interface CollectionsAction {
         CollectionsAction
 
     data class ToggleAllLinksFilter(val filter: LinkType) : CollectionsAction
+
+    data object RetrieveNextLinksPage: CollectionsAction
+    data object RetrieveNextRootArchivedFolderPage: CollectionsAction
+
+    data class OnFirstVisibleItemIndexChangeOfLinkTagsPair(val index: Long): CollectionsAction
+    data class OnFirstVisibleItemIndexChangeOfRootArchivedFolders(val index: Long): CollectionsAction
 }

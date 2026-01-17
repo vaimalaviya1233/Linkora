@@ -126,7 +126,7 @@ class LocalTagsRepoImpl(
         return tagsDao.getAllTags(sortOption)
     }
 
-    override fun getTags(sortOption: String, pageSize: Int, startIndex: Int): Flow<Result<List<Tag>>>{
+    override fun getTags(sortOption: String, pageSize: Int, startIndex: Long): Flow<Result<List<Tag>>>{
         return tagsDao.getTags(sortOption,pageSize,startIndex).mapToResultFlow()
     }
 

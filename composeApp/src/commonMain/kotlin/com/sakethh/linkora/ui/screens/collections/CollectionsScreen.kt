@@ -142,7 +142,7 @@ fun CollectionsScreen(
         snapshotFlow {
             rootFoldersListState.firstVisibleItemIndex
         }.debounce(500).distinctUntilChanged().collectLatest {
-            collectionScreenParams.onRegularRootFolderFirstVisibleItemIndexChange(it)
+            collectionScreenParams.onRegularRootFolderFirstVisibleItemIndexChange(it.toLong())
         }
     }
 
@@ -156,7 +156,7 @@ fun CollectionsScreen(
         snapshotFlow {
             tagsListState.firstVisibleItemIndex
         }.debounce(500).distinctUntilChanged().collectLatest {
-            collectionScreenParams.onTagsFirstVisibleItemIndexChange(it)
+            collectionScreenParams.onTagsFirstVisibleItemIndexChange(it.toLong())
         }
     }
 
@@ -445,21 +445,6 @@ fun CollectionsScreen(
                                         return@LazyColumn
                                     }
 
-                                    item {
-                                        AnimatedVisibility(rootFolders.isRetrieving && isRootFoldersEmpty) {
-                                            LoadingScreen(
-                                                paddingValues = PaddingValues(
-                                                    start = 15.dp,
-                                                    top = 75.dp
-                                                )
-                                            )
-                                        }
-                                    }
-
-                                    if (rootFolders.isRetrieving && isRootFoldersEmpty) {
-                                        return@LazyColumn
-                                    }
-
                                     rootFolders.data.forEach { (_, folders) ->
                                         items(folders, key = {
                                             "rootFolders" + it.localId
@@ -553,6 +538,17 @@ fun CollectionsScreen(
                                             )
                                         }
                                     }
+
+                                    item {
+                                        AnimatedVisibility(!rootFolders.pagesCompleted) {
+                                            LoadingScreen(
+                                                paddingValues = PaddingValues(
+                                                    start = 15.dp,
+                                                    top = 75.dp
+                                                )
+                                            )
+                                        }
+                                    }
                                 }
 
                                 1 -> {
@@ -563,21 +559,6 @@ fun CollectionsScreen(
                                     }
 
                                     if (!allTags.isRetrieving && isTagsEmpty) {
-                                        return@LazyColumn
-                                    }
-
-                                    item {
-                                        AnimatedVisibility(allTags.isRetrieving && isTagsEmpty) {
-                                            LoadingScreen(
-                                                paddingValues = PaddingValues(
-                                                    start = 15.dp,
-                                                    top = 75.dp
-                                                )
-                                            )
-                                        }
-                                    }
-
-                                    if (allTags.isRetrieving && isTagsEmpty) {
                                         return@LazyColumn
                                     }
 
@@ -639,6 +620,17 @@ fun CollectionsScreen(
                                                         mutableStateOf(false)
                                                     },
                                                     onCheckBoxChanged = {})
+                                            )
+                                        }
+                                    }
+
+                                    item {
+                                        AnimatedVisibility(!allTags.pagesCompleted) {
+                                            LoadingScreen(
+                                                paddingValues = PaddingValues(
+                                                    start = 15.dp,
+                                                    top = 75.dp
+                                                )
                                             )
                                         }
                                     }

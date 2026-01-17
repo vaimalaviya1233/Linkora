@@ -1,6 +1,7 @@
 package com.sakethh.linkora.ui.screens.collections
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,13 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,10 +36,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -61,6 +67,7 @@ import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
 import com.sakethh.linkora.ui.domain.FABContext
+import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
@@ -69,10 +76,14 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.rememberLocalizedString
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -88,18 +99,17 @@ fun MobileCollectionDetailScreen(currentFABContext: (CurrentFABContext) -> Unit)
         currentFABContext = currentFABContext,
         collectionDetailPaneParams = CollectionDetailPaneParams(
             linkTagsPairs = collectionsScreenVM.linkTagsPairs,
-            childFolders = collectionsScreenVM.childFolders,
+            childFoldersFlat = collectionsScreenVM.childFoldersFlat,
             rootArchiveFolders = collectionsScreenVM.rootArchiveFolders,
             collectionDetailPaneInfo = collectionsScreenVM.collectionDetailPaneInfo,
             peekPaneHistory = collectionsScreenVM.peekPaneHistory,
-            availableFiltersForAllLinks = collectionsScreenVM.availableFiltersForAllLinks,
             appliedFiltersForAllLinks = collectionsScreenVM.appliedFiltersForAllLinks,
             performAction = collectionsScreenVM::performAction
         )
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CollectionDetailPane(
     platform: Platform,
@@ -107,11 +117,11 @@ fun CollectionDetailPane(
     collectionDetailPaneParams: CollectionDetailPaneParams
 ) {
     val linkTagsPairs by collectionDetailPaneParams.linkTagsPairs.collectAsStateWithLifecycle()
-    val childFolders = collectionDetailPaneParams.childFolders.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { 2 })
-    val rootArchiveFolders =
-        collectionDetailPaneParams.rootArchiveFolders.collectAsStateWithLifecycle()
+    val rootArchiveFoldersState by
+    collectionDetailPaneParams.rootArchiveFolders.collectAsStateWithLifecycle()
+    val rootArchiveFoldersListState = rememberLazyListState()
     val peekCollectionPaneHistory by
     collectionDetailPaneParams.peekPaneHistory.collectAsStateWithLifecycle()
     val currentFolder =
@@ -125,6 +135,12 @@ fun CollectionDetailPane(
         if (collectionDetailPaneParams.collectionDetailPaneInfo != null) collectionDetailPaneParams.collectionDetailPaneInfo.currentFolder?.localId == Constants.ARCHIVE_ID else peekCollectionPaneHistory?.currentFolder?.localId == Constants.ARCHIVE_ID
     val showAllLinksCollection =
         if (collectionDetailPaneParams.collectionDetailPaneInfo != null) collectionDetailPaneParams.collectionDetailPaneInfo.currentFolder?.localId == Constants.ALL_LINKS_ID else peekCollectionPaneHistory?.currentFolder?.localId == Constants.ALL_LINKS_ID
+    val flatChildFolderDataState = collectionDetailPaneParams.childFoldersFlat.collectAsStateWithLifecycle().value
+    val collectionDetailPaneInfo = if (platform is Platform.Android.Mobile) {
+        collectionDetailPaneParams.collectionDetailPaneInfo!!
+    } else {
+        peekCollectionPaneHistory!!
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -224,8 +240,9 @@ fun CollectionDetailPane(
                     when (pageIndex) {
                         0 -> {
                             CollectionLayoutManager(
-                                folders = emptyList(),
-                                linksTagsPairs = linkTagsPairs,
+                                screenType = ScreenType.LINKS_ONLY,
+                                flatChildFolderDataState = null,
+                                linksTagsPairsState = linkTagsPairs,
                                 paddingValues = PaddingValues(0.dp),
                                 linkMoreIconClick = {
                                     coroutineScope.pushUIEvent(
@@ -287,22 +304,38 @@ fun CollectionDetailPane(
                                         )
                                     }
                                 },
-                                tags = emptyList(),
                                 tagMoreIconClick = {},
-                                onTagClick = {})
+                                onTagClick = {},
+                                onRetrieveNextPage = {
+                                    collectionDetailPaneParams.performAction(CollectionsAction.RetrieveNextLinksPage)
+                                },
+                                onFirstVisibleItemIndexChange = {
+                                    collectionDetailPaneParams.performAction(
+                                        CollectionsAction.OnFirstVisibleItemIndexChangeOfLinkTagsPair(
+                                            it
+                                        )
+                                    )
+                                },
+                                flatSearchResultState = null
+                            )
                         }
 
                         1 -> {
-                            LazyColumn(Modifier.fillMaxSize()) {
-                                if (rootArchiveFolders.value.data.isEmpty()) {
+                            LazyColumn(
+                                state = rootArchiveFoldersListState,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                if (!rootArchiveFoldersState.isRetrieving && (rootArchiveFoldersState.data.isEmpty() || rootArchiveFoldersState.data.values.first()
+                                        .isEmpty())
+                                ) {
                                     item {
                                         DataEmptyScreen(text = Localization.Key.NoFoldersFoundInArchive.getLocalizedString())
                                     }
                                     return@LazyColumn
                                 }
-                                rootArchiveFolders.value.data.forEach { (_, rootArchiveFolders) ->
+                                rootArchiveFoldersState.data.forEach { (pageKey, rootArchiveFolders) ->
                                     items(rootArchiveFolders, key = {
-                                        "rootArchiveFolders" + it.localId
+                                        "LazyColumn-rootArchiveFolders-P$pageKey" + it.localId
                                     }) { rootArchiveFolder ->
                                         FolderComponent(
                                             FolderComponentParam(
@@ -390,6 +423,34 @@ fun CollectionDetailPane(
                                         )
                                     }
                                 }
+                                if (!rootArchiveFoldersState.pagesCompleted) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth().padding(15.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            ContainedLoadingIndicator()
+                                        }
+                                    }
+                                }
+                            }
+                            LaunchedEffect(Unit) {
+                                snapshotFlow {
+                                    rootArchiveFoldersListState.firstVisibleItemIndex
+                                }.debounce(500).distinctUntilChanged().collectLatest {
+                                    collectionDetailPaneParams.performAction(
+                                        CollectionsAction.OnFirstVisibleItemIndexChangeOfRootArchivedFolders(
+                                            it.toLong()
+                                        )
+                                    )
+                                }
+                            }
+
+                            LaunchedEffect(rootArchiveFoldersListState.canScrollForward) {
+                                if (!rootArchiveFoldersListState.canScrollForward && !rootArchiveFoldersState.pagesCompleted && !rootArchiveFoldersState.isRetrieving) {
+                                    linkoraLog("CollectionsAction.RetrieveNextRootArchivedFolderPage")
+                                    collectionDetailPaneParams.performAction(CollectionsAction.RetrieveNextRootArchivedFolderPage)
+                                }
                             }
                         }
                     }
@@ -397,31 +458,32 @@ fun CollectionDetailPane(
             }
             return@Scaffold
         }
-        val availableFiltersForAllLinks by
-        collectionDetailPaneParams.availableFiltersForAllLinks.collectAsStateWithLifecycle()
         Column(modifier = Modifier.addEdgeToEdgeScaffoldPadding(paddingValues).fillMaxSize()) {
             if (showAllLinksCollection) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                    availableFiltersForAllLinks.forEach {
-                        FilterChip(
-                            text = it.asLocalizedString(),
-                            isSelected = collectionDetailPaneParams.appliedFiltersForAllLinks.contains(
-                                it
-                            ),
-                            onClick = {
-                                collectionDetailPaneParams.performAction(
-                                    CollectionsAction.ToggleAllLinksFilter(
-                                        filter = it
+                    LinkType.entries.forEach {
+                        key(it.name) {
+                            FilterChip(
+                                text = it.asLocalizedString(),
+                                isSelected = collectionDetailPaneParams.appliedFiltersForAllLinks.contains(
+                                    it
+                                ),
+                                onClick = {
+                                    collectionDetailPaneParams.performAction(
+                                        CollectionsAction.ToggleAllLinksFilter(
+                                            filter = it
+                                        )
                                     )
-                                )
-                            })
+                                })
+                        }
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                 }
             }
             CollectionLayoutManager(
-                folders = childFolders.value,
-                linksTagsPairs = linkTagsPairs,
+                screenType = if (collectionDetailPaneInfo.currentFolder?.localId != null && collectionDetailPaneInfo.currentFolder.localId >= 0) ScreenType.FOLDERS_AND_LINKS else ScreenType.LINKS_ONLY,
+                flatChildFolderDataState = flatChildFolderDataState,
+                linksTagsPairsState = linkTagsPairs,
                 paddingValues = PaddingValues(0.dp),
                 linkMoreIconClick = {
                     coroutineScope.pushUIEvent(
@@ -513,9 +575,20 @@ fun CollectionDetailPane(
                         )
                     }
                 },
-                tags = emptyList(),
                 tagMoreIconClick = {},
-                onTagClick = {})
+                onTagClick = {},
+                onRetrieveNextPage = {
+                    collectionDetailPaneParams.performAction(CollectionsAction.RetrieveNextLinksPage)
+                },
+                onFirstVisibleItemIndexChange = {
+                    collectionDetailPaneParams.performAction(
+                        CollectionsAction.OnFirstVisibleItemIndexChangeOfLinkTagsPair(
+                            it
+                        )
+                    )
+                },
+                flatSearchResultState = null
+            )
         }
     }
     PlatformSpecificBackHandler {

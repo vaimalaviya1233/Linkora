@@ -23,6 +23,9 @@ object Constants {
     const val ACTIVE_PAGE_COLLECTION_SIZE = 2
 
     const val DOUBLE_TAP_DELAY = 500L
+
+    const val FOLDER = "FOLDER"
+    const val LINK = "LINK"
 }
 
 object LinkType {
