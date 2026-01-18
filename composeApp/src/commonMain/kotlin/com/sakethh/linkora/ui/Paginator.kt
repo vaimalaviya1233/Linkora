@@ -15,9 +15,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.update
 
 typealias PageKey = Long
 
+@OptIn(ExperimentalAtomicApi::class)
 class Paginator<T>(
     private val coroutineScope: CoroutineScope,
     private val onRetrieve: suspend (nextPageStartIndex: PageKey) -> Pair<PageKey, Flow<Result<List<T>>>>,
@@ -36,7 +40,7 @@ class Paginator<T>(
     var errorOccurred = false
         private set
 
-    private var indexToRetrieveFrom: Long = 0
+    private var indexToRetrieveFrom: AtomicLong = AtomicLong(0)
 
     private val seenPageKeys = mutableSetOf<PageKey>()
 
@@ -139,7 +143,7 @@ class Paginator<T>(
 
         isRetrieving = true
 
-        val (pageKey, dataFlow) = onRetrieve(indexToRetrieveFrom)
+        val (pageKey, dataFlow) = onRetrieve(indexToRetrieveFrom.load())
         seenPageKeys.add(pageKey)
 
         var didLaunch = false
@@ -153,7 +157,9 @@ class Paginator<T>(
                     isRetrieving = false
                 }
             }.also {
-                indexToRetrieveFrom += Constants.PAGE_SIZE
+                indexToRetrieveFrom.update {
+                    it + Constants.PAGE_SIZE
+                }
                 linkoraLog("Seen pages:${seenPageKeys.count()}")
             }
         }
@@ -187,6 +193,19 @@ class Paginator<T>(
                 onRetrieving()
             }
         }
+    }
+
+    suspend fun cancelAndReset() {
+        collectionJobs.values.forEach {
+            it.cancel()
+        }
+        collectionJobs.clear()
+        isRetrieving = false
+        isPagesFinished = false
+        errorOccurred = false
+        indexToRetrieveFrom.update { 0 }
+        seenPageKeys.clear()
+        updateFirstVisibleItemIndex(0)
     }
 
 }

@@ -271,11 +271,11 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                             Navigation.Collection.MobileCollectionDetailScreen
                         )
                     },
-                    tags = emptyList(),
                     onTagClick = {},
                     tagMoreIconClick = {},
                     onRetrieveNextPage = TODO(),
                     onFirstVisibleItemIndexChange = TODO(),
+                    flatSearchResultState = null
                 )
             }
         }

@@ -21,14 +21,5 @@ data class PaginationState<T>(
                 data = emptyMap()
             )
         }
-        fun <T> emptyData(): PaginationState<Map<PageKey, T>> {
-            return PaginationState(
-                isRetrieving = false,
-                errorOccurred = false,
-                errorMessage = null,
-                pagesCompleted = false,
-                data = emptyMap()
-            )
-        }
     }
 }

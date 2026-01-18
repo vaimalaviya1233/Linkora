@@ -8,10 +8,12 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.mapToResultFlow
 import com.sakethh.linkora.domain.model.FlatChildFolderData
-import com.sakethh.linkora.domain.repository.local.DatabaseUtils
+import com.sakethh.linkora.domain.model.FlatSearchResult
+import com.sakethh.linkora.domain.repository.local.LocalDatabaseUtilsRepo
 import kotlinx.coroutines.flow.Flow
 
-class DatabaseUtilsImpl(private val localDatabase: LocalDatabase) : DatabaseUtils {
+class LocalLocalDatabaseUtilsImpl(private val localDatabase: LocalDatabase) :
+    LocalDatabaseUtilsRepo {
 
     /*
     Initial implementation was to drop everything and create it again,
@@ -53,7 +55,7 @@ class DatabaseUtilsImpl(private val localDatabase: LocalDatabase) : DatabaseUtil
     }
 
     override suspend fun getFoldersRowCount(): Long {
-        return localDatabase.dbUtilsDao.getFoldersRowCount()
+        return localDatabase.localDatabaseUtilsDao.getFoldersRowCount()
     }
 
     override fun getChildFolderData(
@@ -63,11 +65,39 @@ class DatabaseUtilsImpl(private val localDatabase: LocalDatabase) : DatabaseUtil
         pageSize: Int,
         startIndex: Long
     ): Flow<Result<List<FlatChildFolderData>>> {
-        return localDatabase.dbUtilsDao.getFlatChildFolderData(
+        return localDatabase.localDatabaseUtilsDao.getFlatChildFolderData(
             parentFolderId, linkType,
             sortOption,
             pageSize,
             startIndex
         ).mapToResultFlow()
     }
+
+
+    override fun search(
+        query: String,
+        sortOption: String,
+        pageSize: Int,
+        startIndex: Long,
+        shouldShowTags: Boolean,
+        shouldShowFolders: Boolean,
+        includeArchivedFolders: Boolean,
+        includeRegularFolders: Boolean,
+        shouldShowLinks: Boolean,
+        isLinkTypeFilterActive: Boolean,
+        activeLinkTypeFilters: List<String>
+    ): Flow<Result<List<FlatSearchResult>>> {
+        return localDatabase.localDatabaseUtilsDao.search(
+            query, sortOption, pageSize, startIndex = startIndex,
+            shouldShowTags = shouldShowTags,
+            shouldShowFolders = shouldShowFolders,
+            includeArchivedFolders = includeArchivedFolders,
+            includeRegularFolders = includeRegularFolders,
+            shouldShowLinks = shouldShowLinks,
+            isLinkTypeFilterActive = isLinkTypeFilterActive,
+            activeLinkTypeFilters = activeLinkTypeFilters
+        )
+            .mapToResultFlow()
+    }
+
 }

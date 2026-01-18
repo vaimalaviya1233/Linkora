@@ -98,7 +98,7 @@ fun MobileCollectionDetailScreen(currentFABContext: (CurrentFABContext) -> Unit)
         platform = Platform.Android.Mobile,
         currentFABContext = currentFABContext,
         collectionDetailPaneParams = CollectionDetailPaneParams(
-            linkTagsPairs = collectionsScreenVM.linkTagsPairs,
+            linkTagsPairs = collectionsScreenVM.linkTagsPairsState,
             childFoldersFlat = collectionsScreenVM.childFoldersFlat,
             rootArchiveFolders = collectionsScreenVM.rootArchiveFolders,
             collectionDetailPaneInfo = collectionsScreenVM.collectionDetailPaneInfo,

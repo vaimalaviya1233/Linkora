@@ -31,9 +31,9 @@ object LinkoraViewModelFactory : ViewModelProvider.Factory {
             )
 
             SearchScreenVM::class -> SearchScreenVM(
-                localFoldersRepo = DependencyContainer.localFoldersRepo,
                 localLinksRepo = DependencyContainer.localLinksRepo,
-                localTagsRepo = DependencyContainer.localTagsRepo
+                localTagsRepo = DependencyContainer.localTagsRepo,
+                localDatabaseUtilsRepo = DependencyContainer.localDatabaseUtilsImpl
             )
 
             SettingsScreenViewModel::class -> SettingsScreenViewModel(

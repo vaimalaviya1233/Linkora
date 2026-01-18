@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.Alignment
@@ -45,20 +46,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.di.linkoraViewModel
+import com.sakethh.linkora.domain.FolderType
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
 import com.sakethh.linkora.ui.LocalNavController
-import com.sakethh.linkora.ui.PageKey
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.domain.CurrentFABContext
-import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.CollectionDetailPaneInfo
 import com.sakethh.linkora.ui.domain.model.CollectionType
-import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -66,9 +65,6 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,17 +98,13 @@ fun SearchScreen(
     LaunchedEffect(!searchScreenVM.isSearchActive.value) {
         cancelForceSearchActive()
     }
-    val historyLinkTagsPairsState = searchScreenVM.historyLinkTagsPairsState
-    searchScreenVM.linkQueryResults
-    val searchQueryFolderResults = searchScreenVM.folderQueryResults.collectAsStateWithLifecycle()
-    val searchQueryTagResults = searchScreenVM.tagQueryResults.collectAsStateWithLifecycle()
+    val historyLinkTagsPairsState by searchScreenVM.historyLinkTagsPairsState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val localUriHandler = LocalUriHandler.current
     val navController = LocalNavController.current
     val searchBarPadding =
         animateDpAsState(if (!searchScreenVM.isSearchActive.value) 15.dp else 0.dp)
-    val availableFolderFilters by searchScreenVM.availableFolderFilters.collectAsStateWithLifecycle()
-    val availableLinkFilters by searchScreenVM.availableLinkFilters.collectAsStateWithLifecycle()
+    val searchResultsState by searchScreenVM.searchResultsState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         ProvideTextStyle(MaterialTheme.typography.titleSmall) {
@@ -153,9 +145,7 @@ fun SearchScreen(
                         }
                     }
                 },
-                onSearch = {
-
-                },
+                onSearch = {},
                 active = searchScreenVM.isSearchActive.value,
                 onActiveChange = {
                     searchScreenVM.updateSearchActiveState(it)
@@ -165,47 +155,44 @@ fun SearchScreen(
                 } else {
                     Column {
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                            availableFolderFilters.forEach {
-                                FilterChip(
-                                    text = it.asLocalizedString(),
-                                    isSelected = searchScreenVM.appliedFolderFilters.contains(
-                                        it
-                                    ),
-                                    onClick = {
-                                        searchScreenVM.toggleFolderFilter(it)
-                                    })
+                            FolderType.entries.forEach {
+                                key(it.name) {
+                                    FilterChip(
+                                        text = it.asLocalizedString(),
+                                        isSelected = searchScreenVM.appliedFolderFilters.contains(
+                                            it
+                                        ),
+                                        onClick = {
+                                            searchScreenVM.toggleFolderFilter(it)
+                                        })
+                                }
                             }
-                            availableLinkFilters.forEach {
-                                FilterChip(
-                                    text = it.asLocalizedString(),
-                                    isSelected = searchScreenVM.appliedLinkFilters.contains(
-                                        it
-                                    ),
-                                    onClick = {
-                                        searchScreenVM.toggleLinkFilter(it)
-                                    })
+                            LinkType.entries.forEach {
+                                key(it.name) {
+                                    FilterChip(
+                                        text = it.asLocalizedString(),
+                                        isSelected = searchScreenVM.appliedLinkFilters.contains(
+                                            it
+                                        ),
+                                        onClick = {
+                                            searchScreenVM.toggleLinkFilter(it)
+                                        })
+                                }
                             }
-                            if (searchScreenVM.tagsAvailableForFiltering) {
-                                FilterChip(
-                                    text = Localization.Key.Tags.rememberLocalizedString(),
-                                    isSelected = searchScreenVM.appliedTagFiltering,
-                                    onClick = {
-                                        searchScreenVM.toggleTagFilter()
-                                    })
-                            }
+                            FilterChip(
+                                text = Localization.Key.Tags.rememberLocalizedString(),
+                                isSelected = searchScreenVM.appliedTagFiltering,
+                                onClick = {
+                                    searchScreenVM.toggleTagFilter()
+                                })
                             Spacer(modifier = Modifier.width(10.dp))
                         }
                         CollectionLayoutManager(
                             screenType = ScreenType.TAGS_FOLDERS_LINKS,
                             emptyDataText = Localization.Key.NoSearchResults.rememberLocalizedString(),
-                            flatChildFolderDataState = TODO() /*searchQueryFolderResults.value*/,
-                            linksTagsPairsState = retain {
-                                flowOf<PaginationState<Map<PageKey, List<LinkTagsPair>>>>().stateIn(
-                                    scope = coroutineScope,
-                                    SharingStarted.WhileSubscribed(5000),
-                                    initialValue = PaginationState.retrieving()
-                                )
-                            }/*TODO: searchQueryLinkResults*/,
+                            flatChildFolderDataState = null,
+                            linksTagsPairsState = null,
+                            flatSearchResultState = searchResultsState,
                             paddingValues = PaddingValues(0.dp),
                             folderMoreIconClick = {
                                 coroutineScope.pushUIEvent(
@@ -264,7 +251,6 @@ fun SearchScreen(
                                     Navigation.Collection.MobileCollectionDetailScreen
                                 )
                             },
-                            tags = searchQueryTagResults.value,
                             onTagClick = {
                                 val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                                     currentFolder = null,
@@ -288,8 +274,8 @@ fun SearchScreen(
                                     )
                                 )
                             },
-                            onRetrieveNextPage = {},
-                            onFirstVisibleItemIndexChange = {}
+                            onRetrieveNextPage = searchScreenVM::retrieveNextSearchPage,
+                            onFirstVisibleItemIndexChange = searchScreenVM::updateFirstVisibleIndexOfSearchPaginator
                         )
                     }
                 }
@@ -315,7 +301,7 @@ fun SearchScreen(
         CollectionLayoutManager(
             screenType = ScreenType.LINKS_ONLY,
             emptyDataText = Localization.Key.NoHistoryFound.rememberLocalizedString(),
-            flatChildFolderDataState = PaginationState.emptyData(),
+            flatChildFolderDataState = null,
             linksTagsPairsState = historyLinkTagsPairsState,
             paddingValues = PaddingValues(0.dp),
             folderMoreIconClick = {},
@@ -355,13 +341,13 @@ fun SearchScreen(
                     Navigation.Collection.MobileCollectionDetailScreen
                 )
             },
-            tags = emptyList(),
             tagMoreIconClick = {},
             onTagClick = {},
             onRetrieveNextPage = {
                 searchScreenVM.retrieveNextBatchOfHistoryLinks()
             },
             onFirstVisibleItemIndexChange = searchScreenVM::updateStartingIndexForHistoryPaginator,
+            flatSearchResultState = null
         )
     }
 }

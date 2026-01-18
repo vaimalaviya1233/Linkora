@@ -26,6 +26,7 @@ object Constants {
 
     const val FOLDER = "FOLDER"
     const val LINK = "LINK"
+    const val TAG = "TAG"
 }
 
 object LinkType {

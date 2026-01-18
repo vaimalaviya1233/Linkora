@@ -312,7 +312,7 @@ fun App(
                         onTagsFirstVisibleItemIndexChange = collectionsScreenVM::updateStartingIndexForTagsPaginator,
                     ),
                     collectionDetailPaneParams = CollectionDetailPaneParams(
-                        linkTagsPairs = collectionsScreenVM.linkTagsPairs,
+                        linkTagsPairs = collectionsScreenVM.linkTagsPairsState,
                         childFoldersFlat = collectionsScreenVM.childFoldersFlat,
                         rootArchiveFolders = collectionsScreenVM.rootArchiveFolders,
                         collectionDetailPaneInfo = collectionsScreenVM.collectionDetailPaneInfo,

@@ -3,8 +3,7 @@ package com.sakethh.linkora.di
 import com.sakethh.linkora.data.ExportDataRepoImpl
 import com.sakethh.linkora.data.ImportDataRepoImpl
 import com.sakethh.linkora.data.LocalizationRepoImpl
-import com.sakethh.linkora.data.local.LocalDatabase
-import com.sakethh.linkora.data.local.repository.DatabaseUtilsImpl
+import com.sakethh.linkora.data.local.repository.LocalLocalDatabaseUtilsImpl
 import com.sakethh.linkora.data.local.repository.LocalFoldersRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalLinksRepoImpl
 import com.sakethh.linkora.data.local.repository.LocalMultiActionRepoImpl
@@ -56,7 +55,7 @@ object DependencyContainer {
     }
 
     val localDatabaseUtilsImpl by lazy {
-        DatabaseUtilsImpl(LinkoraSDK.getInstance().localDatabase)
+        LocalLocalDatabaseUtilsImpl(LinkoraSDK.getInstance().localDatabase)
     }
 
     val refreshLinksRepo by lazy {
@@ -91,7 +90,7 @@ object DependencyContainer {
             localTagsRepo = localTagsRepo,
             remoteTagsRepo = remoteTagsRepo,
             tagsDao = LinkoraSDK.getInstance().localDatabase.tagsDao,
-            localDatabaseUtils = localDatabaseUtilsImpl
+            localDatabaseUtilsRepo = localDatabaseUtilsImpl
         )
     }
 

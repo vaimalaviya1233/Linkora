@@ -22,7 +22,7 @@ import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onSuccess
-import com.sakethh.linkora.domain.repository.local.DatabaseUtils
+import com.sakethh.linkora.domain.repository.local.LocalDatabaseUtilsRepo
 import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalMultiActionRepo
@@ -85,7 +85,7 @@ class RemoteSyncRepoImpl(
     localTagsRepo: LocalTagsRepo,
     remoteTagsRepo: RemoteTagsRepo,
     private val tagsDao: TagsDao,
-    private val localDatabaseUtils: DatabaseUtils
+    private val localDatabaseUtilsRepo: LocalDatabaseUtilsRepo
 ) : RemoteSyncRepo {
 
 
@@ -469,7 +469,7 @@ class RemoteSyncRepoImpl(
             remoteOperationOnSuccess = {
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             }) {
-            localDatabaseUtils.resetDatabase()
+            localDatabaseUtilsRepo.resetDatabase()
             preferencesRepository.changePreferenceValue(
                 preferenceKey = longPreferencesKey(
                     AppPreferenceType.LAST_SELECTED_PANEL_ID.name

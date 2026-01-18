@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -75,6 +76,9 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectio
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.rememberLocalizedString
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,6 +102,16 @@ fun GeneralSettingsScreen() {
     }
     var showIconSwitchDialogBox by rememberSaveable {
         mutableStateOf(false)
+    }
+    val fontsEntries = retain {
+        Font.entries.toPersistentList()
+    }
+    val initialRouteEntries = retain {
+        persistentListOf(
+            Navigation.Root.HomeScreen,
+            Navigation.Root.SearchScreen,
+            Navigation.Root.CollectionsScreen
+        )
     }
     SettingsSectionScaffold(
         topAppBarText = Navigation.Settings.GeneralSettingsScreen.toString(),
@@ -369,13 +383,7 @@ fun GeneralSettingsScreen() {
         }
         SwitchDialogBox(
             title = Localization.Key.SelectTheInitialScreen.rememberLocalizedString(),
-            entries = remember {
-                listOf(
-                    Navigation.Root.HomeScreen,
-                    Navigation.Root.SearchScreen,
-                    Navigation.Root.CollectionsScreen
-                )
-            },
+            entries = initialRouteEntries,
             selected = {
                 currentlySelectedRoute.value == it.toString()
             },
@@ -398,7 +406,7 @@ fun GeneralSettingsScreen() {
         var tempSelectedFont by rememberSaveable {
             mutableStateOf(AppPreferences.selectedFont.name)
         }
-        SwitchDialogBox(title = "Select a font", entries = Font.entries, selected = {
+        SwitchDialogBox(title = "Select a font", entries = fontsEntries, selected = {
             tempSelectedFont == it.name
         }, onEntryClick = {
             tempSelectedFont = it.name
@@ -419,7 +427,7 @@ fun GeneralSettingsScreen() {
 @Composable
 private fun <T> SwitchDialogBox(
     title: String,
-    entries: List<T>,
+    entries: PersistentList<T>,
     entryLabel: (T) -> String = { it.toString() },
     selected: (T) -> Boolean,
     onEntryClick: (T) -> Unit,
