@@ -37,7 +37,6 @@ object AppPreferences {
     val isHomeScreenEnabled = mutableStateOf(true)
     val useRemoteStrings = mutableStateOf(false)
     val isOnLatestUpdate = mutableStateOf(false)
-    val useCustomAppVersionLabel = mutableStateOf(true)
     val selectedSortingTypeType = mutableStateOf(SortingType.NEW_TO_OLD.name)
     val primaryJsoupUserAgent = mutableStateOf(Constants.DEFAULT_USER_AGENT)
     val localizationServerURL = mutableStateOf(Constants.LOCALIZATION_SERVER_URL)
@@ -322,12 +321,6 @@ object AppPreferences {
                             AppPreferenceType.SELECTED_APP_ICON.name
                         )
                     ) ?: selectedAppIcon
-                }, launch {
-                    useCustomAppVersionLabel.value = preferencesRepository.readPreferenceValue(
-                        preferenceKey = booleanPreferencesKey(
-                            AppPreferenceType.CUSTOM_VERSION_APP_LABEL.name
-                        )
-                    ) ?: useCustomAppVersionLabel.value
                 }, launch {
                     showTagsInAddNewLinkDialogBox = preferencesRepository.readPreferenceValue(
                         preferenceKey = booleanPreferencesKey(

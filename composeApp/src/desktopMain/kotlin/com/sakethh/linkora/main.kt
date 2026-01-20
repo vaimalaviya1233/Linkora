@@ -179,22 +179,10 @@ private fun ApplicationScope.TopDecorator(
                         start = if (AppPreferences.isServerConfigured().not()) 15.dp else 5.dp
                     )
                 )
-                if (AppPreferences.useCustomAppVersionLabel.value) {
-                    Text(
-                        text = "!", style = TextStyle(
-                            fontFamily = FontFamily(
-                                Font(
-                                    Res.font.linkora_char, FontWeight.Normal
-                                )
-                            ), fontWeight = FontWeight.Normal
-                        ), fontSize = 65.sp
-                    )
-                } else {
-                    Text(
-                        text = Localization.Key.Linkora.rememberLocalizedString(),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
+                Text(
+                    text = Localization.Key.Linkora.rememberLocalizedString(),
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically

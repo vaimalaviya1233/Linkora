@@ -1,7 +1,6 @@
 package com.sakethh.linkora.ui.screens.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -44,14 +43,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.domain.CurrentFABContext
 import com.sakethh.linkora.ui.domain.FABContext
@@ -64,10 +59,7 @@ import com.sakethh.linkora.utils.rememberLocalizedString
 import linkora.composeapp.generated.resources.Res
 import linkora.composeapp.generated.resources.discord
 import linkora.composeapp.generated.resources.github
-import linkora.composeapp.generated.resources.linkora_char
-import linkora.composeapp.generated.resources.linkora_versioning
 import linkora.composeapp.generated.resources.twitter
-import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,36 +97,38 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     ).fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer)
                         .padding(top = 7.5.dp)
                 ) {
-                    if (AppPreferences.useCustomAppVersionLabel.value) {
-                        CustomFontAppVersionLabel()
-                    } else {
-                        AppVersionLabel()
-                    }
+                    AppVersionLabel()
                     Row(
                         modifier = Modifier.padding(start = 10.dp, top = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        FilledIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
-                            uriHandler.openUri("https://www.github.com/LinkoraApp")
-                        }) {
+                        FilledIconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                .pressScaleEffect(), onClick = {
+                                uriHandler.openUri("https://www.github.com/LinkoraApp")
+                            }) {
                             Icon(
                                 painter = painterResource(Res.drawable.github),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
                             )
                         }
-                        FilledIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
-                            uriHandler.openUri("https://discord.gg/ZDBXNtv8MD")
-                        }) {
+                        FilledIconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                .pressScaleEffect(), onClick = {
+                                uriHandler.openUri("https://discord.gg/ZDBXNtv8MD")
+                            }) {
                             Icon(
                                 painter = painterResource(Res.drawable.discord),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
                             )
                         }
-                        FilledIconButton(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).pressScaleEffect(), onClick = {
-                            uriHandler.openUri("https://www.twitter.com/LinkoraApp")
-                        }) {
+                        FilledIconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                .pressScaleEffect(), onClick = {
+                                uriHandler.openUri("https://www.twitter.com/LinkoraApp")
+                            }) {
                             Icon(
                                 painter = painterResource(Res.drawable.twitter),
                                 contentDescription = null,
@@ -153,7 +147,9 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     Button(
                         onClick = {
                             uriHandler.openUri("https://github.com/LinkoraApp/localization-server")
-                        }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 15.dp).pressScaleEffect()
+                        },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .padding(start = 15.dp).pressScaleEffect()
                     ) {
                         Icon(imageVector = Icons.Default.Translate, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
@@ -167,7 +163,8 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         onClick = {
                             uriHandler.openUri("https://ko-fi.com/sakethpathike")
                         },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(start = 15.dp, bottom = 15.dp).pressScaleEffect()
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .padding(start = 15.dp, bottom = 15.dp).pressScaleEffect()
                     ) {
                         Icon(imageVector = Icons.Default.Coffee, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
@@ -201,47 +198,17 @@ fun AppVersionLabel(modifier: Modifier = Modifier.padding(top = 7.5.dp, start = 
     Row(modifier) {
         Text(
             text = Localization.Key.Linkora.rememberLocalizedString(),
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            fontSize = 18.sp,
+            style = MaterialTheme.typography.labelSmall,
+            fontSize = 22.sp,
             modifier = Modifier.alignByBaseline(),
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
         Text(
             text = Constants.APP_VERSION_NAME,
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
-            fontSize = 12.sp,
-            modifier = Modifier.alignByBaseline(),
+            style = MaterialTheme.typography.labelSmall,
+            fontSize = 12.5.sp,
+            modifier = Modifier.alignByBaseline().padding(start = 2.5.dp),
             color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    }
-}
-
-@Composable
-fun CustomFontAppVersionLabel(modifier: Modifier = Modifier.padding(start = 15.dp)) {
-    Box(
-        modifier = modifier
-    ) {
-        Text(
-            text = "!", style = TextStyle(
-                fontFamily = FontFamily(
-                    Font(
-                        Res.font.linkora_char, FontWeight.Normal
-                    )
-                ), fontWeight = FontWeight.Normal
-            ), fontSize = 65.sp, color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-        Text(
-            text = Constants.APP_VERSION_NAME,
-            style = TextStyle(
-                fontFamily = FontFamily(
-                    Font(
-                        Res.font.linkora_versioning, FontWeight.Normal
-                    )
-                ), fontWeight = FontWeight.Normal
-            ),
-            fontSize = 28.sp,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(start = 4.dp, top = 30.dp)
         )
     }
 }

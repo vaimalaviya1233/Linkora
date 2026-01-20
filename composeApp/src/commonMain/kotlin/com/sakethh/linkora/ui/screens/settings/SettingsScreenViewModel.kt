@@ -193,26 +193,6 @@ open class SettingsScreenViewModel(
                     icon = Icons.Rounded.Home
                 )
             )
-
-            add(
-                SettingComponentParam(
-                    title = Localization.Key.UseCustomAppVersionLabel.getLocalizedString(),
-                    doesDescriptionExists = true,
-                    description = Localization.Key.UseCustomAppVersionDesc.getLocalizedString(),
-                    isSwitchNeeded = true,
-                    isSwitchEnabled = AppPreferences.useCustomAppVersionLabel,
-                    onSwitchStateChange = {
-                        AppPreferences.useCustomAppVersionLabel.value = it
-                        changeSettingPreferenceValue(
-                            preferenceKey = booleanPreferencesKey(
-                                AppPreferenceType.CUSTOM_VERSION_APP_LABEL.name
-                            ), newValue = it
-                        )
-                    },
-                    isIconNeeded = mutableStateOf(true),
-                    icon = Icons.Rounded.TextFormat
-                )
-            )
         }
     }
 

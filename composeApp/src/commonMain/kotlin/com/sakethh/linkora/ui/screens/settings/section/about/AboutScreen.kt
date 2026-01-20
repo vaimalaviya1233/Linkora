@@ -44,10 +44,8 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.github.GitHubReleaseDTOItem
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.screens.settings.AppVersionLabel
-import com.sakethh.linkora.ui.screens.settings.CustomFontAppVersionLabel
 import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectionScaffold
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
 import com.sakethh.linkora.utils.Constants
@@ -93,11 +91,7 @@ fun AboutScreen() {
                 Spacer(Modifier.height(30.dp))
             }
             item {
-                if (AppPreferences.useCustomAppVersionLabel.value) {
-                    CustomFontAppVersionLabel()
-                } else {
-                    AppVersionLabel()
-                }
+                AppVersionLabel()
             }
             item {
                 if (!AppPreferences.isOnLatestUpdate.value) {

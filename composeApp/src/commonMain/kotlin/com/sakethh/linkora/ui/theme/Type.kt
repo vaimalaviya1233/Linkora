@@ -10,7 +10,7 @@ import com.sakethh.linkora.ui.domain.Font
 import linkora.composeapp.generated.resources.Res
 import linkora.composeapp.generated.resources.googleSansFlex
 import linkora.composeapp.generated.resources.medium
-import linkora.composeapp.generated.resources.playwrite
+import linkora.composeapp.generated.resources.momo_signature
 import linkora.composeapp.generated.resources.regular
 import linkora.composeapp.generated.resources.semibold
 import org.jetbrains.compose.resources.Font
@@ -23,7 +23,12 @@ private val googleSansFlexFontFamily
     )
 
 private val playWriteFontFamily
-    @Composable get() = FontFamily(Font(resource = Res.font.playwrite, weight = FontWeight.Normal))
+    @Composable get() = FontFamily(
+        Font(
+            resource = Res.font.momo_signature,
+            weight = FontWeight.Normal
+        )
+    )
 
 private val poppinsFontFamily
     @Composable get() = FontFamily(
