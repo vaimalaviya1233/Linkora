@@ -1,6 +1,8 @@
 package com.sakethh.linkora.ui.screens.home
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.ViewModel
@@ -8,23 +10,25 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.model.FlatChildFolderData
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.panel.Panel
 import com.sakethh.linkora.domain.model.panel.PanelFolder
 import com.sakethh.linkora.domain.model.tag.Tag
-import com.sakethh.linkora.domain.repository.local.LocalFoldersRepo
+import com.sakethh.linkora.domain.repository.local.LocalDatabaseUtilsRepo
 import com.sakethh.linkora.domain.repository.local.LocalLinksRepo
 import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.ui.domain.model.LinkTagsPair
-import com.sakethh.linkora.ui.screens.home.state.ProcessedPanelFolders
+import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.Paginator
+import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.asStateInWhileSubscribed
 import com.sakethh.linkora.utils.getLocalizedString
-import com.sakethh.linkora.utils.isNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -33,15 +37,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.internal.toImmutableMap
 import java.util.Calendar
+import java.util.TreeMap
 
 class HomeScreenVM(
-    private val localFoldersRepo: LocalFoldersRepo,
     private val localLinksRepo: LocalLinksRepo,
+    private val localDatabaseUtilsRepo: LocalDatabaseUtilsRepo,
     private val localTagsRepo: LocalTagsRepo,
     private val localPanelsRepo: LocalPanelsRepo,
     private val preferencesRepository: PreferencesRepository,
@@ -50,22 +58,37 @@ class HomeScreenVM(
 ) : ViewModel() {
     val currentPhaseOfTheDay = mutableStateOf("")
 
-    private val _createdPanels = MutableStateFlow(emptyList<Panel>())
-    val createdPanels = _createdPanels.asStateFlow()
 
-    // holds metadata kinda thing that connects a folder to a panel
+    // TODO: migrate to the pagination
+    private val _existingPanels = MutableStateFlow(emptyList<Panel>())
+    val existingPanels = _existingPanels.asStateFlow()
+
+    // TODO: migrate to the pagination
     private val _activePanelAssociatedPanelFolders = MutableStateFlow(emptyList<PanelFolder>())
     val activePanelAssociatedPanelFolders = _activePanelAssociatedPanelFolders.asStateFlow()
 
+    private val _panelFoldersDataFlat =
+        MutableStateFlow<TreeMap<Long, PaginationState<Map<PageKey, List<FlatChildFolderData>>>>>(
+            value = TreeMap()
+        )
 
-    // holds folders data
-    private val _activePanelAssociatedFolders = MutableStateFlow(emptyList<List<Folder>>())
-    val activePanelAssociatedFolders = _activePanelAssociatedFolders.asStateFlow()
+    val panelFoldersDataFlat = _panelFoldersDataFlat.asStateInWhileSubscribed(
+        initialValue = TreeMap<Long, PaginationState<Map<PageKey, List<FlatChildFolderData>>>>().toImmutableMap()
+    )
 
-    // holds links data
-    private val _activePanelAssociatedFolderLinks =
-        MutableStateFlow(emptyList<List<LinkTagsPair>>())
-    val activePanelAssociatedFolderLinks = _activePanelAssociatedFolderLinks.asStateFlow()
+    private val panelFolderPaginators = mutableMapOf<Long, Paginator<FlatChildFolderData>>()
+
+    fun retrieveNextPage(folderId: Long) {
+        viewModelScope.launch {
+            panelFolderPaginators[folderId]?.retrieveNextBatch()
+        }
+    }
+
+    fun onFirstVisibleItemIndexChange(folderId: Long, itemIndex: Long) {
+        viewModelScope.launch {
+            panelFolderPaginators[folderId]?.updateFirstVisibleItemIndex(itemIndex)
+        }
+    }
 
     private val defaultPanelFolders = listOf(
         PanelFolder(
@@ -89,7 +112,6 @@ class HomeScreenVM(
         )
     }
 
-    private var _activePanelAssociatedFoldersJob: Job? = null
 
     private val appPreferencesCombined = combine(snapshotFlow {
         AppPreferences.forceShuffleLinks.value
@@ -99,139 +121,239 @@ class HomeScreenVM(
         Pair(shuffleLinks, sortingType)
     }
 
-    private fun getLinksWithTags(
-        nestedLinks: List<List<Link>>,
-    ): Flow<List<List<LinkTagsPair>>> {
-        val allLinks = nestedLinks.flatten()
+    private var _activePanelAssociatedFoldersJob: Job? = null
 
-        if (allLinks.isEmpty()) {
-            return flowOf(nestedLinks.map { emptyList() })
-        }
-
-        val allLinkIds = allLinks.map { it.localId }
-
-        return localTagsRepo.getTagsForLinks(allLinkIds).map { tagsMap ->
-            nestedLinks.map { sublist ->
-                sublist.map { link ->
-                    LinkTagsPair(
-                        link = link, tags = tagsMap[link.localId] ?: emptyList()
-                    )
-                }
-            }
-        }
-    }
-
-    fun updatePanelFolders(panelId: Long) {
+    fun updatePanelFolders(panel: Panel) {
         _activePanelAssociatedFoldersJob?.cancel()
 
+        selectedPanelData = panel
+
         _activePanelAssociatedFoldersJob = viewModelScope.launch(Dispatchers.Default) {
-
-            launch {
-                preferencesRepository.changePreferenceValue(
-                    preferenceKey = longPreferencesKey(
-                        AppPreferenceType.LAST_SELECTED_PANEL_ID.name
-                    ), newValue = panelId
-                )
-            }
-
-            appPreferencesCombined.flatMapLatest { (shuffleLinks, sortingType) ->
-                val processedFoldersFlow = if (panelId == Constants.DEFAULT_PANELS_ID) {
-                    combine(
-                        localLinksRepo.getLinksAsNonResultFlow(
-                            linkType = LinkType.SAVED_LINK, sortOption = sortingType
-                        ), localLinksRepo.getLinksAsNonResultFlow(
-                            linkType = LinkType.IMPORTANT_LINK, sortOption = sortingType
-                        )
-                    ) { savedLinks, impLinks ->
-                        ProcessedPanelFolders(
-                            panelFolders = defaultPanelFolders, links = listOf(
-                                if (shuffleLinks) savedLinks.shuffled() else savedLinks,
-                                if (shuffleLinks) impLinks.shuffled() else impLinks
-                            ), folders = listOf(emptyList(), emptyList())
-                        )
-                    }
-                } else {
-                    localPanelsRepo.getAllTheFoldersFromAPanel(panelId)
-                        .flatMapLatest { panelFolders ->
-                            if (panelFolders.isEmpty()) {
-                                _activePanelAssociatedPanelFolders.emit(emptyList())
-                            }
-                            val childFolders = combine(panelFolders.map {
-                                localFoldersRepo.sortFoldersAsNonResultFlow(
-                                    parentFolderId = it.folderId, sortOption = sortingType
-                                )
-                            }) {
-                                it.toList()
-                            }
-
-                            val links = combine(panelFolders.map {
-                                localLinksRepo.getLinksAsNonResultFlow(
-                                    linkType = LinkType.FOLDER_LINK,
-                                    parentFolderId = it.folderId,
-                                    sortOption = sortingType
-                                ).map { if (shuffleLinks) it.shuffled() else it }
-                            }) {
-                                it.toList()
-                            }
-
-                            combine(childFolders, links) { childFolders, links ->
-                                ProcessedPanelFolders(
-                                    panelFolders = panelFolders,
-                                    links = links,
-                                    folders = childFolders
-                                )
-                            }
-                        }
-                }
-
-                processedFoldersFlow.flatMapLatest { processedData ->
-                    val nestedLinks = processedData.links
-                    val allLinks = nestedLinks.flatten()
-                    if (allLinks.isEmpty()) {
-                        flowOf(
-                            Triple(
-                                processedData.panelFolders,
-                                processedData.folders,
-                                emptyList()
-                            )
-                        )
-                    } else {
-                        val linkIds = allLinks.map { it.localId }
-                        localTagsRepo.getTagsForLinks(linkIds).map { tagsMap ->
-                            val linksWithTags = nestedLinks.map { sublist ->
-                                sublist.map { link ->
-                                    LinkTagsPair(
-                                        link = link, tags = tagsMap[link.localId] ?: emptyList()
-                                    )
-                                }
-                            }
-                            Triple(
-                                processedData.panelFolders,
-                                processedData.folders,
-                                linksWithTags
-                            )
-                        }
-                    }
-                }
-            }.collectLatest { (panelFolders, folders, linksWithTags) ->
-                _activePanelAssociatedPanelFolders.emit(panelFolders.distinctBy { it.folderId })
-                _activePanelAssociatedFolders.emit(folders)
-                _activePanelAssociatedFolderLinks.emit(linksWithTags)
-            }
+            preferencesRepository.changePreferenceValue(
+                preferenceKey = longPreferencesKey(
+                    AppPreferenceType.LAST_SELECTED_PANEL_ID.name
+                ), newValue = panel.localId
+            )
         }
     }
 
-    val selectedPanelData = mutableStateOf<Panel?>(null)
+    var selectedPanelData by mutableStateOf<Panel?>(null)
+
+    private suspend fun freeUpPanelFolderPaginators() {
+        for ((_, paginator) in panelFolderPaginators) {
+            paginator.cancelAndReset()
+        }
+        panelFolderPaginators.clear()
+    }
+
+    private fun Flow<Result<List<Link>>>.mapToFlatChildFolderFlow(): Flow<Result<List<FlatChildFolderData>>> {
+        return this.flatMapLatest {
+            flowOf(
+                when (it) {
+                    is Result.Failure -> Result.Failure(it.message)
+                    is Result.Loading -> Result.Loading()
+                    is Result.Success -> {
+                        Result.Success(it.data.map {
+                            FlatChildFolderData(
+                                itemType = Constants.LINK,
+                                lastModified = it.lastModified,
+                                linkType = it.linkType,
+                                linkLocalId = it.localId,
+                                linkRemoteId = it.remoteId,
+                                linkTitle = it.title,
+                                linkUrl = it.url,
+                                linkHost = it.host,
+                                linkImgUrl = it.imgURL,
+                                linkNote = it.note,
+                                linkIdOfLinkedFolder = it.idOfLinkedFolder,
+                                linkUserAgent = it.userAgent,
+                                linkMediaType = it.mediaType,
+                            )
+                        })
+                    }
+                }
+            )
+        }
+    }
 
     init {
-        if (triggerCollectionOfPanels) {
-            viewModelScope.launch {
-                localPanelsRepo.getAllThePanels().collectLatest {
-                    _createdPanels.emit(listOf(defaultPanel()) + it)
+
+        viewModelScope.launch {
+            selectedPanelData = preferencesRepository.readPreferenceValue(
+                longPreferencesKey(
+                    AppPreferenceType.LAST_SELECTED_PANEL_ID.name
+                )
+            ).let {
+                try {
+                    if (it === null || it == Constants.DEFAULT_PANELS_ID) throw Exception()
+                    localPanelsRepo.getPanel(it)
+                } catch (_: Exception) {
+                    defaultPanel()
                 }
             }
         }
-        refreshPanelsData()
+
+        if (triggerCollectionOfPanels) {
+            viewModelScope.launch {
+                localPanelsRepo.getAllThePanels()
+                    .collectLatest {
+                        _existingPanels.emit(listOf(defaultPanel()) + it)
+                    }
+            }
+
+            viewModelScope.launch {
+                snapshotFlow {
+                    selectedPanelData
+                }.transform { if (it?.localId != null) emit(it) }.flatMapLatest {
+                    if (triggerCollectionOfPanelFolders) {
+                        if (Constants.DEFAULT_PANELS_ID == it.localId) {
+                            flowOf(defaultPanelFolders)
+                        } else {
+                            localPanelsRepo.getAllTheFoldersFromAPanel(it.localId)
+                        }
+                    } else {
+                        emptyFlow()
+                    }
+                }.collectLatest { panelFolders ->
+                    freeUpPanelFolderPaginators()
+                    _activePanelAssociatedPanelFolders.emit(panelFolders)
+                }
+            }
+
+            viewModelScope.launch {
+                var lastSortingType: String? = null
+
+                combine(
+                    appPreferencesCombined,
+                    _activePanelAssociatedPanelFolders
+                ) { (shuffleLinks, sortingType), activePanelFolders ->
+                    Triple(shuffleLinks, sortingType, activePanelFolders)
+                }
+                    .collectLatest { (shuffleLinks, sortingType, activePanelFolders) ->
+                        val isSortChanged = lastSortingType != sortingType
+                        lastSortingType = sortingType
+
+                        if (isSortChanged) {
+                            freeUpPanelFolderPaginators()
+                        }
+                        val activeFolderIds = activePanelFolders.map { it.folderId }.toSet()
+
+                        val panelFoldersDataIterator = panelFolderPaginators.iterator()
+                        while (panelFoldersDataIterator.hasNext()) {
+                            val (id, paginator) = panelFoldersDataIterator.next()
+                            if (id !in activeFolderIds) {
+                                paginator.cancelAndReset()
+                                panelFoldersDataIterator.remove()
+
+                                _panelFoldersDataFlat.update {
+                                    val updated = TreeMap(it)
+                                    updated.remove(id)
+                                    updated
+                                }
+                            }
+                        }
+
+                        activePanelFolders.forEach { panelFolder ->
+                            val folderKey = panelFolder.folderId
+
+                            if (panelFolderPaginators.containsKey(folderKey)) {
+                                return@forEach
+                            }
+
+                            panelFolderPaginators[folderKey] = Paginator(
+                                coroutineScope = viewModelScope,
+                                onRetrieve = { pageStartIndex ->
+                                    pageStartIndex to when (panelFolder.folderId) {
+                                        Constants.SAVED_LINKS_ID -> localLinksRepo.getLinks(
+                                            linkType = LinkType.SAVED_LINK,
+                                            parentFolderId = Constants.SAVED_LINKS_ID,
+                                            sortOption = sortingType,
+                                            pageSize = Constants.PAGE_SIZE,
+                                            startIndex = pageStartIndex
+                                        ).mapToFlatChildFolderFlow()
+
+                                        Constants.IMPORTANT_LINKS_ID -> localLinksRepo.getLinks(
+                                            linkType = LinkType.IMPORTANT_LINK,
+                                            parentFolderId = Constants.IMPORTANT_LINKS_ID,
+                                            sortOption = sortingType,
+                                            pageSize = Constants.PAGE_SIZE,
+                                            startIndex = pageStartIndex
+                                        ).mapToFlatChildFolderFlow()
+
+                                        else -> localDatabaseUtilsRepo.getChildFolderData(
+                                            parentFolderId = panelFolder.folderId,
+                                            linkType = LinkType.FOLDER_LINK,
+                                            sortOption = sortingType,
+                                            pageSize = Constants.PAGE_SIZE,
+                                            startIndex = pageStartIndex
+                                        )
+                                    }
+                                },
+                                onRetrieved = { currentPageKey, data ->
+                                    _panelFoldersDataFlat.update { currentState ->
+                                        val updatedFoldersData = TreeMap(currentState)
+
+                                        val updatedPaginationData =
+                                            TreeMap(
+                                                updatedFoldersData[folderKey]?.data ?: emptyMap()
+                                            )
+                                        updatedPaginationData[currentPageKey] = data.map {
+                                            it.second
+                                        }
+
+                                        updatedFoldersData[folderKey] = PaginationState(
+                                            isRetrieving = true,
+                                            errorOccurred = false,
+                                            errorMessage = null,
+                                            pagesCompleted = false,
+                                            data = updatedPaginationData
+                                        )
+                                        updatedFoldersData
+                                    }
+                                },
+                                onError = { errorMsg ->
+                                    _panelFoldersDataFlat.update {
+                                        val updatedData = TreeMap(it)
+                                        updatedData[folderKey] = updatedData[folderKey]?.copy(
+                                            isRetrieving = false,
+                                            errorOccurred = true,
+                                            errorMessage = errorMsg,
+                                            pagesCompleted = false,
+                                        ) ?: PaginationState.retrieving()
+                                        updatedData
+                                    }
+                                },
+                                onRetrieving = {
+                                    _panelFoldersDataFlat.update {
+                                        val updatedData = TreeMap(it)
+                                        updatedData[folderKey] = updatedData[folderKey]?.copy(
+                                            isRetrieving = true,
+                                            errorOccurred = false,
+                                            errorMessage = null,
+                                            pagesCompleted = false,
+                                        ) ?: PaginationState.retrieving()
+                                        updatedData
+                                    }
+                                },
+                                onPagesFinished = {
+                                    _panelFoldersDataFlat.update {
+                                        val updatedData = TreeMap(it)
+                                        updatedData[folderKey] = updatedData[folderKey]?.copy(
+                                            isRetrieving = false,
+                                            errorOccurred = false,
+                                            errorMessage = null,
+                                            pagesCompleted = true,
+                                        ) ?: PaginationState.retrieving()
+                                        updatedData
+                                    }
+                                }
+                            ).also {
+                                it.retrieveNextBatch()
+                            }
+                        }
+                    }
+            }
+        }
     }
 
     fun addLinkToHistory(
@@ -248,32 +370,6 @@ class HomeScreenVM(
                     forceAutoDetectTitle = false, forceSaveWithoutRetrievingData = true
                 )
             ).collect()
-        }
-    }
-
-    private fun refreshPanelsData() {
-        viewModelScope.launch(Dispatchers.Main) {
-            selectedPanelData.value = preferencesRepository.readPreferenceValue(
-                longPreferencesKey(
-                    AppPreferenceType.LAST_SELECTED_PANEL_ID.name
-                )
-            ).let {
-                try {
-                    if (it.isNull() || it!! == Constants.DEFAULT_PANELS_ID) throw Exception()
-                    localPanelsRepo.getPanel(it)
-                } catch (_: Exception) {
-                    defaultPanel()
-                }
-            }
-            if (triggerCollectionOfPanelFolders) {
-                updatePanelFolders(
-                    preferencesRepository.readPreferenceValue(
-                        longPreferencesKey(
-                            AppPreferenceType.LAST_SELECTED_PANEL_ID.name
-                        )
-                    ) ?: Constants.DEFAULT_PANELS_ID
-                )
-            }
         }
     }
 
@@ -296,4 +392,5 @@ class HomeScreenVM(
             }
         }
     }
+
 }

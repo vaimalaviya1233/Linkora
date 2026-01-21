@@ -2,7 +2,6 @@ package com.sakethh.linkora.di
 
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.ui.screens.home.HomeScreenVM
 
 object HomeScreenVMAssistedFactory {
@@ -10,12 +9,12 @@ object HomeScreenVMAssistedFactory {
         initializer {
             HomeScreenVM(
                 localLinksRepo = DependencyContainer.localLinksRepo,
-                localFoldersRepo = DependencyContainer.localFoldersRepo,
                 localPanelsRepo = DependencyContainer.localPanelsRepo,
                 triggerCollectionOfPanels = true,
                 triggerCollectionOfPanelFolders = false,
                 preferencesRepository = DependencyContainer.preferencesRepo,
                 localTagsRepo = DependencyContainer.localTagsRepo,
+                localDatabaseUtilsRepo = DependencyContainer.localDatabaseUtilsImpl
             )
         }
     }
@@ -23,9 +22,9 @@ object HomeScreenVMAssistedFactory {
     fun createForHomeScreen() = viewModelFactory {
         initializer {
             HomeScreenVM(
+                localDatabaseUtilsRepo = DependencyContainer.localDatabaseUtilsImpl,
                 localPanelsRepo = DependencyContainer.localPanelsRepo,
                 localLinksRepo = DependencyContainer.localLinksRepo,
-                localFoldersRepo = DependencyContainer.localFoldersRepo,
                 preferencesRepository = DependencyContainer.preferencesRepo,
                 localTagsRepo = DependencyContainer.localTagsRepo,
             )

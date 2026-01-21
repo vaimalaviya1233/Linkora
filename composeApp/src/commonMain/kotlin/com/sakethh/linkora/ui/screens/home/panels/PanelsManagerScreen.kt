@@ -73,7 +73,7 @@ fun PanelsManagerScreen(
     val topAppBarState = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val homeScreenVM: HomeScreenVM =
         viewModel(factory = HomeScreenVMAssistedFactory.createForPanelsManagerScreen())
-    val panels = homeScreenVM.createdPanels.collectAsStateWithLifecycle()
+    val panels = homeScreenVM.existingPanels.collectAsStateWithLifecycle()
     val selectedPanelForDetailView = rememberDeserializableMutableObject {
         mutableStateOf(Panel(localId = -1, panelName = ""))
     }

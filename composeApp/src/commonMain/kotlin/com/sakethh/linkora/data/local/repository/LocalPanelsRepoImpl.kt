@@ -30,7 +30,7 @@ class LocalPanelsRepoImpl(
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val preferencesRepository: PreferencesRepository
 ) : LocalPanelsRepo {
-    override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Unit>> {
+    override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Long>> {
         var newPanelId: Long? = null
         val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
@@ -72,6 +72,7 @@ class LocalPanelsRepoImpl(
             }) {
             newPanelId =
                 panelsDao.addaNewPanel(panel.copy(localId = 0, lastModified = eventTimestamp))
+            newPanelId
         }
     }
 

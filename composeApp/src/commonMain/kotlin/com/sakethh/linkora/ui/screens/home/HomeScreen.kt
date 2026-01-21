@@ -40,9 +40,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +72,7 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -89,18 +92,15 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
         mutableStateOf(false)
     }
     val panelsBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val panels = homeScreenVM.createdPanels.collectAsStateWithLifecycle()
+    val panels = homeScreenVM.existingPanels.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val activePanelAssociatedPanelFolders =
         homeScreenVM.activePanelAssociatedPanelFolders.collectAsStateWithLifecycle()
-    val activePanelAssociatedFolders =
-        homeScreenVM.activePanelAssociatedFolders.collectAsStateWithLifecycle().value
-    val activePanelAssociatedFolderLinks =
-        homeScreenVM.activePanelAssociatedFolderLinks.collectAsStateWithLifecycle().value
     val pagerState = rememberPagerState(pageCount = {
         activePanelAssociatedPanelFolders.value.size
     })
     val localUriHandler = LocalUriHandler.current
+    val childFoldersFlat by homeScreenVM.panelFoldersDataFlat.collectAsStateWithLifecycle()
     Scaffold(topBar = {
         Column(
             modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).animateContentSize()
@@ -127,7 +127,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     SortingIconButton()
                 }
             }
-            if (homeScreenVM.selectedPanelData.value != null) {
+            if (homeScreenVM.selectedPanelData != null) {
                 Text(
                     text = Localization.Key.SelectedPanel.rememberLocalizedString(),
                     color = MaterialTheme.colorScheme.primary.copy(0.9f),
@@ -137,14 +137,16 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable(onClick = {
-                        shouldPanelsBtmSheetBeVisible.value = true
-                        coroutineScope.launch {
-                            panelsBtmSheetState.show()
-                        }
-                    }, indication = null, interactionSource = remember {
-                        MutableInteractionSource()
-                    }).pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth()
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                        .clickable(onClick = {
+                            shouldPanelsBtmSheetBeVisible.value = true
+                            coroutineScope.launch {
+                                panelsBtmSheetState.show()
+                            }
+                        }, indication = null, interactionSource = remember {
+                            MutableInteractionSource()
+                        }).pressScaleEffect().pointerHoverIcon(icon = PointerIcon.Hand)
+                        .fillMaxWidth()
                         .padding(start = 5.dp, end = 5.dp),
                 ) {
                     Spacer(Modifier.width(5.dp))
@@ -158,7 +160,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     }
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = homeScreenVM.selectedPanelData.value!!.panelName,
+                        text = homeScreenVM.selectedPanelData!!.panelName,
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleLarge,
                         fontSize = 20.sp,
@@ -168,12 +170,12 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
             }
         }
     }) { paddingValues ->
-        if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value == null) {
+        if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData == null) {
             LoadingScreen(paddingValues = PaddingValues(25.dp))
             return@Scaffold
         }
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData.value != null) {
+            if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData != null) {
                 DataEmptyScreen(text = Localization.Key.NoFoldersInThePanel.rememberLocalizedString())
                 return@Scaffold
             }
@@ -201,8 +203,13 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
             }
             HorizontalDivider()
             HorizontalPager(state = pagerState) { pageIndex ->
+                val panelFolderId =
+                    retain(activePanelAssociatedPanelFolders.value[pageIndex].folderId) {
+                        activePanelAssociatedPanelFolders.value[pageIndex].folderId
+                    }
                 CollectionLayoutManager(
                     screenType = ScreenType.FOLDERS_AND_LINKS,
+                    /*
                     flatChildFolderDataState =  TODO() /*activePanelAssociatedFolders[pageIndex]*/,
                     linksTagsPairsState = TODO()/*TODO: if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
                         when (pageIndex) {
@@ -211,6 +218,9 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                             else -> activePanelAssociatedFolderLinks.getOrNull(1) ?: emptyList()
                         }
                     } else activePanelAssociatedFolderLinks.getOrNull(pageIndex) ?: emptyList()*/,
+                    * */
+                    flatChildFolderDataState = childFoldersFlat[panelFolderId],
+                    linksTagsPairsState = null,
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
                         coroutineScope.pushUIEvent(
@@ -273,8 +283,15 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                     },
                     onTagClick = {},
                     tagMoreIconClick = {},
-                    onRetrieveNextPage = TODO(),
-                    onFirstVisibleItemIndexChange = TODO(),
+                    onRetrieveNextPage = {
+                        homeScreenVM.retrieveNextPage(folderId = panelFolderId)
+                    },
+                    onFirstVisibleItemIndexChange = {
+                        homeScreenVM.onFirstVisibleItemIndexChange(
+                            folderId = panelFolderId,
+                            itemIndex = it
+                        )
+                    },
                     flatSearchResultState = null
                 )
             }
@@ -299,8 +316,8 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                 items(panels.value) { panel ->
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
-                            homeScreenVM.selectedPanelData.value = panel
-                            homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.localId)
+                            homeScreenVM.selectedPanelData = panel
+                            homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData!!)
                             coroutineScope.launch {
                                 panelsBtmSheetState.hide()
                             }.invokeOnCompletion {
@@ -310,10 +327,10 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = homeScreenVM.selectedPanelData.value!!.localId == panel.localId,
+                            selected = homeScreenVM.selectedPanelData!!.localId == panel.localId,
                             onClick = {
-                                homeScreenVM.selectedPanelData.value = panel
-                                homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData.value!!.localId)
+                                homeScreenVM.selectedPanelData = panel
+                                homeScreenVM.updatePanelFolders(homeScreenVM.selectedPanelData!!)
                                 coroutineScope.launch {
                                     panelsBtmSheetState.hide()
                                 }.invokeOnCompletion {
@@ -325,8 +342,8 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         Spacer(Modifier.width(5.dp))
                         Text(
                             text = panel.panelName,
-                            style = if (homeScreenVM.selectedPanelData.value!!.localId == panel.localId) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
-                            color = if (homeScreenVM.selectedPanelData.value!!.localId == panel.localId) LocalContentColor.current else LocalContentColor.current.copy(
+                            style = if (homeScreenVM.selectedPanelData!!.localId == panel.localId) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall,
+                            color = if (homeScreenVM.selectedPanelData!!.localId == panel.localId) LocalContentColor.current else LocalContentColor.current.copy(
                                 0.85f
                             )
                         )
