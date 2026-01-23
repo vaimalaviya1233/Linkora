@@ -21,7 +21,7 @@ import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.utils.LinkoraExports
 import com.sakethh.linkora.utils.catchAsThrowableAndEmitFailure
-import com.sakethh.linkora.utils.isNull
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -60,31 +60,34 @@ class ImportDataRepoImpl(
             } catch (_: Exception) {
                 false
             }
+
+            val currentSystemEpochSeconds = getSystemEpochSeconds()
+
             val deserializedData = if (basedOnNewExportSchema.not()) {
                 Json.decodeFromString<LegacyExportSchema>(rawImportString).asJSONExportSchema()
-            } else rawImportString.run {
-                json.decodeFromString<JSONExportSchema>(this)
-            }.run {
-                JSONExportSchema(
-                    schemaVersion = schemaVersion,
-                    links = links.map {
-                        it.copy(remoteId = null, lastModified = 0)
-                    },
-                    folders = folders.map {
-                        it.copy(remoteId = null, lastModified = 0)
-                    },
-                    panels = PanelForJSONExportSchema(panels = panels.panels.map {
-                        it.copy(remoteId = null, lastModified = 0)
-                    }, panelFolders = panels.panelFolders.map {
-                        it.copy(remoteId = null, lastModified = 0)
-                    }),
-                    tags = tags.map { it.copy(remoteId = null, lastModified = 0) },
-                    linkTags = linkTags.map { it.copy(remoteId = null, lastModified = 0) })
+            } else json.decodeFromString<JSONExportSchema>(rawImportString).run {
+                JSONExportSchema(schemaVersion = schemaVersion, links = links.map {
+                    it.copy(remoteId = null, lastModified = currentSystemEpochSeconds)
+                }, folders = folders.map {
+                    it.copy(remoteId = null, lastModified = currentSystemEpochSeconds)
+                }, panels = PanelForJSONExportSchema(panels = panels.panels.map {
+                    it.copy(remoteId = null, lastModified = currentSystemEpochSeconds)
+                }, panelFolders = panels.panelFolders.map {
+                    it.copy(remoteId = null, lastModified = currentSystemEpochSeconds)
+                }), tags = tags.map {
+                    it.copy(
+                        remoteId = null, lastModified = currentSystemEpochSeconds
+                    )
+                }, linkTags = linkTags.map {
+                    it.copy(
+                        remoteId = null, lastModified = currentSystemEpochSeconds
+                    )
+                })
             }
 
             send(
                 Result.Loading(
-                    message = if (basedOnNewExportSchema.not()) {
+                    message = if (!basedOnNewExportSchema) {
                         "This JSON file is based on the legacy export schema (v${deserializedData.schemaVersion})."
                     } else {
                         "This JSON file is based on schema version ${deserializedData.schemaVersion}."
@@ -281,14 +284,12 @@ class ImportDataRepoImpl(
     private val foldersNameStackForRetrievingDataFromHTML = Stack<String>()
 
     private suspend fun <T> SendChannel<Result<T>>.retrieveDataFromHTML(element: Element?) {
-        if (element.isNull()) {
+        if (element == null) {
             send(Result.Loading(message = "No HTML element to process"))
             return
         }
 
-        // `element!!` is safe here because we've already checked `element.isNull()` and won't reach this point if it's null
-
-        element!!.children().filter { child -> child.`is`("dt") }.forEach { filteredDtElement ->
+        element.children().filter { child -> child.`is`("dt") }.forEach { filteredDtElement ->
             filteredDtElement.children().forEach { filteredDtChildElement ->
                 when {
                     filteredDtChildElement.`is`("a") -> {
