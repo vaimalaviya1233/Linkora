@@ -545,7 +545,7 @@ fun CollectionDetailPane(
                 },
                 nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection,
                 emptyDataText = if (currentTag != null) Localization.Key.NoAttachmentsToTags.rememberLocalizedString() else if (currentFolder?.localId in listOf(
-                        Constants.SAVED_LINKS_ID, Constants.IMPORTANT_LINKS_ID
+                        Constants.SAVED_LINKS_ID, Constants.IMPORTANT_LINKS_ID, Constants.ALL_LINKS_ID
                     )
                 ) Localization.Key.NoLinksFound.rememberLocalizedString() else "",
                 onAttachedTagClick = {

@@ -464,6 +464,14 @@ fun CollectionLayoutManager(
                     }
                 }
 
+                item(span = {
+                    GridItemSpan(this.maxLineSpan)
+                }) {
+                    AnimatedVisibility(!showLoading && isDataEmpty) {
+                        DataEmptyScreen(text = emptyDataText)
+                    }
+                }
+
                 if (pagesCompleted) {
                     item(span = {
                         GridItemSpan(this.maxLineSpan)
@@ -583,6 +591,13 @@ fun CollectionLayoutManager(
                         }
                     }
                 }
+
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    AnimatedVisibility(!showLoading && isDataEmpty) {
+                        DataEmptyScreen(text = emptyDataText)
+                    }
+                }
+
                 if (pagesCompleted) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Spacer(Modifier.height(bottomSpacing.value))
