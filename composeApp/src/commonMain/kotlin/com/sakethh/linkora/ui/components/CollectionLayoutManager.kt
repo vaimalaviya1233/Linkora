@@ -1,5 +1,6 @@
 package com.sakethh.linkora.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -27,8 +28,11 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +55,7 @@ import com.sakethh.linkora.ui.domain.ScreenType
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkComponentParam
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
+import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.collections.CollectionsScreenVM
 import com.sakethh.linkora.utils.Constants
 import kotlinx.coroutines.flow.collectLatest
@@ -124,6 +129,79 @@ fun CollectionLayoutManager(
     val bottomSpacing = remember {
         mutableStateOf(250.dp)
     }
+
+    val isDataEmpty by rememberSaveable(
+        linksTagsPairsState,
+        flatChildFolderDataState,
+        flatSearchResultState
+    ) {
+        mutableStateOf(
+            when (screenType) {
+                ScreenType.LINKS_ONLY -> {
+                    linksTagsPairsState?.data?.isEmpty() == true || linksTagsPairsState?.data?.values?.first()
+                        ?.isEmpty() == true
+                }
+
+                ScreenType.FOLDERS_AND_LINKS -> {
+                    flatChildFolderDataState?.data?.isEmpty() == true || flatChildFolderDataState?.data?.values?.first()
+                        ?.isEmpty() == true
+                }
+
+                ScreenType.TAGS_FOLDERS_LINKS -> {
+                    flatSearchResultState?.data?.isEmpty() == true || flatSearchResultState?.data?.values?.first()
+                        ?.isEmpty() == true
+                }
+            }
+        )
+    }
+
+    val pagesCompleted by rememberSaveable(
+        linksTagsPairsState,
+        flatChildFolderDataState,
+        flatSearchResultState
+    ) {
+        mutableStateOf(
+            when (screenType) {
+                ScreenType.LINKS_ONLY -> linksTagsPairsState?.pagesCompleted == true && !linksTagsPairsState.isRetrieving
+
+                ScreenType.FOLDERS_AND_LINKS -> flatChildFolderDataState?.pagesCompleted == true && !flatChildFolderDataState.isRetrieving
+
+                ScreenType.TAGS_FOLDERS_LINKS -> flatSearchResultState?.pagesCompleted == true && !flatSearchResultState.isRetrieving
+            }
+        )
+    }
+
+    val showLoading by rememberSaveable(
+        linksTagsPairsState,
+        flatChildFolderDataState,
+        flatSearchResultState
+    ) {
+        mutableStateOf(
+            !pagesCompleted
+            // The moment it tries to show the indicator, the data gets loaded; we need to display this consistently to indicate that the data has indeed been loaded
+            /* when (screenType) {
+                    ScreenType.LINKS_ONLY -> {
+                        linksTagsPairsState?.isRetrieving ?: false
+                    }
+
+                    ScreenType.FOLDERS_AND_LINKS -> flatChildFolderDataState?.isRetrieving ?: false
+                    ScreenType.TAGS_FOLDERS_LINKS -> flatSearchResultState?.isRetrieving ?: false
+                }*/
+        )
+    }
+
+    val loadingIndicatorModifier = retain(isDataEmpty) {
+        Modifier.then(if (!isDataEmpty) Modifier.padding(top = 25.dp) else Modifier)
+            .fillMaxWidth()
+            .then(
+                if (!isDataEmpty) Modifier.padding(
+                    start = 15.dp,
+                    end = 15.dp,
+                    bottom = 150.dp
+                ) else Modifier.fillMaxHeight()
+            )
+    }
+
     val folderComponentParam: (folder: Folder) -> FolderComponentParam = {
         FolderComponentParam(
             name = it.name,
@@ -253,28 +331,26 @@ fun CollectionLayoutManager(
                         }
                     }
                 }
-                /* TODO:
-                                item {
-                                    if (!linksTagsPairsState.isRetrieving && isDataEmpty) {
-                                        DataEmptyScreen(text = emptyDataText)
-                                    }
-                                }
-                                item {
-                                    if (!linksTagsPairsState.pagesCompleted) {
-                                        Box(
-                                            modifier = Modifier.fillMaxWidth()
-                                                .padding(15.dp).padding(15.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            ContainedLoadingIndicator()
-                                        }
-                                    }
-                                }
-                                item {
-                                    if (!linksTagsPairsState.isRetrieving) {
-                                        Spacer(Modifier.height(bottomSpacing.value))
-                                    }
-                                }*/
+                item {
+                    AnimatedVisibility(!showLoading && isDataEmpty) {
+                        DataEmptyScreen(text = emptyDataText)
+                    }
+                }
+                item {
+                    AnimatedVisibility(showLoading) {
+                        Box(
+                            modifier = loadingIndicatorModifier,
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ContainedLoadingIndicator()
+                        }
+                    }
+                }
+                item {
+                    AnimatedVisibility(!showLoading) {
+                        Spacer(Modifier.height(bottomSpacing.value))
+                    }
+                }
             }
 
             LaunchedEffect(Unit) {
@@ -305,11 +381,11 @@ fun CollectionLayoutManager(
                 if (screenType == ScreenType.TAGS_FOLDERS_LINKS) {
                     flatSearchResultState?.data?.forEach { (pageKey, searchResults) ->
                         items(items = searchResults, span = {
-                            if (it.itemType != Constants.LINK) {
-                                GridItemSpan(this.maxLineSpan)
-                            } else {
-                                GridItemSpan(this.maxLineSpan)
-                            }
+                            if (it.itemType != Constants.LINK) GridItemSpan(
+                                this.maxLineSpan
+                            ) else GridItemSpan(
+                                1
+                            )
                         }, key = {
                             "CollectionLayoutManager-LazyVerticalGrid-flatSearchResultState-P$pageKey-ID-L${it.linkLocalId}-F${it.folderLocalId}-T${it.tagLocalId}"
                         }) {
@@ -336,7 +412,9 @@ fun CollectionLayoutManager(
                 if (screenType == ScreenType.FOLDERS_AND_LINKS) {
                     flatChildFolderDataState?.data?.forEach { (pageIndex, folders) ->
                         items(items = folders, span = {
-                            GridItemSpan(this.maxLineSpan)
+                            if (it.itemType == Constants.FOLDER) GridItemSpan(this.maxLineSpan) else GridItemSpan(
+                                1
+                            )
                         }, key = {
                             "CollectionLayoutManager-LazyVerticalGrid-flatChildFolderDataState-P$pageIndex-ID${it.linkLocalId}${it.folderLocalId}"
                         }) {
@@ -352,13 +430,13 @@ fun CollectionLayoutManager(
                     }
                 }
 
-                /*TODO: if (isFoldersStateEmpty) {
+                if (isDataEmpty) {
                     item(span = {
                         GridItemSpan(this.maxLineSpan)
                     }) {
                         Spacer(Modifier.height(10.dp))
                     }
-                }*/
+                }
 
                 if (screenType == ScreenType.LINKS_ONLY) {
                     linksTagsPairsState?.data?.forEach { (pageKey, linkTagsPairs) ->
@@ -373,26 +451,26 @@ fun CollectionLayoutManager(
                     }
                 }
 
-                /* TODO:     if (!linksTagsPairsState.pagesCompleted) {
-                        item(span = {
-                            GridItemSpan(this.maxLineSpan)
-                        }) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth().padding(15.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                ContainedLoadingIndicator()
-                            }
+                if (showLoading) {
+                    item(span = {
+                        GridItemSpan(this.maxLineSpan)
+                    }) {
+                        Box(
+                            modifier = loadingIndicatorModifier,
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ContainedLoadingIndicator()
                         }
                     }
+                }
 
-                   if (linksTagsPairsState.pagesCompleted) {
-                        item(span = {
-                            GridItemSpan(this.maxLineSpan)
-                        }) {
-                            Spacer(Modifier.height(bottomSpacing.value))
-                        }
-                    }*/
+                if (pagesCompleted) {
+                    item(span = {
+                        GridItemSpan(this.maxLineSpan)
+                    }) {
+                        Spacer(Modifier.height(bottomSpacing.value))
+                    }
+                }
             }
             LaunchedEffect(Unit) {
                 snapshotFlow {
@@ -448,15 +526,21 @@ fun CollectionLayoutManager(
                         }
                     }
                 }
-                /*TODO: if (tags.isNotEmpty()) {
+                if (!isDataEmpty) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Spacer(Modifier.height(10.dp))
                     }
-                }*/
+                }
 
                 if (screenType == ScreenType.FOLDERS_AND_LINKS) {
                     flatChildFolderDataState?.data?.forEach { (pageKey, folders) ->
-                        items(items = folders, span = { StaggeredGridItemSpan.FullLine }, key = {
+                        items(items = folders, span = {
+                            if (it.itemType != Constants.LINK) {
+                                StaggeredGridItemSpan.FullLine
+                            } else {
+                                StaggeredGridItemSpan.SingleLane
+                            }
+                        }, key = {
                             "CollectionLayoutManager-LazyVerticalStaggeredGrid-flatChildFolderDataState-P$pageKey-ID${it.linkLocalId}${it.folderLocalId}"
                         }) {
                             if (it.itemType == Constants.FOLDER) {
@@ -471,11 +555,11 @@ fun CollectionLayoutManager(
                     }
                 }
 
-                /*TODO: if (isFoldersStateEmpty) {
+                if (isDataEmpty) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Spacer(Modifier.height(10.dp))
                     }
-                }*/
+                }
                 if (screenType == ScreenType.LINKS_ONLY) {
                     linksTagsPairsState?.data?.forEach { (pageKey, linkTagsPairs) ->
                         items(linkTagsPairs, key = {
@@ -489,24 +573,21 @@ fun CollectionLayoutManager(
                     }
                 }
 
-                /*TOOD: if (!linksTagsPairsState.pagesCompleted) {
+                if (showLoading) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Box(
-                            modifier = Modifier.then(
-                                if (!isDataEmpty) Modifier.fillMaxWidth()
-                                    .padding(15.dp) else Modifier.fillMaxHeight()
-                            ).padding(15.dp),
+                            modifier = loadingIndicatorModifier,
                             contentAlignment = Alignment.Center
                         ) {
                             ContainedLoadingIndicator()
                         }
                     }
                 }
-                if (linksTagsPairsState.pagesCompleted) {
+                if (pagesCompleted) {
                     item(span = StaggeredGridItemSpan.FullLine) {
                         Spacer(Modifier.height(bottomSpacing.value))
                     }
-                }*/
+                }
             }
 
             LaunchedEffect(Unit) {
