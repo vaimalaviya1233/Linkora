@@ -2,7 +2,7 @@ package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.PanelsDao
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
@@ -59,7 +59,7 @@ class LocalPanelsRepoImpl(
 
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
+                        operation = SyncServerRoute.ADD_A_NEW_PANEL.name,
                         payload = Json.encodeToString(
                             AddANewPanelDTO(
                                 panel.panelName,
@@ -96,7 +96,7 @@ class LocalPanelsRepoImpl(
                 if (remotePanelId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
-                            operation = RemoteRoute.Panel.DELETE_A_PANEL.name,
+                            operation = SyncServerRoute.DELETE_A_PANEL.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
                                     id = remotePanelId, eventTimestamp = eventTimestamp
@@ -133,7 +133,7 @@ class LocalPanelsRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
+                        operation = SyncServerRoute.UPDATE_A_PANEL_NAME.name,
                         payload = Json.encodeToString(
                             UpdatePanelNameDTO(
                                 newName, panelId, eventTimestamp = eventTimestamp
@@ -192,7 +192,7 @@ class LocalPanelsRepoImpl(
 
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                        operation = SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
                         payload = Json.encodeToString(
                             AddANewPanelFolderDTO(
                                 folderId = panelFolder.folderId,
@@ -249,7 +249,7 @@ class LocalPanelsRepoImpl(
                 if (remotePanelId != null && remoteFolderId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
-                            operation = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
+                            operation = SyncServerRoute.DELETE_A_FOLDER_FROM_A_PANEL.name,
                             payload = Json.encodeToString(
                                 DeleteAFolderFromAPanelDTO(
                                     panelId = remotePanelId,

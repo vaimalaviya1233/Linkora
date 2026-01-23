@@ -2,7 +2,7 @@ package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.utils.postFlow
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
@@ -24,7 +24,7 @@ class RemoteMultiActionRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name,
+            endPoint = SyncServerRoute.ARCHIVE_MULTIPLE_ITEMS.name,
             outgoingBody = archiveMultipleItemsDTO
         )
     }
@@ -34,7 +34,7 @@ class RemoteMultiActionRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
+            endPoint = SyncServerRoute.DELETE_MULTIPLE_ITEMS.name,
             outgoingBody = deleteMultipleItemsDTO
         )
     }
@@ -44,7 +44,7 @@ class RemoteMultiActionRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name,
+            endPoint = SyncServerRoute.MOVE_EXISTING_ITEMS.name,
             outgoingBody = moveItemsDTO
         )
     }
@@ -54,7 +54,7 @@ class RemoteMultiActionRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name,
+            endPoint = SyncServerRoute.COPY_EXISTING_ITEMS.name,
             outgoingBody = copyItemsDTO
         )
     }
@@ -64,7 +64,7 @@ class RemoteMultiActionRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name,
+            endPoint = SyncServerRoute.UNARCHIVE_MULTIPLE_ITEMS.name,
             outgoingBody = markItemsRegularDTO
         )
     }

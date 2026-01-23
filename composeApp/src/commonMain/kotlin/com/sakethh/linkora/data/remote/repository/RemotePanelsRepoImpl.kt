@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.utils.postFlow
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
@@ -24,7 +24,7 @@ class RemotePanelsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
+            endPoint = SyncServerRoute.ADD_A_NEW_PANEL.name,
             outgoingBody = addANewPanelDTO
         )
     }
@@ -34,7 +34,7 @@ class RemotePanelsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+            endPoint = SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
             outgoingBody = addANewPanelFolderDTO
         )
     }
@@ -44,7 +44,7 @@ class RemotePanelsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Panel.DELETE_A_PANEL.name,
+            endPoint = SyncServerRoute.DELETE_A_PANEL.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -54,7 +54,7 @@ class RemotePanelsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
+            endPoint = SyncServerRoute.UPDATE_A_PANEL_NAME.name,
             outgoingBody = updatePanelNameDTO
         )
     }
@@ -64,7 +64,7 @@ class RemotePanelsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
+            endPoint = SyncServerRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -74,7 +74,7 @@ class RemotePanelsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
+            endPoint = SyncServerRoute.DELETE_A_FOLDER_FROM_A_PANEL.name,
             outgoingBody = deleteAFolderFromAPanelDTO
         )
     }

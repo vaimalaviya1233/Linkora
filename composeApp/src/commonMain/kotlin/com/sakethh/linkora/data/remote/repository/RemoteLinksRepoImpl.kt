@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data.remote.repository
 
 import com.sakethh.linkora.utils.postFlow
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
@@ -25,7 +25,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+            endPoint = SyncServerRoute.CREATE_A_NEW_LINK.name,
             outgoingBody = addLinkDTO
         )
     }
@@ -35,7 +35,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.DELETE_A_LINK.name,
+            endPoint = SyncServerRoute.DELETE_A_LINK.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -47,7 +47,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
+            endPoint = SyncServerRoute.UPDATE_LINK_TITLE.name,
             outgoingBody = updateTitleOfTheLinkDTO
         )
     }
@@ -59,7 +59,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
+            endPoint = SyncServerRoute.UPDATE_LINK_NOTE.name,
             outgoingBody = updateNoteOfALinkDTO
         )
     }
@@ -69,7 +69,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.ARCHIVE_LINK.name,
+            endPoint = SyncServerRoute.ARCHIVE_LINK.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -79,7 +79,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.UNARCHIVE_LINK.name,
+            endPoint = SyncServerRoute.UNARCHIVE_LINK.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -89,7 +89,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.MARK_AS_IMP.name,
+            endPoint = SyncServerRoute.MARK_AS_IMP.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -99,7 +99,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.UNMARK_AS_IMP.name,
+            endPoint = SyncServerRoute.UNMARK_AS_IMP.name,
             outgoingBody = idBasedDTO
         )
     }
@@ -109,7 +109,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.UPDATE_LINK.name,
+            endPoint = SyncServerRoute.UPDATE_LINK.name,
             outgoingBody = linkDTO
         )
     }
@@ -119,7 +119,7 @@ class RemoteLinksRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
+            endPoint = SyncServerRoute.DELETE_DUPLICATE_LINKS.name,
             outgoingBody = deleteDuplicateLinksDTO
         )
     }

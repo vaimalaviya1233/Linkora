@@ -1,6 +1,6 @@
 package com.sakethh.linkora.data.remote.repository
 
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.NewItemResponseDTO
@@ -22,7 +22,7 @@ class RemoteTagsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Tag.CREATE_TAG.name,
+            endPoint = SyncServerRoute.CREATE_TAG.name,
             outgoingBody = createTagDTO
         )
     }
@@ -32,7 +32,7 @@ class RemoteTagsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Tag.RENAME_TAG.name,
+            endPoint = SyncServerRoute.RENAME_TAG.name,
             outgoingBody = renameTagDTO,
         )
     }
@@ -42,7 +42,7 @@ class RemoteTagsRepoImpl(
             syncServerClient = syncServerClient,
             baseUrl = baseUrl,
             authToken = authToken,
-            endPoint = RemoteRoute.Tag.DELETE_TAG.name,
+            endPoint = SyncServerRoute.DELETE_TAG.name,
             outgoingBody = idBasedDTO,
         )
     }

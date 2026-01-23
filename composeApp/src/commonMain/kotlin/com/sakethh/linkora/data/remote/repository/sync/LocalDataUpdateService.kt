@@ -3,7 +3,7 @@ package com.sakethh.linkora.data.remote.repository.sync
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsSocketResponseDTO
@@ -72,7 +72,7 @@ class LocalDataUpdateService(
     ) {
         when (deserializedWebSocketEvent.operation) {
 
-            RemoteRoute.Folder.UPDATE_FOLDER.name -> {
+            SyncServerRoute.UPDATE_FOLDER.name -> {
                 val folderDTO =
                     json.decodeFromJsonElement<FolderDTO>(deserializedWebSocketEvent.payload)
                 if (folderDTO.correlation.isSameAsCurrentClient()) {
@@ -97,9 +97,9 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Tag.CREATE_TAG.name -> {
+            SyncServerRoute.CREATE_TAG.name -> {
                 val tagDto =
-                    Json.Default.decodeFromJsonElement<TagDTO>(deserializedWebSocketEvent.payload)
+                    Json.decodeFromJsonElement<TagDTO>(deserializedWebSocketEvent.payload)
                 if (tagDto.correlation.isSameAsCurrentClient()) {
                     preferencesRepository.updateLastSyncedWithServerTimeStamp(tagDto.eventTimestamp)
                     return
@@ -113,9 +113,9 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(tagDto.eventTimestamp)
             }
 
-            RemoteRoute.Tag.DELETE_TAG.name -> {
+            SyncServerRoute.DELETE_TAG.name -> {
                 val iDBasedDTO =
-                    Json.Default.decodeFromJsonElement<IDBasedDTO>(deserializedWebSocketEvent.payload)
+                    Json.decodeFromJsonElement<IDBasedDTO>(deserializedWebSocketEvent.payload)
                 if (iDBasedDTO.correlation.isSameAsCurrentClient()) {
                     preferencesRepository.updateLastSyncedWithServerTimeStamp(iDBasedDTO.eventTimestamp)
                     return
@@ -125,9 +125,9 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(iDBasedDTO.eventTimestamp)
             }
 
-            RemoteRoute.Tag.RENAME_TAG.name -> {
+            SyncServerRoute.RENAME_TAG.name -> {
                 val renameTagDTO =
-                    Json.Default.decodeFromJsonElement<RenameTagDTO>(deserializedWebSocketEvent.payload)
+                    Json.decodeFromJsonElement<RenameTagDTO>(deserializedWebSocketEvent.payload)
                 if (renameTagDTO.correlation.isSameAsCurrentClient()) {
                     preferencesRepository.updateLastSyncedWithServerTimeStamp(renameTagDTO.eventTimestamp)
                     return
@@ -139,9 +139,9 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(renameTagDTO.eventTimestamp)
             }
 
-            RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name -> {
+            SyncServerRoute.COPY_EXISTING_ITEMS.name -> {
                 val copyItemsSocketResponseDTO =
-                    Json.Default.decodeFromJsonElement<CopyItemsSocketResponseDTO>(
+                    Json.decodeFromJsonElement<CopyItemsSocketResponseDTO>(
                         deserializedWebSocketEvent.payload
                     )
                 if (copyItemsSocketResponseDTO.correlation.isSameAsCurrentClient()) {
@@ -156,8 +156,8 @@ class LocalDataUpdateService(
                     )
             }
 
-            RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name -> {
-                val markItemsRegularDTO = Json.Default.decodeFromJsonElement<MarkItemsRegularDTO>(
+            SyncServerRoute.UNARCHIVE_MULTIPLE_ITEMS.name -> {
+                val markItemsRegularDTO = Json.decodeFromJsonElement<MarkItemsRegularDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (markItemsRegularDTO.correlation.isSameAsCurrentClient()) {
@@ -175,8 +175,8 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(markItemsRegularDTO.eventTimestamp)
             }
 
-            RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name -> {
-                val deleteEverythingDTO = Json.Default.decodeFromJsonElement<DeleteEverythingDTO>(
+            SyncServerRoute.DELETE_EVERYTHING.name -> {
+                val deleteEverythingDTO = Json.decodeFromJsonElement<DeleteEverythingDTO>(
                     deserializedWebSocketEvent.payload
                 )
                 if (deleteEverythingDTO.correlation.isSameAsCurrentClient()) {
@@ -190,9 +190,9 @@ class LocalDataUpdateService(
                 )
             }
 
-            RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name -> {
+            SyncServerRoute.DELETE_MULTIPLE_ITEMS.name -> {
                 val deleteMultipleItemsDTO =
-                    Json.Default.decodeFromJsonElement<DeleteMultipleItemsDTO>(
+                    Json.decodeFromJsonElement<DeleteMultipleItemsDTO>(
                         deserializedWebSocketEvent.payload
                     )
 
@@ -211,9 +211,9 @@ class LocalDataUpdateService(
                     .collectAndUpdateTimestamp(deleteMultipleItemsDTO.eventTimestamp)
             }
 
-            RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name -> {
+            SyncServerRoute.MOVE_EXISTING_ITEMS.name -> {
                 val moveItemsDTO =
-                    Json.Default.decodeFromJsonElement<MoveItemsDTO>(deserializedWebSocketEvent.payload)
+                    Json.decodeFromJsonElement<MoveItemsDTO>(deserializedWebSocketEvent.payload)
 
                 if (moveItemsDTO.correlation.isSameAsCurrentClient()) {
                     preferencesRepository.updateLastSyncedWithServerTimeStamp(
@@ -236,9 +236,9 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(moveItemsDTO.eventTimestamp)
             }
 
-            RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name -> {
+            SyncServerRoute.ARCHIVE_MULTIPLE_ITEMS.name -> {
                 val archiveMoveItemsDTO =
-                    Json.Default.decodeFromJsonElement<ArchiveMultipleItemsDTO>(
+                    Json.decodeFromJsonElement<ArchiveMultipleItemsDTO>(
                         deserializedWebSocketEvent.payload
                     )
 
@@ -256,9 +256,9 @@ class LocalDataUpdateService(
                 }, viaSocket = true).collectAndUpdateTimestamp(archiveMoveItemsDTO.eventTimestamp)
             }
 
-            RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name -> {
+            SyncServerRoute.MARK_FOLDERS_AS_ROOT.name -> {
                 val markSelectedFoldersAsRootDTO =
-                    Json.Default.decodeFromJsonElement<MarkSelectedFoldersAsRootDTO>(
+                    Json.decodeFromJsonElement<MarkSelectedFoldersAsRootDTO>(
                         deserializedWebSocketEvent.payload
                     )
                 if (markSelectedFoldersAsRootDTO.correlation.isSameAsCurrentClient()) {
@@ -274,9 +274,9 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(markSelectedFoldersAsRootDTO.eventTimestamp)
             }
 
-            RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name -> {
+            SyncServerRoute.DELETE_DUPLICATE_LINKS.name -> {
                 val deleteDuplicateLinksDTO =
-                    Json.Default.decodeFromJsonElement<DeleteDuplicateLinksDTO>(
+                    Json.decodeFromJsonElement<DeleteDuplicateLinksDTO>(
                         deserializedWebSocketEvent.payload
                     )
 
@@ -294,7 +294,7 @@ class LocalDataUpdateService(
 
             // folders:
 
-            RemoteRoute.Folder.CREATE_FOLDER.name -> {
+            SyncServerRoute.CREATE_FOLDER.name -> {
                 val folderDto = json.decodeFromJsonElement<FolderDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -316,7 +316,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(folderDto.eventTimestamp)
             }
 
-            RemoteRoute.Folder.DELETE_FOLDER.name -> {
+            SyncServerRoute.DELETE_FOLDER.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -332,7 +332,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name -> {
+            SyncServerRoute.MARK_FOLDER_AS_ARCHIVE.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -349,7 +349,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name -> {
+            SyncServerRoute.MARK_AS_REGULAR_FOLDER.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -366,7 +366,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Folder.UPDATE_FOLDER_NAME.name -> {
+            SyncServerRoute.UPDATE_FOLDER_NAME.name -> {
                 val updateFolderNameDTO = json.decodeFromJsonElement<UpdateFolderNameDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -394,7 +394,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Folder.UPDATE_FOLDER_NOTE.name -> {
+            SyncServerRoute.UPDATE_FOLDER_NOTE.name -> {
                 val updateFolderNoteDTO = json.decodeFromJsonElement<UpdateFolderNoteDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -421,7 +421,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Folder.DELETE_FOLDER_NOTE.name -> {
+            SyncServerRoute.DELETE_FOLDER_NOTE.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -446,7 +446,7 @@ class LocalDataUpdateService(
 
             // links:
 
-            RemoteRoute.Link.UPDATE_LINK_TITLE.name -> {
+            SyncServerRoute.UPDATE_LINK_TITLE.name -> {
                 val updateTitleOfTheLinkDTO = json.decodeFromJsonElement<UpdateTitleOfTheLinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -466,7 +466,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.UPDATE_LINK_NOTE.name -> {
+            SyncServerRoute.UPDATE_LINK_NOTE.name -> {
                 val updateNoteOfALinkDTO = json.decodeFromJsonElement<UpdateNoteOfALinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -484,7 +484,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.DELETE_A_LINK.name -> {
+            SyncServerRoute.DELETE_A_LINK.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -501,7 +501,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.ARCHIVE_LINK.name -> {
+            SyncServerRoute.ARCHIVE_LINK.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -518,7 +518,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.UNARCHIVE_LINK.name -> {
+            SyncServerRoute.UNARCHIVE_LINK.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -539,7 +539,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.MARK_AS_IMP.name -> {
+            SyncServerRoute.MARK_AS_IMP.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -561,7 +561,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.UNMARK_AS_IMP.name -> {
+            SyncServerRoute.UNMARK_AS_IMP.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -579,7 +579,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.UPDATE_LINK.name -> {
+            SyncServerRoute.UPDATE_LINK.name -> {
                 val linkDTO = json.decodeFromJsonElement<LinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -614,7 +614,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Link.CREATE_A_NEW_LINK.name -> {
+            SyncServerRoute.CREATE_A_NEW_LINK.name -> {
                 val linkDTO = json.decodeFromJsonElement<LinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -648,7 +648,7 @@ class LocalDataUpdateService(
 
             // panels:
 
-            RemoteRoute.Panel.ADD_A_NEW_PANEL.name -> {
+            SyncServerRoute.ADD_A_NEW_PANEL.name -> {
                 val panelDTO =
                     json.decodeFromJsonElement<PanelDTO>(deserializedWebSocketEvent.payload)
 
@@ -666,7 +666,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(panelDTO.eventTimestamp)
             }
 
-            RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
+            SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
                 val panelFolderDTO = json.decodeFromJsonElement<PanelFolderDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -692,7 +692,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Panel.DELETE_A_PANEL.name -> {
+            SyncServerRoute.DELETE_A_PANEL.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -711,7 +711,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name -> {
+            SyncServerRoute.UPDATE_A_PANEL_NAME.name -> {
                 val updatePanelNameDTO = json.decodeFromJsonElement<UpdatePanelNameDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -731,7 +731,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name -> {
+            SyncServerRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -748,7 +748,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            RemoteRoute.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
+            SyncServerRoute.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
                 val deleteAFolderFromAPanelDTO =
                     json.decodeFromJsonElement<DeleteAFolderFromAPanelDTO>(
                         deserializedWebSocketEvent.payload

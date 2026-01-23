@@ -1,13 +1,12 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.data.local.dao.TagsDao
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.tag.CreateTagDTO
 import com.sakethh.linkora.domain.dto.server.tag.RenameTagDTO
 import com.sakethh.linkora.domain.mapToResultFlow
-import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.PendingSyncQueue
 import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.tag.Tag
@@ -56,7 +55,7 @@ class LocalTagsRepoImpl(
 
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Tag.CREATE_TAG.name, payload = Json.encodeToString(
+                        operation = SyncServerRoute.CREATE_TAG.name, payload = Json.encodeToString(
                             CreateTagDTO(
                                 name = tag.name,
                                 eventTimestamp = eventTimestamp,
@@ -108,7 +107,7 @@ class LocalTagsRepoImpl(
                 if (tag.remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
-                            operation = RemoteRoute.Tag.DELETE_TAG.name,
+                            operation = SyncServerRoute.DELETE_TAG.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
                                     id = tag.remoteId, eventTimestamp = eventTimestamp
@@ -154,7 +153,7 @@ class LocalTagsRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Tag.RENAME_TAG.name, payload = Json.encodeToString(
+                        operation = SyncServerRoute.RENAME_TAG.name, payload = Json.encodeToString(
                             RenameTagDTO(
                                 newName = newName, id = tag.localId, eventTimestamp = eventTimestamp
                             )

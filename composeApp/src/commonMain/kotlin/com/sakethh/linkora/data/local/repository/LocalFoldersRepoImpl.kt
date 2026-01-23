@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.data.local.dao.FoldersDao
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.asFolderDTO
@@ -68,7 +68,7 @@ class LocalFoldersRepoImpl(
 
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Folder.CREATE_FOLDER.name,
+                        operation = SyncServerRoute.CREATE_FOLDER.name,
                         payload = Json.encodeToString(
                             folder.asAddFolderDTO().copy(
                                 offlineSyncItemId = newLocalId!!
@@ -211,7 +211,7 @@ class LocalFoldersRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Folder.MARK_FOLDER_AS_ARCHIVE.name,
+                        operation = SyncServerRoute.MARK_FOLDER_AS_ARCHIVE.name,
                         payload = Json.encodeToString(
                             IDBasedDTO(
                                 folderID, eventTimestamp
@@ -248,7 +248,7 @@ class LocalFoldersRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Folder.MARK_AS_REGULAR_FOLDER.name,
+                        operation = SyncServerRoute.MARK_AS_REGULAR_FOLDER.name,
                         payload = Json.encodeToString(
                             value = IDBasedDTO(
                                 folderID, eventTimestamp
@@ -290,7 +290,7 @@ class LocalFoldersRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Folder.UPDATE_FOLDER.name,
+                        operation = SyncServerRoute.UPDATE_FOLDER.name,
                         payload = Json.encodeToString(
                             value = folder.copy(lastModified = eventTimestamp)
                         )
@@ -319,7 +319,7 @@ class LocalFoldersRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Folder.DELETE_FOLDER_NOTE.name,
+                        operation = SyncServerRoute.DELETE_FOLDER_NOTE.name,
                         payload = Json.encodeToString(
                             value = IDBasedDTO(
                                 folderID, eventTimestamp
@@ -351,7 +351,7 @@ class LocalFoldersRepoImpl(
                 if (remoteFolderId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
-                            operation = RemoteRoute.Folder.DELETE_FOLDER.name,
+                            operation = SyncServerRoute.DELETE_FOLDER.name,
                             payload = Json.encodeToString(
                                 value = IDBasedDTO(
                                     remoteFolderId, eventTimestamp
@@ -417,7 +417,7 @@ class LocalFoldersRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Folder.MARK_FOLDERS_AS_ROOT.name,
+                        operation = SyncServerRoute.MARK_FOLDERS_AS_ROOT.name,
                         payload = Json.encodeToString(
                             MarkSelectedFoldersAsRootDTO(
                                 folderIds = folderIDs, eventTimestamp = eventTimestamp

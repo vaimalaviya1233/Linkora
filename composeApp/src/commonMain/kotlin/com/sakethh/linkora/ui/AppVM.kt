@@ -16,7 +16,7 @@ import androidx.lifecycle.viewModelScope
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.data.local.repository.SnapshotRepoImpl
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.asLinkType
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
@@ -228,7 +228,7 @@ class AppVM(
                 isPerformingStartupSync = true
                 // REFACTOR: NESTED collectLatest
                 networkRepo.testServerConnection(
-                    serverUrl = AppPreferences.serverBaseUrl.value + RemoteRoute.SyncInLocalRoute.TEST_BEARER.name,
+                    serverUrl = AppPreferences.serverBaseUrl.value + SyncServerRoute.TEST_BEARER.name,
                     token = AppPreferences.serverSecurityToken.value
                 ).collectLatest {
                     it.onSuccess {

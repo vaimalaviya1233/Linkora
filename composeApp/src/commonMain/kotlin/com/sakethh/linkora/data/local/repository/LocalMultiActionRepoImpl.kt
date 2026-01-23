@@ -4,7 +4,7 @@ import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyFolderDTO
@@ -67,7 +67,7 @@ class LocalMultiActionRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name,
+                        operation = SyncServerRoute.ARCHIVE_MULTIPLE_ITEMS.name,
                         payload = Json.encodeToString(
                             ArchiveMultipleItemsDTO(
                                 linkIds = linkIds,
@@ -113,7 +113,7 @@ class LocalMultiActionRepoImpl(
                 if (remoteFolderIds != null && remoteLinkIds != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
-                            operation = RemoteRoute.MultiAction.DELETE_MULTIPLE_ITEMS.name,
+                            operation = SyncServerRoute.DELETE_MULTIPLE_ITEMS.name,
                             payload = Json.encodeToString(
                                 DeleteMultipleItemsDTO(
                                     linkIds = remoteLinkIds,
@@ -168,7 +168,7 @@ class LocalMultiActionRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.MultiAction.MOVE_EXISTING_ITEMS.name,
+                        operation = SyncServerRoute.MOVE_EXISTING_ITEMS.name,
                         payload = Json.encodeToString(
                             MoveItemsDTO(
                                 folderIds = folderIds,
@@ -237,7 +237,7 @@ class LocalMultiActionRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.MultiAction.COPY_EXISTING_ITEMS.name,
+                        operation = SyncServerRoute.COPY_EXISTING_ITEMS.name,
                         payload = Json.encodeToString(
                             CopyItemsDTO(
                                 folders = copiedFolders,
@@ -382,7 +382,7 @@ class LocalMultiActionRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name,
+                        operation = SyncServerRoute.UNARCHIVE_MULTIPLE_ITEMS.name,
                         payload = Json.encodeToString(
                             MarkItemsRegularDTO(
                                 foldersIds = folderIds,

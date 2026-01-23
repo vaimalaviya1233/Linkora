@@ -6,7 +6,7 @@ import com.sakethh.linkora.data.local.dao.TagsDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.asLinkDTO
@@ -83,7 +83,7 @@ class LocalLinksRepoImpl(
 
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+                        operation = SyncServerRoute.CREATE_A_NEW_LINK.name,
                         payload = if (link.idOfLinkedFolder != null && link.idOfLinkedFolder !in defaultFolderIds()) {
                             Json.encodeToString(
                                 linksDao.getLink(newLinkId!!).copy(
@@ -353,7 +353,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
+                        operation = SyncServerRoute.UPDATE_LINK_NOTE.name,
                         payload = Json.encodeToString(
                             UpdateNoteOfALinkDTO(
                                 linkId, newNote = "", eventTimestamp = eventTimestamp
@@ -383,7 +383,7 @@ class LocalLinksRepoImpl(
                 if (remoteId != null) {
                     pendingSyncQueueRepo.addInQueue(
                         PendingSyncQueue(
-                            operation = RemoteRoute.Link.DELETE_A_LINK.name,
+                            operation = SyncServerRoute.DELETE_A_LINK.name,
                             payload = Json.encodeToString(
                                 IDBasedDTO(
                                     remoteId, getSystemEpochSeconds()
@@ -421,7 +421,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.ARCHIVE_LINK.name,
+                        operation = SyncServerRoute.ARCHIVE_LINK.name,
                         payload = Json.encodeToString(
                             IDBasedDTO(
                                 linkId, eventTimestamp
@@ -457,7 +457,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.UPDATE_LINK_NOTE.name,
+                        operation = SyncServerRoute.UPDATE_LINK_NOTE.name,
                         payload = Json.encodeToString(
                             UpdateNoteOfALinkDTO(
                                 linkId = linkId, newNote = newNote, eventTimestamp = eventTimestamp
@@ -493,7 +493,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.UPDATE_LINK_TITLE.name,
+                        operation = SyncServerRoute.UPDATE_LINK_TITLE.name,
                         payload = Json.encodeToString(
                             UpdateTitleOfTheLinkDTO(
                                 linkId, newTitle, eventTimestamp
@@ -558,7 +558,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.UPDATE_LINK.name,
+                        operation = SyncServerRoute.UPDATE_LINK.name,
                         payload = Json.encodeToString(
                             link.asLinkDTO(
                                 id = link.localId, remoteLinkTags = remoteLinkTagDTOs ?: emptyList()
@@ -625,7 +625,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.UPDATE_LINK.name,
+                        operation = SyncServerRoute.UPDATE_LINK.name,
                         payload = Json.encodeToString(
                             linksDao.getLink(link.localId).asLinkDTO(
                                 id = link.localId,
@@ -695,7 +695,7 @@ class LocalLinksRepoImpl(
             onRemoteOperationFailure = {
                 pendingSyncQueueRepo.addInQueue(
                     PendingSyncQueue(
-                        operation = RemoteRoute.Link.DELETE_DUPLICATE_LINKS.name,
+                        operation = SyncServerRoute.DELETE_DUPLICATE_LINKS.name,
                         payload = Json.encodeToString(
                             DeleteDuplicateLinksDTO(linkIds = linksToBeDeleted.filterNot {
                                 it.remoteId == null

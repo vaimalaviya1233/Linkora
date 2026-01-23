@@ -37,20 +37,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakethh.linkora.Localization
-import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
-import com.sakethh.linkora.utils.fillMaxWidthWithPadding
-import com.sakethh.linkora.utils.rememberLocalizedString
 import com.sakethh.linkora.di.linkoraViewModel
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.SyncType
 import com.sakethh.linkora.domain.model.settings.SettingComponentParam
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.InfoCard
 import com.sakethh.linkora.ui.domain.model.ServerConnection
@@ -61,6 +57,9 @@ import com.sakethh.linkora.ui.screens.settings.common.composables.SettingsSectio
 import com.sakethh.linkora.ui.screens.settings.section.data.LogsScreen
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberMutableEnum
+import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
+import com.sakethh.linkora.utils.fillMaxWidthWithPadding
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -203,7 +202,9 @@ fun ServerSetupScreen(
                                             isCertificateInProcessing.value = false
                                         })
                                     }
-                                }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidth().padding(
+                                },
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                                    .fillMaxWidth().padding(
                                     start = 15.dp, end = 15.dp, bottom = 15.dp
                                 ).pressScaleEffect()
                             ) {
@@ -261,7 +262,9 @@ fun ServerSetupScreen(
                             serverManagementViewModel.testServerConnection(
                                 serverUrl = serverUrl.value, token = securityToken.value
                             )
-                        }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding().pressScaleEffect()
+                        },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .fillMaxWidthWithPadding().pressScaleEffect()
                     ) {
                         Text(
                             text = Localization.rememberLocalizedString(Localization.Key.TestServerAvailability),
@@ -293,11 +296,14 @@ fun ServerSetupScreen(
                     } else {
                         Spacer(Modifier.height(15.dp))
                     }
-                    Column(modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).clickable(onClick = {
-                        selectedSyncType.value = syncType
-                    }, indication = null, interactionSource = remember {
-                        MutableInteractionSource()
-                    }).pressScaleEffect().fillMaxWidthWithPadding()) {
+                    Column(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .clickable(onClick = {
+                                selectedSyncType.value = syncType
+                            }, indication = null, interactionSource = remember {
+                                MutableInteractionSource()
+                            }).pressScaleEffect().fillMaxWidthWithPadding()
+                    ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -325,16 +331,18 @@ fun ServerSetupScreen(
                     onClick = {
                         serverManagementViewModel.saveServerConnectionAndSync(
                             serverConnection = ServerConnection(
-                            serverUrl = serverUrl.value.substringBefore(RemoteRoute.SyncInLocalRoute.TEST_BEARER.name),
-                            authToken = securityToken.value,
-                            syncType = selectedSyncType.value,
-                        ), onSyncStart = {
-                            showImportLogsFromServer = true
-                        }, onCompletion = {
-                            showImportLogsFromServer = false
-                            navController.navigateUp()
-                        })
-                    }, modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).fillMaxWidthWithPadding().pressScaleEffect()
+                                serverUrl = serverUrl.value.substringBefore(SyncServerRoute.TEST_BEARER.name),
+                                authToken = securityToken.value,
+                                syncType = selectedSyncType.value,
+                            ), onSyncStart = {
+                                showImportLogsFromServer = true
+                            }, onCompletion = {
+                                showImportLogsFromServer = false
+                                navController.navigateUp()
+                            })
+                    },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                        .fillMaxWidthWithPadding().pressScaleEffect()
                 ) {
                     Text(
                         text = Localization.rememberLocalizedString(Localization.Key.UseThisConnection),

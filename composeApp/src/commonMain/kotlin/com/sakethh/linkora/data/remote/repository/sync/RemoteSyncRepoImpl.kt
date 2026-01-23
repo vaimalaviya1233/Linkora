@@ -4,7 +4,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.TagsDao
-import com.sakethh.linkora.domain.RemoteRoute
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.asAddLinkDTO
@@ -132,7 +132,7 @@ class RemoteSyncRepoImpl(
             }, request = {
                 bearerAuth(authToken())
                 parameter(
-                    key = "correlation", value = Json.Default.encodeToString(currentCorrelation)
+                    key = "correlation", value = Json.encodeToString(currentCorrelation)
                 )
             }) {
                 this.incoming.consumeAsFlow().collect {
@@ -176,7 +176,7 @@ class RemoteSyncRepoImpl(
         return channelFlow {
             send(Result.Loading("Fetching updates from server..."))
             Network.getSyncServerClient()
-                .get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_UPDATES.name) {
+                .get(baseUrl() + SyncServerRoute.GET_UPDATES.name) {
                     bearerAuth(authToken())
                     contentType(ContentType.Application.Json)
                     parameter("eventTimestamp", timeStampAfter)
@@ -225,7 +225,7 @@ class RemoteSyncRepoImpl(
                                     send(Result.Loading("Creating new link with id: ${remoteLinkDTO.id}"))
                                     localDataUpdateService.updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
-                                            operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
+                                            operation = SyncServerRoute.CREATE_A_NEW_LINK.name,
                                             payload = json.encodeToJsonElement(
                                                 remoteLinkDTO.copy(correlation = randomCorrelation)
                                             )
@@ -235,7 +235,7 @@ class RemoteSyncRepoImpl(
                                     send(Result.Loading("Updating existing link with id: ${remoteLinkDTO.id}"))
                                     localDataUpdateService.updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
-                                            operation = RemoteRoute.Link.UPDATE_LINK.name,
+                                            operation = SyncServerRoute.UPDATE_LINK.name,
                                             payload = json.encodeToJsonElement(
                                                 remoteLinkDTO.copy(correlation = randomCorrelation)
                                             )
@@ -253,7 +253,7 @@ class RemoteSyncRepoImpl(
                                     send(Result.Loading("Creating new panel with id: ${remotePanelDTO.panelId}"))
                                     localDataUpdateService.updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
-                                            operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
+                                            operation = SyncServerRoute.ADD_A_NEW_PANEL.name,
                                             payload = json.encodeToJsonElement(
                                                 remotePanelDTO.copy(correlation = randomCorrelation)
                                             )
@@ -263,7 +263,7 @@ class RemoteSyncRepoImpl(
                                     send(Result.Loading("Updating existing panel name for id: ${remotePanelDTO.panelId}"))
                                     localDataUpdateService.updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
-                                            operation = RemoteRoute.Panel.UPDATE_A_PANEL_NAME.name,
+                                            operation = SyncServerRoute.UPDATE_A_PANEL_NAME.name,
                                             payload = json.encodeToJsonElement(
                                                 UpdatePanelNameDTO(
                                                     newName = remotePanelDTO.panelName,
@@ -284,7 +284,7 @@ class RemoteSyncRepoImpl(
                                 if (localPanelsRepo.getLocalPanelFolderId(remotePanelFolder.id) == null) {
                                     localDataUpdateService.updateLocalDBAccordingToEvent(
                                         WebSocketEvent(
-                                            operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                                            operation = SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
                                             payload = json.encodeToJsonElement(
                                                 remotePanelFolder.copy(correlation = randomCorrelation)
                                             )
@@ -339,7 +339,7 @@ class RemoteSyncRepoImpl(
     override suspend fun applyUpdatesBasedOnRemoteTombstones(timeStampAfter: Long): Flow<Result<Unit>> {
         return wrappedResultFlow {
             Network.getSyncServerClient()
-                .get(baseUrl() + RemoteRoute.SyncInLocalRoute.GET_TOMBSTONES.name) {
+                .get(baseUrl() + SyncServerRoute.GET_TOMBSTONES.name) {
                     bearerAuth(authToken())
                     contentType(ContentType.Application.Json)
                     parameter("eventTimestamp", timeStampAfter)
@@ -368,8 +368,8 @@ class RemoteSyncRepoImpl(
             send(Result.Loading(message = "[FOLDERS] Processing folder (ID: ${currentFolder.localId}, Name: ${currentFolder.name})"))
             pendingSyncQueueRepo.addInQueue(
                 PendingSyncQueue(
-                    operation = RemoteRoute.Folder.CREATE_FOLDER.name,
-                    payload = Json.Default.encodeToString(
+                    operation = SyncServerRoute.CREATE_FOLDER.name,
+                    payload = Json.encodeToString(
                         currentFolder.asAddFolderDTO()
                             .copy(offlineSyncItemId = currentFolder.localId)
                     )
@@ -383,7 +383,7 @@ class RemoteSyncRepoImpl(
             send(Result.Loading(message = "[TAGS] Processing tag (ID: ${currentTag.localId}, Name: ${currentTag.name})"))
             pendingSyncQueueRepo.addInQueue(
                 PendingSyncQueue(
-                    operation = RemoteRoute.Tag.CREATE_TAG.name, payload = Json.encodeToString(
+                    operation = SyncServerRoute.CREATE_TAG.name, payload = Json.encodeToString(
                         CreateTagDTO(
                             name = currentTag.name,
                             eventTimestamp = currentTag.lastModified,
@@ -400,8 +400,8 @@ class RemoteSyncRepoImpl(
             send(Result.Loading(message = "[LINKS] Processing link (ID: ${currentLink.localId}, Title: ${currentLink.title})"))
             pendingSyncQueueRepo.addInQueue(
                 PendingSyncQueue(
-                    operation = RemoteRoute.Link.CREATE_A_NEW_LINK.name,
-                    payload = Json.Default.encodeToString(
+                    operation = SyncServerRoute.CREATE_A_NEW_LINK.name,
+                    payload = Json.encodeToString(
                         currentLink.asAddLinkDTO(
                             remoteTagIds = tagsDao.getTags(currentLink.localId).map {
                                 it.remoteId ?: -45454
@@ -417,8 +417,8 @@ class RemoteSyncRepoImpl(
             send(Result.Loading(message = "[PANELS] Processing panel (ID: ${currentPanel.localId}, Name: ${currentPanel.panelName})"))
             pendingSyncQueueRepo.addInQueue(
                 PendingSyncQueue(
-                    operation = RemoteRoute.Panel.ADD_A_NEW_PANEL.name,
-                    payload = Json.Default.encodeToString(
+                    operation = SyncServerRoute.ADD_A_NEW_PANEL.name,
+                    payload = Json.encodeToString(
                         AddANewPanelDTO(
                             panelName = currentPanel.panelName,
                             offlineSyncItemId = currentPanel.localId,
@@ -435,8 +435,8 @@ class RemoteSyncRepoImpl(
             send(Result.Loading(message = "[PANEL FOLDERS] Processing panel folder (ID: ${currentPanelFolder.localId}, Panel ID: ${currentPanelFolder.connectedPanelId})"))
             pendingSyncQueueRepo.addInQueue(
                 PendingSyncQueue(
-                    operation = RemoteRoute.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
-                    payload = Json.Default.encodeToString(
+                    operation = SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name,
+                    payload = Json.encodeToString(
                         AddANewPanelFolderDTO(
                             folderId = currentPanelFolder.folderId,
                             panelPosition = currentPanelFolder.panelPosition,
@@ -462,7 +462,7 @@ class RemoteSyncRepoImpl(
                     syncServerClient = { Network.getSyncServerClient() },
                     baseUrl = baseUrl,
                     authToken = authToken,
-                    endPoint = RemoteRoute.SyncInLocalRoute.DELETE_EVERYTHING.name,
+                    endPoint = SyncServerRoute.DELETE_EVERYTHING.name,
                     outgoingBody = DeleteEverythingDTO()
                 )
             },
