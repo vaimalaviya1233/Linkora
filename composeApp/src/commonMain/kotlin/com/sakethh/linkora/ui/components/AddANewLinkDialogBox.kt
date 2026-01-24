@@ -122,6 +122,7 @@ import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.domain.model.AddNewFolderDialogBoxParam
 import com.sakethh.linkora.ui.domain.model.AddNewLinkDialogParams
 import com.sakethh.linkora.ui.screens.DataEmptyScreen
+import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.ui.utils.rememberDeserializableMutableObject
@@ -178,9 +179,6 @@ fun AddANewLinkDialogBox(
     }
     val linkTextFieldValue = rememberSaveable {
         mutableStateOf(addNewLinkDialogParams.url)
-    }
-    LaunchedEffect(Unit) {
-        isDataExtractingForTheLink.value = false
     }
     val titleTextFieldValue = rememberSaveable {
         mutableStateOf("")
@@ -582,6 +580,17 @@ private fun BottomPartOfAddANewLinkDialogBox(
     val searchFocusRequester = remember {
         FocusRequester()
     }
+    if (isDataExtractingForTheLink.value) {
+        if (platform() is Platform.Android.Mobile) {
+            Spacer(modifier = Modifier.height(30.dp))
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp)
+            )
+        } else {
+            LoadingScreen(PaddingValues())
+        }
+        return
+    }
     Column(
         modifier = Modifier.fillMaxSize().then(
             if (platform() is Platform.Android.Mobile) Modifier else Modifier.verticalScroll(
@@ -785,97 +794,91 @@ private fun BottomPartOfAddANewLinkDialogBox(
             }
         }
 
-        if (!isDataExtractingForTheLink.value) {
-            if (isDropDownMenuIconClicked.value) {
-                Spacer(Modifier.height(10.dp))
-            }
-            if (currentFolder == null) {
-                Button(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
-                        end = 20.dp,
-                        start = 20.dp,
-                        top = if (isDropDownMenuIconClicked.value) 0.dp else 5.dp
-                    ).fillMaxWidth().pressScaleEffect(), onClick = {
-                        addTheFolderInRoot.value = false
-                        showNewFolderDialog.value = true
-                    }, colors = ButtonDefaults.filledTonalButtonColors()
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.CreateNewFolder, contentDescription = null)
-                        Spacer(Modifier.width(5.dp))
-                        Text(
-                            text = Localization.Key.CreateANewFolder.rememberLocalizedString(),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontSize = 16.sp
-                        )
-                    }
+        if (isDropDownMenuIconClicked.value) {
+            Spacer(Modifier.height(10.dp))
+        }
+        if (currentFolder == null) {
+            Button(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
+                    end = 20.dp,
+                    start = 20.dp,
+                    top = if (isDropDownMenuIconClicked.value) 0.dp else 5.dp
+                ).fillMaxWidth().pressScaleEffect(), onClick = {
+                    addTheFolderInRoot.value = false
+                    showNewFolderDialog.value = true
+                }, colors = ButtonDefaults.filledTonalButtonColors()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.CreateNewFolder, contentDescription = null)
+                    Spacer(Modifier.width(5.dp))
+                    Text(
+                        text = Localization.Key.CreateANewFolder.rememberLocalizedString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontSize = 16.sp
+                    )
                 }
             }
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(start = 25.dp, end = 25.dp, top = 10.dp, bottom = 10.dp),
-                color = DividerDefaults.color.copy(0.25f)
-            )
-            OutlinedButton(
-                colors = ButtonDefaults.outlinedButtonColors(), border = BorderStroke(
-                    width = 1.dp, color = MaterialTheme.colorScheme.secondary
-                ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
-                    end = 20.dp, start = 20.dp
-                ).fillMaxWidth().pressScaleEffect(), onClick = {
-                    performAction(AddANewLinkDialogBoxAction.ClearSelectedTags)
-                    onDismiss()
-                    isForceSaveWithoutFetchingMetaDataEnabled.value = false
-                }) {
-                Text(
-                    text = Localization.rememberLocalizedString(Localization.Key.Cancel),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 16.sp
-                )
-            }
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
-                    end = 20.dp, top = 10.dp, start = 20.dp
-                ).fillMaxWidth().pressScaleEffect(),
-                onClick = {
-                    isDataExtractingForTheLink.value = true
-                    val linkType = when (currentFolder?.localId
-                        ?: selectedFolderForSavingTheLink.value.localId) {
-                        Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
-                        Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
-                        else -> LinkType.FOLDER_LINK
-                    }
-                    performAction(
-                        AddANewLinkDialogBoxAction.AddANewLink(
-                            link = Link(
-                                linkType = linkType,
-                                title = titleTextFieldValue.value,
-                                url = linkTextFieldValue.value,
-                                imgURL = "",
-                                note = noteTextFieldValue.value,
-                                idOfLinkedFolder = currentFolder?.localId
-                                    ?: selectedFolderForSavingTheLink.value.localId,
-                                userAgent = AppPreferences.primaryJsoupUserAgent.value
-                            ), linkSaveConfig = LinkSaveConfig(
-                                forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
-                                forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
-                            ), onCompletion = onDismiss, selectedTags = selectedTags,
-                            pushSnackbarOnSuccess = true
-                        )
-                    )
-                }) {
-                Text(
-                    text = Localization.rememberLocalizedString(Localization.Key.Save),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontSize = 16.sp
-                )
-            }
-        } else {
-            Spacer(modifier = Modifier.height(30.dp))
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp)
+        }
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth()
+                .padding(start = 25.dp, end = 25.dp, top = 10.dp, bottom = 10.dp),
+            color = DividerDefaults.color.copy(0.25f)
+        )
+        OutlinedButton(
+            colors = ButtonDefaults.outlinedButtonColors(), border = BorderStroke(
+                width = 1.dp, color = MaterialTheme.colorScheme.secondary
+            ), modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
+                end = 20.dp, start = 20.dp
+            ).fillMaxWidth().pressScaleEffect(), onClick = {
+                performAction(AddANewLinkDialogBoxAction.ClearSelectedTags)
+                onDismiss()
+                isForceSaveWithoutFetchingMetaDataEnabled.value = false
+            }) {
+            Text(
+                text = Localization.rememberLocalizedString(Localization.Key.Cancel),
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = 16.sp
             )
         }
+        Button(
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).padding(
+                end = 20.dp, top = 10.dp, start = 20.dp
+            ).fillMaxWidth().pressScaleEffect(),
+            onClick = {
+                isDataExtractingForTheLink.value = true
+                val linkType = when (currentFolder?.localId
+                    ?: selectedFolderForSavingTheLink.value.localId) {
+                    Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
+                    Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
+                    else -> LinkType.FOLDER_LINK
+                }
+                performAction(
+                    AddANewLinkDialogBoxAction.AddANewLink(
+                        link = Link(
+                            linkType = linkType,
+                            title = titleTextFieldValue.value,
+                            url = linkTextFieldValue.value,
+                            imgURL = "",
+                            note = noteTextFieldValue.value,
+                            idOfLinkedFolder = currentFolder?.localId
+                                ?: selectedFolderForSavingTheLink.value.localId,
+                            userAgent = AppPreferences.primaryJsoupUserAgent.value
+                        ), linkSaveConfig = LinkSaveConfig(
+                            forceAutoDetectTitle = isAutoDetectTitleEnabled.value || AppPreferences.isAutoDetectTitleForLinksEnabled.value,
+                            forceSaveWithoutRetrievingData = isForceSaveWithoutFetchingMetaDataEnabled.value || AppPreferences.forceSaveWithoutFetchingAnyMetaData.value
+                        ), onCompletion = onDismiss, selectedTags = selectedTags,
+                        pushSnackbarOnSuccess = true
+                    )
+                )
+            }) {
+            Text(
+                text = Localization.rememberLocalizedString(Localization.Key.Save),
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = 16.sp
+            )
+        }
+
     }
     val hideSearchBtmSheet: () -> Unit = {
         coroutineScope.launch {
