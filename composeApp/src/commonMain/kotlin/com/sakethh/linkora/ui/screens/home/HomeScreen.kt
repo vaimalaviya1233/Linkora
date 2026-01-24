@@ -72,7 +72,6 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.LoadingScreen
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.rememberLocalizedString
@@ -94,13 +93,13 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
     val panelsBtmSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val panels = homeScreenVM.existingPanels.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
-    val activePanelAssociatedPanelFolders =
+    val activePanelAssociatedPanelFolders by
         homeScreenVM.activePanelAssociatedPanelFolders.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = {
-        activePanelAssociatedPanelFolders.value.size
+        activePanelAssociatedPanelFolders.size
     })
     val localUriHandler = LocalUriHandler.current
-    val childFoldersFlat by homeScreenVM.panelFoldersDataFlat.collectAsStateWithLifecycle()
+    val panelFoldersDataFlat by homeScreenVM.panelFoldersDataFlat.collectAsStateWithLifecycle()
     Scaffold(topBar = {
         Column(
             modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).animateContentSize()
@@ -170,12 +169,12 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
             }
         }
     }) { paddingValues ->
-        if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData == null) {
+        if (activePanelAssociatedPanelFolders.isEmpty() && homeScreenVM.selectedPanelData == null) {
             LoadingScreen(paddingValues = PaddingValues(25.dp))
             return@Scaffold
         }
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            if (activePanelAssociatedPanelFolders.value.isEmpty() && homeScreenVM.selectedPanelData != null) {
+            if (activePanelAssociatedPanelFolders.isEmpty() && homeScreenVM.selectedPanelData != null) {
                 DataEmptyScreen(text = Localization.Key.NoFoldersInThePanel.rememberLocalizedString())
                 return@Scaffold
             }
@@ -183,7 +182,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 selectedTabIndex = pagerState.currentPage,
                 divider = {}) {
-                activePanelAssociatedPanelFolders.value.forEachIndexed { index, panelFolder ->
+                activePanelAssociatedPanelFolders.forEachIndexed { index, panelFolder ->
                     Tab(selected = pagerState.currentPage == index, onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
@@ -204,22 +203,12 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
             HorizontalDivider()
             HorizontalPager(state = pagerState) { pageIndex ->
                 val panelFolderId =
-                    retain(activePanelAssociatedPanelFolders.value[pageIndex].folderId) {
-                        activePanelAssociatedPanelFolders.value[pageIndex].folderId
+                    retain(activePanelAssociatedPanelFolders[pageIndex].folderId) {
+                        activePanelAssociatedPanelFolders[pageIndex].folderId
                     }
                 CollectionLayoutManager(
                     screenType = ScreenType.FOLDERS_AND_LINKS,
-                    /*
-                    flatChildFolderDataState =  TODO() /*activePanelAssociatedFolders[pageIndex]*/,
-                    linksTagsPairsState = TODO()/*TODO: if (activePanelAssociatedPanelFolders.value.any { it.folderId == Constants.SAVED_LINKS_ID }) {
-                        when (pageIndex) {
-                            0 -> activePanelAssociatedFolderLinks.getOrNull(0) ?: emptyList()
-
-                            else -> activePanelAssociatedFolderLinks.getOrNull(1) ?: emptyList()
-                        }
-                    } else activePanelAssociatedFolderLinks.getOrNull(pageIndex) ?: emptyList()*/,
-                    * */
-                    flatChildFolderDataState = childFoldersFlat[panelFolderId],
+                    flatChildFolderDataState = panelFoldersDataFlat[panelFolderId],
                     linksTagsPairsState = null,
                     paddingValues = PaddingValues(0.dp),
                     folderMoreIconClick = {
@@ -263,7 +252,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         false
                     },
                     nestedScrollConnection = null,
-                    emptyDataText = if (activePanelAssociatedPanelFolders.value.map { it.folderId }
+                    emptyDataText = if (activePanelAssociatedPanelFolders.map { it.folderId }
                             .contains(Constants.SAVED_LINKS_ID)) Localization.Key.NoLinksFound.rememberLocalizedString() else "",
                     onAttachedTagClick = {
                         val collectionDetailPaneInfo = CollectionDetailPaneInfo(

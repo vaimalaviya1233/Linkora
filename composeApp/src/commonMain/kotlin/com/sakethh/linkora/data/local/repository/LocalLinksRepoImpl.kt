@@ -6,8 +6,9 @@ import com.sakethh.linkora.data.local.dao.TagsDao
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
-import com.sakethh.linkora.domain.SyncServerRoute
+import com.sakethh.linkora.domain.RefreshLinkType
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.asAddLinkDTO
 import com.sakethh.linkora.domain.asLinkDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -158,31 +159,39 @@ class LocalLinksRepoImpl(
                 }
             }
 
-            newLinkId = if (linkSaveConfig.forceSaveWithoutRetrievingData) {
-                link.url.isAValidLink().ifNot {
-                    throw Link.Invalid()
-                }
-
-                linksDao.addANewLink(link.copy(lastModified = eventTimestamp, localId = 0))
-            } else {
-                if (link.url.isATwitterUrl()) {
-                    retrieveFromVxTwitterApi(link.url)
+            newLinkId =
+                if (linkSaveConfig.forceSaveWithoutRetrievingData || (!linkSaveConfig.forceAutoDetectTitle && link.imgURL.isNotBlank())) {
+                    link.url.isAValidLink().ifNot {
+                        throw Link.Invalid()
+                    }
+                    linksDao.addANewLink(link.copy(lastModified = eventTimestamp, localId = 0))
                 } else {
-                    scrapeLinkData(
-                        link.url, link.userAgent ?: primaryUserAgent()
-                    )
-                }.let { scrapedLinkInfo ->
-                    linksDao.addANewLink(
-                        link.copy(
-                            title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
-                            imgURL = scrapedLinkInfo.imgUrl,
-                            localId = 0,
-                            mediaType = scrapedLinkInfo.mediaType,
-                            lastModified = eventTimestamp
+                    try {
+                        if (link.url.isATwitterUrl()) {
+                            retrieveFromVxTwitterApi(link.url)
+                        } else {
+                            scrapeLinkData(
+                                link.url, link.userAgent ?: primaryUserAgent()
+                            )
+                        }
+                    } catch (e: Exception) {
+                        if (linkSaveConfig.forceSaveIfRetrievalFails) {
+                            ScrapedLinkInfo(title = "", imgUrl = "")
+                        } else {
+                            throw e
+                        }
+                    }.let { scrapedLinkInfo ->
+                        linksDao.addANewLink(
+                            link.copy(
+                                title = if (linkSaveConfig.forceAutoDetectTitle) scrapedLinkInfo.title else link.title,
+                                imgURL = link.imgURL.ifBlank { scrapedLinkInfo.imgUrl },
+                                localId = 0,
+                                mediaType = scrapedLinkInfo.mediaType,
+                                lastModified = eventTimestamp
+                            )
                         )
-                    )
+                    }
                 }
-            }
 
             selectedTagIds?.let { selectedTagIds ->
                 tagsDao.createLinkTags(
@@ -593,7 +602,10 @@ class LocalLinksRepoImpl(
         }
     }
 
-    override suspend fun refreshLinkMetadata(link: Link): Flow<Result<Unit>> {
+    override suspend fun refreshLinkMetadata(
+        link: Link,
+        refreshLinkType: RefreshLinkType
+    ): Flow<Result<Unit>> {
         val remoteId = getRemoteIdOfLink(link.localId)
         val eventTimestamp = getSystemEpochSeconds()
         val remoteLinkTagDTOs = if (link.remoteId != null) {
@@ -644,8 +656,16 @@ class LocalLinksRepoImpl(
             }.let { scrapedLinkInfo ->
                 linksDao.updateALink(
                     link.copy(
-                        title = scrapedLinkInfo.title,
-                        imgURL = scrapedLinkInfo.imgUrl,
+                        title = if (refreshLinkType in listOf(
+                                RefreshLinkType.Title,
+                                RefreshLinkType.Both
+                            )
+                        ) scrapedLinkInfo.title else link.title,
+                        imgURL = if (refreshLinkType in listOf(
+                                RefreshLinkType.Image,
+                                RefreshLinkType.Both
+                            )
+                        ) scrapedLinkInfo.imgUrl else link.imgURL,
                         mediaType = scrapedLinkInfo.mediaType,
                         lastModified = getSystemEpochSeconds()
                     )

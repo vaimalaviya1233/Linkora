@@ -1,6 +1,8 @@
 package com.sakethh.linkora.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -28,7 +30,7 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.retain.retain
@@ -88,9 +90,12 @@ fun CollectionLayoutManager(
 
     val gridLayoutState = rememberLazyGridState()
     val staggeredGridLayoutState = rememberLazyStaggeredGridState()
-
+    val showPath = rememberSaveable {
+        screenType == ScreenType.TAGS_FOLDERS_LINKS
+    }
     val linkComponentParam: (linkTagsPair: LinkTagsPair) -> LinkComponentParam = { linkTagsPair ->
         LinkComponentParam(
+            showPath = showPath,
             link = linkTagsPair.link,
             isSelectionModeEnabled = CollectionsScreenVM.isSelectionEnabled,
             onMoreIconClick = {
@@ -124,74 +129,43 @@ fun CollectionLayoutManager(
             tags = linkTagsPair.tags,
             onTagClick = {
                 onAttachedTagClick(it)
+            }, onFolderClick = {
+                onFolderClick(it)
             })
     }
     val bottomSpacing = remember {
         mutableStateOf(250.dp)
     }
 
-    val isDataEmpty by rememberSaveable(
-        linksTagsPairsState,
-        flatChildFolderDataState,
-        flatSearchResultState
-    ) {
-        mutableStateOf(
-            when (screenType) {
-                ScreenType.LINKS_ONLY -> {
-                    linksTagsPairsState?.data?.isEmpty() == true || linksTagsPairsState?.data?.values?.first()
-                        ?.isEmpty() == true
-                }
+    val isDataEmpty = when (screenType) {
+        ScreenType.LINKS_ONLY -> {
+            linksTagsPairsState?.data?.isEmpty() == true || linksTagsPairsState?.data?.values?.first()
+                ?.isEmpty() == true
+        }
 
-                ScreenType.FOLDERS_AND_LINKS -> {
-                    flatChildFolderDataState?.data?.isEmpty() == true || flatChildFolderDataState?.data?.values?.first()
-                        ?.isEmpty() == true
-                }
+        ScreenType.FOLDERS_AND_LINKS -> {
+            flatChildFolderDataState?.data?.isEmpty() == true || flatChildFolderDataState?.data?.values?.first()
+                ?.isEmpty() == true
+        }
 
-                ScreenType.TAGS_FOLDERS_LINKS -> {
-                    flatSearchResultState?.data?.isEmpty() == true || flatSearchResultState?.data?.values?.first()
-                        ?.isEmpty() == true
-                }
-            }
-        )
+        ScreenType.TAGS_FOLDERS_LINKS -> {
+            flatSearchResultState?.data?.isEmpty() == true || flatSearchResultState?.data?.values?.first()
+                ?.isEmpty() == true
+        }
     }
 
-    val pagesCompleted by rememberSaveable(
-        linksTagsPairsState,
-        flatChildFolderDataState,
-        flatSearchResultState
-    ) {
-        mutableStateOf(
-            when (screenType) {
-                ScreenType.LINKS_ONLY -> linksTagsPairsState?.pagesCompleted == true && !linksTagsPairsState.isRetrieving
+    val pagesCompleted = when (screenType) {
+        ScreenType.LINKS_ONLY -> linksTagsPairsState?.pagesCompleted == true && !linksTagsPairsState.isRetrieving
 
-                ScreenType.FOLDERS_AND_LINKS -> flatChildFolderDataState?.pagesCompleted == true && !flatChildFolderDataState.isRetrieving
+        ScreenType.FOLDERS_AND_LINKS -> flatChildFolderDataState?.pagesCompleted == true && !flatChildFolderDataState.isRetrieving
 
-                ScreenType.TAGS_FOLDERS_LINKS -> flatSearchResultState?.pagesCompleted == true && !flatSearchResultState.isRetrieving
-            }
-        )
+        ScreenType.TAGS_FOLDERS_LINKS -> flatSearchResultState?.pagesCompleted == true && !flatSearchResultState.isRetrieving
     }
 
-    val showLoading by rememberSaveable(
-        linksTagsPairsState,
-        flatChildFolderDataState,
-        flatSearchResultState
-    ) {
-        mutableStateOf(
-            !pagesCompleted
-            // The moment it tries to show the indicator, the data gets loaded; we need to display this consistently to indicate that the data has indeed been loaded
-            /* when (screenType) {
-                    ScreenType.LINKS_ONLY -> {
-                        linksTagsPairsState?.isRetrieving ?: false
-                    }
-
-                    ScreenType.FOLDERS_AND_LINKS -> flatChildFolderDataState?.isRetrieving ?: false
-                    ScreenType.TAGS_FOLDERS_LINKS -> flatSearchResultState?.isRetrieving ?: false
-                }*/
-        )
-    }
+    val showLoading = !pagesCompleted
 
     val loadingIndicatorModifier = retain(isDataEmpty) {
-        Modifier.then(if (!isDataEmpty) Modifier.padding(top = 25.dp) else Modifier)
+        Modifier.padding(top = 25.dp)
             .fillMaxWidth()
             .then(
                 if (!isDataEmpty) Modifier.padding(
@@ -237,7 +211,11 @@ fun CollectionLayoutManager(
                         it
                     )
                 }
-            })
+            },
+            path = it.path,
+            showPath = showPath,
+            onPathItemClick = { onFolderClick(it) },
+        )
     }
     val tagComponentParam: (tag: Tag) -> FolderComponentParam = {
         FolderComponentParam(
@@ -255,10 +233,41 @@ fun CollectionLayoutManager(
             isSelectedForSelection = mutableStateOf(false),
             showCheckBox = mutableStateOf(false),
             onCheckBoxChanged = {},
-            leadingIcon = Icons.Default.Tag
+            leadingIcon = Icons.Default.Tag,
+            path = null,
+            showPath = false,
+            onPathItemClick = {},
         )
     }
 
+
+    val isAtTheEnd = retain {
+        derivedStateOf {
+            when (AppPreferences.selectedLinkLayout.value) {
+                Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> {
+                    val lastVisibleItem = listLayoutState.layoutInfo.visibleItemsInfo.lastOrNull()
+                    (lastVisibleItem?.index
+                        ?: 0) >= listLayoutState.layoutInfo.totalItemsCount - Constants.TRIGGER_THRESHOLD_AT_THE_END
+                }
+
+                Layout.GRID_VIEW.name -> {
+                    val lastVisibleItem = gridLayoutState.layoutInfo.visibleItemsInfo.lastOrNull()
+                    (lastVisibleItem?.index
+                        ?: 0) >= gridLayoutState.layoutInfo.totalItemsCount - Constants.TRIGGER_THRESHOLD_AT_THE_END
+                }
+
+                else -> {
+                    val lastVisibleItem =
+                        staggeredGridLayoutState.layoutInfo.visibleItemsInfo.lastOrNull()
+                    (lastVisibleItem?.index
+                        ?: 0) >= staggeredGridLayoutState.layoutInfo.totalItemsCount - Constants.TRIGGER_THRESHOLD_AT_THE_END
+                }
+            }
+        }
+    }
+    LaunchedEffect(isAtTheEnd.value) {
+        onRetrieveNextPage()
+    }
     when (AppPreferences.selectedLinkLayout.value) {
         Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> {
 
@@ -332,12 +341,16 @@ fun CollectionLayoutManager(
                     }
                 }
                 item {
-                    AnimatedVisibility(!showLoading && isDataEmpty) {
+                    AnimatedVisibility(
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        visible = !showLoading && isDataEmpty
+                    ) {
                         DataEmptyScreen(text = emptyDataText)
                     }
                 }
                 item {
-                    AnimatedVisibility(showLoading) {
+                    AnimatedVisibility(enter = fadeIn(), exit = fadeOut(), visible = showLoading) {
                         Box(
                             modifier = loadingIndicatorModifier,
                             contentAlignment = Alignment.Center
@@ -347,7 +360,7 @@ fun CollectionLayoutManager(
                     }
                 }
                 item {
-                    AnimatedVisibility(!showLoading) {
+                    AnimatedVisibility(enter = fadeIn(), exit = fadeOut(), visible = !showLoading) {
                         Spacer(Modifier.height(bottomSpacing.value))
                     }
                 }
@@ -358,12 +371,6 @@ fun CollectionLayoutManager(
                     listLayoutState.firstVisibleItemIndex
                 }.debounce(500).distinctUntilChanged().collectLatest {
                     onFirstVisibleItemIndexChange(it.toLong())
-                }
-            }
-
-            LaunchedEffect(listLayoutState.canScrollForward) {
-                if (!listLayoutState.canScrollForward) {
-                    onRetrieveNextPage()
                 }
             }
         }
@@ -451,10 +458,14 @@ fun CollectionLayoutManager(
                     }
                 }
 
-                if (showLoading) {
-                    item(span = {
-                        GridItemSpan(this.maxLineSpan)
-                    }) {
+                item(span = {
+                    GridItemSpan(this.maxLineSpan)
+                }) {
+                    AnimatedVisibility(
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        visible = showLoading
+                    ) {
                         Box(
                             modifier = loadingIndicatorModifier,
                             contentAlignment = Alignment.Center
@@ -467,15 +478,23 @@ fun CollectionLayoutManager(
                 item(span = {
                     GridItemSpan(this.maxLineSpan)
                 }) {
-                    AnimatedVisibility(!showLoading && isDataEmpty) {
+                    AnimatedVisibility(
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        visible = !showLoading && isDataEmpty
+                    ) {
                         DataEmptyScreen(text = emptyDataText)
                     }
                 }
 
-                if (pagesCompleted) {
-                    item(span = {
-                        GridItemSpan(this.maxLineSpan)
-                    }) {
+                item(span = {
+                    GridItemSpan(this.maxLineSpan)
+                }) {
+                    AnimatedVisibility(
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        visible = pagesCompleted
+                    ) {
                         Spacer(Modifier.height(bottomSpacing.value))
                     }
                 }
@@ -487,13 +506,6 @@ fun CollectionLayoutManager(
                     onFirstVisibleItemIndexChange(it.toLong())
                 }
             }
-
-            LaunchedEffect(gridLayoutState.canScrollForward) {
-                if (!gridLayoutState.canScrollForward/*TODO: && !linksTagsPairsState.pagesCompleted && !linksTagsPairsState.isRetrieving*/) {
-                    onRetrieveNextPage()
-                }
-            }
-
         }
 
         Layout.STAGGERED_VIEW.name -> {
@@ -581,8 +593,8 @@ fun CollectionLayoutManager(
                     }
                 }
 
-                if (showLoading) {
-                    item(span = StaggeredGridItemSpan.FullLine) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    AnimatedVisibility(enter = fadeIn(), exit = fadeOut(), visible = showLoading) {
                         Box(
                             modifier = loadingIndicatorModifier,
                             contentAlignment = Alignment.Center
@@ -593,7 +605,11 @@ fun CollectionLayoutManager(
                 }
 
                 item(span = StaggeredGridItemSpan.FullLine) {
-                    AnimatedVisibility(!showLoading && isDataEmpty) {
+                    AnimatedVisibility(
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        visible = !showLoading && isDataEmpty
+                    ) {
                         DataEmptyScreen(text = emptyDataText)
                     }
                 }
@@ -610,12 +626,6 @@ fun CollectionLayoutManager(
                     staggeredGridLayoutState.firstVisibleItemIndex
                 }.debounce(500).distinctUntilChanged().collectLatest {
                     onFirstVisibleItemIndexChange(it.toLong())
-                }
-            }
-
-            LaunchedEffect(staggeredGridLayoutState.canScrollForward) {
-                if (!staggeredGridLayoutState.canScrollForward /*TODO: && !linksTagsPairsState.pagesCompleted && !linksTagsPairsState.isRetrieving*/) {
-                    onRetrieveNextPage()
                 }
             }
         }
