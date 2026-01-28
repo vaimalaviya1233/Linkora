@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.SettingsInputSvideo
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Translate
@@ -164,12 +165,27 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                             uriHandler.openUri("https://ko-fi.com/sakethpathike")
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                            .padding(start = 15.dp, bottom = 15.dp).pressScaleEffect()
+                            .padding(start = 15.dp).pressScaleEffect()
                     ) {
                         Icon(imageVector = Icons.Default.Coffee, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
                         Text(
                             text = Localization.rememberLocalizedString(Localization.Key.BuyMeACoffee),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 16.5.sp
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            uriHandler.openUri("https://play.google.com/store/apps/details?id=com.sakethh.linkora")
+                        },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                            .padding(start = 15.dp, bottom = 15.dp).pressScaleEffect()
+                    ) {
+                        Icon(imageVector = Icons.Default.RateReview, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.5.dp))
+                        Text(
+                            text = "Rate on Google Play",
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 16.5.sp
                         )
