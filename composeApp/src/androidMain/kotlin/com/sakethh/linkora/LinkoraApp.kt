@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.sakethh.linkora.platform.FileManager
 import com.sakethh.linkora.platform.NativeUtils
 import com.sakethh.linkora.platform.PermissionManager
@@ -32,7 +33,7 @@ class LinkoraApp : Application() {
                     applicationContext,
                     LocalDatabase::class.java,
                     name = dbFile.absolutePath
-                ).setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).addMigrations(
+                ).setDriver(BundledSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).addMigrations(
                     LocalDatabase.MIGRATION_1_2,
                     LocalDatabase.MIGRATION_2_3,
                     LocalDatabase.MIGRATION_3_4,
