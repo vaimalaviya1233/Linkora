@@ -143,9 +143,9 @@ open class SettingsScreenViewModel(
 
             add(
                 SettingComponentParam(
-                    title = "Force Save links",
+                    title = Localization.Key.ForceSaveLinksLabel.getLocalizedString(),
                     doesDescriptionExists = true,
-                    description = "Even if failed to retrieve the link data, link will be force saved.",
+                    description = Localization.Key.ForceSaveLinksDesc.getLocalizedString(),
                     isSwitchNeeded = true,
                     isSwitchEnabled = AppPreferences.forceSaveIfRetrievalFails,
                     onSwitchStateChange = {
@@ -164,9 +164,9 @@ open class SettingsScreenViewModel(
             if (platform == Platform.Android.Mobile) {
                 add(
                     SettingComponentParam(
-                        title = "Auto-save links when shared from other apps",
+                        title = Localization.Key.AutoSaveLinksLabel.getLocalizedString(),
                         doesDescriptionExists = true,
-                        description = "Auto-saved links will be added to \"Saved Links\" without tags, and their title and image will be fetched automatically.",
+                        description = Localization.Key.AutoSaveLinksDesc.getLocalizedString(),
                         isSwitchNeeded = true,
                         isSwitchEnabled = AppPreferences.autoSaveOnShareIntent,
                         onSwitchStateChange = {
@@ -179,7 +179,7 @@ open class SettingsScreenViewModel(
                                     )
                                     AppPreferences.autoSaveOnShareIntent.value = it
                                 } else {
-                                    UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(message = "Auto-saving requires notification permission."))
+                                    UIEvent.pushUIEvent(UIEvent.Type.ShowSnackbar(message = Localization.Key.AutoSaveNotificationPermission.getLocalizedString()))
                                 }
                             }
                         },

@@ -195,7 +195,7 @@ fun RenameFolderOrLinkDialog(
                     OutlinedTextField(
                         label = {
                             Text(
-                                text = "New Image URL",
+                                text = Localization.Key.NewImgURLLabel.rememberLocalizedString() ,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp
                             )
@@ -215,7 +215,7 @@ fun RenameFolderOrLinkDialog(
                     OutlinedTextField(
                         label = {
                             Text(
-                                text = "New URL",
+                                text = Localization.Key.NewURLLabel.rememberLocalizedString() ,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontSize = 12.sp
                             )

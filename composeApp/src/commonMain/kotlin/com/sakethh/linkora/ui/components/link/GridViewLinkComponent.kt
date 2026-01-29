@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.components.CoilImage
@@ -48,6 +49,7 @@ import com.sakethh.linkora.ui.utils.fadedEdges
 import com.sakethh.linkora.ui.utils.pressScaleEffect
 import com.sakethh.linkora.utils.getVideoPlatformBaseUrls
 import com.sakethh.linkora.utils.host
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -216,7 +218,7 @@ fun GridViewLinkComponent(
 
         if (linkComponentParam.showPath && !foldersPath.isNullOrEmpty()) {
             Text(
-                text = "Folder Path",
+                text = Localization.Key.FolderPathLabel.rememberLocalizedString(),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 5.dp, start = 10.dp)

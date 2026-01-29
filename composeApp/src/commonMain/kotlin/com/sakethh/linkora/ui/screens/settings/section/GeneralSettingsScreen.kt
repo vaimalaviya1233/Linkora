@@ -179,7 +179,7 @@ fun GeneralSettingsScreen() {
             item {
                 SettingComponent(
                     SettingComponentParam(
-                        title = "Change Font Family",
+                        title = Localization.Key.ChangeFontLabel.rememberLocalizedString(),
                         doesDescriptionExists = false,
                         description = "",
                         isSwitchNeeded = false,
@@ -408,21 +408,27 @@ fun GeneralSettingsScreen() {
         var tempSelectedFont by rememberSaveable {
             mutableStateOf(AppPreferences.selectedFont.name)
         }
-        SwitchDialogBox(title = "Select a font", entries = fontsEntries, selected = {
-            tempSelectedFont == it.name
-        }, onEntryClick = {
-            tempSelectedFont = it.name
-        }, onDismissRequest = {
-            showFontFamilySwitcherDialogBox = false
-        }, onConfirm = {
-            settingsScreenViewModel.changeSettingPreferenceValue(
-                stringPreferencesKey(
-                    AppPreferenceType.FONT_TYPE.name
-                ), tempSelectedFont
-            )
-            AppPreferences.selectedFont = Font.valueOf(tempSelectedFont)
-            showFontFamilySwitcherDialogBox = false
-        })
+        SwitchDialogBox(
+            title = Localization.Key.SelectAFontLabel.rememberLocalizedString(),
+            entries = fontsEntries,
+            selected = {
+                tempSelectedFont == it.name
+            },
+            onEntryClick = {
+                tempSelectedFont = it.name
+            },
+            onDismissRequest = {
+                showFontFamilySwitcherDialogBox = false
+            },
+            onConfirm = {
+                settingsScreenViewModel.changeSettingPreferenceValue(
+                    stringPreferencesKey(
+                        AppPreferenceType.FONT_TYPE.name
+                    ), tempSelectedFont
+                )
+                AppPreferences.selectedFont = Font.valueOf(tempSelectedFont)
+                showFontFamilySwitcherDialogBox = false
+            })
     }
 }
 

@@ -13,10 +13,10 @@ import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.RefreshLinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.FlatChildFolderData
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.RefreshLinkType
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onFailure
@@ -1124,6 +1124,8 @@ class CollectionsScreenVM(
                                     ),
                                     ignoreFolderAlreadyExistsException = true
                                 ).collect()
+
+                                localTagsRepo.createATag(Tag(name = "TAG-$index")).collect()
                             }
                         }
                     }

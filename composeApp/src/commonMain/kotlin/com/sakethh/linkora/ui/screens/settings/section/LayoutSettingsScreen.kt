@@ -143,7 +143,7 @@ fun LayoutSettingsScreen() {
                                         newValue = AppPreferences.showTagsInLinkView
                                     )
                                 },
-                                title = "Show Tags",
+                                title = Localization.Key.ShowTagsLabel.rememberLocalizedString(),
                                 isSwitchChecked = AppPreferences.showTagsInLinkView
                             )
                         }
@@ -161,7 +161,7 @@ fun LayoutSettingsScreen() {
                                         newValue = AppPreferences.showDateInLinkView
                                     )
                                 },
-                                title = "Show Date",
+                                title = Localization.Key.ShowDateLabel.rememberLocalizedString(),
                                 isSwitchChecked = AppPreferences.showDateInLinkView
                             )
                         }

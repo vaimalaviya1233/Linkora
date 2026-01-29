@@ -94,7 +94,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
     val panels = homeScreenVM.existingPanels.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val activePanelAssociatedPanelFolders by
-        homeScreenVM.activePanelAssociatedPanelFolders.collectAsStateWithLifecycle()
+    homeScreenVM.activePanelAssociatedPanelFolders.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = {
         activePanelAssociatedPanelFolders.size
     })
@@ -252,8 +252,7 @@ fun HomeScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         false
                     },
                     nestedScrollConnection = null,
-                    emptyDataText = if (activePanelAssociatedPanelFolders.map { it.folderId }
-                            .contains(Constants.SAVED_LINKS_ID)) Localization.Key.NoLinksFound.rememberLocalizedString() else "",
+                    emptyDataText = Localization.Key.NoItemsFound.rememberLocalizedString(),
                     onAttachedTagClick = {
                         val collectionDetailPaneInfo = CollectionDetailPaneInfo(
                             currentFolder = null,

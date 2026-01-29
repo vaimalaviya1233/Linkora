@@ -80,7 +80,7 @@ fun CollectionLayoutManager(
     onTagClick: (tag: Tag) -> Unit,
     onAttachedTagClick: (tag: Tag) -> Unit,
     isCurrentlyInDetailsView: (folder: Folder) -> Boolean,
-    emptyDataText: String = "",
+    emptyDataText: String,
     nestedScrollConnection: NestedScrollConnection?,
     onRetrieveNextPage: () -> Unit,
     onFirstVisibleItemIndexChange: (PageKey) -> Unit,

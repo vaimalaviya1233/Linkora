@@ -223,7 +223,7 @@ fun MenuBtmSheet(
                         )
                     }
                     Text(
-                        text = "Refresh",
+                        text = Localization.Key.Refresh.rememberLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                         fontSize = 16.sp,
                         modifier = Modifier.fillMaxWidth(),
@@ -237,14 +237,14 @@ fun MenuBtmSheet(
                 ) {
                     Column {
                         RefreshMenuComponent(
-                            label = "Refresh Title",
+                            label = Localization.Key.RefreshTitleLabel.rememberLocalizedString(),
                             onClick = {
                                 menuBtmSheetParam.onRefresh(RefreshLinkType.Title)
                                 hideContent()
                             }
                         )
                         RefreshMenuComponent(
-                            label = "Refresh Image",
+                            label = Localization.Key.RefreshImageLabel.rememberLocalizedString(),
                             onClick = {
                                 menuBtmSheetParam.onRefresh(RefreshLinkType.Image)
                                 hideContent()

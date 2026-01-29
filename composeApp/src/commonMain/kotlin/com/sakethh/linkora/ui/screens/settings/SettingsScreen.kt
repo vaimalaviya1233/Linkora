@@ -185,7 +185,7 @@ fun SettingsScreen(currentFABContext: (CurrentFABContext) -> Unit) {
                         Icon(imageVector = Icons.Default.RateReview, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.5.dp))
                         Text(
-                            text = "Rate on Google Play",
+                            text = Localization.Key.RateOnPlayLabel.rememberLocalizedString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontSize = 16.5.sp
                         )

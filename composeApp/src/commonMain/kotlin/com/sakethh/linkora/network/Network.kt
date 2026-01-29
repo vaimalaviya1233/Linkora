@@ -1,6 +1,8 @@
 package com.sakethh.linkora.network
 
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.getLocalizedString
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.cio.CIO
@@ -50,7 +52,7 @@ object Network {
 
     fun getSyncServerClient(): HttpClient {
         return syncServerClient
-            ?: error("syncServerClient isn't configured; make sure a valid certificate is imported.")
+            ?: error(Localization.Key.SyncServerConfigurationError.getLocalizedString())
     }
 
     fun closeSyncServerClient() {
@@ -62,7 +64,7 @@ object Network {
         if (syncServerClient != null) return
 
         if (signedCertificate == null && !bypassCertCheck) {
-            error("syncServerClient isn't configured; make sure a valid certificate is imported.")
+            error(Localization.Key.SyncServerConfigurationError.getLocalizedString())
         }
 
         syncServerClient = HttpClient(CIO) {

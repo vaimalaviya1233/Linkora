@@ -5,10 +5,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.sakethh.linkora.preferences.AppPreferenceType
-import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.di.DependencyContainer
 import com.sakethh.linkora.domain.LinkoraPlaceHolder
+import com.sakethh.linkora.preferences.AppPreferenceType
+import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.utils.Constants
 import kotlinx.coroutines.runBlocking
 
@@ -649,9 +649,11 @@ object Localization {
         LinkRefreshedSuccessfully(defaultValue = "The link data has been successfully refreshed."),
         Share(
             defaultValue = "Share"
-        ), Edit(
+        ),
+        Edit(
             defaultValue = "Edit"
-        ),AssociatedTags(
+        ),
+        AssociatedTags(
             defaultValue = "Associated Tags"
         ),
         ForceOpenInABrowser(defaultValue = "Open In A Browser"),
@@ -795,6 +797,41 @@ object Localization {
         ArchivedSuccessfully("Archived successfully."),
         DeletedSuccessfully("Deleted successfully."),
         ServerCertificateSavedSuccessfully("Server certificate saved successfully."),
-        Both("Both")
+        Both("Both"),
+        ImageURLForLinkLabel("Image URL for Link"),
+        ImageURLForLinkDesc("Leave this field empty to automatically retrieve the image URL."),
+        AutoSavingTheLinkNotifyLabel("Auto-saving the link..."),
+        AutoSavingTheLinkNotifyDesc("Retrieving metadata to save the link: ${LinkoraPlaceHolder.First}"),
+        AutoSavedTheLinkSuccessfully("Auto-saved the link successfully"),
+        SnapshotCreatedSuccessfully("Snapshot created successfully"),
+        RefreshType("Refresh Type"),
+        RefreshLinkTextFieldLabel("Refreshing links concurrently count"),
+        RefreshLinksComponentLabel("Refresh links as per above preferences"),
+        RefreshLinksComponentDesc("Using a high number of concurrent refreshes may significantly impact your resources and consume more than usual."),
+        FolderPathLabel("Folder Path"),
+        ChangeFontLabel("Change Font Family"),
+        SelectAFontLabel("Select a font"),
+        NoItemsFound("No items found."),
+        ShowTagsLabel("Show Tags"),
+        ShowDateLabel("Show Date"),
+        LinkExistsInSelectedFolderMsg("You've already added this link to the selected folder."),
+        LinkExistsInSavedLinksMsg("You've already saved this link in the \"Saved\" collection."),
+        LinkExistsInHistoryMsg("This link is already in your history."),
+        LinkExistsInImportantLinksMsg("You've already marked this link as important."),
+        LinkExistsInArchivedLinksMsg("This link is already archived."),
+        LinkExistsMsg("You've already saved this link."),
+        RefreshTitleLabel("Refresh Title"),
+        RefreshImageLabel("Refresh Image"),
+        SyncServerConfigurationError("syncServerClient isn't configured; make sure a valid certificate is imported."),
+        NewImgURLLabel("New Image URL"),
+        NewURLLabel("New URL"),
+        RateOnPlayLabel("Rate on Google Play"),
+        ForceSaveLinksLabel("Force Save links"),
+        ForceSaveLinksDesc("Even if failed to retrieve the link data, link will be force saved."),
+        AutoSaveLinksLabel("Auto-save links when shared from other apps"),
+        AutoSaveLinksDesc("Auto-saved links will be added to \"Saved Links\" without tags, and their title and image will be fetched automatically."),
+        AutoSaveNotificationPermission("Auto-saving requires notification permission."),
+        Title("Title"),
+        Image("Image"),
     }
 }

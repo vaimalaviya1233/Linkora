@@ -41,6 +41,7 @@ import com.sakethh.linkora.ui.theme.LightColors
 import com.sakethh.linkora.ui.theme.LinkoraTheme
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.isTablet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
@@ -56,7 +57,7 @@ class ShareToSaveActivity : ComponentActivity() {
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(
                     applicationContext,
-                    "Notification permission is required for auto-save",
+                    Localization.Key.AutoSaveNotificationPermission.getLocalizedString(),
                     Toast.LENGTH_SHORT
                 ).show()
                 finishAndRemoveTask()

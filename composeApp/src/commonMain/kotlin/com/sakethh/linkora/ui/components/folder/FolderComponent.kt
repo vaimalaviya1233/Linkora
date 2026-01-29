@@ -35,12 +35,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.ui.components.link.FoldersRow
 import com.sakethh.linkora.ui.domain.model.FolderComponentParam
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.pressScaleEffect
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -132,7 +134,7 @@ fun FolderComponent(folderComponentParam: FolderComponentParam) {
 
         if (!foldersPath.isNullOrEmpty() && folderComponentParam.showPath) {
             Text(
-                text = "Folder Path",
+                text = Localization.Key.FolderPathLabel.rememberLocalizedString(),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(start = 15.dp)

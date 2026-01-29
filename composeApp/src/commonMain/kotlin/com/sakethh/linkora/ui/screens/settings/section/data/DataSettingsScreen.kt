@@ -580,7 +580,7 @@ fun DataSettingsScreen() {
                     ), color = DividerDefaults.color.copy(0.5f)
                 )
                 Text(
-                    text = "Refresh",
+                    text = Localization.Key.Refresh.rememberLocalizedString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
@@ -610,7 +610,7 @@ fun DataSettingsScreen() {
                                     )
                             ) {
                                 Text(
-                                    text = "Refresh Type",
+                                    text = Localization.Key.RefreshType.rememberLocalizedString(),
                                     style = MaterialTheme.typography.titleSmall,
                                     lineHeight = 20.sp,
                                     textAlign = TextAlign.Start,
@@ -678,7 +678,7 @@ fun DataSettingsScreen() {
                                     },
                                     label = {
                                         Text(
-                                            text = "Refreshing links concurrently count",
+                                            text = Localization.Key.RefreshLinkTextFieldLabel.rememberLocalizedString(),
                                             style = MaterialTheme.typography.titleMedium,
                                             textAlign = TextAlign.Start,
                                         )
@@ -704,9 +704,9 @@ fun DataSettingsScreen() {
 
                             SettingComponent(
                                 SettingComponentParam(
-                                    title = "Refresh links as per above preferences",
+                                    title = Localization.Key.RefreshLinksComponentLabel.rememberLocalizedString(),
                                     doesDescriptionExists = true,
-                                    description = "Using a high number of concurrent refreshes may significantly impact your resources and consume more than usual.",
+                                    description =  Localization.Key.RefreshLinksComponentDesc.rememberLocalizedString(),
                                     isSwitchNeeded = false,
                                     isIconNeeded = rememberSaveable {
                                         mutableStateOf(true)

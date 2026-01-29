@@ -442,7 +442,7 @@ private fun TopPartOfAddANewLinkDialogBox(
             ).fillMaxWidth(),
             label = {
                 Text(
-                    text = "Image URL for Link",
+                    text = Localization.Key.ImageURLForLinkLabel.rememberLocalizedString(),
                     color = AlertDialogDefaults.textContentColor,
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 12.sp
@@ -450,7 +450,7 @@ private fun TopPartOfAddANewLinkDialogBox(
             },
             supportingText = {
                 Text(
-                    text = "Leave this field empty to automatically retrieve the image URL.",
+                    text = Localization.Key.ImageURLForLinkDesc.rememberLocalizedString(),
                     color = AlertDialogDefaults.textContentColor,
                     style = MaterialTheme.typography.titleSmall,
                     fontSize = 12.sp

@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.tag.Tag
@@ -63,6 +64,7 @@ import com.sakethh.linkora.ui.components.CoilImage
 import com.sakethh.linkora.ui.domain.model.LinkComponentParam
 import com.sakethh.linkora.ui.screens.collections.components.ItemDivider
 import com.sakethh.linkora.ui.utils.pressScaleEffect
+import com.sakethh.linkora.utils.rememberLocalizedString
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -207,7 +209,7 @@ fun ListViewLinkComponent(
 
         if (!foldersPath.isNullOrEmpty() && linkComponentParam.showPath) {
             Text(
-                text = "Folder Path",
+                text = Localization.Key.FolderPathLabel.rememberLocalizedString(),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 15.dp)

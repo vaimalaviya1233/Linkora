@@ -8,6 +8,7 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.sakethh.linkora.IntentActivityVM
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.MainActivity
 import com.sakethh.linkora.R
 import com.sakethh.linkora.di.DependencyContainer
@@ -18,6 +19,8 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.getLocalizedString
+import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -52,8 +55,12 @@ class AutoSaveLinkService : Service() {
             Intent.EXTRA_TEXT
         ).toString()
         val notification = NotificationCompat.Builder(applicationContext, "1")
-            .setSmallIcon(R.drawable.ic_stat_name).setContentTitle("Auto-saving the link...")
-            .setContentText("Retrieving metadata to save the link: $url")
+            .setSmallIcon(R.drawable.ic_stat_name)
+            .setContentTitle(Localization.Key.AutoSavingTheLinkNotifyLabel.getLocalizedString())
+            .setContentText(
+                Localization.Key.AutoSavingTheLinkNotifyLabel.getLocalizedString()
+                    .replaceFirstPlaceHolderWith(url)
+            )
             .setPriority(NotificationCompat.PRIORITY_HIGH).build()
 
         startForeground(1, notification)
@@ -73,16 +80,16 @@ class AutoSaveLinkService : Service() {
             ).collectLatest {
                 withContext(Dispatchers.Main) {
                     it.onSuccess {
-                        toast("Auto-saved the link successfully")
+                        toast(Localization.Key.AutoSavedTheLinkSuccessfully.getLocalizedString())
                     }.onFailure {
                         toast(it)
                     }
                 }
             }
         }.invokeOnCompletion {
-            if (!MainActivity.Companion.wasLaunched && AppPreferences.areSnapshotsEnabled.value) {
+            if (!MainActivity.wasLaunched && AppPreferences.areSnapshotsEnabled.value) {
                 intentActivityVM.createADataSnapshot(onCompletion = {
-                    toast("Snapshot created successfully")
+                    toast(Localization.Key.SnapshotCreatedSuccessfully.getLocalizedString())
                 })
             }
             stopSelf()

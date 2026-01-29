@@ -1,5 +1,6 @@
 package com.sakethh.linkora.data.local.repository
 
+import com.sakethh.linkora.Localization
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.TagsDao
@@ -28,6 +29,7 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.utils.defaultFolderIds
+import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.host
 import com.sakethh.linkora.utils.ifNot
@@ -141,18 +143,18 @@ class LocalLinksRepoImpl(
                                 folderId = link.idOfLinkedFolder, url = link.url
                             )
                         ) {
-                            "You've already added this link to the selected folder."
+                            Localization.Key.LinkExistsInSelectedFolderMsg.getLocalizedString()
                         }
                     }
 
                     else -> {
                         require(!linksDao.doesLinkExist(linkType = linkType, url = link.url)) {
                             when (linkType) {
-                                LinkType.SAVED_LINK -> "You've already saved this link in the \"Saved\" collection."
-                                LinkType.HISTORY_LINK -> "This link is already in your history."
-                                LinkType.IMPORTANT_LINK -> "You've already marked this link as important."
-                                LinkType.ARCHIVE_LINK -> "This link is already archived."
-                                else -> "You've already saved this link."
+                                LinkType.SAVED_LINK -> Localization.Key.LinkExistsInSavedLinksMsg.getLocalizedString()
+                                LinkType.HISTORY_LINK -> Localization.Key.LinkExistsInHistoryMsg.getLocalizedString()
+                                LinkType.IMPORTANT_LINK -> Localization.Key.LinkExistsInImportantLinksMsg.getLocalizedString()
+                                LinkType.ARCHIVE_LINK -> Localization.Key.LinkExistsInArchivedLinksMsg.getLocalizedString()
+                                else -> Localization.Key.LinkExistsMsg.getLocalizedString()
                             }
                         }
                     }
