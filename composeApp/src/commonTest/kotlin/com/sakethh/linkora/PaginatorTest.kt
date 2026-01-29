@@ -17,10 +17,10 @@ class PaginatorTest {
 
     private val activeConnections = mutableSetOf<Int>()
 
-    suspend fun onRetrieve(startIndex: PageKey): Pair<Int, Flow<Result<List<String>>>> {
+    suspend fun onRetrieve(startIndex: PageKey): Pair<PageKey, Flow<Result.Success<List<String>>>> {
         return startIndex to flow {
             println("Connection started for Page $startIndex")
-            activeConnections.add(startIndex)
+            activeConnections.add(startIndex.toInt())
             emit(Result.Success(List(Constants.PAGE_SIZE) {
                 "item $it"
             }))
@@ -29,7 +29,7 @@ class PaginatorTest {
                 awaitCancellation()
             } finally {
                 println("Connection cancelled for Page $startIndex")
-                activeConnections.remove(startIndex)
+                activeConnections.remove(startIndex.toInt())
             }
         }
     }

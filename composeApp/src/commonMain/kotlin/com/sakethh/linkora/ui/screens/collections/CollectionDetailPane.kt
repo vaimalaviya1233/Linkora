@@ -36,7 +36,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -62,9 +61,11 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.asLocalizedString
 import com.sakethh.linkora.domain.asMenuBtmSheetType
+import com.sakethh.linkora.domain.asUnifiedLazyState
 import com.sakethh.linkora.platform.PlatformSpecificBackHandler
 import com.sakethh.linkora.ui.LocalNavController
 import com.sakethh.linkora.ui.components.CollectionLayoutManager
+import com.sakethh.linkora.ui.components.PerformAtTheEndOfTheList
 import com.sakethh.linkora.ui.components.SortingIconButton
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
@@ -79,7 +80,6 @@ import com.sakethh.linkora.ui.screens.DataEmptyScreen
 import com.sakethh.linkora.ui.screens.search.FilterChip
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.addEdgeToEdgeScaffoldPadding
 import com.sakethh.linkora.utils.getLocalizedString
@@ -125,6 +125,9 @@ fun CollectionDetailPane(
     val rootArchiveFoldersState by
     collectionDetailPaneParams.rootArchiveFolders.collectAsStateWithLifecycle()
     val rootArchiveFoldersListState = rememberLazyListState()
+    val rootArchiveFoldersUnifiedListState = retain {
+        rootArchiveFoldersListState.asUnifiedLazyState()
+    }
     val peekCollectionPaneHistory by
     collectionDetailPaneParams.peekPaneHistory.collectAsStateWithLifecycle()
     val currentFolder =
@@ -145,15 +148,12 @@ fun CollectionDetailPane(
     } else {
         peekCollectionPaneHistory!!
     }
-    val isRootArchiveFoldersListAtTheEnd = retain {
-        derivedStateOf {
-            (rootArchiveFoldersListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                ?: 0) >= (rootArchiveFoldersListState.layoutInfo.totalItemsCount - Constants.TRIGGER_THRESHOLD_AT_THE_END)
-        }
-    }
-    LaunchedEffect(isRootArchiveFoldersListAtTheEnd.value) {
-        collectionDetailPaneParams.performAction(CollectionsAction.RetrieveNextRootArchivedFolderPage)
-    }
+
+    PerformAtTheEndOfTheList(
+        unifiedLazyState = rootArchiveFoldersUnifiedListState,
+        actionOnReachingEnd = {
+            collectionDetailPaneParams.performAction(CollectionsAction.RetrieveNextRootArchivedFolderPage)
+        })
 
     DisposableEffect(Unit) {
         onDispose {
@@ -438,7 +438,8 @@ fun CollectionDetailPane(
                                                 },
                                                 path = null,
                                                 showPath = false,
-                                                onPathItemClick = {},)
+                                                onPathItemClick = {},
+                                            )
                                         )
                                     }
                                 }

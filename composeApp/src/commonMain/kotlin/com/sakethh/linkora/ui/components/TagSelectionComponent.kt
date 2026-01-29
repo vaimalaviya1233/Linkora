@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.sakethh.linkora.Localization
+import com.sakethh.linkora.domain.asUnifiedLazyState
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.ui.PageKey
 import com.sakethh.linkora.ui.domain.PaginationState
@@ -60,7 +62,6 @@ import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -73,6 +74,10 @@ fun TagSelectionComponent(
     onFirstVisibleIndexChange: (Int) -> Unit
 ) {
     val lazyColumnState = rememberLazyListState()
+    val lazyColumnUnifiedState = retain {
+        lazyColumnState.asUnifiedLazyState()
+
+    }
     val coroutineScope = rememberCoroutineScope()
     val isTagsEmpty = allTags.data.isEmpty() || allTags.data.values.first().isEmpty()
 
@@ -80,23 +85,16 @@ fun TagSelectionComponent(
     val buttonOverlapAmount = 25.dp
     val buttonVisibleHeight = buttonTotalHeight - buttonOverlapAmount
 
-    LaunchedEffect(Unit) {
-        launch {
-            snapshotFlow {
-                lazyColumnState.canScrollForward
-            }.debounce(500).distinctUntilChanged().collect {
-                if (!it && !allTags.isRetrieving && !allTags.pagesCompleted) {
-                    onRetrieveNextTagsPage()
-                }
-            }
-        }
+    PerformAtTheEndOfTheList(
+        unifiedLazyState = lazyColumnUnifiedState,
+        actionOnReachingEnd = onRetrieveNextTagsPage
+    )
 
-        launch {
-            snapshotFlow {
-                lazyColumnState.firstVisibleItemIndex
-            }.debounce(500).distinctUntilChanged().collect {
-                onFirstVisibleIndexChange(it)
-            }
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            lazyColumnState.firstVisibleItemIndex
+        }.debounce(500).distinctUntilChanged().collect {
+            onFirstVisibleIndexChange(it)
         }
     }
     Box(

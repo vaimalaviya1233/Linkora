@@ -30,7 +30,6 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.retain.retain
@@ -42,6 +41,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.sakethh.linkora.di.LinkoraSDK
+import com.sakethh.linkora.domain.asUnifiedLazyState
 import com.sakethh.linkora.domain.model.FlatChildFolderData
 import com.sakethh.linkora.domain.model.FlatSearchResult
 import com.sakethh.linkora.domain.model.Folder
@@ -240,34 +240,18 @@ fun CollectionLayoutManager(
         )
     }
 
-
-    val isAtTheEnd = retain {
-        derivedStateOf {
-            when (AppPreferences.selectedLinkLayout.value) {
-                Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> {
-                    val lastVisibleItem = listLayoutState.layoutInfo.visibleItemsInfo.lastOrNull()
-                    (lastVisibleItem?.index
-                        ?: 0) >= listLayoutState.layoutInfo.totalItemsCount - Constants.TRIGGER_THRESHOLD_AT_THE_END
-                }
-
-                Layout.GRID_VIEW.name -> {
-                    val lastVisibleItem = gridLayoutState.layoutInfo.visibleItemsInfo.lastOrNull()
-                    (lastVisibleItem?.index
-                        ?: 0) >= gridLayoutState.layoutInfo.totalItemsCount - Constants.TRIGGER_THRESHOLD_AT_THE_END
-                }
-
-                else -> {
-                    val lastVisibleItem =
-                        staggeredGridLayoutState.layoutInfo.visibleItemsInfo.lastOrNull()
-                    (lastVisibleItem?.index
-                        ?: 0) >= staggeredGridLayoutState.layoutInfo.totalItemsCount - Constants.TRIGGER_THRESHOLD_AT_THE_END
-                }
-            }
+    val unifiedListState = retain {
+        when (AppPreferences.selectedLinkLayout.value) {
+            Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> listLayoutState.asUnifiedLazyState()
+            Layout.STAGGERED_VIEW.name -> staggeredGridLayoutState.asUnifiedLazyState()
+            else -> gridLayoutState.asUnifiedLazyState()
         }
     }
-    LaunchedEffect(isAtTheEnd.value) {
-        onRetrieveNextPage()
-    }
+
+    PerformAtTheEndOfTheList(
+        unifiedLazyState = unifiedListState, onRetrieveNextPage
+    )
+
     when (AppPreferences.selectedLinkLayout.value) {
         Layout.TITLE_ONLY_LIST_VIEW.name, Layout.REGULAR_LIST_VIEW.name -> {
 

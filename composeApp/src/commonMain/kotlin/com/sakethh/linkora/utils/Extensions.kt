@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
@@ -22,6 +23,8 @@ import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RefreshLinkType
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.UnifiedLazyItem
+import com.sakethh.linkora.domain.UnifiedLazyState
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.model.FlatChildFolderData
 import com.sakethh.linkora.domain.model.FlatSearchResult
@@ -35,7 +38,6 @@ import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
-import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.ui.utils.rememberDeserializableObject
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -373,4 +375,8 @@ fun Flow<Result<List<FlatSearchResult>>>.shuffleLinks(): Flow<Result<List<FlatSe
 }
 
 @Composable
-fun RefreshLinkType.asLocalizedString() = name
+fun RefreshLinkType.asLocalizedString() = when(this){
+    RefreshLinkType.Title -> Localization.Key.Title.rememberLocalizedString()
+    RefreshLinkType.Image -> Localization.Key.ImportantLinks.rememberLocalizedString()
+    RefreshLinkType.Both -> Localization.Key.Both.rememberLocalizedString()
+}

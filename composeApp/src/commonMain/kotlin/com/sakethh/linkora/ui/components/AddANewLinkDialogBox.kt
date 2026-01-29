@@ -84,6 +84,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -109,6 +110,7 @@ import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Platform
+import com.sakethh.linkora.domain.asUnifiedLazyState
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.domain.model.tag.Tag
@@ -569,23 +571,21 @@ private fun BottomPartOfAddANewLinkDialogBox(
 ) {
     val lazyColumnState = rememberLazyListState()
 
-    LaunchedEffect(Unit) {
-        launch {
-            snapshotFlow {
-                lazyColumnState.canScrollForward
-            }.debounce(500).distinctUntilChanged().collect {
-                if (!it && !allTags.isRetrieving && !allTags.pagesCompleted) {
-                    performAction(AddANewLinkDialogBoxAction.OnRetrieveNextRegularRootPage)
-                }
-            }
-        }
+    val unifiedLazyColumnState = retain {
+        lazyColumnState.asUnifiedLazyState()
+    }
 
-        launch {
-            snapshotFlow {
-                lazyColumnState.firstVisibleItemIndex
-            }.debounce(500).distinctUntilChanged().collect {
-                performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfRootFolders(it.toLong()))
-            }
+    PerformAtTheEndOfTheList(
+        unifiedLazyState = unifiedLazyColumnState,
+        actionOnReachingEnd = {
+            performAction(AddANewLinkDialogBoxAction.OnRetrieveNextRegularRootPage)
+        })
+
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            lazyColumnState.firstVisibleItemIndex
+        }.debounce(500).distinctUntilChanged().collect {
+            performAction(AddANewLinkDialogBoxAction.OnFirstVisibleIndexChangeOfRootFolders(it.toLong()))
         }
     }
     var showBtmSheetForNewTagAddition by rememberSaveable {
