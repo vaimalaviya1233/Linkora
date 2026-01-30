@@ -1,0 +1,9 @@
+- Custom paginator for faster, efficient data loading across all collection screens.
+- Auto-save links when sharing from other apps.
+- Link views now display date, time, and tags.
+- Concurrent bulk updates and individual title/image refreshes.
+- Editable URLs/image URLs and force-save if metadata retrieval fails.
+- New paginated, scrollable components for folder and tag selection.
+- Folder paths now shown in search results.
+
+https://github.com/LinkoraApp/Linkora/releases
