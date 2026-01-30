@@ -16,7 +16,11 @@ A browser extension is available for saving web links directly to Linkora via sy
 alt="Get it on GitHub"
 height="80">](https://github.com/sakethpathike/Linkora/releases) [<img src="https://f-droid.org/badge/get-it-on.png"
 alt="Get it on F-Droid"
-height="80">](https://f-droid.org/packages/com.sakethh.linkora) 
+height="80">](https://f-droid.org/packages/com.sakethh.linkora)
+
+&nbsp;&nbsp;&nbsp;[<img src="https://github.com/user-attachments/assets/7b6e7704-7f39-49a9-b868-556ebea5fc76"
+alt="Get it on Google Play"
+height="58">](https://play.google.com/store/apps/details?id=com.sakethh.linkora)
 
 Get it on Arch Linux:
 
@@ -34,7 +38,7 @@ Get it on Arch Linux:
 - **Keep your links in sync** across devices with
   optional [self-hostable server](https://github.com/LinkoraApp/sync-server)
 
-[How sync works](https://sakethpathike.github.io/blog/synchronization-in-linkora) · [Server setup instructions](docs/ServerConnectionSetup.md) 
+[How sync works](https://sakethpathike.github.io/blog/synchronization-in-linkora) · [Server setup instructions](docs/ServerConnectionSetup.md)
 
 ## Screenshots
 
@@ -55,7 +59,7 @@ Get it on Arch Linux:
 ## Built with
 
 - Kotlin Multiplatform + Compose Multiplatform + Material 3
-- SQLite with Room (local storage) + Ktor (networking)
+- SQLite with Room (local storage) + Ktor (networking) + Custom Reactive Pagination
 - Coroutines and Flows for async operations
 - jsoup for HTML parsing and metadata extraction
 - Coil for image loading
