@@ -377,6 +377,6 @@ fun Flow<Result<List<FlatSearchResult>>>.shuffleLinks(): Flow<Result<List<FlatSe
 @Composable
 fun RefreshLinkType.asLocalizedString() = when(this){
     RefreshLinkType.Title -> Localization.Key.Title.rememberLocalizedString()
-    RefreshLinkType.Image -> Localization.Key.ImportantLinks.rememberLocalizedString()
+    RefreshLinkType.Image -> Localization.Key.Image.rememberLocalizedString()
     RefreshLinkType.Both -> Localization.Key.Both.rememberLocalizedString()
 }
