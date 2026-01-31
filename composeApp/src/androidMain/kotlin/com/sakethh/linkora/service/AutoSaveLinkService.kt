@@ -19,6 +19,7 @@ import com.sakethh.linkora.domain.onFailure
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.replaceFirstPlaceHolderWith
 import kotlinx.coroutines.CoroutineScope
@@ -75,7 +76,7 @@ class AutoSaveLinkService : Service() {
                     url = url,
                     imgURL = "",
                     note = "",
-                    idOfLinkedFolder = null
+                    idOfLinkedFolder = Constants.SAVED_LINKS_ID
                 )
             ).collectLatest {
                 withContext(Dispatchers.Main) {
