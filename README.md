@@ -59,7 +59,7 @@ Get it on Arch Linux:
 ## Built with
 
 - Kotlin Multiplatform + Compose Multiplatform + Material 3
-- SQLite with Room (local storage) + Ktor (networking) + Custom Reactive Pagination
+- SQLite with Room (local storage) + Ktor (networking) + Custom reactive and resource-aware paginator
 - Coroutines and Flows for async operations
 - jsoup for HTML parsing and metadata extraction
 - Coil for image loading
