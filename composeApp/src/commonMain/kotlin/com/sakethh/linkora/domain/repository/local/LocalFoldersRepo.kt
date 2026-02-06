@@ -10,12 +10,17 @@ interface LocalFoldersRepo {
         folder: Folder, ignoreFolderAlreadyExistsException: Boolean, viaSocket: Boolean = false
     ): Flow<Result<Long>>
 
+    suspend fun insertANewFolderLocally(
+        folder: Folder
+    ): Long
+
 
     suspend fun getAllRootFoldersAsList(): List<Folder>
 
     fun getAllFoldersAsResultList(): Flow<Result<List<Folder>>>
 
     suspend fun getAllFoldersAsList(): List<Folder>
+    suspend fun isFoldersTableEmpty(): Boolean
     fun getAllFoldersAsFlow(): Flow<List<Folder>>
 
     suspend fun getChildFoldersOfThisParentIDAsList(parentFolderID: Long?): List<Folder>

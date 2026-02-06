@@ -1,5 +1,6 @@
 package com.sakethh.linkora.di
 
+import androidx.room.useWriterConnection
 import com.sakethh.linkora.data.ExportDataRepoImpl
 import com.sakethh.linkora.data.ImportDataRepoImpl
 import com.sakethh.linkora.data.LocalizationRepoImpl
@@ -104,7 +105,10 @@ object DependencyContainer {
             localLinksRepo = localLinksRepo,
             localPanelsRepo = localPanelsRepo,
             pendingSyncQueueRepo = pendingSyncQueueRepo,
-            preferencesRepository = preferencesRepo
+            preferencesRepository = preferencesRepo,
+            withWriterConnection = {
+                LinkoraSDK.getInstance().localDatabase.useWriterConnection(it)
+            }
         )
     }
 
@@ -180,7 +184,10 @@ object DependencyContainer {
         ImportDataRepoImpl(
             localLinksRepo, localFoldersRepo, localPanelsRepo, canPushToServer = {
                 AppPreferences.canPushToServer()
-            }, remoteSyncRepo = remoteSyncRepo, localTagsRepo = localTagsRepo
+            }, remoteSyncRepo = remoteSyncRepo, localTagsRepo = localTagsRepo,
+            withWriterConnection = {
+                LinkoraSDK.getInstance().localDatabase.useWriterConnection(it)
+            }
         )
     }
 

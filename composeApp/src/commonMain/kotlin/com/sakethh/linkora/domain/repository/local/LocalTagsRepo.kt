@@ -1,13 +1,13 @@
 package com.sakethh.linkora.domain.repository.local
 
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.tag.LinkTag
 import com.sakethh.linkora.domain.model.tag.Tag
 import kotlinx.coroutines.flow.Flow
 
 interface LocalTagsRepo {
     suspend fun createATag(tag: Tag, viaSocket: Boolean = false): Flow<Result<Long>>
+    suspend fun createATagLocally(tag: Tag): Long
 
     suspend fun createLinkTags(linksTags: List<LinkTag>)
 

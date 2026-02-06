@@ -29,6 +29,9 @@ object Constants {
     const val TAG = "TAG"
 
     const val TRIGGER_THRESHOLD_AT_THE_END = 5
+
+    const val MAX_INSERTION_IN_DB_SINGLE_SHOT = 999
+
 }
 
 object LinkType {

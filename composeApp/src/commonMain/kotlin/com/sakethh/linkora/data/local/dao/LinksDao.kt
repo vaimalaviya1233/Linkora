@@ -3,6 +3,7 @@ package com.sakethh.linkora.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.utils.LinkType
@@ -15,6 +16,7 @@ interface LinksDao {
     suspend fun addANewLink(link: Link): Long
 
     @Insert
+    @Transaction
     suspend fun addMultipleLinks(links: List<Link>): List<Long>
 
     @Query("DELETE FROM links WHERE idOfLinkedFolder = :folderId")
@@ -267,4 +269,7 @@ interface LinksDao {
         pageSize: Int,
         startIndex: Long
     ): Flow<List<Link>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM links)")
+    suspend fun isLinksTableEmpty(): Boolean
 }

@@ -17,7 +17,7 @@ interface PanelsDao {
     suspend fun getLatestPanelFolderID(): Long
 
     @Insert
-    suspend fun addaNewPanel(panel: Panel): Long
+    suspend fun addANewPanel(panel: Panel): Long
 
     @Update
     suspend fun updateAPanel(panel: Panel)
@@ -63,6 +63,9 @@ interface PanelsDao {
 
     @Query("SELECT * FROM panel")
     suspend fun getAllThePanelsAsAList(): List<Panel>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM panel)")
+    suspend fun isPanelsTableEmpty(): Boolean
 
     @Query("SELECT * FROM panel_folder")
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>

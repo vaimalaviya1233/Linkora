@@ -1,8 +1,10 @@
 package com.sakethh.linkora.data.local.repository
 
+import androidx.room.Transactor
+import androidx.room.immediateTransaction
 import com.sakethh.linkora.data.local.dao.FoldersDao
-import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.asAddFolderDTO
 import com.sakethh.linkora.domain.asFolderDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
@@ -35,6 +37,7 @@ class LocalFoldersRepoImpl(
     private val localPanelsRepo: LocalPanelsRepo,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val preferencesRepository: PreferencesRepository,
+    private val withWriterConnection: suspend (suspend (Transactor) -> Unit) -> Unit,
 ) : LocalFoldersRepo {
 
     override suspend fun insertANewFolder(
@@ -109,6 +112,12 @@ class LocalFoldersRepoImpl(
             })
     }
 
+    override suspend fun insertANewFolderLocally(
+        folder: Folder
+    ): Long {
+        return foldersDao.insertANewFolder(folder)
+    }
+
     override suspend fun getAllRootFoldersAsList(): List<Folder> {
         return foldersDao.getAllRootFoldersAsList()
     }
@@ -125,6 +134,10 @@ class LocalFoldersRepoImpl(
 
     override suspend fun getAllFoldersAsList(): List<Folder> {
         return foldersDao.getAllFoldersAsList()
+    }
+
+    override suspend fun isFoldersTableEmpty(): Boolean {
+        return foldersDao.isFoldersTableEmpty()
     }
 
     override suspend fun getChildFoldersOfThisParentIDAsList(parentFolderID: Long?): List<Folder> {
@@ -362,7 +375,8 @@ class LocalFoldersRepoImpl(
                 }
             },
             localOperation = {
-                deleteLocalDataRelatedToTheFolder(folderID)
+                deleteChildData(folderID)
+                localPanelsRepo.deleteAFolderFromAllPanels(folderID)
                 localLinksRepo.deleteLinksOfFolder(folderID).collect()
                 foldersDao.deleteAFolder(folderID)
             })
@@ -378,13 +392,23 @@ class LocalFoldersRepoImpl(
         }
     }
 
-    private suspend fun deleteLocalDataRelatedToTheFolder(folderID: Long) {
-        localPanelsRepo.deleteAFolderFromAllPanels(folderID)
-        foldersDao.getChildFoldersAsList(folderID).forEach {
-            localPanelsRepo.deleteAFolderFromAllPanels(it.localId)
-            foldersDao.deleteAFolder(it.localId)
-            localLinksRepo.deleteLinksOfFolder(it.localId).collect()
-            deleteLocalDataRelatedToTheFolder(it.localId)
+    private suspend fun deleteChildData(folderID: Long) {
+        withWriterConnection { transactor ->
+            transactor.immediateTransaction {
+                val foldersToDelete = ArrayDeque<Folder>()
+                foldersToDelete.addAll(foldersDao.getChildFoldersAsList(folderID))
+
+                while (foldersToDelete.isNotEmpty()) {
+                    val currentFolder = foldersToDelete.removeLast()
+
+                    localPanelsRepo.deleteAFolderFromAllPanels(currentFolder.localId)
+                    foldersDao.deleteAFolder(currentFolder.localId)
+                    localLinksRepo.deleteLinksOfFolder(currentFolder.localId).collect()
+
+                    val childFolders = foldersDao.getChildFoldersAsList(currentFolder.localId)
+                    foldersToDelete.addAll(childFolders)
+                }
+            }
         }
     }
 

@@ -180,7 +180,7 @@ class SpecificPanelManagerScreenVM(
 
     fun addANewAPanel(panel: Panel, onCompletion: () -> Unit) {
         viewModelScope.launch {
-            localPanelsRepo.addaNewPanel(panel).collectLatest {
+            localPanelsRepo.addANewPanel(panel).collectLatest {
                 it.onSuccess {
                     pushUIEvent(
                         UIEvent.Type.ShowSnackbar(

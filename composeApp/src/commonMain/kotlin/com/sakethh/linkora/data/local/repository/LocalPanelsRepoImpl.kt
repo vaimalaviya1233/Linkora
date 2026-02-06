@@ -2,8 +2,8 @@ package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.PanelsDao
-import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.server.panel.AddANewPanelFolderDTO
@@ -30,7 +30,7 @@ class LocalPanelsRepoImpl(
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val preferencesRepository: PreferencesRepository
 ) : LocalPanelsRepo {
-    override suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Long>> {
+    override suspend fun addANewPanel(panel: Panel, viaSocket: Boolean): Flow<Result<Long>> {
         var newPanelId: Long? = null
         val eventTimestamp = getSystemEpochSeconds()
         return performLocalOperationWithRemoteSyncFlow(
@@ -71,9 +71,15 @@ class LocalPanelsRepoImpl(
                 )
             }) {
             newPanelId =
-                panelsDao.addaNewPanel(panel.copy(localId = 0, lastModified = eventTimestamp))
+                panelsDao.addANewPanel(panel.copy(localId = 0, lastModified = eventTimestamp))
             newPanelId
         }
+    }
+
+    override suspend fun addANewPanelLocally(
+        panel: Panel,
+    ): Long {
+        return panelsDao.addANewPanel(panel)
     }
 
     override suspend fun deleteAPanel(id: Long, viaSocket: Boolean): Flow<Result<Unit>> {
@@ -271,6 +277,10 @@ class LocalPanelsRepoImpl(
 
     override suspend fun getAllThePanelsAsAList(): List<Panel> {
         return panelsDao.getAllThePanelsAsAList()
+    }
+
+    override suspend fun isPanelsTableEmpty(): Boolean {
+        return panelsDao.isPanelsTableEmpty()
     }
 
     override suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder> {

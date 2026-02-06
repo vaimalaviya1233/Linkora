@@ -34,6 +34,9 @@ interface FoldersDao {
     @Query("SELECT * FROM folders")
     suspend fun getAllFoldersAsList(): List<Folder>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM folders)")
+    suspend fun isFoldersTableEmpty(): Boolean
+
     @Query("SELECT * FROM folders")
     fun getAllFoldersAsFlow(): Flow<List<Folder>>
 

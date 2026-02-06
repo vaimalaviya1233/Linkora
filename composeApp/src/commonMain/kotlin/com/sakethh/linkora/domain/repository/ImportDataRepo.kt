@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface ImportDataRepo {
-    suspend fun importDataFromAJSONFile(file: File): Flow<Result<Unit>>
+    suspend fun importDataFromAJSONFile(importFile: File): Flow<Result<Unit>>
 
-    suspend fun importDataFromAHTMLFile(file: File): Flow<Result<Unit>>
+    suspend fun importDataFromAHTMLFile(importFile: File): Flow<Result<Unit>>
 }

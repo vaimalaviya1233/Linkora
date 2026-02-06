@@ -657,7 +657,7 @@ class LocalDataUpdateService(
                     return
                 }
 
-                localPanelsRepo.addaNewPanel(
+                localPanelsRepo.addANewPanel(
                     Panel(
                         panelName = panelDTO.panelName,
                         remoteId = panelDTO.panelId,

@@ -16,6 +16,10 @@ interface LocalLinksRepo {
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
+    suspend fun addANewLinkLocally(
+        link: Link,
+    ): Long
+
     suspend fun addMultipleLinks(links: List<Link>): List<Long>
 
     suspend fun getLinks(
@@ -99,4 +103,5 @@ interface LocalLinksRepo {
         startIndex: Long
     ): Flow<Result<List<Link>>>
 
+    suspend fun isLinksTableEmpty(): Boolean
 }

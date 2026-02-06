@@ -70,6 +70,12 @@ class LocalTagsRepoImpl(
         }
     }
 
+    override suspend fun createATagLocally(
+        tag: Tag,
+    ): Long {
+        return tagsDao.createATag(tag)
+    }
+
     override suspend fun createLinkTags(linksTags: List<LinkTag>) {
         tagsDao.createLinkTags(linksTags)
     }

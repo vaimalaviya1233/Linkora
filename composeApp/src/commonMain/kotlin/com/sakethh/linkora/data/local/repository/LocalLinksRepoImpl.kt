@@ -66,6 +66,9 @@ class LocalLinksRepoImpl(
         linksDao.changeIdOfALink(existingId, newId)
     }
 
+    override suspend fun addANewLinkLocally(link: Link): Long {
+        return linksDao.addANewLink(link)
+    }
     override suspend fun addANewLink(
         link: Link, selectedTagIds: List<Long>?, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
@@ -820,5 +823,9 @@ class LocalLinksRepoImpl(
             pageSize,
             startIndex
         ).mapToResultFlow()
+    }
+
+    override suspend fun isLinksTableEmpty(): Boolean {
+        return linksDao.isLinksTableEmpty()
     }
 }

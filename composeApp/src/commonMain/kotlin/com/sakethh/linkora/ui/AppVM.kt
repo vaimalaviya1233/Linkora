@@ -163,7 +163,7 @@ class AppVM(
                     booleanPreferencesKey(
                         AppPreferenceType.SHOULD_SHOW_ONBOARDING.name
                     )
-                ) != false && (linksRepo.getAllLinks().size + foldersRepo.getAllFoldersAsList().size + localPanelsRepo.getAllThePanelsAsAList().size) == 0
+                ) != false && linksRepo.isLinksTableEmpty() && foldersRepo.isFoldersTableEmpty() && localPanelsRepo.isPanelsTableEmpty()
             ) {
                 Navigation.Root.OnboardingSlidesScreen
             } else {

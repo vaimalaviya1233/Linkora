@@ -6,7 +6,8 @@ import com.sakethh.linkora.domain.model.panel.PanelFolder
 import kotlinx.coroutines.flow.Flow
 
 interface LocalPanelsRepo {
-    suspend fun addaNewPanel(panel: Panel, viaSocket: Boolean = false): Flow<Result<Long>>
+    suspend fun addANewPanel(panel: Panel, viaSocket: Boolean = false): Flow<Result<Long>>
+    suspend fun addANewPanelLocally(panel: Panel): Long
     suspend fun deleteAPanel(id: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
     suspend fun updateAPanelName(
         newName: String,
@@ -28,6 +29,7 @@ interface LocalPanelsRepo {
 
     fun getAllThePanels(): Flow<List<Panel>>
     suspend fun getAllThePanelsAsAList(): List<Panel>
+    suspend fun isPanelsTableEmpty(): Boolean
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>
     fun getAllThePanelFoldersAsAFlow(): Flow<List<PanelFolder>>
     fun getAllTheFoldersFromAPanel(panelId: Long): Flow<List<PanelFolder>>
