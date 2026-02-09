@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
@@ -23,8 +22,6 @@ import com.sakethh.linkora.domain.LinkoraPlaceHolder
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.RefreshLinkType
 import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.UnifiedLazyItem
-import com.sakethh.linkora.domain.UnifiedLazyState
 import com.sakethh.linkora.domain.dto.server.Correlation
 import com.sakethh.linkora.domain.model.FlatChildFolderData
 import com.sakethh.linkora.domain.model.FlatSearchResult
@@ -248,10 +245,13 @@ suspend inline fun <reified IncomingBody> HttpResponse.handleResponseBody(): Res
 fun Correlation.isSameAsCurrentClient(): Boolean = this.id == AppPreferences.getCorrelation().id
 
 suspend fun PreferencesRepository.updateLastSyncedWithServerTimeStamp(newValue: Long) {
-    this.changePreferenceValue(
-        preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name),
-        newValue = newValue
-    )
+    val preferenceKey = longPreferencesKey(AppPreferenceType.LAST_TIME_SYNCED_WITH_SERVER.name)
+    if ((this.readPreferenceValue(preferenceKey) ?: 0) < newValue) {
+        this.changePreferenceValue(
+            preferenceKey = preferenceKey,
+            newValue = newValue
+        )
+    }
 }
 
 suspend fun File.duplicate(): File? = withContext(Dispatchers.IO) {
@@ -375,7 +375,7 @@ fun Flow<Result<List<FlatSearchResult>>>.shuffleLinks(): Flow<Result<List<FlatSe
 }
 
 @Composable
-fun RefreshLinkType.asLocalizedString() = when(this){
+fun RefreshLinkType.asLocalizedString() = when (this) {
     RefreshLinkType.Title -> Localization.Key.Title.rememberLocalizedString()
     RefreshLinkType.Image -> Localization.Key.Image.rememberLocalizedString()
     RefreshLinkType.Both -> Localization.Key.Both.rememberLocalizedString()

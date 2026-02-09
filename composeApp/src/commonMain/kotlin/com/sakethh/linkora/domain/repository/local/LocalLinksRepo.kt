@@ -104,4 +104,5 @@ interface LocalLinksRepo {
     ): Flow<Result<List<Link>>>
 
     suspend fun isLinksTableEmpty(): Boolean
+    suspend fun forceSetDefaultFolderToInternalIds(viaSocket: Boolean = false): Flow<Result<Unit>>
 }

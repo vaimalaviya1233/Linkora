@@ -43,6 +43,7 @@ fun <T> Flow<T>.mapToResultFlow(): Flow<Result<T>> {
 
 fun Long.asLinkType() = when (this) {
     Constants.SAVED_LINKS_ID -> LinkType.SAVED_LINK
+    Constants.HISTORY_ID -> LinkType.HISTORY_LINK
     Constants.IMPORTANT_LINKS_ID -> LinkType.IMPORTANT_LINK
     Constants.ARCHIVE_ID -> LinkType.ARCHIVE_LINK
     else -> {

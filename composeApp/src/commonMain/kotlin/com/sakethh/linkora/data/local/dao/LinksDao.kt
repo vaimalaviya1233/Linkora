@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.sakethh.linkora.domain.model.link.Link
+import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.LinkType
 import com.sakethh.linkora.utils.Sorting
 import kotlinx.coroutines.flow.Flow
@@ -25,10 +26,10 @@ interface LinksDao {
     @Query("UPDATE links SET note = '' WHERE localId=:linkId")
     suspend fun deleteALinkNote(linkId: Long)
 
-    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}' WHERE localId=:linkId")
+    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}', idOfLinkedFolder = ${Constants.ARCHIVE_ID} WHERE localId=:linkId")
     suspend fun archiveALink(linkId: Long)
 
-    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}', lastModified = :eventTimestamp WHERE localId IN (:linkIds)")
+    @Query("UPDATE links SET linkType = '${LinkType.ARCHIVE_LINK}', lastModified = :eventTimestamp, idOfLinkedFolder = ${Constants.ARCHIVE_ID} WHERE localId IN (:linkIds)")
     suspend fun archiveMultipleLinks(linkIds: List<Long>, eventTimestamp: Long)
 
     @Query("DELETE FROM links WHERE localId = :linkId")
@@ -218,6 +219,7 @@ interface LinksDao {
     @Query("DELETE FROM links WHERE url=:url AND linkType = 'HISTORY_LINK'")
     suspend fun deleteLinksFromHistory(url: String)
 
+    @Transaction
     @Query("DELETE FROM links WHERE localId IN (:linkIds)")
     suspend fun deleteLinks(linkIds: List<Long>)
 
@@ -241,7 +243,7 @@ interface LinksDao {
         localId: Long, remoteId: Long
     )
 
-    @Query("UPDATE links SET linkType = '${LinkType.SAVED_LINK}', lastModified = :eventTimestamp WHERE localId IN (:linksIds)")
+    @Query("UPDATE links SET linkType = '${LinkType.SAVED_LINK}', idOfLinkedFolder = ${Constants.SAVED_LINKS_ID}, lastModified = :eventTimestamp WHERE localId IN (:linksIds)")
     suspend fun unarchiveLinks(linksIds: List<Long>, eventTimestamp: Long)
 
     @Query("SELECT remoteId FROM tags WHERE localId IN (:localIds)")
@@ -272,4 +274,19 @@ interface LinksDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM links)")
     suspend fun isLinksTableEmpty(): Boolean
+
+    @Transaction
+    @Query(
+        """
+        UPDATE links
+        SET lastModified = :eventTimestamp, idOfLinkedFolder = CASE
+            WHEN linkType = '${LinkType.SAVED_LINK}' THEN ${Constants.SAVED_LINKS_ID}
+            WHEN linkType = '${LinkType.IMPORTANT_LINK}' THEN ${Constants.IMPORTANT_LINKS_ID}
+            WHEN linkType = '${LinkType.HISTORY_LINK}' THEN ${Constants.HISTORY_ID}
+            WHEN linkType = '${LinkType.ARCHIVE_LINK}' THEN ${Constants.ARCHIVE_ID}
+        END
+        WHERE linkType IN ('${LinkType.SAVED_LINK}','${LinkType.IMPORTANT_LINK}','${LinkType.HISTORY_LINK}','${LinkType.ARCHIVE_LINK}')
+    """
+    )
+    suspend fun forceSetDefaultFolderToInternalIds(eventTimestamp: Long)
 }

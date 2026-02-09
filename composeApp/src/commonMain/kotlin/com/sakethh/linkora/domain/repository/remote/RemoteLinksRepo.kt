@@ -28,4 +28,6 @@ interface RemoteLinksRepo {
     suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun updateLink(linkDTO: LinkDTO): Flow<Result<TimeStampBasedResponse>>
     suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Flow<Result<TimeStampBasedResponse>>
+
+    suspend fun forceSetDefaultFolderToInternalIds(): Flow<Result<TimeStampBasedResponse>>
 }

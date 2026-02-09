@@ -3,14 +3,15 @@ package com.sakethh.linkora.data.remote.repository.sync
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsSocketResponseDTO
 import com.sakethh.linkora.domain.dto.server.DeleteEverythingDTO
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.dto.server.MoveItemsDTO
+import com.sakethh.linkora.domain.dto.server.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.server.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.server.folder.MarkSelectedFoldersAsRootDTO
 import com.sakethh.linkora.domain.dto.server.folder.UpdateFolderNameDTO
@@ -70,9 +71,9 @@ class LocalDataUpdateService(
     suspend fun updateLocalDBAccordingToEvent(
         deserializedWebSocketEvent: WebSocketEvent
     ) {
-        when (deserializedWebSocketEvent.operation) {
+        when (val currentRoute = SyncServerRoute.valueOf(deserializedWebSocketEvent.operation)) {
 
-            SyncServerRoute.UPDATE_FOLDER.name -> {
+            SyncServerRoute.UPDATE_FOLDER -> {
                 val folderDTO =
                     json.decodeFromJsonElement<FolderDTO>(deserializedWebSocketEvent.payload)
                 if (folderDTO.correlation.isSameAsCurrentClient()) {
@@ -97,7 +98,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.CREATE_TAG.name -> {
+            SyncServerRoute.CREATE_TAG -> {
                 val tagDto =
                     Json.decodeFromJsonElement<TagDTO>(deserializedWebSocketEvent.payload)
                 if (tagDto.correlation.isSameAsCurrentClient()) {
@@ -113,7 +114,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(tagDto.eventTimestamp)
             }
 
-            SyncServerRoute.DELETE_TAG.name -> {
+            SyncServerRoute.DELETE_TAG -> {
                 val iDBasedDTO =
                     Json.decodeFromJsonElement<IDBasedDTO>(deserializedWebSocketEvent.payload)
                 if (iDBasedDTO.correlation.isSameAsCurrentClient()) {
@@ -125,7 +126,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(iDBasedDTO.eventTimestamp)
             }
 
-            SyncServerRoute.RENAME_TAG.name -> {
+            SyncServerRoute.RENAME_TAG -> {
                 val renameTagDTO =
                     Json.decodeFromJsonElement<RenameTagDTO>(deserializedWebSocketEvent.payload)
                 if (renameTagDTO.correlation.isSameAsCurrentClient()) {
@@ -139,7 +140,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(renameTagDTO.eventTimestamp)
             }
 
-            SyncServerRoute.COPY_EXISTING_ITEMS.name -> {
+            SyncServerRoute.COPY_EXISTING_ITEMS -> {
                 val copyItemsSocketResponseDTO =
                     Json.decodeFromJsonElement<CopyItemsSocketResponseDTO>(
                         deserializedWebSocketEvent.payload
@@ -156,7 +157,7 @@ class LocalDataUpdateService(
                     )
             }
 
-            SyncServerRoute.UNARCHIVE_MULTIPLE_ITEMS.name -> {
+            SyncServerRoute.UNARCHIVE_MULTIPLE_ITEMS -> {
                 val markItemsRegularDTO = Json.decodeFromJsonElement<MarkItemsRegularDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -168,14 +169,14 @@ class LocalDataUpdateService(
                 }
                 localMultiActionRepo.unArchiveMultipleItems(
                     linkIds = markItemsRegularDTO.linkIds.map {
-                    localLinksRepo.getLocalLinkId(it) ?: -45454
-                }, folderIds = markItemsRegularDTO.foldersIds.map {
-                    localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
-                }, viaSocket = true
+                        localLinksRepo.getLocalLinkId(it) ?: -45454
+                    }, folderIds = markItemsRegularDTO.foldersIds.map {
+                        localFoldersRepo.getLocalIdOfAFolder(it) ?: -45454
+                    }, viaSocket = true
                 ).collectAndUpdateTimestamp(markItemsRegularDTO.eventTimestamp)
             }
 
-            SyncServerRoute.DELETE_EVERYTHING.name -> {
+            SyncServerRoute.DELETE_EVERYTHING -> {
                 val deleteEverythingDTO = Json.decodeFromJsonElement<DeleteEverythingDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -190,7 +191,7 @@ class LocalDataUpdateService(
                 )
             }
 
-            SyncServerRoute.DELETE_MULTIPLE_ITEMS.name -> {
+            SyncServerRoute.DELETE_MULTIPLE_ITEMS -> {
                 val deleteMultipleItemsDTO =
                     Json.decodeFromJsonElement<DeleteMultipleItemsDTO>(
                         deserializedWebSocketEvent.payload
@@ -211,7 +212,7 @@ class LocalDataUpdateService(
                     .collectAndUpdateTimestamp(deleteMultipleItemsDTO.eventTimestamp)
             }
 
-            SyncServerRoute.MOVE_EXISTING_ITEMS.name -> {
+            SyncServerRoute.MOVE_EXISTING_ITEMS -> {
                 val moveItemsDTO =
                     Json.decodeFromJsonElement<MoveItemsDTO>(deserializedWebSocketEvent.payload)
 
@@ -236,7 +237,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(moveItemsDTO.eventTimestamp)
             }
 
-            SyncServerRoute.ARCHIVE_MULTIPLE_ITEMS.name -> {
+            SyncServerRoute.ARCHIVE_MULTIPLE_ITEMS -> {
                 val archiveMoveItemsDTO =
                     Json.decodeFromJsonElement<ArchiveMultipleItemsDTO>(
                         deserializedWebSocketEvent.payload
@@ -256,7 +257,7 @@ class LocalDataUpdateService(
                 }, viaSocket = true).collectAndUpdateTimestamp(archiveMoveItemsDTO.eventTimestamp)
             }
 
-            SyncServerRoute.MARK_FOLDERS_AS_ROOT.name -> {
+            SyncServerRoute.MARK_FOLDERS_AS_ROOT -> {
                 val markSelectedFoldersAsRootDTO =
                     Json.decodeFromJsonElement<MarkSelectedFoldersAsRootDTO>(
                         deserializedWebSocketEvent.payload
@@ -274,7 +275,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(markSelectedFoldersAsRootDTO.eventTimestamp)
             }
 
-            SyncServerRoute.DELETE_DUPLICATE_LINKS.name -> {
+            SyncServerRoute.DELETE_DUPLICATE_LINKS -> {
                 val deleteDuplicateLinksDTO =
                     Json.decodeFromJsonElement<DeleteDuplicateLinksDTO>(
                         deserializedWebSocketEvent.payload
@@ -294,7 +295,7 @@ class LocalDataUpdateService(
 
             // folders:
 
-            SyncServerRoute.CREATE_FOLDER.name -> {
+            SyncServerRoute.CREATE_FOLDER -> {
                 val folderDto = json.decodeFromJsonElement<FolderDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -316,7 +317,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(folderDto.eventTimestamp)
             }
 
-            SyncServerRoute.DELETE_FOLDER.name -> {
+            SyncServerRoute.DELETE_FOLDER -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -332,7 +333,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.MARK_FOLDER_AS_ARCHIVE.name -> {
+            SyncServerRoute.MARK_FOLDER_AS_ARCHIVE -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -349,7 +350,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.MARK_AS_REGULAR_FOLDER.name -> {
+            SyncServerRoute.MARK_AS_REGULAR_FOLDER -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -366,7 +367,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.UPDATE_FOLDER_NAME.name -> {
+            SyncServerRoute.UPDATE_FOLDER_NAME -> {
                 val updateFolderNameDTO = json.decodeFromJsonElement<UpdateFolderNameDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -394,7 +395,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.UPDATE_FOLDER_NOTE.name -> {
+            SyncServerRoute.UPDATE_FOLDER_NOTE -> {
                 val updateFolderNoteDTO = json.decodeFromJsonElement<UpdateFolderNoteDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -421,7 +422,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.DELETE_FOLDER_NOTE.name -> {
+            SyncServerRoute.DELETE_FOLDER_NOTE -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -446,7 +447,7 @@ class LocalDataUpdateService(
 
             // links:
 
-            SyncServerRoute.UPDATE_LINK_TITLE.name -> {
+            SyncServerRoute.UPDATE_LINK_TITLE -> {
                 val updateTitleOfTheLinkDTO = json.decodeFromJsonElement<UpdateTitleOfTheLinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -466,7 +467,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.UPDATE_LINK_NOTE.name -> {
+            SyncServerRoute.UPDATE_LINK_NOTE -> {
                 val updateNoteOfALinkDTO = json.decodeFromJsonElement<UpdateNoteOfALinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -484,7 +485,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.DELETE_A_LINK.name -> {
+            SyncServerRoute.DELETE_A_LINK -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -501,7 +502,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.ARCHIVE_LINK.name -> {
+            SyncServerRoute.ARCHIVE_LINK -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -518,7 +519,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.UNARCHIVE_LINK.name -> {
+            SyncServerRoute.UNARCHIVE_LINK -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -539,7 +540,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.MARK_AS_IMP.name -> {
+            SyncServerRoute.MARK_AS_IMP -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -554,14 +555,14 @@ class LocalDataUpdateService(
                     val link = localLinksRepo.getALink(localLinkId)
                     localLinksRepo.addANewLink(
                         link = link.copy(linkType = LinkType.IMPORTANT_LINK),
-                        linkSaveConfig = LinkSaveConfig.Companion.forceSaveWithoutRetrieving(),
+                        linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
                         viaSocket = true,
                         selectedTagIds = localTagsRepo.getTags(localLinkId).map { it.localId })
                         .collectAndUpdateTimestamp(idBasedDTO.eventTimestamp)
                 }
             }
 
-            SyncServerRoute.UNMARK_AS_IMP.name -> {
+            SyncServerRoute.UNMARK_AS_IMP -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -579,7 +580,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.UPDATE_LINK.name -> {
+            SyncServerRoute.UPDATE_LINK -> {
                 val linkDTO = json.decodeFromJsonElement<LinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -614,7 +615,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.CREATE_A_NEW_LINK.name -> {
+            SyncServerRoute.CREATE_A_NEW_LINK -> {
                 val linkDTO = json.decodeFromJsonElement<LinkDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -639,7 +640,7 @@ class LocalDataUpdateService(
                         mediaType = linkDTO.mediaType,
                         lastModified = linkDTO.eventTimestamp
                     ),
-                    linkSaveConfig = LinkSaveConfig.Companion.forceSaveWithoutRetrieving(),
+                    linkSaveConfig = LinkSaveConfig.forceSaveWithoutRetrieving(),
                     viaSocket = true,
                     selectedTagIds = localTagsRepo.getLocalTagIds(linkDTO.linkTags.map { it.tagId })
                 ).collectAndUpdateTimestamp(linkDTO.eventTimestamp)
@@ -648,7 +649,7 @@ class LocalDataUpdateService(
 
             // panels:
 
-            SyncServerRoute.ADD_A_NEW_PANEL.name -> {
+            SyncServerRoute.ADD_A_NEW_PANEL -> {
                 val panelDTO =
                     json.decodeFromJsonElement<PanelDTO>(deserializedWebSocketEvent.payload)
 
@@ -666,7 +667,7 @@ class LocalDataUpdateService(
                 ).collectAndUpdateTimestamp(panelDTO.eventTimestamp)
             }
 
-            SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
+            SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL -> {
                 val panelFolderDTO = json.decodeFromJsonElement<PanelFolderDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -692,7 +693,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.DELETE_A_PANEL.name -> {
+            SyncServerRoute.DELETE_A_PANEL -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -711,7 +712,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.UPDATE_A_PANEL_NAME.name -> {
+            SyncServerRoute.UPDATE_A_PANEL_NAME -> {
                 val updatePanelNameDTO = json.decodeFromJsonElement<UpdatePanelNameDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -731,7 +732,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name -> {
+            SyncServerRoute.DELETE_A_FOLDER_FROM_ALL_PANELS -> {
                 val idBasedDTO = json.decodeFromJsonElement<IDBasedDTO>(
                     deserializedWebSocketEvent.payload
                 )
@@ -748,7 +749,7 @@ class LocalDataUpdateService(
                 }
             }
 
-            SyncServerRoute.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
+            SyncServerRoute.DELETE_A_FOLDER_FROM_A_PANEL -> {
                 val deleteAFolderFromAPanelDTO =
                     json.decodeFromJsonElement<DeleteAFolderFromAPanelDTO>(
                         deserializedWebSocketEvent.payload
@@ -770,6 +771,23 @@ class LocalDataUpdateService(
                         localPanelId, localFolderId, viaSocket = true
                     ).collectAndUpdateTimestamp(deleteAFolderFromAPanelDTO.eventTimestamp)
                 }
+            }
+
+            SyncServerRoute.CHANGE_PARENT_FOLDER -> linkoraLog("Nothing to do on $currentRoute")
+            SyncServerRoute.UPDATE_LINKED_FOLDER_ID -> linkoraLog("Nothing to do on $currentRoute")
+            SyncServerRoute.UPDATE_USER_AGENT -> linkoraLog("Nothing to do on $currentRoute")
+            SyncServerRoute.GET_LINKS_FROM_A_FOLDER -> linkoraLog("Nothing to do on $currentRoute")
+            SyncServerRoute.GET_LINKS -> linkoraLog("Nothing to do on $currentRoute")
+            SyncServerRoute.TEST_BEARER -> linkoraLog("Nothing to do on $currentRoute")
+            SyncServerRoute.GET_UPDATES -> linkoraLog("Nothing to do on $currentRoute")
+            SyncServerRoute.GET_TOMBSTONES -> linkoraLog("Nothing to do on $currentRoute")
+
+            SyncServerRoute.FORCE_SET_DEFAULT_FOLDER_TO_INTERNAL_IDS -> {
+                val timeStampBasedResponse = json.decodeFromJsonElement<TimeStampBasedResponse>(
+                    deserializedWebSocketEvent.payload
+                )
+                localLinksRepo.forceSetDefaultFolderToInternalIds(viaSocket = true)
+                    .collectAndUpdateTimestamp(timeStampBasedResponse.eventTimestamp)
             }
         }
     }

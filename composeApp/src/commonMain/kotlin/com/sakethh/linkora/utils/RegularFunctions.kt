@@ -15,6 +15,7 @@ import com.sakethh.linkora.preferences.AppPreferences
 import com.sakethh.linkora.ui.domain.model.ServerConnection
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -105,6 +106,24 @@ inline fun <reified OutgoingBody, reified IncomingBody> postFlow(
             bearerAuth(authToken())
             contentType(contentType)
             setBody(outgoingBody)
+        }.handleResponseBody<IncomingBody>().run {
+            emit(this)
+        }
+    }.catchAsExceptionAndEmitFailure()
+}
+
+inline fun <reified IncomingBody> getFlow(
+    crossinline syncServerClient: () -> HttpClient,
+    crossinline baseUrl: () -> String,
+    crossinline authToken: () -> String,
+    endPoint: String,
+    contentType: ContentType = ContentType.Application.Json
+): Flow<Result<IncomingBody>> {
+    return flow {
+        emit(Result.Loading())
+        syncServerClient().get(baseUrl() + endPoint) {
+            bearerAuth(authToken())
+            contentType(contentType)
         }.handleResponseBody<IncomingBody>().run {
             emit(this)
         }

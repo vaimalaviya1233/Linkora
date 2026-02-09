@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.BackupTable
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Cancel
@@ -148,10 +149,12 @@ fun DataSettingsScreen() {
     val selectedImportFormat = rememberSaveable {
         mutableStateOf(ImportFileType.JSON.name)
     }
-    val showDuplicateDeleteDialogBox = rememberSaveable {
+    val showAlertDialogWithProgress = rememberSaveable {
         mutableStateOf(false)
     }
-
+    var labelForAlertDialogWithProgress by rememberSaveable {
+        mutableStateOf("")
+    }
     val exportLocation = rememberSaveable(AppPreferences.currentExportLocation.value) {
         mutableStateOf(AppPreferences.currentExportLocation.value)
     }
@@ -501,6 +504,35 @@ fun DataSettingsScreen() {
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
+                        title = "Enforce strict folder IDs on default folders",
+                        doesDescriptionExists = true,
+                        description = "Force writes the IDs of Saved Links, Important Links, Archived Links, History Links to its internal IDs respectively.\n\nThis operation is usually not required, since linkora handles it by default.",
+                        isSwitchNeeded = false,
+                        isSwitchEnabled = AppPreferences.useAmoledTheme,
+                        onSwitchStateChange = {
+                            dataSettingsScreenVM.forceSetDefaultFolderToInternalIds(onStart = {
+                                labelForAlertDialogWithProgress = "Updating Internal IDs"
+                                showAlertDialogWithProgress.value = true
+                            }, onCompletion = {
+                                showAlertDialogWithProgress.value = false
+                            })
+                        },
+                        icon = Icons.Default.AutoFixHigh,
+                        shouldFilledIconBeUsed = rememberSaveable { mutableStateOf(true) })
+                )
+            }
+
+            item {
+                HorizontalDivider(
+                    Modifier.padding(
+                        start = 15.dp,
+                        end = 15.dp,
+                        bottom = 30.dp,
+                    ), color = DividerDefaults.color.copy(0.5f)
+                )
+                SettingComponent(
+                    SettingComponentParam(
+                        isIconNeeded = rememberSaveable { mutableStateOf(true) },
                         title = Localization.rememberLocalizedString(Localization.Key.DeleteDuplicateLinksFromAllCollections),
                         doesDescriptionExists = true,
                         description = Localization.rememberLocalizedString(Localization.Key.DeleteDuplicateLinksFromAllCollectionsDesc),
@@ -508,9 +540,11 @@ fun DataSettingsScreen() {
                         isSwitchEnabled = AppPreferences.useAmoledTheme,
                         onSwitchStateChange = {
                             dataSettingsScreenVM.deleteDuplicates(onStart = {
-                                showDuplicateDeleteDialogBox.value = true
+                                labelForAlertDialogWithProgress =
+                                    Localization.Key.DeletingDuplicatesLabel.getLocalizedString()
+                                showAlertDialogWithProgress.value = true
                             }, onCompletion = {
-                                showDuplicateDeleteDialogBox.value = false
+                                showAlertDialogWithProgress.value = false
                             })
                         },
                         icon = Icons.Default.Delete,
@@ -706,7 +740,7 @@ fun DataSettingsScreen() {
                                 SettingComponentParam(
                                     title = Localization.Key.RefreshLinksComponentLabel.rememberLocalizedString(),
                                     doesDescriptionExists = true,
-                                    description =  Localization.Key.RefreshLinksComponentDesc.rememberLocalizedString(),
+                                    description = Localization.Key.RefreshLinksComponentDesc.rememberLocalizedString(),
                                     isSwitchNeeded = false,
                                     isIconNeeded = rememberSaveable {
                                         mutableStateOf(true)
@@ -929,7 +963,7 @@ fun DataSettingsScreen() {
                 })
         )
     }
-    if (showDuplicateDeleteDialogBox.value) {
+    if (showAlertDialogWithProgress.value) {
         AlertDialog(onDismissRequest = {}, content = {
             Column(
                 modifier = Modifier.clip(AlertDialogDefaults.shape)
@@ -937,7 +971,7 @@ fun DataSettingsScreen() {
                 verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
                 Text(
-                    text = Localization.Key.DeletingDuplicatesLabel.rememberLocalizedString(),
+                    text = labelForAlertDialogWithProgress,
                     style = MaterialTheme.typography.titleLarge,
                     fontSize = 18.sp
                 )
@@ -946,7 +980,7 @@ fun DataSettingsScreen() {
         })
     }
     PlatformSpecificBackHandler {
-        if (isImportExportProgressUIVisible || showDuplicateDeleteDialogBox.value || shouldDeleteEntireDialogBoxAppear.value) {
+        if (isImportExportProgressUIVisible || showAlertDialogWithProgress.value || shouldDeleteEntireDialogBoxAppear.value) {
             return@PlatformSpecificBackHandler
         } else {
             navController.navigateUp()

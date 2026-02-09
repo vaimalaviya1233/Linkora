@@ -250,6 +250,17 @@ class DataSettingsScreenVM(
         }
     }
 
+    fun forceSetDefaultFolderToInternalIds(onStart: () -> Unit, onCompletion: () -> Unit) {
+        onStart()
+        viewModelScope.launch {
+            linksRepo.forceSetDefaultFolderToInternalIds().collectLatest {
+                it.pushSnackbarOnFailure()
+            }
+        }.invokeOnCompletion {
+            onCompletion()
+        }
+    }
+
     fun deleteDuplicates(onStart: () -> Unit, onCompletion: () -> Unit) {
         AppVM.pauseSnapshots = true
         viewModelScope.launch {

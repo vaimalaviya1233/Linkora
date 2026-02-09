@@ -69,6 +69,7 @@ class LocalLinksRepoImpl(
     override suspend fun addANewLinkLocally(link: Link): Long {
         return linksDao.addANewLink(link)
     }
+
     override suspend fun addANewLink(
         link: Link, selectedTagIds: List<Long>?, linkSaveConfig: LinkSaveConfig, viaSocket: Boolean
     ): Flow<Result<Unit>> {
@@ -827,5 +828,31 @@ class LocalLinksRepoImpl(
 
     override suspend fun isLinksTableEmpty(): Boolean {
         return linksDao.isLinksTableEmpty()
+    }
+
+    override suspend fun forceSetDefaultFolderToInternalIds(viaSocket: Boolean): Flow<Result<Unit>> {
+        val eventTimestamp = getSystemEpochSeconds()
+        return performLocalOperationWithRemoteSyncFlow(
+            performRemoteOperation = !viaSocket,
+            remoteOperation = {
+                remoteLinksRepo.forceSetDefaultFolderToInternalIds()
+            },
+            remoteOperationOnSuccess = {
+                preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
+            },
+            onRemoteOperationFailure = {
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = SyncServerRoute.FORCE_SET_DEFAULT_FOLDER_TO_INTERNAL_IDS.name,
+                        payload = Json.encodeToString(Unit)
+                    )
+                )
+            },
+            localOperation = {
+                linksDao.forceSetDefaultFolderToInternalIds(
+                    eventTimestamp = eventTimestamp
+                )
+            }
+        )
     }
 }

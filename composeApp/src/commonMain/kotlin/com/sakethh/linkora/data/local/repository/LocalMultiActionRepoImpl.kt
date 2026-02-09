@@ -262,16 +262,14 @@ class LocalMultiActionRepoImpl(
                         )
                     }
                     linksDao.addMultipleLinks(newLinks).forEachIndexed { index, newLinkId ->
-                        copiedLinksIds.put(
-                            newLinkId, linkTagsPairs[index].link.remoteId ?: -45454
-                        )
+                        copiedLinksIds[newLinkId] = linkTagsPairs[index].link.remoteId ?: -45454
                         val newLinkTags = linkTagsPairs[index].tags.map {
                             LinkTag(linkId = newLinkId, tagId = it.localId)
                         }
                         localTagsRepo.createLinkTags(newLinkTags)
                     }
                 }, async {
-                    copiedFolders = copyFolders(
+                    copyFolders(
                         parentFolderId = newParentFolderId, folders = folders, eventTimeStamp
                     )
                 })

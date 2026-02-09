@@ -4,8 +4,9 @@ import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.data.local.dao.TagsDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
-import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.Result.Loading
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.asFolderDTO
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
@@ -40,6 +41,7 @@ import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteMultiActionRepo
 import com.sakethh.linkora.domain.repository.remote.RemotePanelsRepo
 import com.sakethh.linkora.domain.repository.remote.RemoteTagsRepo
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.Utils
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
 import com.sakethh.linkora.utils.wrappedResultFlow
@@ -78,14 +80,14 @@ class PendingQueueService(
 
     fun <T> SendChannel<Result<T>>.pushPendingSyncQueueToServer(): Flow<Result<Unit>> {
         return wrappedResultFlow {
-            send(Result.Loading(message = "[SYNC] Starting to push pending sync queue to server"))
+            send(Loading(message = "[SYNC] Starting to push pending sync queue to server"))
 
-            send(Result.Loading(message = "[QUEUE] Fetching all items from the pending sync queue"))
+            send(Loading(message = "[QUEUE] Fetching all items from the pending sync queue"))
             pendingSyncQueueRepo.getAllItemsFromQueue().forEach { queueItem ->
-                send(Result.Loading(message = "[QUEUE] Processing queue item (ID: ${queueItem.id}, Operation: ${queueItem.operation})"))
+                send(Loading(message = "[QUEUE] Processing queue item (ID: ${queueItem.id}, Operation: ${queueItem.operation})"))
 
-                when (queueItem.operation) {
-                    SyncServerRoute.CREATE_TAG.name -> {
+                when (val currentRoute = SyncServerRoute.valueOf(queueItem.operation)) {
+                    SyncServerRoute.CREATE_TAG -> {
                         val createTagDTO =
                             Utils.json.decodeFromString<CreateTagDTO>(queueItem.payload)
                         remoteTagsRepo.createATag(createTagDTO).collect {
@@ -101,13 +103,13 @@ class PendingQueueService(
                         }
                     }
 
-                    SyncServerRoute.DELETE_TAG.name -> {
+                    SyncServerRoute.DELETE_TAG -> {
                         val idBasedDTO = Utils.json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         remoteTagsRepo.deleteATag(idBasedDTO)
                             .removeQueueItemAndSyncTimestamp(queueItem.id)
                     }
 
-                    SyncServerRoute.RENAME_TAG.name -> {
+                    SyncServerRoute.RENAME_TAG -> {
                         val renameTagDTO =
                             Utils.json.decodeFromString<RenameTagDTO>(queueItem.payload)
                         val remoteId = tagsDao.getRemoteTagId(renameTagDTO.id)
@@ -117,7 +119,7 @@ class PendingQueueService(
                         }
                     }
 
-                    SyncServerRoute.COPY_EXISTING_ITEMS.name -> {
+                    SyncServerRoute.COPY_EXISTING_ITEMS -> {
                         val copiedFoldersDTO =
                             Json.decodeFromString<CopyItemsDTO>(queueItem.payload)
                         val remoteParentFolderId =
@@ -134,10 +136,14 @@ class PendingQueueService(
                                     }
                                     it.data.folders.forEach {
                                         foldersDao.updateARemoteLinkId(
-                                            it.currentFolder.localId, it.currentFolder.remoteId
+                                            it.currentFolder.newlyCopiedLocalId,
+                                            it.currentFolder.sourceRemoteId
                                         )
                                         it.links.forEach {
-                                            linksDao.updateRemoteLinkId(it.localId, it.remoteId)
+                                            linksDao.updateRemoteLinkId(
+                                                it.newlyCopiedLocalId,
+                                                it.sourceRemoteId
+                                            )
                                         }
                                     }
                                     preferencesRepository.updateLastSyncedWithServerTimeStamp(it.data.eventTimestamp)
@@ -146,7 +152,7 @@ class PendingQueueService(
                         }
                     }
 
-                    SyncServerRoute.UNARCHIVE_MULTIPLE_ITEMS.name -> {
+                    SyncServerRoute.UNARCHIVE_MULTIPLE_ITEMS -> {
                         val markItemsRegularDTO =
                             Json.decodeFromString<MarkItemsRegularDTO>(queueItem.payload)
                         val remoteFolderIds =
@@ -161,14 +167,14 @@ class PendingQueueService(
                         }
                     }
 
-                    SyncServerRoute.DELETE_MULTIPLE_ITEMS.name -> {
+                    SyncServerRoute.DELETE_MULTIPLE_ITEMS -> {
                         val deleteMultipleItemsDTO =
                             Json.decodeFromString<DeleteMultipleItemsDTO>(queueItem.payload)
                         remoteMultiActionRepo.deleteMultipleItems(deleteMultipleItemsDTO)
                             .removeQueueItemAndSyncTimestamp(queueItem.id)
                     }
 
-                    SyncServerRoute.ARCHIVE_MULTIPLE_ITEMS.name -> {
+                    SyncServerRoute.ARCHIVE_MULTIPLE_ITEMS -> {
                         val archiveMultipleItemsDTO =
                             Json.decodeFromString<ArchiveMultipleItemsDTO>(queueItem.payload)
 
@@ -183,7 +189,7 @@ class PendingQueueService(
                         }
                     }
 
-                    SyncServerRoute.MOVE_EXISTING_ITEMS.name -> {
+                    SyncServerRoute.MOVE_EXISTING_ITEMS -> {
                         val moveItemsDTO =
                             Json.decodeFromString<MoveItemsDTO>(queueItem.payload)
 
@@ -205,8 +211,8 @@ class PendingQueueService(
                     }
 
                     // REFACTOR: NESTED collectLatest
-                    SyncServerRoute.CREATE_FOLDER.name -> {
-                        send(Result.Loading(message = "[FOLDER] Creating folder from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.CREATE_FOLDER -> {
+                        send(Loading(message = "[FOLDER] Creating folder from queue item (ID: ${queueItem.id})"))
                         val addFolderDTO =
                             Json.decodeFromString<AddFolderDTO>(queueItem.payload)
                         remoteFoldersRepo.createFolder(addFolderDTO.let {
@@ -217,11 +223,11 @@ class PendingQueueService(
                             )
                         }).collectLatest {
                             it.onSuccess { remoteResponse ->
-                                send(Result.Loading(message = "[FOLDER] Successfully created folder on server (Remote ID: ${remoteResponse.data.id})"))
+                                send(Loading(message = "[FOLDER] Successfully created folder on server (Remote ID: ${remoteResponse.data.id})"))
                                 localFoldersRepo.getThisFolderData(addFolderDTO.offlineSyncItemId)
                                     .collectLatest {
                                         it.onSuccess {
-                                            send(Result.Loading(message = "[FOLDER] Updating local folder data (Local ID: ${it.data.localId}, Remote ID: ${remoteResponse.data.id})"))
+                                            send(Loading(message = "[FOLDER] Updating local folder data (Local ID: ${it.data.localId}, Remote ID: ${remoteResponse.data.id})"))
                                             localFoldersRepo.updateLocalFolderData(
                                                 it.data.copy(
                                                     remoteId = remoteResponse.data.id,
@@ -231,25 +237,25 @@ class PendingQueueService(
                                                 remoteResponse.data.timeStampBasedResponse.eventTimestamp
                                             )
                                             pendingSyncQueueRepo.removeFromQueue(queueItem.id)
-                                            send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after successful sync"))
+                                            send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after successful sync"))
                                         }
                                     }
                             }
                         }
                     }
 
-                    SyncServerRoute.DELETE_FOLDER.name -> {
-                        send(Result.Loading(message = "[FOLDER] Deleting folder from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.DELETE_FOLDER -> {
+                        send(Loading(message = "[FOLDER] Deleting folder from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         remoteFoldersRepo.deleteFolder(idBasedDTO).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
-                        send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder"))
+                        send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder"))
                     }
 
-                    SyncServerRoute.MARK_FOLDER_AS_ARCHIVE.name -> {
-                        send(Result.Loading(message = "[FOLDER] Marking folder as archive from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.MARK_FOLDER_AS_ARCHIVE -> {
+                        send(Loading(message = "[FOLDER] Marking folder as archive from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)
@@ -258,12 +264,12 @@ class PendingQueueService(
                                 .removeQueueItemAndSyncTimestamp(
                                     queueItem.id
                                 )
-                            send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after marking folder as archive"))
+                            send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after marking folder as archive"))
                         }
                     }
 
-                    SyncServerRoute.MARK_AS_REGULAR_FOLDER.name -> {
-                        send(Result.Loading(message = "[FOLDER] Marking folder as regular from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.MARK_AS_REGULAR_FOLDER -> {
+                        send(Loading(message = "[FOLDER] Marking folder as regular from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)
@@ -273,10 +279,10 @@ class PendingQueueService(
                                     queueItem.id
                                 )
                         }
-                        send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after marking folder as regular"))
+                        send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after marking folder as regular"))
                     }
 
-                    SyncServerRoute.UPDATE_FOLDER.name -> {
+                    SyncServerRoute.UPDATE_FOLDER -> {
                         val localFolder = Utils.json.decodeFromString<Folder>(queueItem.payload)
 
                         val remoteParentFolderId =
@@ -294,8 +300,8 @@ class PendingQueueService(
                         }
                     }
 
-                    SyncServerRoute.UPDATE_FOLDER_NAME.name -> {
-                        send(Result.Loading(message = "[FOLDER] Updating folder name from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.UPDATE_FOLDER_NAME -> {
+                        send(Loading(message = "[FOLDER] Updating folder name from queue item (ID: ${queueItem.id})"))
                         val updateFolderNameDTO =
                             Json.decodeFromString<UpdateFolderNameDTO>(queueItem.payload)
                         val remoteId =
@@ -307,12 +313,12 @@ class PendingQueueService(
                             ).removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
-                            send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after updating folder name"))
+                            send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after updating folder name"))
                         }
                     }
 
-                    SyncServerRoute.UPDATE_FOLDER_NOTE.name -> {
-                        send(Result.Loading(message = "[FOLDER] Updating folder note from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.UPDATE_FOLDER_NOTE -> {
+                        send(Loading(message = "[FOLDER] Updating folder note from queue item (ID: ${queueItem.id})"))
                         val updateFolderNoteDTO =
                             Json.decodeFromString<UpdateFolderNoteDTO>(queueItem.payload)
                         val remoteId =
@@ -323,12 +329,12 @@ class PendingQueueService(
                             ).removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
-                            send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after updating folder note"))
+                            send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after updating folder note"))
                         }
                     }
 
-                    SyncServerRoute.DELETE_FOLDER_NOTE.name -> {
-                        send(Result.Loading(message = "[FOLDER] Deleting folder note from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.DELETE_FOLDER_NOTE -> {
+                        send(Loading(message = "[FOLDER] Deleting folder note from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteId = localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id)
@@ -338,12 +344,12 @@ class PendingQueueService(
                                 .removeQueueItemAndSyncTimestamp(
                                     queueItem.id
                                 )
-                            send(Result.Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder note"))
+                            send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder note"))
                         }
                     }
 
-                    SyncServerRoute.UPDATE_LINK_TITLE.name -> {
-                        send(Result.Loading(message = "[LINK] Updating link title from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.UPDATE_LINK_TITLE -> {
+                        send(Loading(message = "[LINK] Updating link title from queue item (ID: ${queueItem.id})"))
                         val updateTitleOfTheLinkDTO =
                             Json.decodeFromString<UpdateTitleOfTheLinkDTO>(queueItem.payload)
                         val remoteLinkId =
@@ -354,12 +360,12 @@ class PendingQueueService(
                             ).removeQueueItemAndSyncTimestamp(
                                 queueItem.id
                             )
-                            send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after updating link title"))
+                            send(Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after updating link title"))
                         }
                     }
 
-                    SyncServerRoute.UPDATE_LINK_NOTE.name -> {
-                        send(Result.Loading(message = "[LINK] Updating link note from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.UPDATE_LINK_NOTE -> {
+                        send(Loading(message = "[LINK] Updating link note from queue item (ID: ${queueItem.id})"))
                         val updateNoteOfALinkDTO =
                             Json.decodeFromString<UpdateNoteOfALinkDTO>(queueItem.payload)
                         val remoteLinkId =
@@ -369,22 +375,22 @@ class PendingQueueService(
                                 .removeQueueItemAndSyncTimestamp(
                                     queueItem.id
                                 )
-                            send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after updating link note"))
+                            send(Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after updating link note"))
                         }
                     }
 
-                    SyncServerRoute.DELETE_A_LINK.name -> {
-                        send(Result.Loading(message = "[LINK] Deleting link from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.DELETE_A_LINK -> {
+                        send(Loading(message = "[LINK] Deleting link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         remoteLinksRepo.deleteALink(idBasedDTO).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
-                        send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after deleting link"))
+                        send(Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after deleting link"))
                     }
 
-                    SyncServerRoute.ARCHIVE_LINK.name -> {
-                        send(Result.Loading(message = "[LINK] Archiving link from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.ARCHIVE_LINK -> {
+                        send(Loading(message = "[LINK] Archiving link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)
@@ -393,12 +399,12 @@ class PendingQueueService(
                                 .removeQueueItemAndSyncTimestamp(
                                     queueItem.id
                                 )
-                            send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after archiving link"))
+                            send(Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after archiving link"))
                         }
                     }
 
-                    SyncServerRoute.UNARCHIVE_LINK.name -> {
-                        send(Result.Loading(message = "[LINK] Unarchiving link from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.UNARCHIVE_LINK -> {
+                        send(Loading(message = "[LINK] Unarchiving link from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         val remoteLinkId = localLinksRepo.getRemoteLinkId(idBasedDTO.id)
@@ -410,11 +416,11 @@ class PendingQueueService(
                                 )
                         }
 
-                        send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after unarchiving link"))
+                        send(Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after unarchiving link"))
                     }
 
-                    SyncServerRoute.UPDATE_LINK.name -> {
-                        send(Result.Loading(message = "[LINK] Updating link from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.UPDATE_LINK -> {
+                        send(Loading(message = "[LINK] Updating link from queue item (ID: ${queueItem.id})"))
                         val linkDTO = Json.decodeFromString<LinkDTO>(queueItem.payload)
                         val remoteId = localLinksRepo.getRemoteLinkId(linkDTO.id)
 
@@ -423,12 +429,12 @@ class PendingQueueService(
                                 .removeQueueItemAndSyncTimestamp(
                                     queueItem.id
                                 )
-                            send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after updating link"))
+                            send(Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after updating link"))
                         }
                     }
 
-                    SyncServerRoute.CREATE_A_NEW_LINK.name -> {
-                        send(Result.Loading(message = "[LINK] Creating new link from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.CREATE_A_NEW_LINK -> {
+                        send(Loading(message = "[LINK] Creating new link from queue item (ID: ${queueItem.id})"))
                         val addLinkDTO =
                             Json.decodeFromString<AddLinkDTO>(queueItem.payload)
                         val remoteTagIds =
@@ -444,7 +450,7 @@ class PendingQueueService(
                             )
                         ).collectLatest {
                             it.onSuccess { remoteResponse ->
-                                send(Result.Loading(message = "[LINK] Successfully created link on server (Remote ID: ${remoteResponse.data.id})"))
+                                send(Loading(message = "[LINK] Successfully created link on server (Remote ID: ${remoteResponse.data.id})"))
                                 val updatedLink =
                                     localLinksRepo.getALink(addLinkDTO.offlineSyncItemId)
                                         .copy(remoteId = remoteResponse.data.id)
@@ -455,18 +461,18 @@ class PendingQueueService(
                                     remoteResponse.data.timeStampBasedResponse.eventTimestamp
                                 )
                                 pendingSyncQueueRepo.removeFromQueue(queueItem.id)
-                                send(Result.Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after creating link"))
+                                send(Loading(message = "[LINK] Removed queue item (ID: ${queueItem.id}) after creating link"))
                             }
                         }
                     }
 
-                    SyncServerRoute.ADD_A_NEW_PANEL.name -> {
-                        send(Result.Loading(message = "[PANEL] Adding new panel from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.ADD_A_NEW_PANEL -> {
+                        send(Loading(message = "[PANEL] Adding new panel from queue item (ID: ${queueItem.id})"))
                         val addANewPanelDTO =
                             Json.decodeFromString<AddANewPanelDTO>(queueItem.payload)
                         remotePanelsRepo.addANewPanel(addANewPanelDTO).collectLatest {
                             it.onSuccess { remoteResponse ->
-                                send(Result.Loading(message = "[PANEL] Successfully added panel on server (Remote ID: ${remoteResponse.data.id})"))
+                                send(Loading(message = "[PANEL] Successfully added panel on server (Remote ID: ${remoteResponse.data.id})"))
                                 val updatedPanel =
                                     localPanelsRepo.getPanel(addANewPanelDTO.offlineSyncItemId)
                                         .copy(remoteId = remoteResponse.data.id)
@@ -475,13 +481,13 @@ class PendingQueueService(
                                     remoteResponse.data.timeStampBasedResponse.eventTimestamp
                                 )
                                 pendingSyncQueueRepo.removeFromQueue(queueItem.id)
-                                send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after adding panel"))
+                                send(Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after adding panel"))
                             }
                         }
                     }
 
-                    SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name -> {
-                        send(Result.Loading(message = "[PANEL] Adding new folder in panel from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.ADD_A_NEW_FOLDER_IN_A_PANEL -> {
+                        send(Loading(message = "[PANEL] Adding new folder in panel from queue item (ID: ${queueItem.id})"))
                         val addANewPanelFolderDTO =
                             Json.decodeFromString<AddANewPanelFolderDTO>(queueItem.payload)
                         val remoteFolderId =
@@ -497,7 +503,7 @@ class PendingQueueService(
                                 )
                             ).collectLatest {
                                 it.onSuccess { remoteResponse ->
-                                    send(Result.Loading(message = "[PANEL] Successfully added folder in panel on server (Remote ID: ${remoteResponse.data.id})"))
+                                    send(Loading(message = "[PANEL] Successfully added folder in panel on server (Remote ID: ${remoteResponse.data.id})"))
                                     val updatedPanel =
                                         localPanelsRepo.getPanelFolder(addANewPanelFolderDTO.offlineSyncItemId)
                                             .copy(remoteId = remoteResponse.data.id)
@@ -506,24 +512,24 @@ class PendingQueueService(
                                     )
                                     localPanelsRepo.updateAPanelFolder(updatedPanel)
                                     pendingSyncQueueRepo.removeFromQueue(queueItem.id)
-                                    send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after adding folder in panel"))
+                                    send(Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after adding folder in panel"))
                                 }
                             }
                         }
                     }
 
-                    SyncServerRoute.DELETE_A_PANEL.name -> {
-                        send(Result.Loading(message = "[PANEL] Deleting panel from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.DELETE_A_PANEL -> {
+                        send(Loading(message = "[PANEL] Deleting panel from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
                         remotePanelsRepo.deleteAPanel(idBasedDTO).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
-                        send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after deleting panel"))
+                        send(Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after deleting panel"))
                     }
 
-                    SyncServerRoute.UPDATE_A_PANEL_NAME.name -> {
-                        send(Result.Loading(message = "[PANEL] Updating panel name from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.UPDATE_A_PANEL_NAME -> {
+                        send(Loading(message = "[PANEL] Updating panel name from queue item (ID: ${queueItem.id})"))
                         val updatePanelNameDTO =
                             Json.decodeFromString<UpdatePanelNameDTO>(queueItem.payload)
                         val remotePanelId =
@@ -534,12 +540,12 @@ class PendingQueueService(
                                 .removeQueueItemAndSyncTimestamp(
                                     queueItem.id
                                 )
-                            send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after updating panel name"))
+                            send(Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after updating panel name"))
                         }
                     }
 
-                    SyncServerRoute.DELETE_A_FOLDER_FROM_A_PANEL.name -> {
-                        send(Result.Loading(message = "[PANEL] Deleting folder from a panel from queue item (ID: ${queueItem.id})"))
+                    SyncServerRoute.DELETE_A_FOLDER_FROM_A_PANEL -> {
+                        send(Loading(message = "[PANEL] Deleting folder from a panel from queue item (ID: ${queueItem.id})"))
                         val deleteAFolderFromAPanelDTO =
                             Json.decodeFromString<DeleteAFolderFromAPanelDTO>(queueItem.payload)
 
@@ -548,22 +554,22 @@ class PendingQueueService(
                         ).removeQueueItemAndSyncTimestamp(
                             queueItem.id
                         )
-                        send(Result.Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after deleting folder from panel"))
+                        send(Loading(message = "[PANEL] Removed queue item (ID: ${queueItem.id}) after deleting folder from panel"))
 
                     }
 
-                    SyncServerRoute.DELETE_DUPLICATE_LINKS.name -> {
-                        send(Result.Loading(message = "Decoding duplicate links"))
+                    SyncServerRoute.DELETE_DUPLICATE_LINKS -> {
+                        send(Loading(message = "Decoding duplicate links"))
                         val deleteDuplicateLinksDTO =
                             Json.decodeFromString<DeleteDuplicateLinksDTO>(queueItem.payload)
 
-                        send(Result.Loading(message = "Mapping local link IDs to remote IDs"))
+                        send(Loading(message = "Mapping local link IDs to remote IDs"))
                         remoteLinksRepo.deleteDuplicateLinks(deleteDuplicateLinksDTO).also {
-                            send(Result.Loading(message = "Deleting duplicate links from remote repository"))
+                            send(Loading(message = "Deleting duplicate links from remote repository"))
                         }.removeQueueItemAndSyncTimestamp(queueItem.id)
                     }
 
-                    SyncServerRoute.MARK_FOLDERS_AS_ROOT.name -> {
+                    SyncServerRoute.MARK_FOLDERS_AS_ROOT -> {
                         val markSelectedFoldersAsRootDTO =
                             Json.decodeFromString<MarkSelectedFoldersAsRootDTO>(queueItem.payload)
                         val remoteFolderIds =
@@ -574,9 +580,28 @@ class PendingQueueService(
                             ).removeQueueItemAndSyncTimestamp(queueItem.id)
                         }
                     }
+
+                    SyncServerRoute.CHANGE_PARENT_FOLDER -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.DELETE_A_FOLDER_FROM_ALL_PANELS -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.UPDATE_LINKED_FOLDER_ID -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.UPDATE_USER_AGENT -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.GET_LINKS_FROM_A_FOLDER -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.GET_LINKS -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.MARK_AS_IMP -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.UNMARK_AS_IMP -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.TEST_BEARER -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.GET_UPDATES -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.GET_TOMBSTONES -> linkoraLog("Nothing to do on $currentRoute")
+                    SyncServerRoute.DELETE_EVERYTHING -> linkoraLog("Nothing to do on $currentRoute")
+
+
+                    SyncServerRoute.FORCE_SET_DEFAULT_FOLDER_TO_INTERNAL_IDS -> {
+                        remoteLinksRepo.forceSetDefaultFolderToInternalIds()
+                            .removeQueueItemAndSyncTimestamp(queueItem.id)
+                    }
                 }
             }
-            send(Result.Loading(message = "[SYNC] Completed pushing pending sync queue to server"))
+            send(Loading(message = "[SYNC] Completed pushing pending sync queue to server"))
         }
     }
 
