@@ -117,6 +117,16 @@ interface FoldersDao {
         """
     SELECT * FROM folders 
     WHERE parentFolderID = :parentFolderId
+    """
+    )
+    fun getChildFoldersAsList(
+        parentFolderId: Long,
+    ): List<Folder>
+
+    @Query(
+        """
+    SELECT * FROM folders 
+    WHERE parentFolderID = :parentFolderId
     ORDER BY 
         CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
         CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
@@ -143,7 +153,12 @@ interface FoldersDao {
     OFFSET :startIndex
     """
     )
-    fun getRootFolders(sortOption: String, isArchived: Boolean, pageSize: Int, startIndex: Long): Flow<List<Folder>>
+    fun getRootFolders(
+        sortOption: String,
+        isArchived: Boolean,
+        pageSize: Int,
+        startIndex: Long
+    ): Flow<List<Folder>>
 
     @Query(
         "SELECT * FROM folders \n" +

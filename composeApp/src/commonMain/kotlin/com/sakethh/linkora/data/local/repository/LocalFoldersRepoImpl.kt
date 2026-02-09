@@ -188,6 +188,11 @@ class LocalFoldersRepoImpl(
             .mapToResultFlow()
     }
 
+    override suspend fun getChildFoldersAsList(
+        parentFolderId: Long,
+    ): List<Folder> {
+        return foldersDao.getChildFoldersAsList(parentFolderId)
+    }
     override fun sortFoldersAsNonResultFlow(
         parentFolderId: Long, sortOption: String
     ): Flow<List<Folder>> {

@@ -207,7 +207,10 @@ object DependencyContainer {
             remoteMultiActionRepo = remoteMultiActionRepo,
             pendingSyncQueueRepo = pendingSyncQueueRepo,
             localFoldersRepo = localFoldersRepo,
-            localTagsRepo = localTagsRepo
+            localTagsRepo = localTagsRepo,
+            withWriterConnection = {
+                LinkoraSDK.getInstance().localDatabase.useWriterConnection(it)
+            }
         )
     }
 

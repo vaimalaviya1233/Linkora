@@ -1,11 +1,14 @@
 package com.sakethh.linkora.data.local.repository
 
+import androidx.room.Transactor
+import androidx.room.immediateTransaction
+import com.sakethh.linkora.data.NewFolderIdOfParent
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
 import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.dto.server.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.server.CopyFolderDTO
 import com.sakethh.linkora.domain.dto.server.CopyItemsDTO
@@ -26,9 +29,6 @@ import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.json.Json
@@ -40,7 +40,8 @@ class LocalMultiActionRepoImpl(
     private val remoteMultiActionRepo: RemoteMultiActionRepo,
     private val pendingSyncQueueRepo: PendingSyncQueueRepo,
     private val localFoldersRepo: LocalFoldersRepo,
-    private val localTagsRepo: LocalTagsRepo
+    private val localTagsRepo: LocalTagsRepo,
+    private val withWriterConnection: suspend (suspend (Transactor) -> Unit) -> Unit
 ) : LocalMultiActionRepo {
     override suspend fun archiveMultipleItems(
         linkIds: List<Long>, folderIds: List<Long>, viaSocket: Boolean
@@ -78,12 +79,11 @@ class LocalMultiActionRepoImpl(
                     )
                 )
             }) {
-            coroutineScope {
-                awaitAll(async {
+            withWriterConnection { transactor ->
+                transactor.immediateTransaction {
                     linksDao.archiveMultipleLinks(linkIds, eventTimestamp)
-                }, async {
                     foldersDao.markMultipleFoldersAsArchive(folderIds, eventTimestamp)
-                })
+                }
             }
         }
     }
@@ -125,15 +125,15 @@ class LocalMultiActionRepoImpl(
                     )
                 }
             }) {
-            coroutineScope {
-                awaitAll(async {
+            withWriterConnection { transactor ->
+                transactor.immediateTransaction {
                     linksDao.deleteMultipleLinks(linkIds)
-                }, async {
                     localFoldersRepo.deleteMultipleFolders(folderIds, viaSocket = true).collect()
-                })
+                }
             }
         }
     }
+
 
     override suspend fun moveMultipleItems(
         linkIds: List<Long>,
@@ -181,12 +181,11 @@ class LocalMultiActionRepoImpl(
                     )
                 )
             }) {
-            coroutineScope {
-                awaitAll(async {
+            withWriterConnection { transactor ->
+                transactor.immediateTransaction {
                     foldersDao.moveFolders(newParentFolderId, folderIds, eventTimeStamp)
-                }, async {
                     linksDao.moveLinks(newParentFolderId, linkType, linkIds, eventTimeStamp)
-                })
+                }
             }
         }
     }
@@ -221,15 +220,22 @@ class LocalMultiActionRepoImpl(
                 )
             },
             remoteOperationOnSuccess = {
-                it.linkIds.forEach {
-                    linksDao.updateRemoteLinkId(it.key, it.value)
-                }
-                it.folders.forEach {
-                    foldersDao.updateARemoteLinkId(
-                        it.currentFolder.localId, it.currentFolder.remoteId
-                    )
-                    it.links.forEach {
-                        linksDao.updateRemoteLinkId(it.localId, it.remoteId)
+                withWriterConnection { transactor ->
+                    transactor.immediateTransaction {
+                        it.linkIds.forEach {
+                            linksDao.updateRemoteLinkId(it.key, it.value)
+                        }
+                        it.folders.forEach {
+                            foldersDao.updateARemoteLinkId(
+                                it.currentFolder.newlyCopiedLocalId, it.currentFolder.sourceRemoteId
+                            )
+                            it.links.forEach {
+                                linksDao.updateRemoteLinkId(
+                                    it.newlyCopiedLocalId,
+                                    it.sourceRemoteId
+                                )
+                            }
+                        }
                     }
                 }
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
@@ -250,8 +256,10 @@ class LocalMultiActionRepoImpl(
                     )
                 )
             }) {
-            coroutineScope {
-                awaitAll(async {
+
+            withWriterConnection { transactor ->
+                transactor.immediateTransaction {
+
                     val newLinks = linkTagsPairs.map {
                         it.link.copy(
                             idOfLinkedFolder = newParentFolderId,
@@ -268,84 +276,122 @@ class LocalMultiActionRepoImpl(
                         }
                         localTagsRepo.createLinkTags(newLinkTags)
                     }
-                }, async {
-                    copyFolders(
-                        parentFolderId = newParentFolderId, folders = folders, eventTimeStamp
+
+                    copiedFolders = copyFolders(
+                        destinationParentFolderId = newParentFolderId,
+                        folders = folders,
+                        eventTimeStamp
                     )
-                })
+                }
             }
         }
     }
 
     private suspend fun copyFolders(
-        parentFolderId: Long, folders: List<Folder>, eventTimestamp: Long
-    ): List<CopyFolderDTO> = coroutineScope {
-        val deferredCopiedFolders = folders.map { folder ->
-            async {
-                val newFolderId = foldersDao.insertANewFolder(
-                    folder.copy(
-                        parentFolderId = parentFolderId,
-                        remoteId = null,
+        destinationParentFolderId: Long, folders: List<Folder>, eventTimestamp: Long
+    ): List<CopyFolderDTO> {
+        val copyFoldersDTO = mutableListOf<CopyFolderDTO?>()
+        val copyFoldersDeque = ArrayDeque<Pair<Folder, Long>>()
+        copyFoldersDeque.addAll(folders.map { it to destinationParentFolderId })
+
+        /*
+        data class CopyFolderDTO(
+            val currentFolder: CurrentFolder,
+            val links: List<FolderLink>,
+            val childFolders: List<CopyFolderDTO>
+        )
+        * */
+
+        while (copyFoldersDeque.isNotEmpty()) {
+            val (currentFolder, newParentId) = copyFoldersDeque.removeLast()
+
+            val newIdOfCopiedCurrentFolder = foldersDao.insertANewFolder(
+                currentFolder.copy(
+                    parentFolderId = newParentId,
+                    remoteId = null,
+                    localId = 0,
+                    lastModified = eventTimestamp
+                )
+            )
+
+            val linksOfCurrentFolder = linksDao.getLinksOfThisFolderAsList(
+                currentFolder.localId
+            )
+
+            val linksIdsOfCopiedFolder = linksDao.addMultipleLinks(
+                linksOfCurrentFolder.map {
+                    it.copy(
+                        idOfLinkedFolder = newIdOfCopiedCurrentFolder,
                         localId = 0,
                         lastModified = eventTimestamp
                     )
-                )
-                val linksOfCurrentFolder = linksDao.getLinksOfThisFolderAsList(
-                    folder.localId
-                )
-                val linksIdsOfCopiedFolder = linksDao.addMultipleLinks(
-                    linksOfCurrentFolder.map {
-                        it.copy(
-                            idOfLinkedFolder = newFolderId,
-                            localId = 0,
-                            lastModified = eventTimestamp
-                        )
-                    })
+                })
 
-                if (linksOfCurrentFolder.isNotEmpty()) {
-                    val tagsForCurrentLinksBatch =
-                        localTagsRepo.getTagsForLinksAsMap(linksOfCurrentFolder.map { it.localId })
-
-
-                    val linkIdsMap =
-                        linksOfCurrentFolder.map { it.localId }.zip(linksIdsOfCopiedFolder).toMap()
-
-                    val newLinkTags = tagsForCurrentLinksBatch.flatMap { (oldLinkId, tags) ->
-                        val newLinkId = linkIdsMap[oldLinkId]
-                        if (newLinkId != null) {
-                            tags.map {
-                                LinkTag(linkId = newLinkId, tagId = it.localId)
-                            }
-                        } else {
-                            emptyList()
-                        }
-                    }
-                    localTagsRepo.createLinkTags(newLinkTags)
-                }
-                if (folder.remoteId != null) {
+            if (currentFolder.remoteId != null) {
+                val parentFolderId = currentFolder.parentFolderId
+                copyFoldersDTO.add(
                     CopyFolderDTO(
                         currentFolder = CurrentFolder(
-                            localId = newFolderId, remoteId = folder.remoteId
-                        ), links = linksIdsOfCopiedFolder.zip(linksOfCurrentFolder) { id, link ->
-                            if (link.remoteId != null) {
-                                FolderLink(
-                                    localId = id, remoteId = link.remoteId
+                            newlyCopiedLocalId = newIdOfCopiedCurrentFolder,
+                            parentOfNewlyCopiedLocalId = newParentId,
+                            sourceRemoteId = currentFolder.remoteId,
+                            sourceRemoteParentId = if (parentFolderId == null) null else foldersDao.getRemoteFolderId(
+                                parentFolderId
+                            ),
+                            isRootFolderForTheDestination = newParentId == destinationParentFolderId
+                        ),
+                        links = linksIdsOfCopiedFolder.mapIndexed { index, newLocalId ->
+                            val remoteId =
+                                linksOfCurrentFolder[index].remoteId ?: return@mapIndexed null
+                            val parentFolderId = linksOfCurrentFolder[index].idOfLinkedFolder
+
+                            val remoteParentId =
+                                if (parentFolderId == null) null else foldersDao.getRemoteFolderId(
+                                    parentFolderId
                                 )
-                            } else {
-                                null
-                            }
-                        }.filterNotNull(), childFolders = copyFolders(
-                            parentFolderId = newFolderId,
-                            folders = foldersDao.getChildFoldersAsList(folder.localId),
-                            eventTimestamp
-                        )
+
+                            FolderLink(
+                                newlyCopiedLocalId = newLocalId,
+                                sourceRemoteId = remoteId,
+                                sourceRemoteParentId = remoteParentId,
+                                isRootFolderForTheDestination = false, // this doesn't matter for a link since it's already embedded with the folder
+                                parentOfNewlyCopiedLocalId = -45454 // this doesn't matter for a link since it's already embedded with the folder
+                            )
+                        }.filterNotNull(),
                     )
-                } else {
-                    null
-                }
+                )
             }
+
+            if (linksOfCurrentFolder.isNotEmpty()) {
+                val tagsForCurrentLinksBatch =
+                    localTagsRepo.getTagsForLinksAsMap(linksOfCurrentFolder.map { it.localId })
+
+
+                val linkIdsMap =
+                    linksOfCurrentFolder.map { it.localId }.zip(linksIdsOfCopiedFolder).toMap()
+
+                val newLinkTags = tagsForCurrentLinksBatch.flatMap { (oldLinkId, tags) ->
+                    val newLinkId = linkIdsMap[oldLinkId]
+                    if (newLinkId != null) {
+                        tags.map {
+                            LinkTag(linkId = newLinkId, tagId = it.localId)
+                        }
+                    } else {
+                        emptyList()
+                    }
+                }
+                localTagsRepo.createLinkTags(newLinkTags)
+            }
+
+            val childFolders =
+                localFoldersRepo.getChildFoldersAsList(parentFolderId = currentFolder.localId)
+            copyFoldersDeque.addAll(
+                childFolders.map {
+                    it to newIdOfCopiedCurrentFolder
+                }
+            )
         }
-        deferredCopiedFolders.awaitAll().filterNotNull()
+        return copyFoldersDTO.filterNotNull()
     }
 
 
@@ -391,10 +437,14 @@ class LocalMultiActionRepoImpl(
                     )
                 )
             }) {
-            foldersDao.markMultipleFoldersAsRegular(
-                eventTimestamp = eventTimestamp, folderIDs = folderIds
-            )
-            linksDao.unarchiveLinks(linksIds = linkIds, eventTimestamp = eventTimestamp)
+            withWriterConnection { transactor ->
+                transactor.immediateTransaction {
+                    foldersDao.markMultipleFoldersAsRegular(
+                        eventTimestamp = eventTimestamp, folderIDs = folderIds
+                    )
+                    linksDao.unarchiveLinks(linksIds = linkIds, eventTimestamp = eventTimestamp)
+                }
+            }
         }
     }
 }

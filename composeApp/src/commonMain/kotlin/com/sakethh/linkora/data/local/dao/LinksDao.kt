@@ -246,7 +246,7 @@ interface LinksDao {
     @Query("UPDATE links SET linkType = '${LinkType.SAVED_LINK}', idOfLinkedFolder = ${Constants.SAVED_LINKS_ID}, lastModified = :eventTimestamp WHERE localId IN (:linksIds)")
     suspend fun unarchiveLinks(linksIds: List<Long>, eventTimestamp: Long)
 
-    @Query("SELECT remoteId FROM tags WHERE localId IN (:localIds)")
+    @Query("SELECT remoteId FROM links WHERE localId IN (:localIds)")
     suspend fun getRemoteIds(localIds: List<Long>): List<Long>?
 
 
