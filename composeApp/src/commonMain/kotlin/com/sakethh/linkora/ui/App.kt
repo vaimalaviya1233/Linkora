@@ -289,7 +289,7 @@ fun App(
                     })
             ) {
                 LinkoraNavHost(
-                    startDestination = appVM.startDestination.value,
+                    startDestination = appVM.startDestination,
                     onOnboardingComplete = appVM::markOnboardingComplete,
                     currentFABContext = {
                         appVM.updateFABContext(it)

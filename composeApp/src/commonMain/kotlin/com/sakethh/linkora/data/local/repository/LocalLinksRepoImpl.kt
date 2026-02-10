@@ -598,7 +598,12 @@ class LocalLinksRepoImpl(
             val unselectedTags = tagsAttachedToTheLink.filter { curFilterTag ->
                 curFilterTag !in updatedLinkTagsPair.tags
             }
-            tagsDao.deleteLinkTagsBasedOnTags(unselectedTags.map { it.localId })
+
+            tagsDao.deleteLinkTagsBasedOnTags(
+                tagIds = unselectedTags.map { it.localId },
+                linkId = updatedLinkTagsPair.link.localId
+            )
+
             tagsDao.createLinkTags(newlySelectedTags.map {
                 LinkTag(
                     linkId = updatedLinkTagsPair.link.localId, tagId = it.localId
@@ -827,7 +832,7 @@ class LocalLinksRepoImpl(
     }
 
     override suspend fun isLinksTableEmpty(): Boolean {
-        return linksDao.isLinksTableEmpty()
+        return !linksDao.doesLinkTableHaveData()
     }
 
     override suspend fun forceSetDefaultFolderToInternalIds(viaSocket: Boolean): Flow<Result<Unit>> {

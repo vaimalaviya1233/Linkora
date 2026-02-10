@@ -273,7 +273,7 @@ interface LinksDao {
     ): Flow<List<Link>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM links)")
-    suspend fun isLinksTableEmpty(): Boolean
+    suspend fun doesLinkTableHaveData(): Boolean
 
     @Transaction
     @Query(

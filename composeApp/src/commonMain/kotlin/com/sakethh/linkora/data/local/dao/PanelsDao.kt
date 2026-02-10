@@ -65,7 +65,7 @@ interface PanelsDao {
     suspend fun getAllThePanelsAsAList(): List<Panel>
 
     @Query("SELECT EXISTS(SELECT 1 FROM panel)")
-    suspend fun isPanelsTableEmpty(): Boolean
+    suspend fun doesPanelsTableHaveData(): Boolean
 
     @Query("SELECT * FROM panel_folder")
     suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder>

@@ -280,7 +280,7 @@ class LocalPanelsRepoImpl(
     }
 
     override suspend fun isPanelsTableEmpty(): Boolean {
-        return panelsDao.isPanelsTableEmpty()
+        return !panelsDao.doesPanelsTableHaveData()
     }
 
     override suspend fun getAllThePanelFoldersAsAList(): List<PanelFolder> {

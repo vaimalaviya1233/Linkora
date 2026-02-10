@@ -11,10 +11,8 @@ interface LocalTagsRepo {
 
     suspend fun createLinkTags(linksTags: List<LinkTag>)
 
-    suspend fun deleteLinkTagsBasedOnLink(linkId: Long)
 
-    suspend fun deleteLinkTagsBasedOnTag(tagId: Long)
-    suspend fun deleteLinkTagsBasedOnTags(tagIds: List<Long>)
+    suspend fun deleteLinkTagsBasedOnTags(tagIds: List<Long>, linkId: Long)
     suspend fun deleteATag(id: Long, viaSocket: Boolean = false): Flow<Result<Unit>>
 
     suspend fun renameATag(

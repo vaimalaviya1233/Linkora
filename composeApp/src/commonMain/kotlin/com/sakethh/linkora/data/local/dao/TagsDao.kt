@@ -28,14 +28,8 @@ interface TagsDao {
     @Insert
     suspend fun createLinkTags(linksTags: List<LinkTag>)
 
-    @Query("DELETE FROM link_tags WHERE linkId = :linkId")
-    suspend fun deleteLinkTagsBasedOnLink(linkId: Long)
-
-    @Query("DELETE FROM link_tags WHERE tagId = :tagId")
-    suspend fun deleteLinkTagsBasedOnTag(tagId: Long)
-
-    @Query("DELETE FROM link_tags WHERE tagId IN (:tagIds)")
-    suspend fun deleteLinkTagsBasedOnTags(tagIds: List<Long>)
+    @Query("DELETE FROM link_tags WHERE tagId IN (:tagIds) AND linkId =:linkId")
+    suspend fun deleteLinkTagsBasedOnTags(tagIds: List<Long>, linkId: Long)
 
     @Query("DELETE FROM tags WHERE localId = :id ")
     suspend fun deleteATag(id: Long)

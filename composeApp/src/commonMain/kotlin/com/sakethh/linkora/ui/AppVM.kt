@@ -3,7 +3,6 @@ package com.sakethh.linkora.ui
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -106,8 +105,37 @@ class AppVM(
     }
 
     val transferActionType = mutableStateOf(TransferActionType.NONE)
-    val startDestination: MutableState<Navigation.Root> = mutableStateOf(Navigation.Root.HomeScreen)
+
     val onBoardingCompleted = mutableStateOf(false)
+
+    val startDestination = runBlocking {
+        val showOnboarding = preferencesRepository.readPreferenceValue(
+            booleanPreferencesKey(
+                AppPreferenceType.SHOULD_SHOW_ONBOARDING.name
+            )
+        ) != false && linksRepo.isLinksTableEmpty() && foldersRepo.isFoldersTableEmpty() && localPanelsRepo.isPanelsTableEmpty()
+
+        if (showOnboarding) {
+            Navigation.Root.OnboardingSlidesScreen
+        } else {
+            onBoardingCompleted.value = true
+            when (AppPreferences.startDestination.value) {
+                Navigation.Root.HomeScreen.toString() -> if (preferencesRepository.readPreferenceValue(
+                        booleanPreferencesKey(
+                            AppPreferenceType.HOME_SCREEN_VISIBILITY.name
+                        )
+                    ) == false
+                ) {
+                    Navigation.Root.CollectionsScreen
+                } else {
+                    Navigation.Root.HomeScreen
+                }
+
+                Navigation.Root.SearchScreen.toString() -> Navigation.Root.SearchScreen
+                else -> Navigation.Root.CollectionsScreen
+            }
+        }
+    }
 
 
     fun performAppAction(appAction: AppAction) {
@@ -157,35 +185,6 @@ class AppVM(
     var isAnySnapshotOngoing by mutableStateOf(false)
 
     init {
-
-        runBlocking {
-            startDestination.value = if (preferencesRepository.readPreferenceValue(
-                    booleanPreferencesKey(
-                        AppPreferenceType.SHOULD_SHOW_ONBOARDING.name
-                    )
-                ) != false && linksRepo.isLinksTableEmpty() && foldersRepo.isFoldersTableEmpty() && localPanelsRepo.isPanelsTableEmpty()
-            ) {
-                Navigation.Root.OnboardingSlidesScreen
-            } else {
-                onBoardingCompleted.value = true
-                when (AppPreferences.startDestination.value) {
-                    Navigation.Root.HomeScreen.toString() -> if (preferencesRepository.readPreferenceValue(
-                            booleanPreferencesKey(
-                                AppPreferenceType.HOME_SCREEN_VISIBILITY.name
-                            )
-                        ) == false
-                    ) {
-                        Navigation.Root.CollectionsScreen
-                    } else {
-                        Navigation.Root.HomeScreen
-                    }
-
-                    Navigation.Root.SearchScreen.toString() -> Navigation.Root.SearchScreen
-                    else -> Navigation.Root.CollectionsScreen
-                }
-            }
-        }
-
         with(viewModelScope) {
             snapshotRepo.collectLatestAndExport()
         }

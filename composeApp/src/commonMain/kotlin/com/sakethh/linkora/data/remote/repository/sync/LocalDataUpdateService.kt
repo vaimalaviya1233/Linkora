@@ -42,6 +42,7 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteSyncRepo
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import com.sakethh.linkora.ui.utils.linkoraLog
+import com.sakethh.linkora.utils.Constants
 import com.sakethh.linkora.utils.Utils.json
 import com.sakethh.linkora.utils.isSameAsCurrentClient
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
@@ -600,11 +601,15 @@ class LocalDataUpdateService(
                             url = linkDTO.url,
                             imgURL = linkDTO.imgURL,
                             note = linkDTO.note,
-                            idOfLinkedFolder = if (linkDTO.idOfLinkedFolder != null) localFoldersRepo.getLocalIdOfAFolder(
-                                linkDTO.idOfLinkedFolder
-                            ) else null,
+                            idOfLinkedFolder = when (linkDTO.linkType) {
+                                LinkType.SAVED_LINK -> Constants.SAVED_LINKS_ID
+                                LinkType.HISTORY_LINK -> Constants.HISTORY_ID
+                                LinkType.IMPORTANT_LINK -> Constants.IMPORTANT_LINKS_ID
+                                LinkType.ARCHIVE_LINK -> Constants.ARCHIVE_ID
+                                else -> linkDTO.idOfLinkedFolder
+                            },
                             userAgent = linkDTO.userAgent,
-                            mediaType = linkDTO.mediaType
+                            mediaType = linkDTO.mediaType,
                         ), updatedLinkTagsPair = LinkTagsPair(
                             link = link,
                             tags = localTagsRepo.getLocalTags(remoteIds = linkDTO.linkTags.map {

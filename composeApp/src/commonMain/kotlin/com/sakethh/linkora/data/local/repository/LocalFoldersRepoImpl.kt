@@ -137,7 +137,7 @@ class LocalFoldersRepoImpl(
     }
 
     override suspend fun isFoldersTableEmpty(): Boolean {
-        return foldersDao.isFoldersTableEmpty()
+        return !foldersDao.doesFolderTableHaveData()
     }
 
     override suspend fun getChildFoldersOfThisParentIDAsList(parentFolderID: Long?): List<Folder> {

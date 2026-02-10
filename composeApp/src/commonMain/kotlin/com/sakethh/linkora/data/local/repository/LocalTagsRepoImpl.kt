@@ -80,16 +80,8 @@ class LocalTagsRepoImpl(
         tagsDao.createLinkTags(linksTags)
     }
 
-    override suspend fun deleteLinkTagsBasedOnLink(linkId: Long) {
-        tagsDao.deleteLinkTagsBasedOnLink(linkId)
-    }
-
-    override suspend fun deleteLinkTagsBasedOnTag(tagId: Long) {
-        tagsDao.deleteLinkTagsBasedOnTag(tagId)
-    }
-
-    override suspend fun deleteLinkTagsBasedOnTags(tagIds: List<Long>) {
-        tagsDao.deleteLinkTagsBasedOnTags(tagIds)
+    override suspend fun deleteLinkTagsBasedOnTags(tagIds: List<Long>, linkId: Long) {
+        tagsDao.deleteLinkTagsBasedOnTags(tagIds,linkId)
     }
 
     override suspend fun deleteATag(id: Long, viaSocket: Boolean): Flow<Result<Unit>> {
