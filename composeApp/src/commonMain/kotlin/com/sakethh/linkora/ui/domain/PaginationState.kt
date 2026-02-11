@@ -1,7 +1,8 @@
 package com.sakethh.linkora.ui.domain
 
 import androidx.compose.runtime.Stable
-import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.LastSeenId
+import com.sakethh.linkora.ui.LastSeenString
 
 @Stable
 data class PaginationState<T>(
@@ -12,7 +13,7 @@ data class PaginationState<T>(
     val data: T,
 ) {
     companion object {
-        fun <T> retrieving(): PaginationState<Map<PageKey, T>> {
+        fun <T> retrieving(): PaginationState<Map<Pair<LastSeenId, LastSeenString>, T>> {
             return PaginationState(
                 isRetrieving = true,
                 errorOccurred = false,
@@ -21,7 +22,8 @@ data class PaginationState<T>(
                 data = emptyMap()
             )
         }
-        fun <T> retrievingOnEmpty(): PaginationState<Map<PageKey, T>> {
+
+        fun <T> retrievingOnEmpty(): PaginationState<Map<Pair<LastSeenId, LastSeenString>, T>> {
             return PaginationState(
                 isRetrieving = true,
                 errorOccurred = false,

@@ -6,9 +6,9 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.execSQL
-import com.sakethh.linkora.data.local.dao.LocalDatabaseUtilsDao
 import com.sakethh.linkora.data.local.dao.FoldersDao
 import com.sakethh.linkora.data.local.dao.LinksDao
+import com.sakethh.linkora.data.local.dao.LocalDatabaseUtilsDao
 import com.sakethh.linkora.data.local.dao.LocalizationDao
 import com.sakethh.linkora.data.local.dao.PanelsDao
 import com.sakethh.linkora.data.local.dao.PendingSyncQueueDao
@@ -30,7 +30,7 @@ import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 
 @Database(
-    version = 13,
+    version = 14,
     exportSchema = true,
     entities = [Link::class, Folder::class,
         LocalizedString::class, LocalizedLanguage::class,
@@ -423,6 +423,13 @@ abstract class LocalDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("CREATE INDEX IF NOT EXISTS idx_folders_name ON folders(name)")
+                connection.execSQL("CREATE INDEX IF NOT EXISTS idx_links_title ON links(title)")
+                connection.execSQL("CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name)")
+            }
+        }
     }
 
     abstract val linksDao: LinksDao

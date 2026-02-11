@@ -3,6 +3,7 @@ package com.sakethh.linkora.domain.model.link
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.LinkType
@@ -17,7 +18,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
-@Entity(tableName = "links")
+@Entity(tableName = "links",
+    indices = [
+        Index(value = ["title"], name = "idx_links_title")
+    ])
 @Serializable
 data class Link(
     val linkType: LinkType,

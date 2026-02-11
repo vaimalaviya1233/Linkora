@@ -28,7 +28,8 @@ import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.LastSeenId
+import com.sakethh.linkora.ui.LastSeenString
 import com.sakethh.linkora.ui.Paginator
 import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
 import com.sakethh.linkora.ui.domain.PaginationState
@@ -65,8 +66,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.internal.toImmutableMap
-import java.util.TreeMap
 
 class CollectionsScreenVM(
     private val localFoldersRepo: LocalFoldersRepo,
@@ -162,14 +161,15 @@ class CollectionsScreenVM(
 
     private val linkTagsPairPaginator = Paginator(
         coroutineScope = viewModelScope,
-        onRetrieve = { nextPageStartIndex ->
-            nextPageStartIndex to if (linkTagsPairPaginatorType == LinkTagsPairPaginatorType.LinksAssociatedWithATag) {
+        onRetrieve = { lastSeenId, lastSeenString ->
+            if (linkTagsPairPaginatorType == LinkTagsPairPaginatorType.LinksAssociatedWithATag) {
                 localLinksRepo.getLinks(
                     tagId = dynamicCollectionDetailPaneInfo?.currentTag?.localId
                         ?: error("linkTagsPairPaginator-dynamicCollectionDetailPaneInfo?.currentTag?.localId is null"),
                     sortOption = sortingType,
                     pageSize = Constants.PAGE_SIZE,
-                    startIndex = nextPageStartIndex
+                    lastSeenTitle = lastSeenString,
+                    lastSeenId = lastSeenId
                 ).run {
                     if (shuffleLinks) shuffleLinks() else this
                 }.mapToLinkTagsPair()
@@ -180,13 +180,22 @@ class CollectionsScreenVM(
                         ?: error("linkTagsPairPaginator-dynamicCollectionDetailPaneInfo?.currentFolder?.localId is null"),
                     sortOption = sortingType,
                     pageSize = Constants.PAGE_SIZE,
-                    startIndex = nextPageStartIndex
+                    lastSeenId = lastSeenId,
+                    lastSeenTitle = lastSeenString
                 ).run {
                     if (shuffleLinks) shuffleLinks() else this
                 }.mapToLinkTagsPair()
             }
         },
-        onRetrieved = _linkTagsPairsState::onRetrieved,
+        onRetrieved = { currentKey, retrievedData ->
+            _linkTagsPairsState.onRetrieved(
+                currentKey = currentKey,
+                data = retrievedData,
+                shouldShuffle = AppPreferences.forceShuffleLinks.value,
+                idSelector = { it.link.localId },
+                stringSelector = { it.link.title }
+            )
+        },
         onError = _linkTagsPairsState::onError,
         onRetrieving = _linkTagsPairsState::onRetrieving,
         onPagesFinished = _linkTagsPairsState::onPagesFinished
@@ -202,19 +211,45 @@ class CollectionsScreenVM(
 
     private val childFoldersFlatPaginator = Paginator(
         coroutineScope = viewModelScope,
-        onRetrieve = { nextPageStartIndex ->
-            nextPageStartIndex to localDatabaseUtilsRepo.getChildFolderData(
+        onRetrieve = { _, lastSeenString ->
+            val parts = lastSeenString?.split("|")
+
+            val lastTypeOrder = parts?.getOrNull(0)?.toIntOrNull() ?: -1
+            val lastSortStr = parts?.getOrNull(1) ?: ""
+            val lastId = parts?.getOrNull(2)?.toLongOrNull() ?: Constants.EMPTY_LAST_SEEN_ID
+
+            localDatabaseUtilsRepo.getChildFolderData(
                 parentFolderId = dynamicCollectionDetailPaneInfo?.currentFolder?.localId
-                    ?: error("childFoldersPaginator-dynamicCollectionDetailPaneInfo?.currentFolder?.localId is null"),
+                    ?: error("childFoldersPaginator: Parent ID is null"),
+                linkType = LinkType.FOLDER_LINK,
                 sortOption = sortingType,
                 pageSize = Constants.PAGE_SIZE,
-                startIndex = nextPageStartIndex,
-                linkType = LinkType.FOLDER_LINK
-            ).run {
-                if (shuffleLinks) shuffleLinks() else this
-            }
+                lastTypeOrder = lastTypeOrder,
+                lastSortStr = lastSortStr,
+                lastId = lastId
+            )
         },
-        onRetrieved = _childFoldersFlat::onRetrieved,
+        onRetrieved = { currentKey, retrievedData ->
+            _childFoldersFlat.onRetrieved(
+                currentKey = currentKey,
+                data = retrievedData,
+                shouldShuffle = AppPreferences.forceShuffleLinks.value,
+
+                idSelector = { item ->
+                    item.folderLocalId ?: item.linkLocalId ?: 0L
+                },
+
+                stringSelector = { item ->
+                    val typeOrder = if (item.itemType == "FOLDER") 0 else 1
+
+                    val sortStr = item.folderName ?: item.linkTitle ?: ""
+
+                    val sortId = item.folderLocalId ?: item.linkLocalId ?: 0L
+
+                    "$typeOrder|$sortStr|$sortId"
+                }
+            )
+        },
         onError = _childFoldersFlat::onError,
         onRetrieving = _childFoldersFlat::onRetrieving,
         onPagesFinished = _childFoldersFlat::onPagesFinished
@@ -405,18 +440,27 @@ class CollectionsScreenVM(
 
     private val allLinksPaginator = Paginator(
         coroutineScope = viewModelScope,
-        onRetrieve = { nextPageStartIndex ->
-            nextPageStartIndex to localLinksRepo.getAllLinks(
+        onRetrieve = { lastSeenId, lastSeenString ->
+            localLinksRepo.getAllLinks(
                 applyLinkFilters = appliedFiltersForAllLinks.isNotEmpty(),
                 activeLinkFilters = appliedFiltersForAllLinks.toList().map { it.name },
                 sortOption = sortingType,
                 pageSize = Constants.PAGE_SIZE,
-                startIndex = nextPageStartIndex,
+                lastSeenId = lastSeenId,
+                lastSeenName = lastSeenString
             ).run {
                 if (shuffleLinks) shuffleLinks() else this
             }.mapToLinkTagsPair()
         },
-        onRetrieved = _linkTagsPairsState::onRetrieved,
+        onRetrieved = { currentKey, retrievedData ->
+            _linkTagsPairsState.onRetrieved(
+                currentKey = currentKey,
+                data = retrievedData,
+                shouldShuffle = AppPreferences.forceShuffleLinks.value,
+                idSelector = { it.link.localId },
+                stringSelector = { it.link.title }
+            )
+        },
         onError = _linkTagsPairsState::onError,
         onRetrieving = _linkTagsPairsState::onRetrieving,
         onPagesFinished = _linkTagsPairsState::onPagesFinished
@@ -428,7 +472,7 @@ class CollectionsScreenVM(
             errorOccurred = false,
             errorMessage = null,
             pagesCompleted = false,
-            data = TreeMap<PageKey, List<Folder>>().toImmutableMap()
+            data = emptyMap<Pair<LastSeenId, LastSeenString>, List<Folder>>()
         )
     )
     val rootRegularFolders = _rootRegularFolders.asStateInWhileSubscribed(
@@ -447,7 +491,7 @@ class CollectionsScreenVM(
             errorOccurred = false,
             errorMessage = null,
             pagesCompleted = false,
-            data = TreeMap<PageKey, List<Folder>>().toImmutableMap()
+            data = emptyMap<Pair<LastSeenId, LastSeenString>, List<Folder>>()
         )
     )
     val rootArchiveFolders = _rootArchiveFolders.asStateInWhileSubscribed(
@@ -466,10 +510,9 @@ class CollectionsScreenVM(
             errorOccurred = false,
             errorMessage = null,
             pagesCompleted = false,
-            data = TreeMap<PageKey, List<Tag>>().toImmutableMap()
+            data = emptyMap<Pair<LastSeenId, LastSeenString>, List<Tag>>()
         )
     )
-
     val allTags = _allTags.asStateInWhileSubscribed(
         initialValue = PaginationState(
             isRetrieving = true,
@@ -482,15 +525,24 @@ class CollectionsScreenVM(
 
     private val regularRootFoldersPaginator = Paginator(
         coroutineScope = viewModelScope,
-        onRetrieve = { nextPageStartIndex ->
-            nextPageStartIndex to localFoldersRepo.getRootFolders(
+        onRetrieve = { lastSeenId, lastSeenString ->
+            localFoldersRepo.getRootFolders(
                 sortingType,
                 isArchived = false,
                 pageSize = Constants.PAGE_SIZE,
-                startIndex = nextPageStartIndex
+                lastSeenId = lastSeenId,
+                lastSeenName = lastSeenString
             )
         },
-        onRetrieved = _rootRegularFolders::onRetrieved,
+        onRetrieved = { currentKey, retrievedData ->
+            _rootRegularFolders.onRetrieved(
+                currentKey = currentKey,
+                data = retrievedData,
+                shouldShuffle = AppPreferences.forceShuffleLinks.value,
+                idSelector = { it.localId },
+                stringSelector = { it.name }
+            )
+        },
         onError = _rootRegularFolders::onError,
         onRetrieving = _rootRegularFolders::onRetrieving,
         onPagesFinished = _rootRegularFolders::onPagesFinished
@@ -498,15 +550,24 @@ class CollectionsScreenVM(
 
     private val archiveRootFoldersPaginator = Paginator(
         coroutineScope = viewModelScope,
-        onRetrieve = { nextPageStartIndex ->
-            nextPageStartIndex to localFoldersRepo.getRootFolders(
+        onRetrieve = { lastSeenId, lastSeenString ->
+            localFoldersRepo.getRootFolders(
                 sortingType,
                 isArchived = true,
                 pageSize = Constants.PAGE_SIZE,
-                startIndex = nextPageStartIndex
+                lastSeenId = lastSeenId,
+                lastSeenName = lastSeenString
             )
         },
-        onRetrieved = _rootArchiveFolders::onRetrieved,
+        onRetrieved = { currentKey, retrievedData ->
+            _rootArchiveFolders.onRetrieved(
+                currentKey = currentKey,
+                data = retrievedData,
+                shouldShuffle = AppPreferences.forceShuffleLinks.value,
+                idSelector = { it.localId },
+                stringSelector = { it.name }
+            )
+        },
         onError = _rootArchiveFolders::onError,
         onRetrieving = _rootArchiveFolders::onRetrieving,
         onPagesFinished = _rootArchiveFolders::onPagesFinished
@@ -514,14 +575,22 @@ class CollectionsScreenVM(
 
     private val tagsPaginator = Paginator(
         coroutineScope = viewModelScope,
-        onRetrieve = { nextPageStartIndex ->
-            nextPageStartIndex to localTagsRepo.getTags(
-                sortingType,
+        onRetrieve = { lastSeenId, lastSeenString ->
+            localTagsRepo.getTags(
+                sortOption = sortingType,
                 pageSize = Constants.PAGE_SIZE,
-                startIndex = nextPageStartIndex
+                lastSeenId = lastSeenId, lastSeenName = lastSeenString
             )
         },
-        onRetrieved = _allTags::onRetrieved,
+        onRetrieved = { currentKey, retrievedData ->
+            _allTags.onRetrieved(
+                currentKey = currentKey,
+                data = retrievedData,
+                shouldShuffle = AppPreferences.forceShuffleLinks.value,
+                idSelector = { it.localId },
+                stringSelector = { it.name }
+            )
+        },
         onError = _allTags::onError,
         onRetrieving = _allTags::onRetrieving,
         onPagesFinished = _allTags::onPagesFinished

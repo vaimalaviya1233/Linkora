@@ -50,20 +50,51 @@ interface TagsDao {
     )
     fun getAllTags(sortOption: String): Flow<List<Tag>>
 
-    @Query(
-        """SELECT * FROM tags 
+    @Query("""
+    SELECT * FROM tags 
+    WHERE 
+      (:lastSeenId IS NULL 
+      OR (:isAscending = 1 AND localId > :lastSeenId)
+      OR (:isAscending = 0 AND localId < :lastSeenId))
     ORDER BY 
-        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC,
-        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
-        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN name COLLATE NOCASE END ASC,
-        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN name COLLATE NOCASE END DESC
-        LIMIT :pageSize
-        OFFSET :startIndex
-        """
-    )
-    fun getTags(
-        sortOption: String,
-        pageSize: Int, startIndex: Long
+        CASE WHEN :isAscending = 1 THEN localId END ASC,
+        CASE WHEN :isAscending = 0 THEN localId END DESC
+    LIMIT :pageSize
+    """)
+    fun getTagsSortedById(
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
+    ): Flow<List<Tag>>
+
+    @Query("""
+    SELECT * FROM tags 
+    WHERE 
+      (:lastSeenName IS NULL OR :lastSeenName = '' OR
+      (
+          :isAscending = 1 AND (
+              name COLLATE NOCASE > :lastSeenName 
+              OR (name COLLATE NOCASE = :lastSeenName AND localId > :lastSeenId)
+          )
+      ) 
+      OR 
+      (
+          :isAscending = 0 AND (
+              name COLLATE NOCASE < :lastSeenName 
+              OR (name COLLATE NOCASE = :lastSeenName AND localId > :lastSeenId)
+          )
+      ))
+    ORDER BY 
+        CASE WHEN :isAscending = 1 THEN name END COLLATE NOCASE ASC,
+        CASE WHEN :isAscending = 0 THEN name END COLLATE NOCASE DESC,
+        localId ASC
+    LIMIT :pageSize
+    """)
+    fun getTagsSortedByName(
+        lastSeenName: String?,
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
     ): Flow<List<Tag>>
 
     @Query("SELECT * FROM tags")

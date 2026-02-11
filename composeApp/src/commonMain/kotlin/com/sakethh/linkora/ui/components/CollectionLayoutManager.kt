@@ -47,7 +47,8 @@ import com.sakethh.linkora.domain.model.FlatSearchResult
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.LastSeenId
+import com.sakethh.linkora.ui.LastSeenString
 import com.sakethh.linkora.ui.components.folder.FolderComponent
 import com.sakethh.linkora.ui.components.link.GridViewLinkComponent
 import com.sakethh.linkora.ui.components.link.ListViewLinkComponent
@@ -68,9 +69,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun CollectionLayoutManager(
     screenType: ScreenType,
-    flatChildFolderDataState: PaginationState<Map<PageKey, List<FlatChildFolderData>>>?,
-    linksTagsPairsState: PaginationState<Map<PageKey, List<LinkTagsPair>>>?,
-    flatSearchResultState: PaginationState<Map<PageKey, List<FlatSearchResult>>>?,
+    flatChildFolderDataState: PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<FlatChildFolderData>>>?,
+    linksTagsPairsState: PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<LinkTagsPair>>>?,
+    flatSearchResultState: PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<FlatSearchResult>>>?,
     paddingValues: PaddingValues,
     folderMoreIconClick: (folder: Folder) -> Unit,
     tagMoreIconClick: (tag: Tag) -> Unit,
@@ -83,7 +84,7 @@ fun CollectionLayoutManager(
     emptyDataText: String,
     nestedScrollConnection: NestedScrollConnection?,
     onRetrieveNextPage: () -> Unit,
-    onFirstVisibleItemIndexChange: (PageKey) -> Unit,
+    onFirstVisibleItemIndexChange: (Long) -> Unit,
 ) {
     val listLayoutState =
         rememberLazyListState()

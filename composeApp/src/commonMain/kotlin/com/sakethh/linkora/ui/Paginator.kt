@@ -14,18 +14,22 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.concurrent.atomics.update
 
-typealias PageKey = Long
+typealias LastSeenId = Long
+typealias LastSeenString = String
+typealias UpdatedLastSeenId = Long
+typealias UpdatedLastSeenString = String
 
 @OptIn(ExperimentalAtomicApi::class)
 class Paginator<T>(
     private val coroutineScope: CoroutineScope,
-    private val onRetrieve: suspend (nextPageStartIndex: PageKey) -> Pair<PageKey, Flow<Result<List<T>>>>,
-    private val onRetrieved: suspend (currentPageKey: PageKey, data: List<Pair<PageKey, T>>) -> Unit,
+    private val onRetrieve: suspend (lastSeenId: LastSeenId?, lastSeenString: String?) -> Flow<Result<List<T>>>,
+    private val onRetrieved: suspend (currentKey: Pair<LastSeenId, LastSeenString>, data: List<T>) -> Pair<UpdatedLastSeenId, UpdatedLastSeenString>,
     private val onError: suspend (String) -> Unit,
     private val onRetrieving: suspend () -> Unit,
     private val onPagesFinished: suspend () -> Unit
@@ -40,85 +44,91 @@ class Paginator<T>(
     var errorOccurred = false
         private set
 
-    private var indexToRetrieveFrom: AtomicLong = AtomicLong(0)
+    private val lastSeenId = AtomicLong(Constants.EMPTY_LAST_SEEN_ID)
+    private val lastSeenString = AtomicReference("")
 
-    private val seenPageKeys = mutableSetOf<PageKey>()
+    private val orderedPageKeys =
+        Collections.synchronizedList(mutableListOf<Pair<LastSeenId, LastSeenString>>())
+
+    private val seenPageKeys = mutableSetOf<Pair<LastSeenId, LastSeenString>>()
 
     private val firstVisibleItemIndex: MutableStateFlow<Long> = MutableStateFlow(0)
-
     suspend fun updateFirstVisibleItemIndex(newIndex: Long) = firstVisibleItemIndex.emit(newIndex)
 
-    private val collectionJobs = ConcurrentHashMap<PageKey, Job>()
+    private val collectionJobs = ConcurrentHashMap<Pair<LastSeenId, LastSeenString>, Job>()
 
     init {
         coroutineScope.launch {
             firstVisibleItemIndex.collect { firstVisibleIndex ->
 
-                val visibleElementBatch = firstVisibleIndex / Constants.PAGE_SIZE
-                val pageKeyOfTheVisibleElement = visibleElementBatch * Constants.PAGE_SIZE
+                val visibleBatchIndex = (firstVisibleIndex / Constants.PAGE_SIZE).toInt()
 
+                val minBatchIndex =
+                    (visibleBatchIndex - Constants.ACTIVE_PAGE_COLLECTION_SIZE).coerceAtLeast(0)
+                val maxHistoryIndex = orderedPageKeys.lastIndex
+                val maxBatchIndex =
+                    (visibleBatchIndex + Constants.ACTIVE_PAGE_COLLECTION_SIZE).coerceAtMost(
+                        maxHistoryIndex
+                    )
 
                 val qualifiedForRestarting =
-                    ((pageKeyOfTheVisibleElement downTo (pageKeyOfTheVisibleElement - (Constants.PAGE_SIZE * (Constants.ACTIVE_PAGE_COLLECTION_SIZE - 1)))).filterValidKeys()
-                            + (pageKeyOfTheVisibleElement until (pageKeyOfTheVisibleElement + (Constants.PAGE_SIZE * (Constants.ACTIVE_PAGE_COLLECTION_SIZE - 1))) + 1).filterValidKeys()).distinct()
+                    if (orderedPageKeys.isNotEmpty() && minBatchIndex <= maxBatchIndex) {
+                        (minBatchIndex..maxBatchIndex).map { index ->
+                            orderedPageKeys[index]
+                        }.toSet()
+                    } else {
+                        emptySet()
+                    }
 
-                linkoraLog("qualifiedForRestarting = $qualifiedForRestarting")
+                linkoraLog("qualifiedForRestarting size = ${qualifiedForRestarting.size}:\n$qualifiedForRestarting")
 
-                // cancel the active collections of pages that are out of $activePageCollectionSize
                 collectionJobs.forEach { (pageKey, job) ->
                     if (!job.isCancelled && pageKey !in qualifiedForRestarting) {
                         linkoraLog("cancelling the $pageKey job")
                         job.cancel()
                     }
                 }
+
                 linkoraLog("After cancellation::\n")
                 logCoroutineScopeChildrenCount()
 
-                // restart collecting the collections that were canceled
-                collectionJobs.forEach { (pageKey, job) ->
-                    if (job.isCancelled && pageKey in qualifiedForRestarting) {
+                qualifiedForRestarting.forEach { pageKey ->
+                    val existingJob = collectionJobs[pageKey]
+
+                    if ((existingJob == null || existingJob.isCancelled) && seenPageKeys.contains(
+                            pageKey
+                        )
+                    ) {
                         linkoraLog("restarting the $pageKey job")
-                        collectionJobs[pageKey] = coroutineScope.launch {
-                            onRetrieve(pageKey).second.collectData(pageKey)
+
+                        val restartId =
+                            if (pageKey.first == Constants.EMPTY_LAST_SEEN_ID) null else pageKey.first
+
+                        var newJob: Job? = null
+
+                        newJob = coroutineScope.launch {
+                            try {
+                                onRetrieve(restartId, pageKey.second)
+                                    .restartCollectData(pageKey)
+                            } finally {
+                                newJob?.let { collectionJobs.remove(pageKey, it) }
+                            }
                         }
+                        collectionJobs[pageKey] = newJob
                     }
                 }
+
                 linkoraLog("After restarting::\n")
                 logCoroutineScopeChildrenCount()
             }
         }
     }
 
-    private fun LongRange.filterValidKeys(): List<Long> {
-        return filter {
-            seenPageKeys.contains(it)
-        }
-    }
-
-    private fun LongProgression.filterValidKeys(): List<Long> {
-        return filter {
-            seenPageKeys.contains(it)
-        }
-    }
-
-    /*   private fun IntRange.multipleOf(number: Int): List<Int> {
-           return this.filter {
-               it % number == 0
-           }
-       }
-
-       private fun IntProgression.multipleOf(number: Int): List<Int> {
-           return this.filter {
-               it % number == 0
-           }
-       }*/
-
     private fun logCoroutineScopeChildrenCount() {
         linkoraLog(
             "active children count:${
                 try {
-                    coroutineScope.coroutineContext.job.children.count { it.isActive } - 1 // -1 because the collection of visible index in init block of this class
-                    // is one of those children which we don't care about and is irrelevant
+                    coroutineScope.coroutineContext.job.children.count { it.isActive } - 1
                 } catch (_: Exception) {
                     null
                 }
@@ -136,51 +146,67 @@ class Paginator<T>(
     }
 
     suspend fun retrieveNextBatch() {
-
         if ((isRetrieving || isPagesFinished || errorOccurred).also {
-                linkoraLog("isRetrieving = $isRetrieving, isPagesFinished  = $isPagesFinished, errorOccurred = $errorOccurred")
+                if (it) linkoraLog("isRetrieving=$isRetrieving, isPagesFinished=$isPagesFinished, errorOccurred=$errorOccurred")
             }) return
 
         isRetrieving = true
 
-        val (pageKey, dataFlow) = onRetrieve(indexToRetrieveFrom.load())
-        seenPageKeys.add(pageKey)
+        val currentId = lastSeenId.load()
+        val currentString = lastSeenString.load()
+        val pageKeyPair = currentId to currentString
 
-        var didLaunch = false
-
-        collectionJobs.computeIfAbsent(pageKey) {
-            didLaunch = true
-            coroutineScope.launch {
-                try {
-                    dataFlow.collectData(pageKey)
-                } finally {
-                    isRetrieving = false
-                }
-            }.also {
-                indexToRetrieveFrom.update {
-                    it + Constants.PAGE_SIZE
-                }
-                linkoraLog("Seen pages:${seenPageKeys.count()}")
+        synchronized(orderedPageKeys) {
+            if (!seenPageKeys.contains(pageKeyPair)) {
+                orderedPageKeys.add(pageKeyPair)
+                seenPageKeys.add(pageKeyPair)
             }
         }
 
+        val retrieveId = if (currentId == Constants.EMPTY_LAST_SEEN_ID) null else currentId
+        val dataFlow = onRetrieve(retrieveId, currentString)
+
+        var didLaunch = false
+
+        collectionJobs.computeIfAbsent(pageKeyPair) {
+            didLaunch = true
+
+            var appendJob: Job? = null
+
+            appendJob = coroutineScope.launch {
+                try {
+                    dataFlow.collectData(pageKeyPair)
+                } finally {
+                    appendJob?.let { collectionJobs.remove(pageKeyPair, it) }
+                    isRetrieving = false
+                }
+            }.also {
+                linkoraLog("Seen pages:${seenPageKeys.count()}")
+            }
+            appendJob
+        }
+
         if (!didLaunch) {
-            linkoraLog("Collections for the key $pageKey is already happening")
             isRetrieving = false
+            linkoraLog("Collections for the key $pageKeyPair is already happening")
         }
     }
 
-    private suspend fun Flow<Result<List<T>>>.collectData(pageKey: PageKey) {
+    private suspend fun Flow<Result<List<T>>>.collectData(
+        pageKey: Pair<LastSeenId, LastSeenString>
+    ) {
         cancellable().distinctUntilChanged().collect { result ->
             result.onSuccess {
-                onRetrieved(pageKey, it.data.map {
-                    pageKey to it
-                })
+                val (updatedLastSeenId, updatedLastSeenString) = onRetrieved(pageKey, it.data)
+
+                this@Paginator.lastSeenId.store(updatedLastSeenId)
+                this@Paginator.lastSeenString.store(updatedLastSeenString)
 
                 linkoraLog("Retrieved from page key: $pageKey of size = ${it.data.size}")
 
                 isRetrieving = false
                 isPagesFinished = it.data.isEmpty() || it.data.size < Constants.PAGE_SIZE
+
                 if (isPagesFinished) {
                     onPagesFinished()
                 }
@@ -195,17 +221,31 @@ class Paginator<T>(
         }
     }
 
-    suspend fun cancelAndReset() {
-        collectionJobs.values.forEach {
-            it.cancel()
+    private suspend fun Flow<Result<List<T>>>.restartCollectData(
+        pageKey: Pair<LastSeenId, LastSeenString>
+    ) {
+        cancellable().distinctUntilChanged().collect { result ->
+            result.onSuccess {
+                onRetrieved(pageKey, it.data)
+            }.onFailure {
+                linkoraLog("Silent failure for page $pageKey: $it")
+            }
         }
+    }
+
+    suspend fun cancelAndReset() {
+        collectionJobs.values.forEach { it.cancel() }
         collectionJobs.clear()
+        orderedPageKeys.clear()
+        seenPageKeys.clear()
+
         isRetrieving = false
         isPagesFinished = false
         errorOccurred = false
-        indexToRetrieveFrom.update { 0 }
-        seenPageKeys.clear()
+
+        lastSeenId.store(Constants.EMPTY_LAST_SEEN_ID)
+        lastSeenString.store("")
+
         updateFirstVisibleItemIndex(0)
     }
-
 }

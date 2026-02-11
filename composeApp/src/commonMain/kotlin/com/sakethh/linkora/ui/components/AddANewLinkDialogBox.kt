@@ -117,7 +117,8 @@ import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.domain.onSuccess
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.LastSeenId
+import com.sakethh.linkora.ui.LastSeenString
 import com.sakethh.linkora.ui.components.folder.SelectableFolderUIComponent
 import com.sakethh.linkora.ui.domain.AddANewLinkDialogBoxAction
 import com.sakethh.linkora.ui.domain.PaginationState
@@ -562,8 +563,8 @@ private fun BottomPartOfAddANewLinkDialogBox(
     lazyRowState: LazyListState,
     addTheFolderInRoot: MutableState<Boolean>,
     currentFolder: Folder?,
-    rootRegularFolders: StateFlow<PaginationState<Map<PageKey, List<Folder>>>>,
-    allTags: PaginationState<Map<PageKey, List<Tag>>>,
+    rootRegularFolders: StateFlow<PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<Folder>>>>,
+    allTags: PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<Tag>>>,
     selectedTags: List<Tag>,
     foldersSearchQuery: String,
     foldersSearchQueryResult: StateFlow<List<Folder>>,

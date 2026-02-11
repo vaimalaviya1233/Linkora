@@ -2,13 +2,17 @@ package com.sakethh.linkora.domain.model
 
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.time.Instant
 
-@Entity(tableName = "folders")
+@Entity(tableName = "folders",
+    indices = [
+        Index(value = ["name"], name = "idx_folders_name")
+    ])
 @Serializable
 data class Folder(
     val name: String,

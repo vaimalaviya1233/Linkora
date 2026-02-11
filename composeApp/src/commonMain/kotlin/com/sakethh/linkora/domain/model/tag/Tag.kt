@@ -2,14 +2,18 @@ package com.sakethh.linkora.domain.model.tag
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.Serializable
-import java.time.Instant
 
 @Serializable
-@Entity(tableName = "tags")
+@Entity(
+    tableName = "tags", indices = [
+        Index(value = ["name"], name = "idx_tags_name")
+    ]
+)
 data class Tag(
     @PrimaryKey(autoGenerate = true) val localId: Long = 0,
     val remoteId: Long? = null,

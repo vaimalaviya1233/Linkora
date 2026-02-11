@@ -2,8 +2,8 @@ package com.sakethh.linkora.domain.repository.local
 
 import com.sakethh.linkora.domain.LinkSaveConfig
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.RefreshLinkType
+import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.model.link.Link
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
 import kotlinx.coroutines.flow.Flow
@@ -24,12 +24,16 @@ interface LocalLinksRepo {
 
     suspend fun getLinks(
         linkType: LinkType, parentFolderId: Long, sortOption: String,
-        pageSize: Int, startIndex: Long
+        pageSize: Int,
+        lastSeenTitle: String?,
+        lastSeenId: Long?
     ): Flow<Result<List<Link>>>
 
     suspend fun getLinks(
         tagId: Long, sortOption: String,
-        pageSize: Int, startIndex: Long
+        pageSize: Int,
+        lastSeenTitle: String?,
+        lastSeenId: Long?
     ): Flow<Result<List<Link>>>
 
     fun getLinksAsNonResultFlow(
@@ -38,8 +42,11 @@ interface LocalLinksRepo {
 
 
     suspend fun getLinks(
-        linkType: LinkType, sortOption: String,
-        pageSize: Int, startIndex: Long
+        linkType: LinkType,
+        sortOption: String,
+        pageSize: Int,
+        lastSeenTitle: String?,
+        lastSeenId: Long?
     ): Flow<Result<List<Link>>>
 
     fun getLinksAsNonResultFlow(
@@ -81,7 +88,10 @@ interface LocalLinksRepo {
         viaSocket: Boolean = false
     ): Flow<Result<Unit>>
 
-    suspend fun refreshLinkMetadata(link: Link,refreshLinkType: RefreshLinkType): Flow<Result<Unit>>
+    suspend fun refreshLinkMetadata(
+        link: Link,
+        refreshLinkType: RefreshLinkType
+    ): Flow<Result<Unit>>
 
     suspend fun getLocalLinkId(remoteID: Long): Long?
     suspend fun getRemoteLinkId(localId: Long): Long?
@@ -100,7 +110,8 @@ interface LocalLinksRepo {
         activeLinkFilters: List<String>,
         sortOption: String,
         pageSize: Int,
-        startIndex: Long
+        lastSeenName: String?,
+        lastSeenId: Long?
     ): Flow<Result<List<Link>>>
 
     suspend fun isLinksTableEmpty(): Boolean

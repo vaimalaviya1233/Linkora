@@ -16,14 +16,15 @@ interface LocalDatabaseUtilsRepo {
         linkType: LinkType,
         sortOption: String,
         pageSize: Int,
-        startIndex: Long
+        lastTypeOrder: Int?,
+        lastSortStr: String?,
+        lastId: Long?
     ): Flow<Result<List<FlatChildFolderData>>>
 
     fun search(
         query: String,
         sortOption: String,
         pageSize: Int,
-        startIndex: Long,
         shouldShowTags: Boolean,
         shouldShowFolders: Boolean,
         includeArchivedFolders: Boolean,
@@ -31,6 +32,10 @@ interface LocalDatabaseUtilsRepo {
         shouldShowLinks: Boolean,
         isLinkTypeFilterActive: Boolean,
         activeLinkTypeFilters: List<String>,
-        assignPath: Boolean
+        assignPath: Boolean,
+        lastTypeOrder: Int,
+        lastSortStr: String,
+        lastSortNum: Long,
+        lastId: Long
     ): Flow<Result<List<FlatSearchResult>>>
 }

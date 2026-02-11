@@ -30,7 +30,8 @@ import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.platform.platform
 import com.sakethh.linkora.preferences.AppPreferenceType
 import com.sakethh.linkora.preferences.AppPreferences
-import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.LastSeenId
+import com.sakethh.linkora.ui.LastSeenString
 import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.navigation.Navigation
 import com.sakethh.linkora.ui.utils.UIEvent
@@ -51,7 +52,6 @@ import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.TreeMap
 
 fun String.addZeroAtPrefixOnInt() =
     try {
@@ -269,16 +269,23 @@ suspend fun File.duplicate(): File? = withContext(Dispatchers.IO) {
     }
 }
 
+fun <T> MutableStateFlow<PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<T>>>>.onRetrieved(
+    currentKey: Pair<LastSeenId, LastSeenString>,
+    data: List<T>,
+    shouldShuffle: Boolean,
+    idSelector: (T) -> Long,
+    stringSelector: (T) -> String
+): Pair<LastSeenId, LastSeenString> {
 
-fun <ItemType> MutableStateFlow<PaginationState<Map<PageKey, List<ItemType>>>>.onRetrieved(
-    pageKey: PageKey,
-    retrievedData: List<Pair<PageKey, ItemType>>
-) {
+    val lastItem = data.lastOrNull()
+    val nextKeyId = lastItem?.let(idSelector) ?: Constants.EMPTY_LAST_SEEN_ID
+    val nextKeyString = lastItem?.let(stringSelector) ?: ""
+
+    val dataToDisplay = if (shouldShuffle) data.shuffled() else data
+
     update { currentState ->
-        val updatedData = TreeMap(currentState.data)
-        updatedData[pageKey] = retrievedData.map {
-            it.second
-        }
+        val updatedData = LinkedHashMap(currentState.data)
+        updatedData[currentKey] = dataToDisplay
 
         currentState.copy(
             data = updatedData,
@@ -288,6 +295,8 @@ fun <ItemType> MutableStateFlow<PaginationState<Map<PageKey, List<ItemType>>>>.o
             pagesCompleted = false,
         )
     }
+
+    return nextKeyId to nextKeyString
 }
 
 fun <T> MutableStateFlow<PaginationState<T>>.onError(errorMsg: String) {

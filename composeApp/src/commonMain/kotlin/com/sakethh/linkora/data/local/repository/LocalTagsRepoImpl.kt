@@ -1,8 +1,8 @@
 package com.sakethh.linkora.data.local.repository
 
 import com.sakethh.linkora.data.local.dao.TagsDao
-import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.SyncServerRoute
 import com.sakethh.linkora.domain.dto.server.IDBasedDTO
 import com.sakethh.linkora.domain.dto.server.tag.CreateTagDTO
 import com.sakethh.linkora.domain.dto.server.tag.RenameTagDTO
@@ -14,6 +14,7 @@ import com.sakethh.linkora.domain.repository.local.LocalTagsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteTagsRepo
+import com.sakethh.linkora.utils.Sorting
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
@@ -81,7 +82,7 @@ class LocalTagsRepoImpl(
     }
 
     override suspend fun deleteLinkTagsBasedOnTags(tagIds: List<Long>, linkId: Long) {
-        tagsDao.deleteLinkTagsBasedOnTags(tagIds,linkId)
+        tagsDao.deleteLinkTagsBasedOnTags(tagIds, linkId)
     }
 
     override suspend fun deleteATag(id: Long, viaSocket: Boolean): Flow<Result<Unit>> {
@@ -123,8 +124,25 @@ class LocalTagsRepoImpl(
         return tagsDao.getAllTags(sortOption)
     }
 
-    override fun getTags(sortOption: String, pageSize: Int, startIndex: Long): Flow<Result<List<Tag>>>{
-        return tagsDao.getTags(sortOption,pageSize,startIndex).mapToResultFlow()
+    override fun getTags(
+        sortOption: String, pageSize: Int,
+        lastSeenName: String?,
+        lastSeenId: Long?
+    ): Flow<Result<List<Tag>>> {
+        return when (sortOption) {
+            Sorting.A_TO_Z, Sorting.Z_TO_A -> tagsDao.getTagsSortedByName(
+                lastSeenId = lastSeenId,
+                lastSeenName = lastSeenName?.takeIf { it.isNotEmpty() },
+                pageSize = pageSize,
+                isAscending = sortOption == Sorting.A_TO_Z
+            )
+
+            else -> tagsDao.getTagsSortedById(
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.OLD_TO_NEW,
+                pageSize = pageSize
+            )
+        }.mapToResultFlow()
     }
 
     override suspend fun renameATag(

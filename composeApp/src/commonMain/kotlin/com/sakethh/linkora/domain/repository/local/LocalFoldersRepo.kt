@@ -39,7 +39,9 @@ interface LocalFoldersRepo {
     suspend fun getRootFolders(
         sortOption: String,
         isArchived: Boolean,
-        pageSize: Int, startIndex: Long
+        pageSize: Int,
+        lastSeenName: String?,
+        lastSeenId: Long?,
     ): Flow<Result<List<Folder>>>
 
     suspend fun getChildFolders(

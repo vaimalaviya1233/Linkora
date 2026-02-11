@@ -27,7 +27,9 @@ interface LocalTagsRepo {
 
     fun getTags(
         sortOption: String,
-        pageSize: Int, startIndex: Long
+        pageSize: Int,
+        lastSeenName: String?,
+        lastSeenId: Long?,
     ): Flow<Result<List<Tag>>>
 
     suspend fun getAllTagsAsList(): List<Tag>

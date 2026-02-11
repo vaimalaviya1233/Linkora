@@ -20,7 +20,7 @@ object Constants {
     const val COLLECTION_INFO_SAVED_STATE_HANDLE_KEY = "parentFolderDetail"
 
     const val PAGE_SIZE = 20
-    const val ACTIVE_PAGE_COLLECTION_SIZE = 2
+    const val ACTIVE_PAGE_COLLECTION_SIZE = 1
 
     const val DOUBLE_TAP_DELAY = 500L
 
@@ -32,6 +32,7 @@ object Constants {
 
     const val MAX_INSERTION_IN_DB_SINGLE_SHOT = 999
 
+    const val EMPTY_LAST_SEEN_ID: Long = -1
 }
 
 object LinkType {

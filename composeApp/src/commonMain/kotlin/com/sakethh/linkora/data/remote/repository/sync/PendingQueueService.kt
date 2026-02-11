@@ -248,9 +248,13 @@ class PendingQueueService(
                         send(Loading(message = "[FOLDER] Deleting folder from queue item (ID: ${queueItem.id})"))
                         val idBasedDTO =
                             Json.decodeFromString<IDBasedDTO>(queueItem.payload)
-                        remoteFoldersRepo.deleteFolder(idBasedDTO).removeQueueItemAndSyncTimestamp(
-                            queueItem.id
-                        )
+                        val remoteId =
+                            localFoldersRepo.getRemoteIdOfAFolder(idBasedDTO.id) ?: return@forEach
+
+                        remoteFoldersRepo.deleteFolder(idBasedDTO.copy(id = remoteId))
+                            .removeQueueItemAndSyncTimestamp(
+                                queueItem.id
+                            )
                         send(Loading(message = "[FOLDER] Removed queue item (ID: ${queueItem.id}) after deleting folder"))
                     }
 

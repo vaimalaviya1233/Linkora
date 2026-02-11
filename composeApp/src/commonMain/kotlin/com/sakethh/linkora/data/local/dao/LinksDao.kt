@@ -81,25 +81,46 @@ interface LinksDao {
         linkType: com.sakethh.linkora.domain.LinkType, sortOption: String
     ): Flow<List<Link>>
 
-    @Query(
-        """
-    SELECT * FROM links
-    WHERE
-        linkType = :linkType
-    ORDER BY
-        CASE WHEN :sortOption = 'A_TO_Z' THEN title COLLATE NOCASE END ASC,
-        CASE WHEN :sortOption = 'Z_TO_A' THEN title COLLATE NOCASE END DESC,
-        CASE WHEN :sortOption = 'NEW_TO_OLD' THEN localId END DESC,
-        CASE WHEN :sortOption = 'OLD_TO_NEW' THEN localId END ASC
-    LIMIT :pageSize
-    OFFSET :startIndex
-"""
+    @Query("""
+    SELECT * FROM links 
+    WHERE linkType = :linkType 
+    AND (
+        (:isAscending = 1 AND (localId > :lastSeenId OR :lastSeenId IS NULL)) 
+        OR 
+        (:isAscending = 0 AND (localId < :lastSeenId OR :lastSeenId IS NULL))
     )
-    fun getSortedLinks(
-        linkType: com.sakethh.linkora.domain.LinkType,
-        sortOption: String,
-        pageSize: Int,
-        startIndex: Long
+    ORDER BY 
+        CASE WHEN :isAscending = 1 THEN localId END ASC,
+        CASE WHEN :isAscending = 0 THEN localId END DESC
+    LIMIT :pageSize
+    """)
+    fun getLinksSortedById(
+        linkType: String,
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
+    ): Flow<List<Link>>
+
+    @Query("""
+    SELECT * FROM links 
+    WHERE linkType = :linkType 
+    AND (
+        :lastSeenTitle IS NULL OR :lastSeenTitle = '' OR
+        (:isAscending = 1 AND (title > :lastSeenTitle OR (title = :lastSeenTitle AND localId > :lastSeenId))) OR
+        (:isAscending = 0 AND (title < :lastSeenTitle OR (title = :lastSeenTitle AND localId > :lastSeenId)))
+    )
+    ORDER BY 
+        CASE WHEN :isAscending = 1 THEN title END COLLATE NOCASE ASC,
+        CASE WHEN :isAscending = 0 THEN title END COLLATE NOCASE DESC,
+        localId ASC
+    LIMIT :pageSize
+    """)
+    fun getLinksSortedByTitle(
+        linkType: String,
+        lastSeenTitle: String?,
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
     ): Flow<List<Link>>
 
     @Query(
@@ -116,25 +137,6 @@ interface LinksDao {
         sortOption: String
     ): Flow<List<Link>>
 
-
-    @Query(
-        """
-    SELECT * FROM links 
-    WHERE linkType = :linkType AND idOfLinkedFolder = :parentFolderId 
-    ORDER BY 
-        CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN title COLLATE NOCASE END ASC,
-        CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN title COLLATE NOCASE END DESC,
-        CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN localId END DESC,
-        CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN localId END ASC
-    LIMIT :pageSize
-    OFFSET :startIndex
-    """
-    )
-    fun getSortedLinks(
-        linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String,
-        pageSize: Int, startIndex: Long
-    ): Flow<List<Link>>
-
     @Query(
         """
     SELECT * FROM links 
@@ -150,25 +152,59 @@ interface LinksDao {
         linkType: com.sakethh.linkora.domain.LinkType, parentFolderId: Long, sortOption: String,
     ): Flow<List<Link>>
 
-    @Query(
-        """
-        SELECT link.* 
-        FROM links link
-        INNER JOIN link_tags linkTag ON link.localId = linkTag.linkId
-        WHERE linkTag.tagId = :tagId
-        ORDER BY 
-            CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN link.title COLLATE NOCASE END ASC,
-            CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN link.title COLLATE NOCASE END DESC,
-            CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN link.localId END DESC,
-            CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN link.localId END ASC
-    LIMIT :pageSize
-    OFFSET :startIndex
-    """
+    @Query("""
+    SELECT link.* FROM links link
+    INNER JOIN link_tags linkTag ON link.localId = linkTag.linkId
+    WHERE linkTag.tagId = :tagId
+    AND (
+        :lastSeenTitle IS NULL OR :lastSeenTitle = '' OR
+        (
+            :isAscending = 1 AND (
+                link.title COLLATE NOCASE > :lastSeenTitle 
+                OR (link.title COLLATE NOCASE = :lastSeenTitle AND link.localId > :lastSeenId)
+            )
+        ) 
+        OR 
+        (
+            :isAscending = 0 AND (
+                link.title COLLATE NOCASE < :lastSeenTitle 
+                OR (link.title COLLATE NOCASE = :lastSeenTitle AND link.localId > :lastSeenId)
+            )
+        )
     )
-    fun getSortedLinks(
+    ORDER BY 
+        CASE WHEN :isAscending = 1 THEN link.title END COLLATE NOCASE ASC,
+        CASE WHEN :isAscending = 0 THEN link.title END COLLATE NOCASE DESC,
+        link.localId ASC
+    LIMIT :pageSize
+""")
+    fun getLinksSortedByTitle(
         tagId: Long,
-        sortOption: String,
-        pageSize: Int, startIndex: Long
+        lastSeenTitle: String?,
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
+    ): Flow<List<Link>>
+
+    @Query("""
+    SELECT link.* FROM links link
+    INNER JOIN link_tags linkTag ON link.localId = linkTag.linkId
+    WHERE linkTag.tagId = :tagId
+    AND (
+        :lastSeenId IS NULL 
+        OR (:isAscending = 1 AND link.localId > :lastSeenId)
+        OR (:isAscending = 0 AND link.localId < :lastSeenId)
+    )
+    ORDER BY 
+        CASE WHEN :isAscending = 1 THEN link.localId END ASC,
+        CASE WHEN :isAscending = 0 THEN link.localId END DESC
+    LIMIT :pageSize
+""")
+    fun getLinksSortedById(
+        tagId: Long,
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
     ): Flow<List<Link>>
 
     @Query("SELECT * FROM links")
@@ -250,26 +286,61 @@ interface LinksDao {
     suspend fun getRemoteIds(localIds: List<Long>): List<Long>?
 
 
-    @Query(
-        """
-        SELECT * FROM links
-            WHERE (CASE WHEN :applyLinkFilters = 1 THEN links.linkType IN 
-                (:activeLinkFilters) ELSE 1 END)
-        ORDER BY 
-            CASE WHEN :sortOption = '${Sorting.A_TO_Z}' THEN links.title COLLATE NOCASE END ASC,
-            CASE WHEN :sortOption = '${Sorting.Z_TO_A}' THEN links.title COLLATE NOCASE END DESC,
-            CASE WHEN :sortOption = '${Sorting.NEW_TO_OLD}' THEN links.localId END DESC,
-            CASE WHEN :sortOption = '${Sorting.OLD_TO_NEW}' THEN links.localId END ASC
-        LIMIT :pageSize 
-        OFFSET :startIndex
-    """
-    )
-    fun getAllLinks(
+    @Query("""
+    SELECT * FROM links 
+    WHERE 
+      (:applyLinkFilters = 0 OR linkType IN (:activeLinkFilters))
+      AND (
+          :lastSeenId IS NULL 
+          OR (:isAscending = 1 AND localId > :lastSeenId)
+          OR (:isAscending = 0 AND localId < :lastSeenId)
+      )
+    ORDER BY 
+        CASE WHEN :isAscending = 1 THEN localId END ASC,
+        CASE WHEN :isAscending = 0 THEN localId END DESC
+    LIMIT :pageSize
+    """)
+    fun getAllLinksSortedById(
         applyLinkFilters: Boolean,
-        activeLinkFilters: List<String>, // we can (?) directly use LinkType and i guess we might also need TypeConverter for that
-        sortOption: String,
-        pageSize: Int,
-        startIndex: Long
+        activeLinkFilters: List<String>,
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
+    ): Flow<List<Link>>
+
+    @Query("""
+    SELECT * FROM links 
+    WHERE 
+      (:applyLinkFilters = 0 OR linkType IN (:activeLinkFilters))
+      AND (
+          :lastSeenTitle IS NULL OR :lastSeenTitle = '' OR
+          (
+              :isAscending = 1 AND (
+                  title COLLATE NOCASE > :lastSeenTitle 
+                  OR (title COLLATE NOCASE = :lastSeenTitle AND localId > :lastSeenId)
+              )
+          ) 
+          OR 
+          (
+              :isAscending = 0 AND (
+                  title COLLATE NOCASE < :lastSeenTitle 
+                  OR (title COLLATE NOCASE = :lastSeenTitle AND localId > :lastSeenId)
+              )
+          )
+      )
+    ORDER BY 
+        CASE WHEN :isAscending = 1 THEN title END COLLATE NOCASE ASC,
+        CASE WHEN :isAscending = 0 THEN title END COLLATE NOCASE DESC,
+        localId ASC
+    LIMIT :pageSize
+    """)
+    fun getAllLinksSortedByTitle(
+        applyLinkFilters: Boolean,
+        activeLinkFilters: List<String>,
+        lastSeenTitle: String?,
+        lastSeenId: Long?,
+        isAscending: Boolean,
+        pageSize: Int
     ): Flow<List<Link>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM links)")

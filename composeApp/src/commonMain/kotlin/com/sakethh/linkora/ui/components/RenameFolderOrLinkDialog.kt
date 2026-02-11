@@ -54,7 +54,8 @@ import com.sakethh.linkora.domain.ComposableContent
 import com.sakethh.linkora.domain.Platform
 import com.sakethh.linkora.domain.model.tag.Tag
 import com.sakethh.linkora.platform.platform
-import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.LastSeenId
+import com.sakethh.linkora.ui.LastSeenString
 import com.sakethh.linkora.ui.components.menu.MenuBtmSheetType
 import com.sakethh.linkora.ui.components.menu.menuBtmSheetFolderEntries
 import com.sakethh.linkora.ui.domain.PaginationState
@@ -75,7 +76,7 @@ data class RenameFolderOrLinkDialogParam @OptIn(ExperimentalMaterial3Api::class)
     val existingNote: String,
     val existingImageUrl: String,
     val existingUrl: String,
-    val allTags: State<PaginationState<Map<PageKey, List<Tag>>>>,
+    val allTags: State<PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<Tag>>>>,
     val selectedTags: List<Tag>,
     val onRetrieveNextTagsPage: () -> Unit,
     val onFirstVisibleIndexChange: (Long) -> Unit

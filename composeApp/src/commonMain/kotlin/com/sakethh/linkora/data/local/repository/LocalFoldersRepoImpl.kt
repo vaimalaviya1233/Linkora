@@ -20,6 +20,7 @@ import com.sakethh.linkora.domain.repository.local.LocalPanelsRepo
 import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteFoldersRepo
+import com.sakethh.linkora.utils.Sorting
 import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.performLocalOperationWithRemoteSyncFlow
 import com.sakethh.linkora.utils.updateLastSyncedWithServerTimeStamp
@@ -174,10 +175,25 @@ class LocalFoldersRepoImpl(
         sortOption: String,
         isArchived: Boolean,
         pageSize: Int,
-        startIndex: Long
+        lastSeenName: String?,
+        lastSeenId: Long?,
     ): Flow<Result<List<Folder>>> {
-        return foldersDao.getRootFolders(sortOption, isArchived, pageSize, startIndex)
-            .mapToResultFlow()
+        return when (sortOption) {
+            Sorting.A_TO_Z, Sorting.Z_TO_A -> foldersDao.getRootFoldersSortedByName(
+                lastSeenId = lastSeenId,
+                lastSeenName = lastSeenName?.takeIf { it.isNotEmpty() },
+                isAscending = sortOption == Sorting.A_TO_Z,
+                pageSize = pageSize,
+                isArchived = isArchived,
+            )
+
+            else -> foldersDao.getRootFoldersSortedById(
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.OLD_TO_NEW,
+                pageSize = pageSize,
+                isArchived = isArchived,
+            )
+        }.mapToResultFlow()
     }
 
     override suspend fun getChildFolders(
@@ -193,6 +209,7 @@ class LocalFoldersRepoImpl(
     ): List<Folder> {
         return foldersDao.getChildFoldersAsList(parentFolderId)
     }
+
     override fun sortFoldersAsNonResultFlow(
         parentFolderId: Long, sortOption: String
     ): Flow<List<Folder>> {
@@ -366,18 +383,16 @@ class LocalFoldersRepoImpl(
                 preferencesRepository.updateLastSyncedWithServerTimeStamp(it.eventTimestamp)
             },
             onRemoteOperationFailure = {
-                if (remoteFolderId != null) {
-                    pendingSyncQueueRepo.addInQueue(
-                        PendingSyncQueue(
-                            operation = SyncServerRoute.DELETE_FOLDER.name,
-                            payload = Json.encodeToString(
-                                value = IDBasedDTO(
-                                    remoteFolderId, eventTimestamp
-                                )
+                pendingSyncQueueRepo.addInQueue(
+                    PendingSyncQueue(
+                        operation = SyncServerRoute.DELETE_FOLDER.name,
+                        payload = Json.encodeToString(
+                            value = IDBasedDTO(
+                                folderID, eventTimestamp
                             )
                         )
                     )
-                }
+                )
             },
             localOperation = {
                 deleteChildData(folderID)

@@ -55,10 +55,12 @@ import androidx.compose.ui.zIndex
 import com.sakethh.linkora.Localization
 import com.sakethh.linkora.domain.asUnifiedLazyState
 import com.sakethh.linkora.domain.model.tag.Tag
-import com.sakethh.linkora.ui.PageKey
+import com.sakethh.linkora.ui.LastSeenId
+import com.sakethh.linkora.ui.LastSeenString
 import com.sakethh.linkora.ui.domain.PaginationState
 import com.sakethh.linkora.ui.utils.UIEvent
 import com.sakethh.linkora.ui.utils.UIEvent.pushUIEvent
+import com.sakethh.linkora.ui.utils.linkoraLog
 import com.sakethh.linkora.utils.rememberLocalizedString
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -67,7 +69,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun TagSelectionComponent(
     paddingValues: PaddingValues = PaddingValues(start = 15.dp, end = 25.dp, top = 5.dp),
-    allTags: PaginationState<Map<PageKey, List<Tag>>>,
+    allTags: PaginationState<Map<Pair<LastSeenId, LastSeenString>, List<Tag>>>,
     selectedTags: List<Tag>,
     onTagClick: (tag: Tag) -> Unit,
     onRetrieveNextTagsPage: () -> Unit,

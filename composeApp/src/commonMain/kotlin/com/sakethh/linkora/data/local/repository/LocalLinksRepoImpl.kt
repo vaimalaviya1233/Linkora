@@ -28,6 +28,7 @@ import com.sakethh.linkora.domain.repository.local.PendingSyncQueueRepo
 import com.sakethh.linkora.domain.repository.local.PreferencesRepository
 import com.sakethh.linkora.domain.repository.remote.RemoteLinksRepo
 import com.sakethh.linkora.ui.domain.model.LinkTagsPair
+import com.sakethh.linkora.utils.Sorting
 import com.sakethh.linkora.utils.defaultFolderIds
 import com.sakethh.linkora.utils.getLocalizedString
 import com.sakethh.linkora.utils.getSystemEpochSeconds
@@ -219,22 +220,49 @@ class LocalLinksRepoImpl(
         parentFolderId: Long,
         sortOption: String,
         pageSize: Int,
-        startIndex: Long
+        lastSeenTitle: String?,
+        lastSeenId: Long?
     ): Flow<Result<List<Link>>> {
-        return linksDao.getSortedLinks(linkType, parentFolderId, sortOption, pageSize, startIndex)
-            .mapToResultFlow()
+        return when (sortOption) {
+            Sorting.A_TO_Z, Sorting.Z_TO_A -> linksDao.getLinksSortedByTitle(
+                linkType = linkType.name,
+                lastSeenTitle = lastSeenTitle?.takeIf { it.isNotEmpty() },
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.A_TO_Z,
+                pageSize = pageSize
+            )
+
+            else -> linksDao.getLinksSortedById(
+                linkType = linkType.name,
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.OLD_TO_NEW,
+                pageSize = pageSize
+            )
+        }.mapToResultFlow()
     }
 
     override suspend fun getLinks(
         tagId: Long, sortOption: String,
-        pageSize: Int, startIndex: Long
+        pageSize: Int,
+        lastSeenTitle: String?,
+        lastSeenId: Long?
     ): Flow<Result<List<Link>>> {
-        return linksDao.getSortedLinks(
-            tagId = tagId,
-            sortOption = sortOption,
-            pageSize = pageSize,
-            startIndex = startIndex
-        ).mapToResultFlow()
+        return when (sortOption) {
+            Sorting.A_TO_Z, Sorting.Z_TO_A -> linksDao.getLinksSortedByTitle(
+                tagId = tagId,
+                lastSeenTitle = lastSeenTitle?.takeIf { it.isNotEmpty() },
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.A_TO_Z,
+                pageSize = pageSize
+            )
+
+            else -> linksDao.getLinksSortedById(
+                tagId = tagId,
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.OLD_TO_NEW,
+                pageSize = pageSize
+            )
+        }.mapToResultFlow()
     }
 
     override fun getLinksAsNonResultFlow(
@@ -246,14 +274,24 @@ class LocalLinksRepoImpl(
     override suspend fun getLinks(
         linkType: LinkType,
         sortOption: String,
-        pageSize: Int, startIndex: Long
+        pageSize: Int, lastSeenTitle: String?, lastSeenId: Long?
     ): Flow<Result<List<Link>>> {
-        return linksDao.getSortedLinks(
-            linkType = linkType,
-            sortOption = sortOption,
-            pageSize = pageSize,
-            startIndex = startIndex
-        ).mapToResultFlow()
+        return when (sortOption) {
+            Sorting.A_TO_Z, Sorting.Z_TO_A -> linksDao.getLinksSortedByTitle(
+                linkType = linkType.name,
+                lastSeenTitle = lastSeenTitle?.takeIf { it.isNotEmpty() },
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.A_TO_Z,
+                pageSize = pageSize
+            )
+
+            else -> linksDao.getLinksSortedById(
+                linkType = linkType.name,
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.OLD_TO_NEW,
+                pageSize = pageSize
+            )
+        }.mapToResultFlow()
     }
 
     override fun getLinksAsNonResultFlow(
@@ -820,15 +858,27 @@ class LocalLinksRepoImpl(
         activeLinkFilters: List<String>,
         sortOption: String,
         pageSize: Int,
-        startIndex: Long
+        lastSeenName: String?,
+        lastSeenId: Long?
     ): Flow<Result<List<Link>>> {
-        return linksDao.getAllLinks(
-            applyLinkFilters,
-            activeLinkFilters,
-            sortOption,
-            pageSize,
-            startIndex
-        ).mapToResultFlow()
+        return when (sortOption) {
+            Sorting.A_TO_Z, Sorting.Z_TO_A -> linksDao.getAllLinksSortedByTitle(
+                lastSeenId = lastSeenId,
+                lastSeenTitle = lastSeenName?.takeIf { it.isNotEmpty() },
+                pageSize = pageSize,
+                isAscending = sortOption == Sorting.A_TO_Z,
+                applyLinkFilters = applyLinkFilters,
+                activeLinkFilters = activeLinkFilters
+            )
+
+            else -> linksDao.getAllLinksSortedById(
+                lastSeenId = lastSeenId,
+                isAscending = sortOption == Sorting.OLD_TO_NEW,
+                pageSize = pageSize,
+                applyLinkFilters = applyLinkFilters,
+                activeLinkFilters = activeLinkFilters,
+            )
+        }.mapToResultFlow()
     }
 
     override suspend fun isLinksTableEmpty(): Boolean {

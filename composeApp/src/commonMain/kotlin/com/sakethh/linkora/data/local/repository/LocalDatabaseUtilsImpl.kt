@@ -12,6 +12,7 @@ import com.sakethh.linkora.domain.model.FlatSearchResult
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.repository.local.LocalDatabaseUtilsRepo
 import com.sakethh.linkora.utils.Constants
+import com.sakethh.linkora.utils.Sorting
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -50,11 +51,33 @@ class LocalDatabaseUtilsImpl(private val localDatabase: LocalDatabase) : LocalDa
         linkType: LinkType,
         sortOption: String,
         pageSize: Int,
-        startIndex: Long
+        lastTypeOrder: Int?,
+        lastSortStr: String?,
+        lastId: Long?
     ): Flow<Result<List<FlatChildFolderData>>> {
-        return localDatabase.localDatabaseUtilsDao.getFlatChildFolderData(
-            parentFolderId, linkType, sortOption, pageSize, startIndex
-        ).mapToResultFlow()
+
+        val safeId = if (lastId == Constants.EMPTY_LAST_SEEN_ID) null else lastId
+
+        return when (sortOption) {
+            Sorting.A_TO_Z, Sorting.Z_TO_A -> localDatabase.localDatabaseUtilsDao.getChildDataSortedByName(
+                pageSize = pageSize,
+                isAscending = sortOption == Sorting.A_TO_Z,
+                parentFolderId = parentFolderId,
+                linkType = linkType,
+                lastTypeOrder = lastTypeOrder,
+                lastSortStr = lastSortStr,
+                lastUniqueId = safeId
+            )
+
+            else -> localDatabase.localDatabaseUtilsDao.getChildDataSortedById(
+                pageSize = pageSize,
+                isAscending = sortOption == Sorting.OLD_TO_NEW,
+                parentFolderId = parentFolderId,
+                linkType = linkType,
+                lastTypeOrder = lastTypeOrder,
+                lastSortId = safeId,
+            )
+        }.mapToResultFlow()
     }
 
 
@@ -62,7 +85,6 @@ class LocalDatabaseUtilsImpl(private val localDatabase: LocalDatabase) : LocalDa
         query: String,
         sortOption: String,
         pageSize: Int,
-        startIndex: Long,
         shouldShowTags: Boolean,
         shouldShowFolders: Boolean,
         includeArchivedFolders: Boolean,
@@ -70,20 +92,27 @@ class LocalDatabaseUtilsImpl(private val localDatabase: LocalDatabase) : LocalDa
         shouldShowLinks: Boolean,
         isLinkTypeFilterActive: Boolean,
         activeLinkTypeFilters: List<String>,
-        assignPath: Boolean
+        assignPath: Boolean,
+        lastTypeOrder: Int,
+        lastSortStr: String,
+        lastSortNum: Long,
+        lastId: Long
     ): Flow<Result<List<FlatSearchResult>>> {
         return localDatabase.localDatabaseUtilsDao.search(
             query,
             sortOption,
             pageSize,
-            startIndex = startIndex,
             shouldShowTags = shouldShowTags,
             shouldShowFolders = shouldShowFolders,
             includeArchivedFolders = includeArchivedFolders,
             includeRegularFolders = includeRegularFolders,
             shouldShowLinks = shouldShowLinks,
             isLinkTypeFilterActive = isLinkTypeFilterActive,
-            activeLinkTypeFilters = activeLinkTypeFilters
+            activeLinkTypeFilters = activeLinkTypeFilters,
+            lastTypeOrder = lastTypeOrder,
+            lastSortStr = lastSortStr,
+            lastSortNum = lastSortNum,
+            lastId = lastId,
         ).transform { searchResult ->
             if (!assignPath) {
                 emit(searchResult)
