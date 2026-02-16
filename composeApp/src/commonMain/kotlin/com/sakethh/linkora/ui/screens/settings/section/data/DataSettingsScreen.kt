@@ -504,14 +504,14 @@ fun DataSettingsScreen() {
                 SettingComponent(
                     SettingComponentParam(
                         isIconNeeded = rememberSaveable { mutableStateOf(true) },
-                        title = "Enforce strict folder IDs on default folders",
+                        title = Localization.Key.EnforceStrictDefaultIDsLabel.rememberLocalizedString(),
                         doesDescriptionExists = true,
-                        description = "Force writes the IDs of Saved Links, Important Links, Archived Links, History Links to its internal IDs respectively.\n\nThis operation is usually not required, since linkora handles it by default.",
+                        description = Localization.Key.EnforceStrictDefaultIDsDesc.rememberLocalizedString(),
                         isSwitchNeeded = false,
                         isSwitchEnabled = AppPreferences.useAmoledTheme,
                         onSwitchStateChange = {
                             dataSettingsScreenVM.forceSetDefaultFolderToInternalIds(onStart = {
-                                labelForAlertDialogWithProgress = "Updating Internal IDs"
+                                labelForAlertDialogWithProgress = Localization.Key.UpdatingInternalIDsLabel.getLocalizedString()
                                 showAlertDialogWithProgress.value = true
                             }, onCompletion = {
                                 showAlertDialogWithProgress.value = false

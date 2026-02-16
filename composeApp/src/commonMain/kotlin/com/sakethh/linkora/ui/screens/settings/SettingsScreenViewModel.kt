@@ -513,7 +513,7 @@ open class SettingsScreenViewModel(
                     newValue = AppPreferences.showTagsInLinkView
                 )
             },
-            title = "Show Tags",
+            title = Localization.Key.ShowTagsLabel.getLocalizedString(),
             isSwitchChecked = { AppPreferences.showTagsInLinkView }),
         LinkPref(
             onClick = {
@@ -524,7 +524,7 @@ open class SettingsScreenViewModel(
                     newValue = AppPreferences.showDateInLinkView
                 )
             },
-            title = "Show Date",
+            title = Localization.Key.ShowDateLabel.getLocalizedString(),
             isSwitchChecked = { AppPreferences.showDateInLinkView }),
         LinkPref(
             onClick = {
@@ -545,7 +545,7 @@ open class SettingsScreenViewModel(
                     newValue = AppPreferences.showMenuOnGridLinkClick
                 )
             },
-            title = "Click to Open Menu",
+            title = Localization.Key.ClickToOpenMenuLabel.getLocalizedString(),
             isSwitchChecked = { AppPreferences.showMenuOnGridLinkClick }),
     )
 

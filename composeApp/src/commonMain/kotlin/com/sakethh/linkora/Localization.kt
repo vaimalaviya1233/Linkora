@@ -82,6 +82,11 @@ object Localization {
      }*/
 
     enum class Key(val defaultValue: String) {
+
+        UpdatingInternalIDsLabel("Updating Internal IDs"),
+        EnforceStrictDefaultIDsLabel("Enforce strict folder IDs on default folders"),
+        EnforceStrictDefaultIDsDesc("Force writes the IDs of Saved Links, Important Links, Archived Links, History Links to its internal IDs respectively.\n\nThis operation is usually not required, since linkora handles it by default."),
+
         SkipSavingExistingLinksLabel(defaultValue = "Skip saving existing links"),
         SkipSavingExistingLinksDesc(defaultValue = "If enabled, a link won't be saved if it already exists in the destination. An error will be thrown instead."),
         Copy(defaultValue = "Copy"),
@@ -814,6 +819,7 @@ object Localization {
         NoItemsFound("No items found."),
         ShowTagsLabel("Show Tags"),
         ShowDateLabel("Show Date"),
+        ClickToOpenMenuLabel("Click to Open Menu"),
         LinkExistsInSelectedFolderMsg("You've already added this link to the selected folder."),
         LinkExistsInSavedLinksMsg("You've already saved this link in the \"Saved\" collection."),
         LinkExistsInHistoryMsg("This link is already in your history."),
