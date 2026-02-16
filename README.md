@@ -8,7 +8,8 @@ A browser extension is available for saving web links directly to Linkora via sy
 
 [sync server](https://github.com/LinkoraApp/sync-server) | [Extension repo](https://github.com/LinkoraApp/browser-extension)
 
-**Contributing?** See the [Contributing Guide](CONTRIBUTING.md) | [Code of Conduct](https://github.com/LinkoraApp/.github/blob/main/CODE_OF_CONDUCT.md)
+**Contributing?** See
+the [Contributing Guide](CONTRIBUTING.md) | [Code of Conduct](https://github.com/LinkoraApp/.github/blob/main/CODE_OF_CONDUCT.md)
 
 ## Download
 
@@ -59,10 +60,16 @@ Get it on Arch Linux:
 ## Built with
 
 - Kotlin Multiplatform + Compose Multiplatform + Material 3
-- SQLite with Room (local storage) + Ktor (networking) + Custom reactive and resource-aware paginator
+- SQLite with Room (local storage) + Ktor (networking) + Custom Cursor-based reactive and
+  resource-aware paginator
 - Coroutines and Flows for async operations
 - jsoup for HTML parsing and metadata extraction
 - Coil for image loading
+
+Linkora's improved UI components are inspired and based on designs created
+by [LOLCATpl](https://discord.com/users/494115165927637007) across all platforms. The icon, painted
+by [mondstern](https://pixelfed.social/mondstern), is used as the app icon on all platforms and also
+on the internet.
 
 ### Localization
 
@@ -70,12 +77,6 @@ Linkora supports multiple languages with remote strings that can be updated with
 update. If you'd like to help translate Linkora into your language or improve existing translations,
 please go through the [localization server](https://github.com/LinkoraApp/localization-server)'s
 README to learn more about how localization is handled and how you can contribute.
-
-## Support
-
-**Star the repo** if you find Linkora useful
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/sakethpathike)
 
 ## Community
 

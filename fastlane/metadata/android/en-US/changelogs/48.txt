@@ -1,0 +1,6 @@
+- Optimized JSON/HTML imports & exports to run in linear time O(n), reducing memory usage by ~57% with ~17% better CPU efficiency.
+- Fixed OutOfMemory/StackOverflow crashes that might occur during large dataset (100K+) processing during both importing and exporting.
+- Implemented cursor-based pagination to reduce database overhead during deep scrolls.
+- Added option to force write default folder IDs to respective links.
+
+https://github.com/LinkoraApp/Linkora/releases/tag/release-v0.16.0
